@@ -1,0 +1,61 @@
+{
+  "id": "s53_v3c2nc",
+  "run": "--run",
+  "observations": "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3c3_nc_20261001\\observations\\s53_v3c2nc_observations",
+  "command": [
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\extract_observations.py",
+    "--run",
+    "D:\\VISSIM_runs\\20260930_v3c2\\s53_v3c2nc\\run",
+    "--out",
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3c3_nc_20261001\\observations\\s53_v3c2nc_observations",
+    "--phase-sec",
+    "0.1",
+    "--geometry-profile",
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\controller_response_v1\\geometry_profile.json",
+    "--refined-geometry",
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\geometry_200_branch_guard.json"
+  ],
+  "finished": "2026-10-01T15:40:56",
+  "elapsed_s": 85.4,
+  "priority": "BELOW_NORMAL (0x4000 read back on the child)",
+  "extractor_sha256": "5fa270475255183688db196ffee7508b44faad4c04c91b09b461fcf4cacc2a75",
+  "manifest_sha256": "6a7048f7d5cb3cd51e412304b41bf06bc73f07d16374c148efc951eb4d990226",
+  "purpose": "SDMPC-31 re-pin to network v3c3 (2026-10-01, K7): plant geometry (s31), ramp-arrival forecast inputs (boundaries_30s.csv, fit seeds 31/41/43/47/53; s37 held out, never extracted)",
+  "verification": {
+    "seed": 53,
+    "checks": 18538,
+    "last_frame": 8995.1,
+    "last_complete_30s_window_s": 8970.1,
+    "position_verified": 4713,
+    "network_sha256": "c2dd1a48b4be7b936e9f07505365bf366fc953e5c02d3467059d923c21dfada1",
+    "fzp_sha256": "61e496a2bfbf032dc66c8ecc01a208cc80210905b276243756f1b75431dc69bc",
+    "fzp_payload_sha256": "72385aa56163e46ff01f75088c24557b635f90ce32fbb49fbca4cd6cb8330cd4",
+    "unexplained_entries": 0.0,
+    "unexplained_losses": 1.0,
+    "native_removals": 3.0,
+    "source_admissions": 27927.0,
+    "ramp_merges": 11759.0,
+    "off_departures": 15907.0,
+    "terminal_exits_inferred": 22949.0,
+    "note": "unexplained evidence events (exclusion_evidence.json): [{\"vehicle_id\": 30611, \"lower_sec\": 3835.1, \"upper_sec\": 3840.1, \"reason\": \"unverified_mainline_loss\", \"before\": [24, 2, 3201.49, 95.24], \"after\": null}]"
+  },
+  "v3c2_eo_identity": {
+    "eo_receipt": "D:\\VISSIM_runs\\20260930_v3c2\\reports\\nc_analysis\\eo\\s53_v3c2nc_extraction_receipt.json",
+    "eo_receipt_sha256": "76ca694633e2004ba291224afdbcbdaec44d418daf208c15b5e6e44f984c90f0",
+    "boundaries_30s.csv": true,
+    "flows_30s.csv": true,
+    "cells_30s.csv": true,
+    "extractor_equal": true,
+    "payload_equal": true,
+    "totals_equal": {
+      "unexplained_entries": true,
+      "unexplained_losses": true,
+      "native_removals": true,
+      "source_admissions": true,
+      "ramp_merges": true,
+      "off_departures": true,
+      "terminal_exits_inferred": true
+    }
+  },
+  "substitute": "SUBSTITUTE (K7, 2026-10-01): the v3c3 s53 NC run (D:\\VISSIM_runs\\20261001_v3c3\\s53_v3c3nc) never wrote a completed run.json (VISSIM finished, the wrapper did not; GB-1 s53 is not judged), so this seed is the v3c2 s53 NC run (network c2dd1a48, the v3c3 s53 network minus the three DSD blocks). Basis: GB-1 PASS on s31/41/43/47 (v3c3 FZP payload == v3c2) and N1F G0 8/8; it is NOT an identity proof for s53. The network field is the v3c2 s53 sha as run. Re-check when the v3c3 s53 run completes: GB-1 s53 PASS and the boundaries/flows/cells bytes of a v3c3 s53 extraction == this one (K7 predeclaration O-0). Report only, not GB-1: the v3c3 s53 FZP that exists (1173499393 B, header 4029 B) has payload sha256 72385aa5... and 6850613 rows, equal to the v3c2 s53 payload (gb1_identity payload definition; computed 2026-10-01)."
+}

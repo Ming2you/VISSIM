@@ -1,0 +1,59 @@
+{
+  "id": "s41_v3c3nc",
+  "run": "--run",
+  "observations": "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3c3_nc_20261001\\observations\\s41_v3c3nc_observations",
+  "command": [
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\extract_observations.py",
+    "--run",
+    "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3nc\\run",
+    "--out",
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3c3_nc_20261001\\observations\\s41_v3c3nc_observations",
+    "--phase-sec",
+    "0.1",
+    "--geometry-profile",
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\controller_response_v1\\geometry_profile.json",
+    "--refined-geometry",
+    "D:\\VISSIM-merge\\sim3-n31-v3c3\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\geometry_200_branch_guard.json"
+  ],
+  "finished": "2026-10-01T15:36:45",
+  "elapsed_s": 84.7,
+  "priority": "BELOW_NORMAL (0x4000 read back on the child)",
+  "extractor_sha256": "5fa270475255183688db196ffee7508b44faad4c04c91b09b461fcf4cacc2a75",
+  "manifest_sha256": "26e531eb84e4d16384d4f78427618192e04e81ab847b0027884a7aa1700c6ba6",
+  "purpose": "SDMPC-31 re-pin to network v3c3 (2026-10-01, K7): plant geometry (s31), ramp-arrival forecast inputs (boundaries_30s.csv, fit seeds 31/41/43/47/53; s37 held out, never extracted)",
+  "verification": {
+    "seed": 41,
+    "checks": 18538,
+    "last_frame": 8995.1,
+    "last_complete_30s_window_s": 8970.1,
+    "position_verified": 4701,
+    "network_sha256": "726af589bddb8c7267654bda446d2f1a4378451f51e1593857062fca0d32587e",
+    "fzp_sha256": "f63f00807b27d692c11296ddd5700cd233a8af2915cb51db3909c53e4e26f546",
+    "fzp_payload_sha256": "cc8fb77b10506e844cee8a67d25485528c8a388c5baf555f25d2c9205e87c414",
+    "unexplained_entries": 0.0,
+    "unexplained_losses": 0.0,
+    "native_removals": 1.0,
+    "source_admissions": 27881.0,
+    "ramp_merges": 11614.0,
+    "off_departures": 15773.0,
+    "terminal_exits_inferred": 22757.0
+  },
+  "v3c2_eo_identity": {
+    "eo_receipt": "D:\\VISSIM_runs\\20260930_v3c2\\reports\\nc_analysis\\eo\\s41_v3c2nc_extraction_receipt.json",
+    "eo_receipt_sha256": "d51c543110d5c60199106945a8ae2a0070eccfbd22dd890bf7402ec2b35327b3",
+    "boundaries_30s.csv": true,
+    "flows_30s.csv": true,
+    "cells_30s.csv": true,
+    "extractor_equal": true,
+    "payload_equal": true,
+    "totals_equal": {
+      "unexplained_entries": true,
+      "unexplained_losses": true,
+      "native_removals": true,
+      "source_admissions": true,
+      "ramp_merges": true,
+      "off_departures": true,
+      "terminal_exits_inferred": true
+    }
+  }
+}
