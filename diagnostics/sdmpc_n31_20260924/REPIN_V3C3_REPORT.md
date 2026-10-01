@@ -67,15 +67,25 @@
 - **(b) 무신호 회전: 소속을 v3c1 23개로 고정.** 같은 규칙(정지 비율 ≤ 0.05, 전이 ≥ 100)에서 `SC103_S_SC6_to_E`(커넥터 10096)가 0.0472 → 0.0544로 문턱을 넘어, 첫 K7 유도는 22개였습니다. 오프라인 관문 O-3(DA-2)이 이 소속 변화를 구속 실패로 잡았습니다. 사용자 결정(10-01 17:3x)으로 소속은 v3c1 표(K6 `54d821c` blob `c2558392`, sha256 `95ea2732`)의 23개로 고정합니다(`D:/VISSIM_runs/20261001_v3c3/reports/k7/K7_AMENDMENT_1.md`). 생성기 `MEMBERSHIP_PIN`이 소속과 알려진 초과 집합을 고정하고, 다른 소속·초과는 거부합니다. 검증 수치는 v3c3 값이고, 이 회전은 표의 `membership_pin.known_validation_exceedances`에 v3c3 0.0544(n 5602)와 v3c1 0.0472(n 5611)로 적힙니다. 표 `43247697`, 후보 config `4e85cfd6`·`c60bde7c`. 문턱 근처 다른 회전: `SC1002_W_SC1001_to_S_SC105` 0.0421, `SC2005_S_SC101_to_E_SC102` 0.0401. 이 표는 U3 후보(`config_n31_v2_urban_b1*.json`)만 읽고 배포 튜닝 `config_n31_v2.json`은 읽지 않습니다 [읽음].
 - **(c) T9 중앙차분 간격.** L2에서 80/90/100의 AD 대 h 0.25 중앙차분이 100(ttt)에서 상대 2.5e-4로 1e-4를 넘었습니다. h를 0.5→0.0078로 줄이면 오차가 4배씩 줄고(4.8e-6, 1.2e-6, 3.0e-7, 7.5e-8, …) 좌·우 한쪽 차분이 양쪽에서 AD로 모입니다. 꺾임이 아니라 O(h²) 절단 오차이고 AD가 극한값입니다 [실행 `reports/k7/evidence/t9_probe.json`]. 간격을 0.0625로 줄였고 허용 오차 1e-4는 그대로입니다(계획 R9 "원인 조사(곡률, h)").
 
-## 5. grep 기록 (N17, W @ K7 작업본, `vendor` 제외) [실행]
+## 5. grep 기록 (N17) [실행]
 
-| 패턴 | 결과 |
-|---|---|
-| `2577209b` (v3c1 s31) | 28개 파일. 모두 이력 문구(생성기 주석·docstring, plant qualification, 문서, worklog), v3c1 추출 폴더(기록으로 남김), `PREVIOUS_RUNTIME_NETWORK`, 재핀 영수증의 이전 망, 시험의 v3c1 재구성 상수입니다. 살아 있는 핀은 0개입니다 |
-| `226baa37`/`b8e7cf1f`/`ec0cd81d`/`385f40da` (v3c1 fit 41–53) | v3c1 추출 폴더와 worklog뿐 |
-| 코드의 `v3c1` (`*.py/*.ps1/*.vbs`) | 20개 파일. 이력 주석, 이전 망 상수, v3c1 키가 빠졌음을 보는 시험(`test_the_v3c1_sources_left_this_tree`), v3c1 표와 값 비교 시험 |
-| 코드의 `0.94`·`1.44` | 분포형 가족 정의(`make_reference_config.VSL_FD_RESPONSE_BY_FAMILY['distribution']`, plant qualification), 그 가족 시험, K5/K6 단위 시험의 합성 법칙. 배포 reference는 L2 |
-| `RW_ALLOWED_VSL_SPEEDS = ` | N31 경로는 `scenario/lane_native_b110.vbs` = 81,91,101,110 하나. 나머지는 다른 설정(ver2n21, lane_plant 팩, generated)과 시험 고정값 |
+- 범위: 최종 K7 커밋 트리의 추적 파일, `vendor/` 제외, 이 보고 자신 포함.
+- 처음 기록(K7 첫 작업본, "28개 파일" 등)에는 건수가 빠진 행이 있었습니다. 관문 O-7이 이것을 잡아, K7 수정 선언 1(`D:/VISSIM_runs/20261001_v3c3/reports/k7/K7_AMENDMENT_1.md`) 뒤 다시 쟀습니다.
+- 명령: 파일 수 `git grep -l -F '<패턴>' <K7> -- . ':!vendor' | wc -l`, 줄 수 `git grep -h -F '<패턴>' <K7> -- . ':!vendor' | wc -l`.
+  - "코드"는 경로 지정 `'*.py' '*.ps1' '*.vbs'`를 더한 것입니다.
+  - 고정 문자열이라 `0.94`·`1.44`는 다른 숫자 안의 일치(예 `10.94`, `-0.94%`)도 셉니다.
+
+| 패턴 | 파일 | 줄 | 남은 곳과 사유 |
+|---|---|---|---|
+| `2577209b` (v3c1 s31 망) | 29 | 57 | v3c1 추출 폴더 3파일(기록으로 남김), 문서 11파일(CONTRACT·안내서·v3c1/v3c3 보고·worklog 7개), 생성기·도구의 이력 주석과 이전 망 상수 7파일(`repin_scenario_v2.py` `PREVIOUS_RUNTIME_NETWORK`, 어댑터 주석 1줄 포함), plant qualification 1, 재핀 영수증·전이 기록 2, 시험의 이력 주석과 v3c1 재구성 상수 5파일. 살아 있는 핀은 0개입니다 |
+| `226baa37` (v3c1 fit s41) | 6 | 6 | v3c1 추출 폴더 2파일(manifest, 영수증), worklog 3파일, 이 보고 |
+| `b8e7cf1f` (v3c1 fit s43) | 6 | 6 | 위와 같은 구성 |
+| `ec0cd81d` (v3c1 fit s47) | 5 | 5 | v3c1 추출 폴더 2파일, worklog 2파일, 이 보고 |
+| `385f40da` (v3c1 fit s53) | 5 | 5 | 위(s47)와 같은 구성 |
+| 코드의 `v3c1` | 21 | 123 | 이력 주석·docstring, 이전 망 상수, v3c1 키가 빠졌음을 보는 시험(`test_the_v3c1_sources_left_this_tree`), v3c1 표와 값 비교 시험, 무신호 회전 소속 핀(`scripts/derive_unsignalized_turns.py` `MEMBERSHIP_PIN`과 그 시험, K7 수정 선언 1). 처음 기록의 20개 파일에서 이 생성기 하나가 늘었습니다 |
+| 코드의 `0.94` | 12 | 14 | L1 법칙 7파일: 분포형 가족 정의(`make_reference_config.VSL_FD_RESPONSE_BY_FAMILY['distribution']`), plant qualification 문구(`make_plant_n31.py`), 그 가족 시험(`test_n31_generators.py`), K5/K6 단위 시험의 합성 법칙(`test_n31_plant_load.py`, `diagnostics/test_vsl_command_distribution.py`), 시험 문구(`test_n31_ad_smoke.py`, `test_n31_vsl_model.py`). 나머지 5파일은 다른 숫자입니다: `repin_scenario_v2.py:390` destPos `10.94653…`, 어댑터 `:85` 주석 `-0.94%`, 옛 스크립트 3개. 배포 reference는 L2 |
+| 코드의 `1.44` | 13 | 20 | L1 법칙 8파일: 위 7개와 문헌 법칙 시험 `tests/test_literature_vsl_fd.py`. 나머지 5파일은 다른 숫자입니다: 10490 차로당 서비스표 값 `4: 1.44`(`diagnostics/test_physical_ramp_branches.py`, 어댑터 `:11079`, 옛 스크립트 2개), 어댑터 `:5399`와 옛 ps1 1개의 배수 문구 |
+| `RW_ALLOWED_VSL_SPEEDS = ` | 35 | 44 | N31 경로는 `scenario/lane_native_b110.vbs` = 81,91,101,110 한 곳입니다. 나머지: 다른 설정(ver2/ver2n21 3, lane_plant 팩 1, native_clock 1, `evaluation/generated` 11, 옛 config 6, 러너 기본값과 그 생성기 2), 시험 고정값 4파일, 재핀 도구의 가족 상수(`repin_scenario_v2.py`), 문서(이 보고, v3c1 보고, worklog 2, 루트의 diff 1) |
 
 ## 6. 남은 것 (이 보고 밖)
 
