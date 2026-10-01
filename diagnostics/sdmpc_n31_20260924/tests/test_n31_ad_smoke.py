@@ -55,8 +55,8 @@ class AdSmokeTests(unittest.TestCase):
             self.assertLessEqual(abs(check['ad'] - check['fd']), 1e-5 * abs(check['fd']) + 1e-9, check)
 
     def test_vsl_anchor_at_vsl_max_is_one_sided_not_zero(self):
-        # Supersedes the zero column at 110 (reference VSL model: N1 L1 Carlson A0.94/E1.44 +
-        # exposure transport on FW_E): the left derivative, value unchanged.
+        # Supersedes the zero column at 110 (reference VSL model: N1F stage-2 L2, Carlson A1.33/E0.87 with the measured
+        # speed scale, + exposure transport on FW_E): the left derivative, value unchanged.
         case = self.result['vsl_anchor_max']
         self.assertEqual(case['vsl_max'], 110.0)
         self.assertTrue(case['finite'])
@@ -91,17 +91,19 @@ class AdSmokeTests(unittest.TestCase):
         # The interior points of the action set 80..110 (user approval 2026-09-28), two outputs each.
         self.assertEqual(case['anchors'], [80.0, 90.0, 100.0])
         self.assertEqual(case['vsl_set'], [80.0, 90.0, 100.0, 110.0])
+        # h 0.0625 under L2 (0.25 under L1): the h = 0.25 truncation error is 2.5e-4 at 100 (n31_ad_smoke.vsl_below_max)
+        self.assertEqual(case['h'], 0.0625)
         self.assertEqual(sorted({c['anchor'] for c in case['checks']}), [80.0, 90.0, 100.0])
         self.assertEqual(len(case['checks']), 6)
         for check in case['checks']:
             self.assertGreater(abs(check['fd']), 1e-6, check)
             self.assertLessEqual(abs(check['ad'] - check['fd']), 1e-4 * abs(check['fd']), check)
 
-    def test_reference_law_is_n1_l1(self):
-        """A silent return to another law (e.g. the branch A0.5/E4) fails here (REPIN_PLAN 5.3 (ii))."""
+    def test_reference_law_is_l2(self):
+        """A silent return to another law (N1 L1 A0.94/E1.44, the branch A0.5/E4) or to the rounded m_v 0.901/0.812/0.723
+        fails here (REPIN_V3C2_PLAN 3.4, U4; user decision 2026-10-01)."""
         reference = json.loads((fx.ROOT / 'diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json').read_text(encoding='utf-8'))
-        self.assertEqual(reference['freeway']['vsl_fd_response'],
-                         {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}})
+        self.assertEqual(reference['freeway']['vsl_fd_response'], {'FW_E': {'law': 'carlson', 'A': 1.33, 'E': 0.87, 'alpha': 0.0, 'speed_scale': {'form': 'cubic_lagrange', 'levels': {'80': 0.7225223093088844, '90': 0.8119772280655296, '100': 0.9006844904146349}, 'maximum': 110.0}}})
         self.assertNotIn('FW_W', reference['freeway']['vsl_fd_response'])
         self.assertEqual(reference['config_overrides']['freeway_follower']['vsl_set'], [80.0, 90.0, 100.0, 110.0])
 

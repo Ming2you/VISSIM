@@ -1,6 +1,6 @@
 {
   "name": "sdmpc31_v2_repin_base_20260924",
-  "description": "WP-E base (plan section 5): diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json with the scenario pack and network pins re-pointed to the network v3c1 2577209b (FW80/U90 v2 + v3/v3b route edits 2026-09-25 + the v3c1 routing decisions 2026-09-28). Not launchable alone: freeway.lane_plant still selects the v1 manifest; WP-C make_config_n31.py layers the v2 differences. | Latest lane plant with explicit historical urban priors; native source demand; SDMPC8workers. | head_observation.sample_interval_sec 5 -> 1. The lane plant counts ramp entries by differencing consecutive one-second frames (lane_plant_runtime.initialize, the range(start+1, cutoff+1) loop), so a 5-second cadence raises KeyError on the first missing second. The lane plant native run that produced plant.json declared no sample_interval_sec, i.e. 1, so 1 is the cadence it was built and validated under. Widening the loop instead would change what lane_arrival_shares measures: a vehicle entering and leaving within one 5-second step would stop being counted.",
+  "description": "WP-E base (plan section 5): diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json with the scenario pack and network pins re-pointed to the network v3c3 3de889f0 (FW80/U90 v2 + v3/v3b route edits 2026-09-25 + the v3c1 routing decisions 2026-09-28 + the v3c2 entry composition 2026-09-30 + the v3c3 single-value distributions 2026-10-01). Not launchable alone: freeway.lane_plant still selects the v1 manifest; WP-C make_config_n31.py layers the v2 differences. | Latest lane plant with explicit historical urban priors; native source demand; SDMPC8workers. | head_observation.sample_interval_sec 5 -> 1. The lane plant counts ramp entries by differencing consecutive one-second frames (lane_plant_runtime.initialize, the range(start+1, cutoff+1) loop), so a 5-second cadence raises KeyError on the first missing second. The lane plant native run that produced plant.json declared no sample_interval_sec, i.e. 1, so 1 is the cadence it was built and validated under. Widening the loop instead would change what lane_arrival_shares measures: a vehicle entering and leaving within one 5-second step would stop being counted.",
   "mapping_json": "evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json",
   "detector_mapping_json": "evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json",
   "config_overrides": {
@@ -7597,7 +7597,16 @@
       "apply_to_no_control": false,
       "offset_writer": "experiment"
     },
-    "_note_vsl_segment_override_policy": "종전 'clear_when_mask_disabled' + active_lever_mask.enabled=false 조합이 커밋 직전에 세그먼트 VSL 키 42개를 전부 지워, 플랜트가 방향당 값 하나만 받았다(2026-09-08 실측 vsl_segment_overrides_cleared=42). 표지판은 방향당 8개이고 구역 4개로 묶었으므로 구역별 값이 플랜트에 가야 한다. 마스크를 켜는 대신 정책만 연다 - 마스크의 allowed_ramps/allowed_signals 는 옛 실험 목록이라 켜면 다른 레버가 꺼진다."
+    "_note_vsl_segment_override_policy": "종전 'clear_when_mask_disabled' + active_lever_mask.enabled=false 조합이 커밋 직전에 세그먼트 VSL 키 42개를 전부 지워, 플랜트가 방향당 값 하나만 받았다(2026-09-08 실측 vsl_segment_overrides_cleared=42). 표지판은 방향당 8개이고 구역 4개로 묶었으므로 구역별 값이 플랜트에 가야 한다. 마스크를 켜는 대신 정책만 연다 - 마스크의 allowed_ramps/allowed_signals 는 옛 실험 목록이라 켜면 다른 레버가 꺼진다.",
+    "vsl_command_distribution": {
+      "model": "single_value",
+      "distribution_by_command": {
+        "80": 81,
+        "90": 91,
+        "100": 101,
+        "110": 110
+      }
+    }
   },
   "calibration_override": {
     "calibration_version": "real_world_prediction_calibration_core17legs4b_20260820",
@@ -7611,24 +7620,24 @@
         "max_vph_per_ramp": 900.0,
         "multiplier": 1.0,
         "queue_drain_horizon_sec_by_ramp": {
-          "RM_C10480": 16.0,
-          "RM_C10482": 43.6,
-          "RM_C10646": 30.2,
-          "RM_C10644": 88.5,
-          "RM_C10639": 40.8,
-          "RM_C10681": 159.6,
-          "RM_C10490": 33.4,
-          "RM_C10484": 44.4
+          "RM_C10480": 17.4,
+          "RM_C10482": 43.0,
+          "RM_C10646": 31.1,
+          "RM_C10644": 88.4,
+          "RM_C10639": 38.6,
+          "RM_C10681": 154.3,
+          "RM_C10490": 33.1,
+          "RM_C10484": 44.6
         },
         "max_vph_by_ramp": {
           "RM_C10480": 220.0,
-          "RM_C10482": 2347.0,
-          "RM_C10646": 408.0,
+          "RM_C10482": 2353.0,
+          "RM_C10646": 413.0,
           "RM_C10644": 545.0,
           "RM_C10639": 551.0,
-          "RM_C10681": 1248.0,
-          "RM_C10490": 843.0,
-          "RM_C10484": 592.0
+          "RM_C10681": 1262.0,
+          "RM_C10490": 850.0,
+          "RM_C10484": 600.0
         },
         "strict_ramp_keys": true
       },
@@ -7845,8 +7854,8 @@
     "beta": {
       "measured": true,
       "floor": 0.0,
-      "source": "routing_v3c1_2",
-      "sha256": "4979c05ccc4d65855a4050529a0555c8bc29e1d4176df275c5f54801d61eb62b"
+      "source": "routing_v3c3_2",
+      "sha256": "4290d180d09e9ae3a1da7de16a0af6ea917b3aaac623a46eec7cd9c2f013422d"
     },
     "movements": {
       "merge_exits": true,
@@ -7854,15 +7863,15 @@
       "phase_correction": true,
       "physical_route_topology": "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json",
       "dynamic_physical_route_topology": "diagnostics/sdmpc_n31_20260924/scenario/dynamic_area_routes_ver2_dbaf86.json",
-      "physical_phase_authority": "diagnostics/sdmpc_n31_20260924/urban/physical_phase_authority_v3c1_20260928.json",
+      "physical_phase_authority": "diagnostics/sdmpc_n31_20260924/urban/physical_phase_authority_v3c3_20261001.json",
       "native_input_signal_authority": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1083_signal_authority_ver2_022a16.json",
       "nonexistent_declaration": {
-        "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3c1_20260928.json",
-        "sha256": "e822196bcdff181a5ce29d9c5090c43560b49a4b18ce6aa3dfc33e6406c96aec"
+        "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3c3_20261001.json",
+        "sha256": "04fce57ca7c6a4f8e13331d0bfce6134011da9f52a144ad8b999acab539d2a28"
       },
       "unsignalized_evidence": {
-        "path": "diagnostics/sdmpc_n31_20260924/urban/unsignalized_turns_v3c1_20260928.json",
-        "sha256": "95ea27326d99cab1dee8557df1a8044287958082b6918c12e7e34354619867e2"
+        "path": "diagnostics/sdmpc_n31_20260924/urban/unsignalized_turns_v3c3_20261001.json",
+        "sha256": "83326aca4f2565d9ae3f9ec1378bd0f1b405714eec6a3370081d6d366e644a43"
       }
     },
     "native_signal": {
@@ -7878,8 +7887,8 @@
       "window_stat": "",
       "attribution": "route",
       "route_evidence": {
-        "path": "diagnostics/sdmpc_n31_20260924/urban/route_queue_attribution_v3c1_20260928.json",
-        "sha256": "01d58ca8d08ccf93418713e0e89a1c963ba88aea0cb62bb0e18325c45f9a19f9"
+        "path": "diagnostics/sdmpc_n31_20260924/urban/route_queue_attribution_v3c3_20261001.json",
+        "sha256": "181a452a967d8e37516a18a8300b02e87dabbeb4b017380930cc2fc3886be1ae"
       }
     },
     "plan": {
@@ -7917,7 +7926,7 @@
         "SC1001": 0.468,
         "SC1004": 0.484
       },
-      "offramp_direct_route_prior": "diagnostics/sdmpc_n31_20260924/urban/offramp_static_route_prior_v3c1_20260928.json"
+      "offramp_direct_route_prior": "diagnostics/sdmpc_n31_20260924/urban/offramp_static_route_prior_v3c3_20261001.json"
     },
     "conservative_initial_transit": true,
     "shared_approach": "diagnostics/sdmpc_n31_20260924/scenario/shared_approach_f34fb1.json",
@@ -7939,7 +7948,7 @@
     "preserve_known_wout_routes": true,
     "known_wout_route_evidence": {
       "path": "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json",
-      "sha256": "1a42dc9a084f8a0917039112a0253681694df7fe21577635426dee399da29e54"
+      "sha256": "a120dd7412c5eace23dbf50e7dc13face651622b64f35fd983dea97917d17e5f"
     }
   },
   "_canonical": {
@@ -8137,8 +8146,8 @@
       "capacity_policy": "observed_lower_bound",
       "source": {
         "network": {
-          "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-          "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+          "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+          "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
         },
         "spacing": "evaluation/parameters.json network.urban_avg_vehicle_length_m",
         "description": "Existing latent signal/direct branches; observations only, ownership unchanged"
@@ -8225,7 +8234,7 @@
     "enabled": true,
     "beta_seconds": 0,
     "membership_path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-    "route_contract_path": "diagnostics/sdmpc_n31_20260924/urban/control_area_route_contract_v3c1_20260928.json",
+    "route_contract_path": "diagnostics/sdmpc_n31_20260924/urban/control_area_route_contract_v3c3_20261001.json",
     "defer_response_gc": true,
     "defer_unvisited_command_checks": true,
     "prefetch_first_owner_responses": true,
@@ -8374,6 +8383,6 @@
       "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json"
     ]
   },
-  "_n31_note": "SDMPC-31 v2 tuning (plan C9) on network v3c1 2577209b (user approval 2026-09-28): diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json plus lane_plant v2, b110 segment_params, no head sample interval, vsl_set [80,90,100,110] (N1 L1 action set), v_free 110, native_signal_record false, lane_native_b110.vbs, the branch-projection network v3c1, the ramp-arrival forecast keyed by RM_C meter (v3c1 NC fit seeds 31/41/43/47/53) and the v3c1 routing beta (urban.beta.source routing_v3c1). The b110 segment_params and boundary fit are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3c1. Generated by make_config_n31.py.",
-  "_n31_urban_b1_note": "CANDIDATE, not the default: urban plant batch 1 (U1 + U2 + U3, 2026-09-26) on config_n31_v2.json. U1 urban.beta.source routing_v3c1_2 pinned by urban.beta.sha256 (every runtime movement: 0 without a physical path, else static-route relFlow; approach sums exactly 1 before renormalisation), the movement declaration (urban.movements.nonexistent_declaration) with the phase authority that serves SC7 E / E_SC16 -> N_SC11 (10332, relFlow 0.429) in their head's phase p4 (urban.movements.physical_phase_authority) and the area route of the departing one (control_area_objective.route_contract_path), and the relFlow off-ramp direct share per group (urban.ramp.offramp_direct_route_prior). U2 urban.queue.attribution route (vehicle route -> route end / diverging -> storage -> lane -> beta; off_ramp movements receive no stop-line queue). U3 urban.movements.unsignalized_evidence (head-free exclusive-lane turns, FZP-validated; they leave the head lane-group capacity split). Generated by make_config_n31.py --urban-batch1."
+  "_n31_note": "SDMPC-31 v2 tuning (plan C9) on network v3c3 3de889f0 (user approval 2026-10-01): diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json plus lane_plant v2, b110 segment_params, no head sample interval, vsl_set [80,90,100,110] (commands) written as the single-value distributions 81/91/101/110 (actuation.vsl_command_distribution; plant law L2, runner 81,91,101,110; user decision 2026-10-01), v_free 110, native_signal_record false, lane_native_b110.vbs, the branch-projection network v3c3, the ramp-arrival forecast keyed by RM_C meter (v3c3 NC fit seeds 31/41/43/47 + the v3c2 s53 run) and the v3c3 routing beta (urban.beta.source routing_v3c3). The b110 segment_params and boundary fit are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3c3. Generated by make_config_n31.py.",
+  "_n31_urban_b1_note": "CANDIDATE, not the default: urban plant batch 1 (U1 + U2 + U3, 2026-09-26) on config_n31_v2.json. U1 urban.beta.source routing_v3c3_2 pinned by urban.beta.sha256 (every runtime movement: 0 without a physical path, else static-route relFlow; approach sums exactly 1 before renormalisation), the movement declaration (urban.movements.nonexistent_declaration) with the phase authority that serves SC7 E / E_SC16 -> N_SC11 (10332, relFlow 0.429) in their head's phase p4 (urban.movements.physical_phase_authority) and the area route of the departing one (control_area_objective.route_contract_path), and the relFlow off-ramp direct share per group (urban.ramp.offramp_direct_route_prior). U2 urban.queue.attribution route (vehicle route -> route end / diverging -> storage -> lane -> beta; off_ramp movements receive no stop-line queue). U3 urban.movements.unsignalized_evidence (head-free exclusive-lane turns, FZP-validated; they leave the head lane-group capacity split). Generated by make_config_n31.py --urban-batch1."
 }

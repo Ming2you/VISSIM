@@ -3,6 +3,7 @@
 python -B scripts\\build_obs150_detectors.py [--tuning <config_n31_v2.json>] [--check]
        [--network ...] [--geometry ...] [--runner-config ...] [--plan ...]
        [--head-resource-contract ...] [--head-free-contract ...] [--sig-dir ...] [--out <csv>]
+       [--out-root <family folder>]
 
 One tuning file decides every source (plan 1.1): its freeway.lane_plant manifest
 gives the network and the geometry, execution.signal_vbs_config the runner config
@@ -28,6 +29,12 @@ measurement (910030-33 / 910045-47, the runner's rule_crosscheck); RD 1126
 applies to all vehicle types; every off-ramp diverges inside its from_cell.
 --check re-builds and compares bytes, writing nothing. The manifest records this
 script by the sha256 of its LF text (sha256_lf), so a CRLF checkout still checks.
+
+--out-root (VSL family overlay, repin plan 2026-10-01 V-11 / U5-a): every repo-relative source path (and the
+tuning's plant) resolves in that folder first and in the tree otherwise; the CSV and its manifest are written
+there at their repo-relative path, and the manifest records repo-relative paths, as if the folder were laid over
+the tree. The other VSL family's runner config (repin_scenario_v2.py runner-family) gets its own sidecar this
+way; nothing in the tree is written.
 """
 from __future__ import annotations
 
@@ -47,9 +54,32 @@ from evaluation.controllers import obs150_observation as ob  # noqa: E402
 N31D = 'diagnostics/sdmpc_n31_20260924'
 DEFAULT_TUNING = N31D + '/config_n31_v2.json'
 SOURCES = ('network', 'geometry', 'runner_config', 'plan', 'head_resource_contract', 'head_free_contract', 'sig_dir')
-# The runtime network: v3c1 2577209b since the 2026-09-28 re-pin (v3b be0075bf 2026-09-25..28, v2 f475ce42 before;
-# the detector table is byte-identical on all three, only the sidecar's source pins moved).
-NETWORK_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'
+# The runtime network: v3c3 3de889f0 since the 2026-10-01 re-pin (v3c1 2577209b 2026-09-28..10-01, v3b be0075bf
+# 2026-09-25..28, v2 f475ce42 before; the detector table is byte-identical on all four, only the sidecar's source pins
+# moved).
+NETWORK_SHA256 = '3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e'
+
+
+OVERLAY = None   # --out-root: the family folder laid over the tree (main sets it)
+
+
+def resolve(path):
+    """ob.resolve_repo, but a repo-relative path resolves in the --out-root overlay first."""
+    candidate = Path(path)
+    if OVERLAY is not None and not candidate.is_absolute() and (OVERLAY / candidate).is_file():
+        return OVERLAY / candidate
+    return ob.resolve_repo(path)
+
+
+def record(path):
+    """ob.repo_path, but a file inside the --out-root overlay is recorded by its repo-relative path."""
+    path = Path(path).resolve()
+    if OVERLAY is not None:
+        try:
+            return path.relative_to(OVERLAY.resolve()).as_posix()
+        except ValueError:
+            pass
+    return ob.repo_path(path)
 
 
 def resolve_sources(args):
@@ -60,8 +90,8 @@ def resolve_sources(args):
     else:
         if not args.tuning:
             raise oc.ObsContractError('--tuning is required unless every source is given explicitly')
-        tuning = json.loads(ob.resolve_repo(args.tuning).read_text(encoding='utf-8-sig'))
-        plant = json.loads(ob.resolve_repo(tuning['freeway']['lane_plant']).read_text(encoding='utf-8-sig'))
+        tuning = json.loads(resolve(args.tuning).read_text(encoding='utf-8-sig'))
+        plant = json.loads(resolve(tuning['freeway']['lane_plant']).read_text(encoding='utf-8-sig'))
         oc.validate_tuning_v2(tuning, plant)
     derived = {} if tuning is None else {
         'network': plant['sources']['network']['path'],
@@ -70,7 +100,7 @@ def resolve_sources(args):
         'plan': tuning['urban']['plan']['actuation_plan_json'],
         'head_resource_contract': tuning['urban']['capacity']['head_resource_contract'],
         'head_free_contract': tuning['urban']['capacity']['head_free_service'],
-        'sig_dir': str(ob.resolve_repo(plant['sources']['sig_manifest']['path']).parent)}
+        'sig_dir': str(resolve(plant['sources']['sig_manifest']['path']).parent)}
     return {key: explicit[key] or derived.get(key) for key in SOURCES}
 
 
@@ -86,7 +116,7 @@ def _text_sha_lf(path):
 
 def _pin(path):
     data = Path(path).read_bytes()
-    return {'path': ob.repo_path(path), 'sha256': _sha(data)}, data
+    return {'path': record(path), 'sha256': _sha(data)}, data
 
 
 def contract_head_checks(net, groups, resource, head_free):
@@ -129,15 +159,15 @@ def sig_checks(net, sig_dir):
 
 def build(args):
     sources = resolve_sources(args)
-    network_path = ob.resolve_repo(sources['network'])
+    network_path = resolve(sources['network'])
     net = ob.InpxNetwork(network_path)
     if net.sha256 != NETWORK_SHA256:
-        raise oc.ObsContractError('Network is not the runtime network v3c1 2577209b: ' + str(network_path))
-    geometry_pin, geometry_bytes = _pin(ob.resolve_repo(sources['geometry']))
-    plan_pin, plan_bytes = _pin(ob.resolve_repo(sources['plan']))
-    runner_pin, runner_bytes = _pin(ob.resolve_repo(sources['runner_config']))
-    resource_pin, resource_bytes = _pin(ob.resolve_repo(sources['head_resource_contract']))
-    free_pin, free_bytes = _pin(ob.resolve_repo(sources['head_free_contract']))
+        raise oc.ObsContractError('Network is not the runtime network v3c3 3de889f0: ' + str(network_path))
+    geometry_pin, geometry_bytes = _pin(resolve(sources['geometry']))
+    plan_pin, plan_bytes = _pin(resolve(sources['plan']))
+    runner_pin, runner_bytes = _pin(resolve(sources['runner_config']))
+    resource_pin, resource_bytes = _pin(resolve(sources['head_resource_contract']))
+    free_pin, free_bytes = _pin(resolve(sources['head_free_contract']))
     plan = json.loads(plan_bytes.decode('utf-8'))
     rows, report = ob.build_detector_rows(net, json.loads(geometry_bytes.decode('utf-8-sig')), plan,
                                           ob.parse_runner_config(runner_bytes.decode('latin-1')))
@@ -145,22 +175,22 @@ def build(args):
     groups = physical_groups(str(network_path), plan)
     contract = contract_head_checks(net, groups, json.loads(resource_bytes.decode('utf-8')),
                                     json.loads(free_bytes.decode('utf-8')))
-    sig_dir = ob.resolve_repo(sources['sig_dir']) if sources['sig_dir'] else network_path.parent
+    sig_dir = resolve(sources['sig_dir']) if sources['sig_dir'] else network_path.parent
     sig_files = sig_checks(net, sig_dir)
     csv_bytes = oc.format_detector_csv(rows)
     parsed = oc.parse_detector_csv(csv_bytes)            # canonical round trip
     if parsed != rows:
         raise oc.ObsContractError('Detector CSV does not round-trip')
-    out = ob.resolve_repo(args.out)
+    out = OVERLAY / args.out if OVERLAY is not None and not Path(args.out).is_absolute() else ob.resolve_repo(args.out)
     generator = Path(__file__).resolve()
     manifest = {
         'schema': ob.DETECTOR_BUILD_SCHEMA,
         'generator': {'path': ob.repo_path(generator), 'sha256_lf': _text_sha_lf(generator)},
-        'network': {'path': ob.repo_path(network_path), 'sha256': net.sha256},
+        'network': {'path': record(network_path), 'sha256': net.sha256},
         'sources': {'geometry': geometry_pin, 'plan': plan_pin, 'runner_config': runner_pin,
                     'head_resource_contract': resource_pin, 'head_free_contract': free_pin,
-                    'sig_dir': ob.repo_path(sig_dir), 'sig_files': sig_files},
-        'output': {'path': ob.repo_path(out), 'sha256': _sha(csv_bytes), 'rows': len(rows)},
+                    'sig_dir': record(sig_dir), 'sig_files': sig_files},
+        'output': {'path': record(out), 'sha256': _sha(csv_bytes), 'rows': len(rows)},
         'report': report,
         'contract_heads': contract,
         'sig_programs_whole_seconds': len(sig_files),
@@ -176,11 +206,18 @@ def parse_args(argv):
         parser.add_argument('--' + key.replace('_', '-'), default=None, help='override the tuning-derived ' + key)
     parser.add_argument('--out', default=ob.DETECTOR_CSV_PATH)
     parser.add_argument('--check', action='store_true', help='rebuild and compare bytes; write nothing')
+    parser.add_argument('--out-root', default=None, help='VSL family overlay folder (outside the tree): sources '
+                                                         'resolve there first, the outputs are written there')
     return parser.parse_args(argv)
 
 
 def main(argv=None):
+    global OVERLAY
     args = parse_args(argv)
+    if args.out_root:
+        OVERLAY = Path(args.out_root).resolve()
+        if OVERLAY.is_relative_to(ROOT.resolve()):
+            raise oc.ObsContractError('--out-root must lie outside the tree: ' + str(OVERLAY))
     out, csv_bytes, manifest_bytes, manifest = build(args)
     sidecar = Path(str(out)[:-len('.csv')] + ob.SIDECAR_SUFFIX)
     if args.check:

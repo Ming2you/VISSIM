@@ -1,25 +1,31 @@
 """C9: config_n31_v2.json = the WP-E base tuning plus the v2 plant differences.
 
 The base (N31D/scenario/config_n31_v2.base.json, written by repin_scenario_v2.py) is OBS1
-with the scenario pack re-pinned to the runtime network (v3c1 since 2026-09-28; v3b 2026-09-25..28). This script
+with the scenario pack re-pinned to the runtime network (v3c3 since 2026-10-01; v3c1 2026-09-28..10-01; v3b
+2026-09-25..28). This script
 adds exactly the
 plan C9 differences and nothing else:
 
   freeway.lane_plant                                  -> plant_n31_v2.json          (OBS1:8082)
   freeway.segment_params                              -> C1 b110 21-row copy        (NEW-10)
   urban.capacity.head_observation.sample_interval_sec    deleted                    (OBS1:7831)
-  config_overrides.freeway_follower.vsl_set           -> [80, 90, 100, 110]          (OBS1:7466; user approval
-                                                         2026-09-28 with the N1 L1 VSL law, was 50..110)
+  config_overrides.freeway_follower.vsl_set           -> [80, 90, 100, 110]          (OBS1:7466; the COMMAND set,
+                                                         user approval 2026-09-28, was 50..110)
+  actuation.vsl_command_distribution                  -> {'model': 'single_value', 'distribution_by_command':
+                                                         {'80': 81, '90': 91, '100': 101, '110': 110}} (user
+                                                         decision 2026-10-01, single-value VSL with the plant law
+                                                         L2: the action CSV writes command c as distribution M(c);
+                                                         K5 writer, V-9 family check; absent = identity)
   config_overrides.network.v_free                     -> 110                        (OBS1:7433)
   _canonical.fd_fit_20260828.values.v_free            -> 110                        (OBS1:7961, record only)
   execution.native_signal_record                      -> false                      (NEW-2)
   execution.signal_vbs_config                         -> N31D/scenario/lane_native_b110.vbs
-  observation.physical_branch_projection.source.network -> the pinned network (v3c1) (OBS1:8109-8113)
+  observation.physical_branch_projection.source.network -> the pinned network (v3c3) (OBS1:8109-8113)
   calibration_override.prediction.local_ramp_arrival_forecast
       .queue_drain_horizon_sec_by_ramp, .max_vph_by_ramp -> keyed by the eight RM_C meters (RAMP_FORECAST)
       .strict_ramp_keys                                  -> true (no silent 120 s / 900 veh/h fallback)
-  urban.beta.source                                   -> routing_v3c1 (BETA_SOURCE: the routing beta of the pinned
-                                                         network v3c1, N31D/beta/; OBS1 used the 0824 e14 table)
+  urban.beta.source                                   -> routing_v3c3 (BETA_SOURCE: the routing beta of the pinned
+                                                         network v3c3, N31D/beta/; OBS1 used the 0824 e14 table)
   urban.ramp.offramp_direct_share                     -> {SC1001: 0.468, SC1004: 0.484}, the adapter's former code
                                                          default made explicit (install_offramp_direct_landing); the
                                                          runtime is unchanged
@@ -28,10 +34,10 @@ Urban plant batch 1 (U1 + U2 + U3, 2026-09-25/26) is a SEPARATE candidate, not t
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --urban-batch1 [--components U1,U3] [--check]
 writes config_n31_v2_urban_b1.json (all three; config_n31_v2_urban_b1_u1u3.json etc. for a subset, U1 always) =
 config_n31_v2.json plus (apply_urban_batch1, URBAN_B1_* pins)
-  urban.beta.source / sha256                 -> routing_v3c1_2 (complete physical routing beta, 492 movements) + pin
+  urban.beta.source / sha256                 -> routing_v3c3_2 (complete physical routing beta, 492 movements) + pin
   urban.movements.nonexistent_declaration    -> the pinned movement declaration (U1; user decision 2026-09-26:
                                                 SC7 E / E_SC16 -> N_SC11 exist, connector 10332, relFlow 0.429;
-                                                re-pinned to v3c1 2026-09-28, rows unchanged)
+                                                re-pinned to v3c1 2026-09-28 and v3c3 2026-10-01, rows unchanged)
   urban.movements.physical_phase_authority   -> the default evidence plus those two rows in their head's phase
                                                 (head 140101 = SC7 SG 1 = plan p4; was p3, no green) (U1)
   control_area_objective.route_contract_path -> the default contract plus the departure area route of
@@ -40,11 +46,24 @@ config_n31_v2.json plus (apply_urban_batch1, URBAN_B1_* pins)
   urban.movements.unsignalized_evidence      -> the pinned head-free exclusive-lane turns (FZP-validated)
   urban.ramp.offramp_direct_route_prior      -> the pinned relFlow direct share per off-ramp group
 
-Network v3c1 (user approval 2026-09-28): the pinned network is 2577209b (v3b be0075bf + the eight routing decisions
-1160, 1162-1168; V2 held). The b110 segment_params (and the plant's boundary fit) are v2 priors fitted on v2 NC s31
-(f475ce42) and are NOT refit; the ramp-arrival forecast is re-derived from the v3c1 NC fit seeds 31/41/43/47/53
-(s37 held out), the routing beta tables and every batch-1 input on v3c1 (new *_v3c1_* files; the v3b files and the
-routing_v3b / routing_v3b2 sources left this tree, v3b replays run from a frozen tree).
+Network v3c3 (user approval 2026-10-01): the pinned network is 3de889f0 (v3c1 2577209b + vehicle composition 14 on
+the freeway entries 1098/1099 (v3c2) + the single-value distributions 81/91/101). The b110 segment_params (and the
+plant's boundary fit) are v2 priors fitted on v2 NC s31 (f475ce42) and are NOT refit; the ramp-arrival forecast is
+re-derived from the v3c3 NC fit seeds 31/41/43/47 and the v3c2 s53 run (declared substitute; s37 held out), the
+routing beta tables and every batch-1 input on v3c3 (new *_v3c3_* files; the v3c1 files and the routing_v3c1 /
+routing_v3c1_2 sources left this tree, v3c1 replays run from a frozen tree).
+
+VSL families (repin plan 2026-10-01 U5-a, V-11). The tree holds the single_value family: the map above, the plant
+reference with the L2 speed scale, the runner 81,91,101,110. The distribution family (no map, L1, runner
+80,90,100,110) is built only as an overlay outside the tree, in this order (each with the same --out-root):
+  python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py runner-family --vsl-family distribution --out-root <F>
+  python -B scripts/build_obs150_detectors.py --out-root <F>
+  python -B diagnostics/sdmpc_n31_20260924/make_reference_config.py --vsl-family distribution --out-root <F>
+  python -B diagnostics/sdmpc_n31_20260924/make_plant_n31.py --vsl-family distribution --out-root <F>
+  python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --vsl-family distribution --out-root <F>
+      [--urban-batch1 [--components U1,U3]]
+Every repo-relative input resolves in <F> first; the outputs keep repo-relative pins. Launching that family means
+laying <F> over a worktree, committing and freezing it (run_sdmpc_n31.ps1 reads only a frozen git head).
 
 The pack paths themselves are WP-E's (C9 row "팩 경로"): the generator refuses a
 base that still names diagnostics/lane_plant_20260921/scenario/ anywhere, and
@@ -76,13 +95,13 @@ PLANT = N31D + '/plant_n31_v2.json'
 SEGMENT_PARAMS = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/'
                   'train_s31_v2nc/free_speed_b110/segment_params.json')
 RUNNER_CONFIG = N31D + '/scenario/lane_native_b110.vbs'
-NETWORK = N31D + '/network/baseline_s31_v3c1nc.inpx'
-NETWORK_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'   # v3c1 (v3b be0075bf until 2026-09-28)
-NETWORK_LABEL = 'v3c1 2577209b'
+NETWORK = N31D + '/network/baseline_s31_v3c3nc.inpx'
+NETWORK_SHA256 = '3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e'   # v3c3 (v3c1 2577209b until 2026-10-01)
+NETWORK_LABEL = 'v3c3 3de889f0'
 # Routing beta of the pinned network (adapter BETA_EVIDENCE_JSON['routing_v3c3']): scripts/derive_routing_turn_beta.py
 # with the 474-movement core17legs4b config (N31D/beta/movements_core17legs4b_20260819.json = git 4898446^ blob) on
-# the v3c3 network (the beta values equal the v3c1 table's: v3c3 edits no routing decision). The default 'routing' table (outputs/movement_beta_routing_20260824.json) was derived on network
-# modi_eval_userfix_20260814e (25 movements differ on v2, 48 on v3b before the explicit assignment below).
+# the v3c3 network (the beta values equal the v3c1 table's: v3c3 edits no routing decision). The default 'routing'
+# table (outputs/movement_beta_routing_20260824.json) was derived on network modi_eval_userfix_20260814e (25 movements differ on v2, 48 on v3b before the explicit assignment below).
 # The destination-set inference of that script mis-attaches the interchange decisions (SC1004 1124/1126/1138/1140 all
 # on E_SC107, SC1001 1117 dropped as a W/offW/offE tie) and, on v3c1, decision 1165 (V5b, on SC1005|W_SC1004 instead of
 # SC1|N_SC101); BETA_EXPLICIT attaches them to the approaches whose vehicles pass them (--explicit-approach, user
@@ -150,23 +169,32 @@ OUT_URBAN_B1 = HERE / 'config_n31_v2_urban_b1.json'
 OFFRAMP_DIRECT_SHARE = {'SC1001': 0.468, 'SC1004': 0.484}
 OLD_PACK = 'diagnostics/lane_plant_20260921/scenario/'
 NEW_PACK = N31D + '/scenario/'
-# User approval 2026-09-28 with the N1 L1 VSL law: 80..110, the range N1 measured (50..110 of 2026-09-24 before; the
-# first 60/80/110 before that). = repin_scenario_v2.VSL_SPEEDS = make_reference_config.VSL_SET.
+# The VSL COMMAND set (user approval 2026-09-28: 80..110, the range N1 measured; 50..110 of 2026-09-24 before, the first
+# 60/80/110 before that) = repin_scenario_v2.VSL_COMMANDS = make_reference_config.VSL_SET.
 VSL_SET = [80.0, 90.0, 100.0, 110.0]
+# Command -> written desired-speed distribution (user decision 2026-10-01, single-value VSL compliance; plan REPIN_V3C2
+# 3.5 U3-a): the action CSV writes command c as distribution M(c) (vissim_stackelberg_adapter writer, K5); the runner
+# allow-list is the image 81,91,101,110 (repin_scenario_v2.VSL_FAMILIES['single_value']). The distribution family has
+# no map (identity, runner 80,90,100,110): --vsl-family distribution.
+VSL_COMMAND_DISTRIBUTION = {'model': 'single_value', 'distribution_by_command': {'80': 81, '90': 91, '100': 101, '110': 110}}
+VSL_FAMILIES = ('single_value', 'distribution')
+VSL_FAMILY = 'single_value'
 V_FREE = 110.0
 # Ramp-arrival forecast per physical meter. The adapter turns connector occupancy into arrivals as
 # count * 3600 / drain_sec, clipped at max_vph (vissim_stackelberg_adapter.py:9373-9412), and looks the
 # two tables up by the runtime ramp keys. With physical ramp branches those keys are the mapping's
 # ramp_meters ids RM_C<connector> (physical_ramp_branches.py:139), but OBS1 still keys both tables by the
 # legacy groups R_D_W/R_F_W/R_D_E/R_F_E, so every lookup fell back to 120 s / 900 veh/h.
-# Values: network v3c1 NC fit seeds s31/s41/s43/s47/s53 (2577209b / 226baa37 / b8e7cf1f / ec0cd81d / 385f40da;
-# extract_observations.py into metanet_calibration_v1/v3c1_nc_20260928; s37 held out), boundaries_30s.csv per meter
-# (the 2026-08-30 method of scripts/calibrate_ramp_arrival_20260830.py, per meter instead of per group):
+# Values: network v3c3 NC fit seeds s31/s41/s43/s47 (3de889f0 / 726af589 / 51478c39 / 1895ca30) and the v3c2 NC s53 run
+# (c2dd1a48, declared substitute; extract_observations.py into metanet_calibration_v1/v3c3_nc_20261001; s37 held out),
+# boundaries_30s.csv per meter (the 2026-08-30 method of scripts/calibrate_ramp_arrival_20260830.py, per meter instead
+# of per group):
 #   drain_sec = mean snapshot count on the connector * 3600 / merges per hour, 900-5400 s, 5 seeds pooled
 #               (Little's law)
 #   max_vph   = 1.15 x the highest per-seed mean merge rate over 900-5400 s (the 08-30 cap rule)
-# The v3b (be0075bf, NC s31/s41/s37) derivation gave drain 17.4/43.3/30.9/88.0/42.6/161.7/33.3/43.3 s, cap
-# 219/2312/405/514/526/1216/839/611 veh/h. The v2 (f475ce42) derivation gave drain 16.6/43.4/30.2/88.0/42.9/160.7/34.6/47.7 s, cap 277/2310/413/514/
+# The v3c1 (2577209b, NC fit seeds 31/41/43/47/53) derivation gave drain 16.0/43.6/30.2/88.5/40.8/159.6/33.4/44.4 s,
+# cap 220/2347/408/545/551/1248/843/592 veh/h. The v3b (be0075bf, NC s31/s41/s37) derivation gave drain
+# 17.4/43.3/30.9/88.0/42.6/161.7/33.3/43.3 s, cap 219/2312/405/514/526/1216/839/611 veh/h. The v2 (f475ce42) derivation gave drain 16.6/43.4/30.2/88.0/42.9/160.7/34.6/47.7 s, cap 277/2310/413/514/
 # 526/1217/819/686 veh/h (same meter order as below); the seed-CV figures (<= 0.092 population / 0.113
 # sample, both at 10480; 10681 by 900 s block 84/171/176/183/177 s) and the V5b replay below are v2 numbers.
 # Replayed on the V5b decisions (T = 2700/3000/3300, all meters open), the summed forecast against the
@@ -174,16 +202,16 @@ V_FREE = 110.0
 # the summed-ratio gain comes mostly from the drain horizon (drain only: 0.88-0.93, cap only: 0.60-0.63),
 # while the per-meter |error| drops only with both (2938-2996 -> 453-806 veh/h); 15 of the 24 meter-times
 # sit on the cap (1.15 x NC mean merge). A meter that actually holds vehicles is not yet validated.
-# NETWORK-SPECIFIC: every value below comes from the pinned network's (v3c1 2577209b) no-control runs. A
+# NETWORK-SPECIFIC: every value below comes from the pinned network's (v3c3 3de889f0) no-control runs. A
 # network change re-runs its no-control seeds, re-extracts them, re-points derive_ramp_forecast_n31.py
-# (OBS, PATTERN, INPUTS) and re-derives. Derivation: derive_ramp_forecast_n31.py.
+# (OBS, FOLDERS, INPUTS) and re-derives. Derivation: derive_ramp_forecast_n31.py.
 RAMP_FORECAST = {
     'queue_drain_horizon_sec_by_ramp': {
-        'RM_C10480': 16.0, 'RM_C10482': 43.6, 'RM_C10646': 30.2, 'RM_C10644': 88.5,
-        'RM_C10639': 40.8, 'RM_C10681': 159.6, 'RM_C10490': 33.4, 'RM_C10484': 44.4},
+        'RM_C10480': 17.4, 'RM_C10482': 43.0, 'RM_C10646': 31.1, 'RM_C10644': 88.4,
+        'RM_C10639': 38.6, 'RM_C10681': 154.3, 'RM_C10490': 33.1, 'RM_C10484': 44.6},
     'max_vph_by_ramp': {
-        'RM_C10480': 220.0, 'RM_C10482': 2347.0, 'RM_C10646': 408.0, 'RM_C10644': 545.0,
-        'RM_C10639': 551.0, 'RM_C10681': 1248.0, 'RM_C10490': 843.0, 'RM_C10484': 592.0},
+        'RM_C10480': 220.0, 'RM_C10482': 2353.0, 'RM_C10646': 413.0, 'RM_C10644': 545.0,
+        'RM_C10639': 551.0, 'RM_C10681': 1262.0, 'RM_C10490': 850.0, 'RM_C10484': 600.0},
 }
 LEGACY_RAMP_GROUPS = {'R_D_W', 'R_F_W', 'R_D_E', 'R_F_E'}
 
@@ -215,8 +243,8 @@ def _set(document, dotted, value, *, must_exist=True):
     node[keys[-1]] = value
 
 
-def apply(base, *, network_sha256=NETWORK_SHA256, require_repinned=True):
-    """Pure: the plan C9 differences on a flattened base tuning."""
+def apply(base, *, network_sha256=NETWORK_SHA256, require_repinned=True, family=VSL_FAMILY):
+    """Pure: the plan C9 differences on a flattened base tuning (family single_value adds the command map)."""
     if not isinstance(base, dict) or 'extends' in base:
         raise ValueError('C9 needs the flattened base tuning (no extends)')
     doc = copy.deepcopy(base)
@@ -250,13 +278,24 @@ def apply(base, *, network_sha256=NETWORK_SHA256, require_repinned=True):
     if ramp.get('offramp_direct') is not True or 'offramp_direct_share' in ramp:
         raise ValueError('Base urban.ramp must enable offramp_direct with the code-default share')
     ramp['offramp_direct_share'] = dict(OFFRAMP_DIRECT_SHARE)
-    doc['_n31_note'] = ('SDMPC-31 v2 tuning (plan C9) on network v3c1 2577209b (user approval 2026-09-28): ' + BASE
-                        + ' plus lane_plant v2, b110 segment_params, no head sample interval, vsl_set '
-                        '[80,90,100,110] (N1 L1 action set), v_free 110, native_signal_record false, lane_native_b110.vbs, '
-                        'the branch-projection network v3c1, the ramp-arrival forecast keyed by RM_C meter (v3c1 NC fit '
-                        'seeds 31/41/43/47/53) and the v3c1 routing beta (urban.beta.source routing_v3c1). The b110 '
-                        'segment_params and boundary fit are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3c1. '
-                        'Generated by make_config_n31.py.')
+    if family not in VSL_FAMILIES:
+        raise ValueError('Unknown VSL family %r' % (family,))
+    actuation = doc['actuation']
+    if 'vsl_command_distribution' in actuation:
+        raise ValueError('Base actuation already carries vsl_command_distribution')
+    if family == 'single_value':
+        actuation['vsl_command_distribution'] = copy.deepcopy(VSL_COMMAND_DISTRIBUTION)
+    vsl = ('vsl_set [80,90,100,110] (commands) written as the single-value distributions 81/91/101/110 '
+           '(actuation.vsl_command_distribution; plant law L2, runner 81,91,101,110; user decision 2026-10-01)'
+           if family == 'single_value' else
+           'vsl_set [80,90,100,110] written as themselves (VSL family distribution: plant law N1 L1, runner '
+           '80,90,100,110; a generator overlay, not the tree)')
+    doc['_n31_note'] = ('SDMPC-31 v2 tuning (plan C9) on network v3c3 3de889f0 (user approval 2026-10-01): ' + BASE
+                        + ' plus lane_plant v2, b110 segment_params, no head sample interval, ' + vsl + ', v_free 110, '
+                        'native_signal_record false, lane_native_b110.vbs, the branch-projection network v3c3, the '
+                        'ramp-arrival forecast keyed by RM_C meter (v3c3 NC fit seeds 31/41/43/47 + the v3c2 s53 run) and '
+                        'the v3c3 routing beta (urban.beta.source routing_v3c3). The b110 segment_params and boundary fit '
+                        'are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3c3. Generated by make_config_n31.py.')
     return doc
 
 
@@ -302,7 +341,7 @@ def apply_urban_batch1(doc, components=URBAN_B1_COMPONENTS):
         urban['queue']['route_evidence'] = {'path': URBAN_B1_ROUTE_EVIDENCE, 'sha256': URBAN_B1_ROUTE_EVIDENCE_SHA256}
     if 'U3' in components:
         urban['movements']['unsignalized_evidence'] = {'path': URBAN_B1_UNSIGNALIZED, 'sha256': URBAN_B1_UNSIGNALIZED_SHA256}
-    parts = {'U1': ('U1 urban.beta.source routing_v3c1_2 pinned by urban.beta.sha256 (every runtime movement: 0 without a '
+    parts = {'U1': ('U1 urban.beta.source routing_v3c3_2 pinned by urban.beta.sha256 (every runtime movement: 0 without a '
                     'physical path, else static-route relFlow; approach sums exactly 1 before renormalisation), the '
                     'movement declaration (urban.movements.nonexistent_declaration) with the phase authority that serves '
                     'SC7 E / E_SC16 -> N_SC11 (10332, relFlow 0.429) in their head\'s phase p4 '
@@ -402,24 +441,40 @@ def check_pack(root, doc):
     return [v for _, v in paths]
 
 
-def build(root=ROOT):
+class Overlay:
+    """root / rel, but a repo-relative file present in the VSL family overlay folder is read from there (V-11)."""
+
+    def __init__(self, root, overlay=None):
+        self.root, self.overlay = Path(root), (Path(overlay) if overlay is not None else None)
+
+    def __truediv__(self, rel):
+        if self.overlay is not None and (self.overlay / rel).is_file():
+            return self.overlay / rel
+        return self.root / rel
+
+
+def build(root=ROOT, *, family=VSL_FAMILY, overlay=None):
     from evaluation.controllers import obs150_contract as oc
+    tree = Path(root)
+    files = Overlay(tree, overlay)
     for rel in (BASE, PLANT, SEGMENT_PARAMS, RUNNER_CONFIG, NETWORK, BETA_FILE, BETA_EXPLICIT):
-        if not (root / rel).is_file():
+        if not (files / rel).is_file():
             raise FileNotFoundError('config_n31_v2 input missing (owner package pending): ' + rel)
-    if sha256(root / NETWORK) != NETWORK_SHA256:
+    if sha256(tree / NETWORK) != NETWORK_SHA256:
         raise ValueError('network copy differs from ' + NETWORK_LABEL)
-    check_beta(root)
-    base = json.loads((root / BASE).read_text(encoding='utf-8-sig'))
-    doc = apply(base)
-    check_pack(root, doc)
-    check_ramp_keys(root, doc)
-    plant = json.loads((root / PLANT).read_text(encoding='utf-8-sig'))
+    check_beta(tree)
+    base = json.loads((tree / BASE).read_text(encoding='utf-8-sig'))
+    doc = apply(base, family=family)
+    check_pack(tree, doc)
+    check_ramp_keys(tree, doc)
+    plant = json.loads((files / PLANT).read_text(encoding='utf-8-sig'))
     oc.validate_tuning_v2(doc, plant)
     # V-9 (repin plan 2026-10-01 K5): the generated map/vsl_set, the plant law and the runner list agree.
     from evaluation.controllers import vsl_command_distribution
-    vsl_command_distribution.check_family_files(doc, root / plant['sources']['reference_config']['path'],
-                                                root / plant['sources']['runner_config']['path'])
+    family_record = vsl_command_distribution.check_family_files(doc, files / plant['sources']['reference_config']['path'],
+                                                                files / plant['sources']['runner_config']['path'])
+    if family_record['family'] != family:
+        raise ValueError('Generated VSL family %s differs from the requested %s' % (family_record['family'], family))
     if plant['membership']['path'] != doc['control_area_objective']['membership_path']:
         raise ValueError('Plant and tuning name different area memberships')
     return doc
@@ -429,21 +484,33 @@ def dumps(doc):
     return (json.dumps(doc, indent=2, ensure_ascii=False) + '\n').encode('utf-8')
 
 
-def urban_batch1_out(components=URBAN_B1_COMPONENTS):
+def urban_batch1_out(components=URBAN_B1_COMPONENTS, overlay=None):
     """config_n31_v2_urban_b1.json for U1 + U2 + U3, config_n31_v2_urban_b1_<u1u3...>.json for a named subset."""
     components = tuple(c for c in URBAN_B1_COMPONENTS if c in components)
-    if components == URBAN_B1_COMPONENTS:
-        return OUT_URBAN_B1
-    return HERE / ('config_n31_v2_urban_b1_%s.json' % ''.join(c.lower() for c in components))
+    out = OUT_URBAN_B1 if components == URBAN_B1_COMPONENTS else HERE / (
+        'config_n31_v2_urban_b1_%s.json' % ''.join(c.lower() for c in components))
+    return out if overlay is None else Path(overlay) / out.relative_to(ROOT)
 
 
-def build_urban_batch1(root=ROOT, components=URBAN_B1_COMPONENTS):
+def build_urban_batch1(root=ROOT, components=URBAN_B1_COMPONENTS, *, family=VSL_FAMILY, overlay=None):
     from evaluation.controllers import obs150_contract as oc
-    check_urban_batch1(root)
-    doc = apply_urban_batch1(build(root), components)
-    plant = json.loads((root / PLANT).read_text(encoding='utf-8-sig'))
+    check_urban_batch1(Path(root))
+    doc = apply_urban_batch1(build(root, family=family, overlay=overlay), components)
+    plant = json.loads((Overlay(root, overlay) / PLANT).read_text(encoding='utf-8-sig'))
     oc.validate_tuning_v2(doc, plant)
     return doc
+
+
+def family_root(family, out_root):
+    """None for the live family in the tree; the resolved overlay folder (outside the tree) otherwise."""
+    if out_root is None:
+        if family != VSL_FAMILY:
+            raise SystemExit('--vsl-family %s writes only with --out-root (the tree holds the %s family)' % (family, VSL_FAMILY))
+        return None
+    folder = Path(out_root).resolve()
+    if folder.is_relative_to(ROOT.resolve()):
+        raise SystemExit('--out-root must lie outside the tree: ' + str(folder))
+    return folder
 
 
 def main():
@@ -453,24 +520,31 @@ def main():
                         help='write the separate urban batch-1 candidate config_n31_v2_urban_b1.json instead')
     parser.add_argument('--components', default=','.join(URBAN_B1_COMPONENTS),
                         help='with --urban-batch1: the batch-1 items (U1 always), e.g. U1,U3 -> config_n31_v2_urban_b1_u1u3.json')
+    parser.add_argument('--vsl-family', choices=VSL_FAMILIES, default=VSL_FAMILY)
+    parser.add_argument('--out-root', help='VSL family overlay folder (outside the tree): read its family files, write there')
     args = parser.parse_args()
     components = tuple(c.strip().upper() for c in args.components.split(',') if c.strip())
+    overlay = family_root(args.vsl_family, args.out_root)
     if args.urban_batch1:
-        out, name = urban_batch1_out(components), 'CONFIG_N31_URBAN_B1_OK'
-        data = dumps(build_urban_batch1(components=components))
+        out, name = urban_batch1_out(components, overlay), 'CONFIG_N31_URBAN_B1_OK'
+        data = dumps(build_urban_batch1(components=components, family=args.vsl_family, overlay=overlay))
     else:
-        out, name = OUT, 'CONFIG_N31_OK'
-        data = dumps(build())
+        out, name = (OUT if overlay is None else overlay / OUT.relative_to(ROOT)), 'CONFIG_N31_OK'
+        data = dumps(build(family=args.vsl_family, overlay=overlay))
     if args.check:
         if out.read_bytes() != data:
             raise SystemExit('%s differs from its generator' % out.name)
     else:
+        out.parent.mkdir(parents=True, exist_ok=True)
         out.write_bytes(data)
-    done = subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/preflight_tuning_paths.py'), str(out), '--quiet'],
-                          cwd=ROOT, capture_output=True, text=True, encoding='utf-8', errors='replace')
-    if done.returncode:
-        raise SystemExit('preflight_tuning_paths failed:\n' + done.stdout + done.stderr)
-    print(name + ' sha256=' + hashlib.sha256(data).hexdigest())
+    if overlay is None:
+        done = subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/preflight_tuning_paths.py'), str(out), '--quiet'],
+                              cwd=ROOT, capture_output=True, text=True, encoding='utf-8', errors='replace')
+        if done.returncode:
+            raise SystemExit('preflight_tuning_paths failed:\n' + done.stdout + done.stderr)
+    # (an overlay tuning names repo-relative files that resolve in the overlay; the tree preflight would read the
+    # live family's files instead, so it runs only for the tree)
+    print(name + ' family=' + args.vsl_family + ' sha256=' + hashlib.sha256(data).hexdigest())
 
 
 if __name__ == '__main__':

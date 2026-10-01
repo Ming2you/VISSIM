@@ -12,13 +12,15 @@ Cases:
                    a FW_E ramp release, the FW_E source and the 10643 capacity
                    against central finite differences.
   vsl_anchor_max   Dual(110 = vsl_max) on FW_E__seg10 with the reference VSL model
-                   (N1 L1 Carlson A0.94/E1.44 + exposure transport): the one-sided (left)
+                   (N1F stage-2 L2: Carlson A1.33/E0.87 with the measured speed scale, a
+                   cubic through (80, 90, 100, 110 -> 1), + exposure transport): the one-sided (left)
                    tangent, against left differences P(110) - P(110 - h) at h = 1, 2
                    and their Richardson extrapolation (h >= 1 clears the 0.5 gate).
                    FW_W has no fitted law: its 110 anchor stays a zero column.
   vsl_below_max    Dual(c) on FW_E__seg10 at c = 80, 90, 100 (the interior points of
                    the action set 80..110): forward AD against the central
-                   difference at h = 0.25 (both sides active Carlson).
+                   difference at h = 0.0625 (both sides active Carlson; h was 0.25
+                   until the L2 law, see vsl_below_max).
   vsl_zone_reach   Dual(80) on FW_W__seg10, one step: speed tangents exactly on
                    the parent zone's refined cells 15-24.
 """
@@ -43,8 +45,8 @@ FINDER = runtime.install(ROOT, 'forward')
 ad = FINDER.ad
 
 B110 = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923'
-GEOMETRY = ROOT / ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c1_nc_20260928/'
-                   'observations/s31_v3c1nc_observations/geometry.json')   # = make_plant_n31.SOURCES['geometry']
+GEOMETRY = ROOT / ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c3_nc_20261001/'
+                   'observations/s31_v3c3nc_observations/geometry.json')   # = make_plant_n31.SOURCES['geometry']
 PARAMETERS = ROOT / B110 / 'train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json'
 REFERENCE = ROOT / 'diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json'
 T0 = 900.0
@@ -190,7 +192,13 @@ def vsl_anchor_max(confs):
 
 def vsl_below_max(confs, anchors=(80.0, 90.0, 100.0)):
     conf = confs['FW_E']
-    h = 0.25
+    # h = 0.0625 since the L2 law (2026-10-01; 0.25 with N1 L1). The cubic speed scale gives the 300-step TTT a third
+    # derivative that leaves the h = 0.25 central difference 2.5e-4 (relative) off AD at 100, where |dTTT/dc| is the
+    # smallest (0.0047). The error is truncation, not a kink: it falls by 4 per halving of h (4.8e-6, 1.2e-6, 3.0e-7,
+    # 7.5e-8 at h = 0.5 .. 0.0625; left/right differences approach AD from both sides at O(h)) and the central
+    # difference converges to the AD value (K7 probe D:/VISSIM_runs/20261001_v3c3/reports/k7/evidence/t9_probe.json).
+    # The tolerance is unchanged.
+    h = 0.0625
     checks = []
     for anchor in anchors:
         ttt, vehicles, _ = vsl_column(conf, 'FW_E', 'FW_E__seg10', anchor)
@@ -198,7 +206,7 @@ def vsl_below_max(confs, anchors=(80.0, 90.0, 100.0)):
         checks.extend({'anchor': anchor, 'output': name, 'ad': ad.derivative(value).get(0, 0.0),
                        'fd': (plus[index] - minus[index]) / (2 * h)}
                       for index, (name, value) in enumerate((('ttt', ttt), ('vehicles', vehicles))))
-    return {'anchors': list(anchors), 'vsl_set': list(conf.freeway_follower.vsl_set), 'checks': checks}
+    return {'anchors': list(anchors), 'vsl_set': list(conf.freeway_follower.vsl_set), 'h': h, 'checks': checks}
 
 
 def vsl_zone_reach(confs):

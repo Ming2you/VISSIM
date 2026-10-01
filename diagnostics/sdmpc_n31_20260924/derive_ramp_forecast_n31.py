@@ -1,4 +1,4 @@
-"""make_config_n31.RAMP_FORECAST from the runtime network's no-control runs (v3c1 fit seeds s31, s41, s43, s47, s53).
+"""make_config_n31.RAMP_FORECAST from the runtime network's no-control runs (v3c3 fit seeds s31, s41, s43, s47, s53).
 
 The adapter's local_ramp_arrival_forecast turns connector occupancy into arrivals as
 count * 3600 / drain_sec, clipped at max_vph (vissim_stackelberg_adapter.py:9373-9412). Per physical
@@ -11,12 +11,16 @@ meter RM_C<connector>, from boundaries_30s.csv (FZP-derived, one row per 30 s wi
             median occupancy, which is 0-8 s for the sparse 10480)
   max_vph   1.15 * max over seeds of q (the 2026-08-30 cap rule, scripts/calibrate_ramp_arrival_20260830.py)
 
-Inputs: extract_observations.py over the network v3c1 no-control runs of the fit seeds
-D:/VISSIM_runs/20260927_v3c1/s{31,41,43,47,53}_v3c1nc (networks 2577209b / 226baa37 / b8e7cf1f / ec0cd81d / 385f40da,
-native_preserve, 9000 s, FZP 5 s, phase 0.1 s; the held-out seed 37 is never read), written to
-metanet_calibration_v1/v3c1_nc_20260928/observations (receipts s{seed}_v3c1nc_extraction_receipt.json beside it);
-their sha256 are pinned here. The network is the current runtime network (user approval 2026-09-28: v3c1 = v3b
-be0075bf + the eight routing decisions 1160, 1162-1168). 2026-09-25..28 the inputs were the v3b NC s31/s41/s37
+Inputs: extract_observations.py over the network v3c3 no-control runs of the fit seeds
+D:/VISSIM_runs/20261001_v3c3/s{31,41,43,47}_v3c3nc (networks 3de889f0 / 726af589 / 51478c39 / 1895ca30) and, as the
+declared substitute for s53 (the v3c3 s53 run did not complete), D:/VISSIM_runs/20260930_v3c2/s53_v3c2nc (c2dd1a48;
+v3c3 = v3c2 + DSD 81/91/101 that no vehicle uses without control; GB-1 v3c3 == v3c2 on 31/41/43/47), native_preserve,
+9000 s, FZP 5 s, phase 0.1 s (the held-out seed 37 is never read), written to
+metanet_calibration_v1/v3c3_nc_20261001/observations (receipts s{seed}_*_extraction_receipt.json beside it); their
+sha256 are pinned here. The network is the current runtime network (user approval 2026-10-01: v3c3 = v3c1 2577209b +
+composition 14 on the freeway entries 1098/1099 + DSD 81/91/101). 2026-09-28..10-01 the inputs were the v3c1 NC
+fit-seed extractions (metanet_calibration_v1/v3c1_nc_20260928), which gave drain 16.0/43.6/30.2/88.5/40.8/159.6/
+33.4/44.4 s and cap 220/2347/408/545/551/1248/843/592 veh/h. 2026-09-25..28 the inputs were the v3b NC s31/s41/s37
 extractions (metanet_calibration_v1/v3b_nc_20260925, boundaries_30s.csv 8deebef9 / 5509f969 / 956f3a8d), which gave
 drain 17.4/43.3/30.9/88.0/42.6/161.7/33.3/43.3 s and cap 219/2312/405/514/526/1216/839/611 veh/h. Until 2026-09-25
 the inputs were
@@ -38,21 +42,22 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-OBS = ROOT / 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c1_nc_20260928/observations'
-PATTERN = 's{seed}_v3c1nc_observations'
-INPUTS = {   # boundaries_30s.csv sha256 per seed (v3c1 NC fit seeds; s37 held out)
-    31: 'ab52fe80e0a2af481f720c353b0a3c1aff6a9f834753d9a94d3a057abe542294',
-    41: 'ec2c977945b0e41e16380b797ac3bf31fe67555edd59fbfb29a445110a0bc315',
-    43: 'f67e2508c71e7730e76806b3cf82bd56ff7c7071ff155c8abc6d9abce5df5fc1',
-    47: '9365a93dfe4aa5dcfd3e0dcc96472a048bf2a1e7e9118e00a383c4e3620cdf46',
-    53: '50dd5e9d377ae7823d84d6eb817894b91696970d50c04fa205d98910b34738da',
+OBS = ROOT / 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c3_nc_20261001/observations'
+FOLDERS = {31: 's31_v3c3nc_observations', 41: 's41_v3c3nc_observations', 43: 's43_v3c3nc_observations',
+           47: 's47_v3c3nc_observations', 53: 's53_v3c2nc_observations'}   # s53: the v3c2 run (declared substitute)
+INPUTS = {   # boundaries_30s.csv sha256 per seed (v3c3 NC fit seeds, s53 v3c2; s37 held out)
+    31: 'd06103aee768234d8e634989036989c38efc700c587d962ca255310451dffdf2',
+    41: '1806934f9411396d203ed965d9376078c0aca6fe17a0dda8c04b94fa67e75e64',
+    43: '73a84bcad274ce80aac74e9294a9774dd542d2049b795a82e8c9b1db2f4dd9af',
+    47: '3d5aefb2d666953565fe2b1b025e67fb3b7861115be3b9d1206be4f62532a110',
+    53: 'ce59ac198e60e9629e29c57d301431e1238d7f280091494f47397490ebcc2d6f',
 }
 METERS = ('RM_C10480', 'RM_C10482', 'RM_C10646', 'RM_C10644', 'RM_C10639', 'RM_C10681', 'RM_C10490', 'RM_C10484')
 T0, T1 = 900.0, 5400.0
 
 
 def windows(seed):
-    path = OBS / PATTERN.format(seed=seed) / 'boundaries_30s.csv'
+    path = OBS / FOLDERS[seed] / 'boundaries_30s.csv'
     if hashlib.sha256(path.read_bytes()).hexdigest() != INPUTS[seed]:
         raise ValueError('NC observation differs from its pin: ' + str(path))
     rows = {m: [] for m in METERS}

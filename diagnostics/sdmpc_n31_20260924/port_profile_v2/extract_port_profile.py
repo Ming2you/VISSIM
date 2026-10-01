@@ -1,9 +1,12 @@
 """C12: connector travel speeds of the runtime network from its own no-control FZP.
 
-Network v3c1 (user approval 2026-09-28): RUN is the v3c1 no-control run s31_v3c1nc
-(network 2577209b, FZP 5c9e43e8); 2026-09-25..28 the v3b run s31_v3bnc (be0075bf,
-FZP 7c1efeb0), before that the v2 run s31_v2nc (f475ce42, FZP 4eb8e041). The
-provenance keys v2_run / v2_fzp_sha256 keep their schema names.
+Network v3c3 (user approval 2026-10-01): RUN is the v3c3 no-control run s31_v3c3nc
+(network 3de889f0, FZP f8476f83; its payload equals the v3c2 s31 run, GB-1);
+2026-09-28..10-01 the v3c1 run s31_v3c1nc (2577209b, FZP 5c9e43e8), 2026-09-25..28
+the v3b run s31_v3bnc (be0075bf, FZP 7c1efeb0), before that the v2 run s31_v2nc
+(f475ce42, FZP 4eb8e041). v3c2 put the freeway entries 1098/1099 on composition 14
+(DSD 110), so the 0-900 s port travel changes from v3c1. The provenance keys
+v2_run / v2_fzp_sha256 keep their schema names.
 
 Plan C12 (N31 review B9): port_profile.travel_speed_kmh (LPR initialize: ramp
 and off-ramp DelayedPort travel) was fitted on the base-120 run. This script
@@ -58,12 +61,12 @@ ROOT = HERE.parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-RUN = Path(r'D:\VISSIM_runs\20260927_v3c1\s31_v3c1nc')
-GEOMETRY = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c1_nc_20260928/'
-            'observations/s31_v3c1nc_observations/geometry.json')
+RUN = Path(r'D:\VISSIM_runs\20261001_v3c3\s31_v3c3nc')
+GEOMETRY = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c3_nc_20261001/'
+            'observations/s31_v3c3nc_observations/geometry.json')
 B120 = 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/merge_drain_response_20260919/decisions_v1/internal_cost/port_profile.json'
-NETWORK_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'
-FZP_SHA256 = '5c9e43e867846e0db3e05a03ce308bcb3f4d86c9ac5ead06341f8aee74fb5beb'  # v3c1 s31_v3c1nc observations manifest.json fzp.file_sha256
+NETWORK_SHA256 = '3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e'
+FZP_SHA256 = 'f8476f83e2c70821f00e96ece09a08aeb98eb553363aa65501ed7e47bb12e52e'  # v3c3 s31_v3c3nc observations manifest.json fzp.file_sha256
 LATEST_SEC = 900
 OUT_EVENTS = HERE / 'obs' / 'port_events_le900.csv'
 OUT_TRAVEL = HERE / 'obs' / 'port_travel_v2.json'
@@ -94,7 +97,7 @@ def scan(run=RUN, geometry_path=ROOT / GEOMETRY):
     if receipt.get('native_preserve') is not True or receipt.get('completed') is not True:
         raise ValueError('A completed native-preserve run is required')
     if sha256_file(network) != NETWORK_SHA256:
-        raise ValueError('Run network is not the runtime network v3c1 2577209b')
+        raise ValueError('Run network is not the runtime network v3c3 3de889f0')
     geometry = load(geometry_path)
     if geometry['network']['sha256'] != NETWORK_SHA256:
         raise ValueError('Geometry belongs to another network')
@@ -121,7 +124,7 @@ def scan(run=RUN, geometry_path=ROOT / GEOMETRY):
         raise ValueError('FZP ended before the training window closed')
     file_sha = sha256_file(fzp)
     if file_sha != FZP_SHA256:
-        raise ValueError('FZP differs from the one the v3c1 s31 observations were extracted from')
+        raise ValueError('FZP differs from the one the v3c3 s31 observations were extracted from')
     lengths = {str(b['connector']): float(b['length_m']) for b in geometry['boundaries']
                if b['kind'] in ('ramp', 'offramp')}
     source = {'run': str(run), 'network': {'path': str(network), 'sha256': NETWORK_SHA256},

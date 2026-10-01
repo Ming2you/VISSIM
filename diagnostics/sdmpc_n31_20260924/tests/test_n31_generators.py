@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import unittest
+from pathlib import Path
 
 import n31_fixtures as fx
 import contract_fixtures as cf
@@ -73,12 +74,13 @@ class CopyAndReferenceTests(unittest.TestCase):
         self.assertEqual({k: v for k, v in freeway.items()
                           if k not in make_reference_config.TRANSPORT_KEYS + make_reference_config.VSL_KEYS},
                          boundary['freeway'])
-        # Branch VSL model keys (d80faf9) with the N1 L1 law (user approval 2026-09-28); sign cells re-derived here.
-        self.assertEqual(freeway['vsl_fd_response'], {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}})
+        # Branch VSL model keys (d80faf9) with the N1F stage-2 L2 law (user decision 2026-10-01); sign cells re-derived here.
+        self.assertEqual(freeway['vsl_fd_response'], {'FW_E': {'law': 'carlson', 'A': 1.33, 'E': 0.87, 'alpha': 0.0, 'speed_scale': {'form': 'cubic_lagrange', 'levels': {'80': 0.7225223093088844, '90': 0.8119772280655296, '100': 0.9006844904146349}, 'maximum': 110.0}}})
         self.assertEqual(freeway['component_vsl_transport'],
                          {'FW_E': {'sign_cells': [0, 3, 5, 8, 14, 18, 26, 28], 'initial_command': 110, 'ramp_command': 110}})
-        self.assertIn('N1 L1', freeway['_vsl_model_note'])
-        self.assertIn('a81eb5cf7a090d3da6184bc9572e873ece255f1cce024823a1c468df4fdf5117', freeway['_vsl_model_note'])
+        self.assertIn('N1F stage-2 L2', freeway['_vsl_model_note'])
+        self.assertIn('4091d6e140f1cf1b29ae51e7863eb1d41d0d8169756ae28987deda69b2516f6c', freeway['_vsl_model_note'])
+        self.assertIn('81/91/101/110', freeway['_vsl_model_note'])
         self.assertEqual(make_reference_config.sign_cells(), make_reference_config.EXPECTED_SIGN_CELLS)
         # Outside freeway the reference is the boundary config except the action set (max 110 kept).
         expected = copy.deepcopy({k: v for k, v in boundary.items() if k != 'freeway'})
@@ -138,12 +140,12 @@ C9_PATHS = {'freeway.lane_plant', 'freeway.segment_params', 'urban.capacity.head
             'calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp',
             'calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp',
             'calibration_override.prediction.local_ramp_arrival_forecast.strict_ramp_keys',
-            'urban.beta.source', 'urban.ramp.offramp_direct_share'}
+            'urban.beta.source', 'urban.ramp.offramp_direct_share', 'actuation.vsl_command_distribution'}
 # Differences replaced as a whole subtree: collapse their leaves onto the root.
 C9_SUBTREES = ('observation.physical_branch_projection.source.network',
                'calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp',
                'calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp',
-               'urban.ramp.offramp_direct_share')
+               'urban.ramp.offramp_direct_share', 'actuation.vsl_command_distribution')
 METERS = {'RM_C10480', 'RM_C10482', 'RM_C10646', 'RM_C10644', 'RM_C10639', 'RM_C10681', 'RM_C10490', 'RM_C10484'}
 
 
@@ -187,9 +189,9 @@ class TuningTests(unittest.TestCase):
             make_config_n31.apply(stale, require_repinned=False)
 
     def test_beta_source_is_the_pinned_network_routing_table(self):
-        """Network v3c1 re-pin (2026-09-28; v3b 2026-09-25): the tuning names the pinned network's routing beta, not
-        the 0824 e14 table."""
-        self.assertEqual(self.tuning['urban']['beta'], {'measured': True, 'floor': 0.0, 'source': 'routing_v3c1'})
+        """Network v3c3 re-pin (2026-10-01; v3c1 2026-09-28, v3b 2026-09-25): the tuning names the pinned network's
+        routing beta, not the 0824 e14 table."""
+        self.assertEqual(self.tuning['urban']['beta'], {'measured': True, 'floor': 0.0, 'source': 'routing_v3c3'})
         make_config_n31.check_beta(fx.ROOT)
         document = fx.load_json(fx.ROOT / make_config_n31.BETA_FILE)
         self.assertEqual(document['source'].replace('\\', '/'), make_config_n31.NETWORK)
@@ -213,6 +215,13 @@ class TuningTests(unittest.TestCase):
                          {'path': make_config_n31.NETWORK, 'sha256': make_plant_n31.NETWORK_SHA256})
         self.assertEqual(t['freeway']['vsl_zone_heads'], {'FW_E': [0, 5, 10, 15], 'FW_W': [0, 5, 10, 15]})
         self.assertEqual(t['config_overrides']['freeway_follower']['max_vsl_step'], 40.0)
+        # the single-value family (user decision 2026-10-01): commands stay 80..110, the CSV writes 81/91/101/110
+        self.assertEqual(t['actuation']['vsl_command_distribution'],
+                         {'model': 'single_value', 'distribution_by_command': {'80': 81, '90': 91, '100': 101, '110': 110}})
+        self.assertNotIn('vsl_command_distribution', make_config_n31.apply(self.base, require_repinned=False,
+                                                                           family='distribution')['actuation'])
+        with self.assertRaisesRegex(ValueError, 'Unknown VSL family'):
+            make_config_n31.apply(self.base, require_repinned=False, family='spread')
 
     def test_validates_against_a_v2_manifest(self):
         document = cf.manifest_v2()
@@ -233,6 +242,87 @@ class TuningTests(unittest.TestCase):
             self.assertEqual(make_config_n31.OUT.read_bytes(), make_config_n31.dumps(make_config_n31.build()))
         else:
             make_config_n31.build()
+
+
+class VslFamilyTests(unittest.TestCase):
+    """V-11 / U5-a (repin plan 2026-10-01): both VSL families are complete, consistent generator outputs. The tree holds
+    single_value; the distribution family is built as an overlay outside the tree by the generators' --vsl-family /
+    --out-root options, twice (byte-identical), and passes the V-9 family check of the runtime."""
+
+    FAMILY = (('diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py', 'runner-family', '--vsl-family', 'distribution'),
+              ('scripts/build_obs150_detectors.py',),
+              ('diagnostics/sdmpc_n31_20260924/make_reference_config.py', '--vsl-family', 'distribution'),
+              ('diagnostics/sdmpc_n31_20260924/make_plant_n31.py', '--vsl-family', 'distribution'),
+              ('diagnostics/sdmpc_n31_20260924/make_config_n31.py', '--vsl-family', 'distribution'))
+
+    @classmethod
+    def build_family(cls, folder):
+        for argv in cls.FAMILY:
+            done = subprocess.run([sys.executable, '-B', *argv, '--out-root', str(folder)], cwd=fx.ROOT, capture_output=True,
+                                  text=True, encoding='utf-8', errors='replace', env=dict(os.environ, PYTHONUTF8='1'))
+            if done.returncode:
+                raise AssertionError(' '.join(argv) + ' failed:\n' + done.stdout[-2000:] + done.stderr[-4000:])
+        return {p.relative_to(folder).as_posix(): fx.sha256(p) for p in sorted(Path(folder).rglob('*')) if p.is_file()}
+
+    def test_live_tree_is_the_single_value_family(self):
+        from evaluation.controllers import vsl_command_distribution as vcd
+        plant = fx.load_json(make_plant_n31.OUT)
+        family = vcd.check_family_files(fx.load_json(make_config_n31.OUT),
+                                        fx.ROOT / plant['sources']['reference_config']['path'],
+                                        fx.ROOT / plant['sources']['runner_config']['path'])
+        self.assertEqual(family, {'family': 'single_value', 'commands': [80.0, 90.0, 100.0, 110.0],
+                                  'written': [81.0, 91.0, 101.0, 110.0], 'speed_scale_roads': ['FW_E']})
+        self.assertEqual((make_reference_config.VSL_FAMILY, make_plant_n31.VSL_FAMILY, make_config_n31.VSL_FAMILY),
+                         ('single_value',) * 3)
+
+    def test_distribution_family_overlay(self):
+        import tempfile
+        from evaluation.controllers import vsl_command_distribution as vcd
+        with tempfile.TemporaryDirectory(prefix='n31_family_a_') as a, tempfile.TemporaryDirectory(prefix='n31_family_b_') as b:
+            first, second = self.build_family(Path(a)), self.build_family(Path(b))
+            self.assertEqual(first, second)                      # deterministic
+            n31d = 'diagnostics/sdmpc_n31_20260924/'
+            self.assertEqual(sorted(first), sorted(n31d + rel for rel in (
+                'config_n31_v2.json', 'obs150/obs150_detectors_v2.csv', 'obs150/obs150_detectors_v2.manifest.json',
+                'plant_n31_v2.json', 'reference_config_n31_v2.json', 'scenario/lane_native_b110.vbs')))
+            self.assertEqual(first[n31d + 'obs150/obs150_detectors_v2.csv'], fx.sha256(fx.ROOT / make_plant_n31.DETECTORS))
+            folder = Path(a)
+            tuning = fx.load_json(folder / n31d / 'config_n31_v2.json')
+            plant = fx.load_json(folder / n31d / 'plant_n31_v2.json')
+            reference = fx.load_json(folder / n31d / 'reference_config_n31_v2.json')
+            self.assertEqual(reference['freeway']['vsl_fd_response'],
+                             {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}})
+            self.assertNotIn('vsl_command_distribution', tuning['actuation'])
+            for key in ('reference_config', 'runner_config'):            # the plant pins the overlay files, repo-relative
+                pin = plant['sources'][key]
+                self.assertEqual(pin['sha256'], fx.sha256(folder / pin['path']))
+                self.assertNotEqual(pin['sha256'], fx.sha256(fx.ROOT / pin['path']))
+            sidecar = fx.load_json(folder / n31d / 'obs150/obs150_detectors_v2.manifest.json')
+            self.assertEqual(sidecar['sources']['runner_config'], plant['sources']['runner_config'])
+            family = vcd.check_family_files(tuning, folder / plant['sources']['reference_config']['path'],
+                                            folder / plant['sources']['runner_config']['path'])
+            self.assertEqual(family, {'family': 'distribution', 'commands': [80.0, 90.0, 100.0, 110.0],
+                                      'written': [80.0, 90.0, 100.0, 110.0], 'speed_scale_roads': []})
+            # mixing the families refuses (V-9): the live map with the L1 overlay, the overlay tuning with the live plant
+            mixed = copy.deepcopy(tuning)
+            mixed['actuation']['vsl_command_distribution'] = copy.deepcopy(make_config_n31.VSL_COMMAND_DISTRIBUTION)
+            with self.assertRaises(ValueError):
+                vcd.check_family_files(mixed, folder / plant['sources']['reference_config']['path'],
+                                       folder / plant['sources']['runner_config']['path'])
+            live = fx.load_json(make_plant_n31.OUT)
+            with self.assertRaises(ValueError):
+                vcd.check_family_files(tuning, fx.ROOT / live['sources']['reference_config']['path'],
+                                       fx.ROOT / live['sources']['runner_config']['path'])
+
+    def test_a_non_live_family_never_writes_into_the_tree(self):
+        for argv in self.FAMILY[2:]:
+            done = subprocess.run([sys.executable, '-B', *argv], cwd=fx.ROOT, capture_output=True, text=True,
+                                  encoding='utf-8', errors='replace')
+            self.assertNotEqual(done.returncode, 0, argv)
+            self.assertIn('--out-root', done.stdout + done.stderr)
+        done = subprocess.run([sys.executable, '-B', *self.FAMILY[0], '--out-root', str(fx.ROOT / 'outputs')], cwd=fx.ROOT,
+                              capture_output=True, text=True, encoding='utf-8', errors='replace')
+        self.assertIn('REPIN_ERROR runner-family --out-root must lie outside the tree', done.stdout)
 
 
 class PortProfileTests(unittest.TestCase):
