@@ -134,7 +134,9 @@ class FamilyTests(unittest.TestCase):
         plant = json.loads((N31D / 'plant_n31_v2.json').read_text(encoding='utf-8-sig'))
         got = vcd.check_family_files(config, ROOT / plant['sources']['reference_config']['path'],
                                      ROOT / plant['sources']['runner_config']['path'])
-        self.assertEqual(got['family'], 'distribution')
+        # K7 (network v3c3, user decision 2026-10-01): the tree holds the single-value family (K6: distribution)
+        self.assertEqual(got, {'family': 'single_value', 'commands': [80.0, 90.0, 100.0, 110.0],
+                               'written': [81.0, 91.0, 101.0, 110.0], 'speed_scale_roads': ['FW_E']})
         oc.validate_tuning_v2(config, plant)
         broken = copy.deepcopy(config)
         broken['actuation']['vsl_command_distribution'] = {'model': 'single_value',

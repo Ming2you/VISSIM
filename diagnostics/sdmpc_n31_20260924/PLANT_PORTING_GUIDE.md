@@ -97,6 +97,22 @@
 > - **현재 sha (v3c1 재핀 뒤):** plant `aaf49170`, config `33027258`, 후보 U1+U2+U3 `ad482a53`, U1+U3 `8187505d`, reference `6c597e25`, 러너 VBS `f0ed036e`, 검지기 CSV `108debbb`(그대로, 사이드카만 바뀜), sig_manifest `9888a7b8`, 포트 프로필 `51934e48`.
 > - **과거 런 재생:** v3b 망에서 돈 런(R-obs-b `sdmpc31_v3b_nc_s31b`, S0e/S1 등)은 v3b 트리(`cf3ce37`의 동결본)에서만 재생됩니다.
 
+> **망 v3c3 재핀 + 단일값 VSL + plant 법칙 L2 (2026-10-01, 사용자 결정 — 이 절이 위 v3c1 절의 "현재 sha"를 대신합니다):**
+> - 계획·목록·검토: `D:/VISSIM_runs/20260930_v3c2/reports/repin/REPIN_V3C2_PLAN.md`(`d4b70c02`), `repin_v3c2_inventory.json`, `REPIN_V3C2_PLAN_REVIEW.md`. 실행 보고 `N31D/REPIN_V3C3_REPORT.md`. 결함 수정 K1–K6은 바로 아래 커밋들입니다.
+> - **핀 망:** `N31D/network/baseline_s31_v3c3nc.inpx` = `3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e`(원본 `D:/VISSIM_runs/20261001_v3c3/s31_v3c3nc/prepared/network/`). v3c1 사본(`2577209b`)은 트리에서 뺐습니다.
+>   - v3c3 = v3c2 + 분포 81/91/101(N1F 2단계 블록, +655 B). v3c2 = v3c1 + 구성 14 + 입력 1098/1099 vehComp 12행. 링크·신호·경로결정·검지기·`.sig`는 v3c1과 같습니다. NC 궤적은 v3c2와 바이트 같습니다(GB-1, s31/41/43/47).
+> - **재핀 도구:** `CHANGE_RULES`는 넓히지 않았습니다. 열거표 `V3C2_ADDED_COMPOSITION`, `V3C2_INPUT_COMPOSITION_EDITS`, `V3C3_ADDED_DISTRIBUTIONS`와 바이트 감사(`element_block_audit`)로만 받습니다. 분포 추가 목록은 열거와 정확히 같아야 합니다(N8). `configure-check`는 열거·가족 검사도 함께 돕니다.
+> - **v3c3 fit 시드 무제어 런에서 다시 뽑은 것(s31/41/43/47; s53은 v3c2 런을 대체로 씀 — v3c3 s53 런이 완료되지 않음. s37 봉인):**
+>   - 관측: `metanet_calibration_v1/v3c3_nc_20261001/observations/` (영수증 `s*_extraction_receipt.json`). boundaries/flows/cells는 v3c2 eo 추출과 바이트 같습니다.
+>   - 플랜트 기하: s31 `geometry.json` `2e3d8bfe…`(v3c1 기하와 출처 키 6개만 다름).
+>   - 포트 프로필: v3c1 대비 |Δ| ≤ 3.30 km/h(10491 −3.30, 10481 −2.91, 10479 −2.49, 10480 +2.45).
+>   - 램프 예측: drain 17.4/43.0/31.1/88.4/38.6/154.3/33.1/44.6 s, cap 220/2353/413/545/551/1262/850/600 veh/h.
+>   - 무신호 검증표 `urban/unsignalized_validation_v3c3nc_20261001.json`. 같은 규칙에서 `SC103_S_SC6_to_E`(10096, 정지 비율 0.0472 → 0.0544 > 0.05)가 빠져 무신호 회전은 22개입니다(U3 후보 튜닝에만 영향).
+> - **β 원천(U8-a):** `routing_v3c3`(`beta/movement_beta_routing_v3c3_20261001.json`), 묶음 1 `routing_v3c3_2`. β 값은 v3c1 표와 같고(경로결정 불변) 망 핀과 날짜만 바뀝니다. `routing_v3c1`/`routing_v3c1_2` 키와 파일은 뺐습니다.
+> - **VSL:** 명령 {80,90,100,110}(튜닝·reference·SDMPC·action JSON), 러너 81,91,101,110, 튜닝 사상 `actuation.vsl_command_distribution`, reference 법칙 L2(Carlson 1.33/0.87 + 측정 속도 척도, 3차 Lagrange). 세부와 가족 검사, L1 가족 옵션은 `CONTRACT.md`의 v3c3 항목에 있습니다.
+> - **현재 sha (v3c3 재핀 뒤):** plant `b119d6d9`, config `319d07aa`, 후보 U1+U2+U3 `7c43f881`, U1+U3 `371c6b75`, reference `add58bc4`, 러너 VBS `37c5021f`, 검지기 CSV `108debbb`(그대로, 사이드카만 바뀜), sig_manifest `5421dc93`, 포트 프로필 `de0b575f`.
+> - **과거 런 재생:** v3c1 망의 런(R-obs `sdmpc31_v3c1_nc_s31`, hybrid 등)은 v3c1 트리의 동결본에서만 재생됩니다.
+
 ---
 
 ## 0. 요약
@@ -337,7 +353,7 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
     3. 1098/1099의 `vehComp` 변경: 규칙은 `volume`만 허용합니다.
     - 이 안내서를 쓰며 읽기 전용으로 확인했습니다: 원본 `CHANGE_RULES`로는 1번에서 거부되고, 세 규칙을 차례로 넓히면 2번, 3번에서 거부된 뒤 셋을 모두 넓히면 `characterize_changes`가 통과합니다(메모리 안에서 규칙만 바꿔 호출, 파일은 쓰지 않음). `stale_evidence_audit` 등 다른 검사는 돌려 보지 않았습니다.
     - 각 변경이 팩 선언(경로, 헤드, 커넥터 기반)에 무해한지 검토한 뒤에 규칙을 넓힙니다.
-  - **망 sha가 상수로 박힌 곳 (v3b 재핀 뒤 기준 목록; v3c1 재핀에서는 같은 자리를 `2577209b…`로 바꾸고, 추가 결정은 `V3C1_ADDED_DECISIONS` 열거표로 허용했습니다. 머리 노트의 v3c1 절):** `repin_scenario_v2.py:89-91`(`NET_DIR`, `NET_INPX`, `V2_SHA256`; 망 경로 변경은 `V3B_ROUTE_EDITS`처럼 열거표로 허용), `make_plant_n31.py:63`, `make_config_n31.py:57`, `scripts/build_obs150_detectors.py:52`(`NETWORK_SHA256`), `N31D/port_profile_v2/extract_port_profile.py:64`(:95, :98에서 검사). 망 파일 이름은 `make_plant_n31.py:48`, `make_config_n31.py:56`, `make_reference_config.py:53`, `repin_scenario_v2.py:90`, 시험 `tests/n31_fixtures.py:35`, `tests/test_prepare_sdmpc31_network.py`, `tools/tests/launch_world.py`, `tools/tests/test_tools_launch.py`에 있습니다. v3b 재핀에서는 여기에 더해 기하(`make_plant_n31.py:49`, `make_reference_config.py:54`), 램프 예측 입력(`derive_ramp_forecast_n31.py:37-43`), routing beta(`make_config_n31.py:62-63`, 어댑터 `BETA_EVIDENCE_JSON`)를 바꿨습니다(위 머리 노트).
+  - **망 sha가 상수로 박힌 곳 (v3b 재핀 뒤 기준 목록; v3c1 재핀에서는 같은 자리를 `2577209b…`로 바꾸고, 추가 결정은 `V3C1_ADDED_DECISIONS` 열거표로 허용했습니다. v3c3 재핀에서는 `3de889f0…`로 바꾸고 구성·vehComp·분포를 `V3C2_*`·`V3C3_*` 열거표로 허용했습니다. 머리 노트의 v3c1·v3c3 절):** `repin_scenario_v2.py:89-91`(`NET_DIR`, `NET_INPX`, `V2_SHA256`; 망 경로 변경은 `V3B_ROUTE_EDITS`처럼 열거표로 허용), `make_plant_n31.py:63`, `make_config_n31.py:57`, `scripts/build_obs150_detectors.py:52`(`NETWORK_SHA256`), `N31D/port_profile_v2/extract_port_profile.py:64`(:95, :98에서 검사). 망 파일 이름은 `make_plant_n31.py:48`, `make_config_n31.py:56`, `make_reference_config.py:53`, `repin_scenario_v2.py:90`, 시험 `tests/n31_fixtures.py:35`, `tests/test_prepare_sdmpc31_network.py`, `tools/tests/launch_world.py`, `tools/tests/test_tools_launch.py`에 있습니다. v3b 재핀에서는 여기에 더해 기하(`make_plant_n31.py:49`, `make_reference_config.py:54`), 램프 예측 입력(`derive_ramp_forecast_n31.py:37-43`), routing beta(`make_config_n31.py:62-63`, 어댑터 `BETA_EVIDENCE_JSON`)를 바꿨습니다(위 머리 노트).
   - **다시 만들 것:**
     - 포트 프로필: 새 망의 무제어 FZP ≤ 900 s로 `extract_port_profile.py`를 돌립니다. RUN(:56)과 함께 GEOMETRY(:57), NETWORK_SHA256(:60), FZP_SHA256(:61, :118에서 검사)을 고칩니다. `:56`만 고치면 `scan()`이 망 sha 검사(:91)에서 멈춥니다.
     - 보정 기하: 핀할 망 파일에서 추출
@@ -371,7 +387,7 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
      - obs150 관측은 핀된 reference config의 `physical_ramp_receiving_nodes`를 읽어 `RampArrivalRef.receiving`을 정합니다(obs150_observation.py:605, :623-639). 이 키가 없거나 비어 있으면 거부합니다(:625-627).
      - 램프 차로 분율은 수용 노드 램프에 대해서만 나옵니다(obs150_lane.py:102-108). 그래서 수용 노드가 4개가 되면 `derived_T.json`의 `ramp_arrival_shares` 키도 4개가 됩니다.
      - 그 결과 이전 플랜트의 결정을 재생하면 `derived.ok`가 설계상 false가 됩니다(§4 L4).
-2. **VSL 집합과 v_free:** 후보는 `vsl_set` [60,80,90,100,110], `v_free` 120입니다. 이 브랜치는 이제 [80,90,100,110]을 씁니다(2026-09-28, N1 L1과 함께; 그 전 [50,...,110]. 생성기 `make_reference_config.VSL_SET`, `make_config_n31.VSL_SET`). v_free는 110 그대로입니다.
+2. **VSL 집합과 v_free:** 후보는 `vsl_set` [60,80,90,100,110], `v_free` 120입니다. 이 브랜치는 이제 명령 [80,90,100,110]을 씁니다(2026-09-28; 그 전 [50,...,110]. 생성기 `make_reference_config.VSL_SET`, `make_config_n31.VSL_SET`). 2026-10-01부터 러너가 쓰는 분포 번호는 그 상 81/91/101/110입니다(튜닝 `actuation.vsl_command_distribution`, 법칙 L2; `CONTRACT.md` v3c3 항목). v_free는 110 그대로입니다.
    - 후보 README는 90 밖으로 외삽하지 않는다고 적었습니다. SDMPC 명령 집합에는 90이 없습니다.
    - 90을 넣으려면 핀 연쇄를 따라 함께 바꿉니다: `repin_scenario_v2.py:129 VSL_SPEEDS` → `lane_native_b110.vbs` → 검지기 manifest → plant → `make_config_n31.py:54`, `make_reference_config.py:58`. v2 망에는 분포 90이 있습니다.
    - `v_free`는 셀 행 값이 우선하지만, `net.v_free`는 셀 0의 상류 속도와 기본값으로 쓰입니다(AFA:347). 120으로 바꿀지는 결정이 필요합니다.
@@ -466,8 +482,8 @@ for f in ('evaluation/controllers/area_freeway_accounting.py', 'evaluation/contr
 
 - **순서 주의:** 기존 N31 시험 일부는 현재 b110 플랜트의 값을 단언합니다. 그래서 reference를 바꾸면 설계상 실패합니다. L1은 먼저 **병합만 하고 플랜트는 그대로인 트리**(L2 단계)에서 통과시킵니다. 플랜트를 바꾼 뒤에는 해당 단언을 새 값으로 고칩니다.
   - `tests/test_n31_plant_load.py:117`: 수용 노드 == {RM_C10681, RM_C10484}. 후보는 4개입니다.
-  - `tests/test_n31_generators.py`의 `test_c7_reference_config`(:63-79): reference freeway에서 수송 키를 뺀 것 == boundary freeway(:73-74), `vsl_set` == [80,90,100,110], `vsl_fd_response` == N1 L1
-  - T9 `tests/test_n31_ad_smoke.py`: `vsl_max == 110.0`, 110에서 한쪽 도함수가 0이 아님(이식 뒤), 80·90·100에서 AD == 중앙차분, reference 법칙 == L1. `vsl_max`는 max(`vsl_set`)입니다.
+  - `tests/test_n31_generators.py`의 `test_c7_reference_config`(:63-79): reference freeway에서 수송 키를 뺀 것 == boundary freeway(:73-74), `vsl_set` == [80,90,100,110], `vsl_fd_response` == L2(2026-10-01; 그 전 N1 L1)
+  - T9 `tests/test_n31_ad_smoke.py`: `vsl_max == 110.0`, 110에서 한쪽 도함수가 0이 아님(이식 뒤), 80·90·100에서 AD == 중앙차분(h 0.0625, L2부터; L1에서는 0.25), reference 법칙 == L2. `vsl_max`는 max(`vsl_set`)입니다.
 
 ```powershell
 $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYTHONDONTWRITEBYTECODE = '1'
@@ -501,7 +517,7 @@ $env:RW_OFFSET_WRITER = 'experiment'
 - **주의:** N31 픽스처는 tests 폴더 안에 임시 폴더를 만들었다가 지웁니다(n31_fixtures.py:1-9). obs150 묶음의 `test_runner_obs150_vbs.py`는 모의 COM을 cscript로, `test_runner_static_obs150.py`는 PowerShell을 띄웁니다. 둘 다 kill은 없지만, VISSIM 런이 도는 동안에는 빼는 편이 안전합니다.
 - **이식 뒤 새로 넣을 시험**
   - (반영됨) T9 AD 스모크(`tests/test_n31_ad_smoke.py`)는 110에서 한쪽 도함수가 0이 아님을 단언합니다(`test_vsl_anchor_at_vsl_max_is_one_sided_not_zero`).
-  - (반영됨, 2026-09-28) 활성 기준점 80·90·100(행동 집합 {80..110}의 내부점)에서 VSL 축의 AD와 중앙차분을 비교합니다(`test_vsl_below_max_equals_central_fd`), reference 법칙이 N1 L1인지도 단언합니다(`test_reference_law_is_n1_l1`).
+  - (반영됨, 2026-09-28; L2로 바꿈 2026-10-01) 활성 기준점 80·90·100(행동 집합 {80..110}의 내부점)에서 VSL 축의 AD와 중앙차분을 비교합니다(`test_vsl_below_max_equals_central_fd`, h 0.0625: L2에서 h 0.25의 절단 오차가 100에서 상대 2.5e-4), reference 법칙이 L2인지도 단언합니다(`test_reference_law_is_l2`).
   - T3 패리티(`tests/test_n31_parity.py`, `n31_parity_roles.py`)에 사용자 키를 켠 reference와 VSL 80 명령인 경우를 추가합니다. 새 상태 필드 `_component_vsl_exposure`가 워커 상태 비교(`state_error`, sdmpc_tangent_worker.py:18-)를 통과하는지 봅니다.
 
 ### L2 병합 무작용 항등 (사용자 키가 없는 reference로)
