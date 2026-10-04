@@ -1,0 +1,109 @@
+{
+  "original": "merge_target172/context.json blocks[*].off10682_prediction",
+  "error": "Summed cumulative native-model port counters rather than differences. These model-only fields are invalid in original172 context; use this corrected table.",
+  "unaffected": "Native port counts, native stopped-lane labels, matched state comparison,172 main findings and all traffic forecasts.",
+  "corrected172": [
+    {
+      "arm": "release",
+      "start": 2670.1,
+      "model171_off10682": {
+        "arrivals_veh": 47.782194165747015,
+        "departures_veh": 49.74525921890127,
+        "end_n_veh": 4.036934946845738
+      }
+    },
+    {
+      "arm": "release",
+      "start": 2820.1,
+      "model171_off10682": {
+        "arrivals_veh": 52.87219710391665,
+        "departures_veh": 53.178718144926805,
+        "end_n_veh": 3.7304139058356145
+      }
+    },
+    {
+      "arm": "release",
+      "start": 2970.1,
+      "model171_off10682": {
+        "arrivals_veh": 50.07959730460438,
+        "departures_veh": 50.1823448107738,
+        "end_n_veh": 3.6276663996661367
+      }
+    },
+    {
+      "arm": "release_vsl90",
+      "start": 2670.1,
+      "model171_off10682": {
+        "arrivals_veh": 47.78322597254893,
+        "departures_veh": 49.74590789640981,
+        "end_n_veh": 4.037318076139111
+      }
+    },
+    {
+      "arm": "release_vsl90",
+      "start": 2820.1,
+      "model171_off10682": {
+        "arrivals_veh": 52.87797050911531,
+        "departures_veh": 53.18516183056817,
+        "end_n_veh": 3.730126754686257
+      }
+    },
+    {
+      "arm": "release_vsl90",
+      "start": 2970.1,
+      "model171_off10682": {
+        "arrivals_veh": 50.02568226340196,
+        "departures_veh": 50.13769851464947,
+        "end_n_veh": 3.6181105034388032
+      }
+    }
+  ],
+  "correct173": [
+    {
+      "version": "aggregate",
+      "blocks": [
+        {
+          "start": 2670.1,
+          "admitted": 47.841380178326354,
+          "departed": 49.7853107101095,
+          "end_n": 4.056069468216854
+        },
+        {
+          "start": 2820.1,
+          "admitted": 53.40045488998707,
+          "departed": 53.670426140591346,
+          "end_n": 3.78609821761254
+        },
+        {
+          "start": 2970.1,
+          "admitted": 51.3444444393575,
+          "departed": 51.36521342235312,
+          "end_n": 3.765329234617009
+        }
+      ]
+    },
+    {
+      "version": "target_lanes",
+      "blocks": [
+        {
+          "start": 2670.1,
+          "admitted": 46.50125116876208,
+          "departed": 48.46132314993278,
+          "end_n": 4.039928018829283
+        },
+        {
+          "start": 2820.1,
+          "admitted": 52.632599869750564,
+          "departed": 52.93069284406994,
+          "end_n": 3.741835044509905
+        },
+        {
+          "start": 2970.1,
+          "admitted": 50.8410599045237,
+          "departed": 50.85311476712951,
+          "end_n": 3.729780181904132
+        }
+      ]
+    }
+  ]
+}
