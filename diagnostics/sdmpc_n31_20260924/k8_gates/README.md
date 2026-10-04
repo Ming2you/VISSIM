@@ -110,3 +110,17 @@ K8-3 관문 전에 넣는 도구 커밋입니다. 런타임 코드는 0줄입니
   - `out/002700/jobs/k83_REF_ad`(대리 AD), `k83_M2ALL_adfull`, `k83_M2ALL_adfull_ownoff`(비대리 AD, `own_off`)
   - `out/002700/full_k83` : 배포 결정
 - 판정: `python -B k83_gate.py --out <gates_out/k83> --k82 <gates_out/k82> --unit-log <pytest -v 로그> --json <판정.json>`. 단위 시험 T-OWN-6은 `K8_CAPTURED_TEMPLATE=<gates_out/k83>/out/002700/cap_k83/template.pickle`로 돌립니다.
+
+## K8-0d (K8-4 S5 관문 판정기, 보충 1 §D, K8-4 관문 전)
+
+K8-4 관문 전에 넣는 도구 커밋입니다. 런타임 코드는 0줄입니다.
+
+| 도구 | 내용 |
+|---|---|
+| `k84_gate.py` | K8-4 판정기(읽기만). 선언값(보충 1 r2 §B.7·§2 K8-4 행: +105 → +15 이동량 1800 159.132 / 2700 197.121 / 4950 113.203 ±0.001, 127 몫 11.304 / 11.782 / 8.438, 바뀌면 안 되는 것, 61/61 포착, 위반 계수, 분할 단언)은 코드 상수입니다. 계산 줄은 `an_proj.py`(도착 버퍼 오프셋 차)를 따릅니다. 비교는 K8-4 − K8-3(바로 앞 런타임 커밋)이고, 두 팔을 같은 출력 루트에 패치 없는 `cap_child`(base)로 포착합니다. 판정 항목 안의 예외는 그 항목 실패입니다 |
+
+- K8-4 관문 배치(출력 루트 `gates_out/k84` 하나)
+  - `replays/<T>/` : R-obs3 61결정(T = 1, 150, …, 9000) `prep.py` 사본
+  - `out/<T>/cap_k83`, `cap_k84` : K8-3 런타임(91bfa56, 깨끗한 작업본)·K8-4 후보 포착. **`cap_k84` 61개는 K8-5 엄격 관문이 재사용합니다**(보충 1 §2.1)
+  - `out/<T>/jobs/k83_REF_scalar`, `k84_REF_scalar` : REF 1800/2700/4950 (보고 B6-5)
+- 판정: `python -B k84_gate.py --out <gates_out/k84> --unit-log <pytest -v 로그> --json <판정.json>`
