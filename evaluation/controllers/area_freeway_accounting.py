@@ -23,6 +23,7 @@ from evaluation.controllers import control_area_objective as _area
 from evaluation.controllers import offramp_routing as _routing
 from evaluation.controllers.freeway_geometry import cell_lengths_km as _net_cell_lengths_km
 from evaluation.controllers.freeway_fd import literature_desired_speed, VSLExposure
+from evaluation.controllers.sdmpc_dual import has_tape
 
 VENDOR_FREEWAY_METHOD_SHA256 = "eb19ad40207a07bac75db9b67c03280be8558a310123e9eddacf655ac49e8762"
 VENDOR_COUPLING_METHOD_SHA256 = "ced88a0a6fef090f3eb78a43af4538f73c8b7d11de07c5633142fa9867ba59c0"
@@ -241,7 +242,9 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
                     # Reject incompatible candidates; never delete or relabel them.
                     if ramp_in_by_link[link][i] > receiving[i]+1e-8:
                         raise ValueError('Observed merge exceeds literature receiving budget')
-        receiving_for_mainline = [max(0.0, receiving[i] - max(0.0, ramp_in_by_link[link][i])) for i in range(len(rho_for_flow))]
+        # S3: accepted merges are never negative (see the release loop above), so the inner clamp only acts on
+        # its zero tie. Listing the merge first keeps a zero-primal taped merge (same primal, same comparison).
+        receiving_for_mainline = [max(0.0, receiving[i] - max(ramp_in_by_link[link][i], 0.0)) for i in range(len(rho_for_flow))]
         off_ratio_by_segment = [_mn._clip(sum((net.off_ramp_split_ratio.get(off_ramp, 0.0) for off_ramp in offramps_by_segment.get(i, []))), 0.0, 1.0) for i in range(len(rho_for_flow))]
         mainline_sending = [(1.0 - off_ratio_by_segment[i]) * q_values[i] for i in range(len(rho_for_flow))]
         if routed:
@@ -387,7 +390,7 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
                 v_eff = hadi_desired_speed(v_eff, float(vsl_i), literature['relaxation'], vsl_active_i)
                 literature_commands += int(literature['relaxation'] == 'command')
             v_new = _mn.metanet_speed_update_kmh(speeds[i], upstream_speed, rho, downstream_rho, v_eff, dt_h, lengths[i], net.metanet_tau_h, _mn.select_anticipation_nu(rho, net, vsl_i), net.metanet_kappa_veh_km_lane, net.v_min)
-            if delta_m > 0.0 and ramp_in_by_link[link][i] > 0.0:
+            if delta_m > 0.0 and (ramp_in_by_link[link][i] > 0.0 or has_tape(ramp_in_by_link[link][i])):
                 merge_kappa = (net.freeway_segment_params[link][i]["metanet_kappa_veh_km_lane"]
                     if direction_params else net.metanet_kappa_veh_km_lane)
                 v_new = max(net.v_min, v_new - delta_m * dt_h * ramp_in_by_link[link][i] * speeds[i] / (lengths[i] * max(lanes_now[i], 1e-09) * (rho + merge_kappa)))

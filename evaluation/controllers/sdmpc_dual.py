@@ -150,6 +150,25 @@ def float_keep(value=0.0):
     return value if isinstance(value, Dual) else float(value)
 
 
+def has_tape(value):
+    """Does an AD value carry a derivative record (reverse-tape node or forward tangent)?
+
+    Attribute reads only: no Dual.__bool__/__eq__ call, so no branch event is
+    recorded. Floats and node-0 primal-guard results carry none.
+    """
+    return bool(getattr(value, 'node', 0)) or bool(getattr(value, 'tangent', None))
+
+
+def has_transfer(value):
+    """S3 zero-transfer predicate (K8-2): nonzero primal, or a zero primal that carries tape.
+
+    bool(value) runs first, so a Dual records exactly the branch event of the
+    original `if value:`. On floats this is bool(value): scalar rollouts are
+    unchanged. A zero-primal transfer with an active derivative is kept, not dropped.
+    """
+    return bool(value) or has_tape(value)
+
+
 class Dual:
     __slots__ = ('value', 'tangent', 'trace', 'risks')
     __array_priority__ = 1000

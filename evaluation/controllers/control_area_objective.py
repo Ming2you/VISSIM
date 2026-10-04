@@ -19,6 +19,7 @@ from collections import Counter
 import copy
 import math
 from typing import Any, Iterable, Mapping, Sequence
+from evaluation.controllers.sdmpc_dual import has_tape
 
 
 _COPY_MISSING = object()
@@ -604,7 +605,7 @@ class ModelAreaLedger:
                  outside_to_inside=None, source_inside=None, route_key=None, event_id=None,
                  physical_source_inside=None, outward_crossings=None, inward_crossings=None):
         count = _nonnegative(vehicles, "accepted transfer")
-        if count == 0:
+        if count == 0 and not has_tape(count):  # S3: a zero-primal transfer with tape is recorded
             return
         payload = (source, target, count, inside_to_inside, outside_to_inside, source_inside, route_key,
                    physical_source_inside, outward_crossings, inward_crossings)

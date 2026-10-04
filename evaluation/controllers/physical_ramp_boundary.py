@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from math import exp, expm1, fsum, isfinite
 from typing import Iterable, Sequence
+from evaluation.controllers.sdmpc_dual import has_transfer
 
 
 _MASS_TOLERANCE = 1.0e-8  # Roundoff check only; not an admission/merge allowance.
@@ -303,7 +304,7 @@ class PhysicalRampBoundary:
         total = _sum((self.cumulative_head_service_veh, served), "cumulative head service")
         from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
         invalidate_ramp(self)
-        if served:
+        if has_transfer(served):
             self._downstream.append((arrival, served))
         self._head_ready -= served
         self.cumulative_head_service_veh = total
@@ -328,7 +329,7 @@ class PhysicalRampBoundary:
         total_admitted = _sum((self.cumulative_admitted_veh, admitted), "cumulative admissions")
         end = self._receipt["end_sec"]
         arrival = self._arrival(end, self.head_position_m)
-        if admitted:
+        if has_transfer(admitted):
             from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
             invalidate_ramp(self)
             if self.head_position_m == 0:
@@ -366,7 +367,7 @@ class PhysicalRampBoundary:
         amount = _number(vehicles, 'accepted coupled arrivals')
         if amount > self.current_admission_space()+_MASS_TOLERANCE:
             raise ValueError('Accepted coupled arrivals exceed finite ramp space')
-        if amount:
+        if has_transfer(amount):
             from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
             invalidate_ramp(self)
             if self.head_position_m == 0:
