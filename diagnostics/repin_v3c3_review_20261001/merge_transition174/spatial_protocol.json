@@ -1,0 +1,19 @@
+{
+  "hypothesis": "Current spatial variation lost by a single lane mean might explain wrong initial acceleration; inspect before implementing another split.",
+  "scope": "Cell10 lanes1/2, seed67release110, current5s snapshots; same153 speed parameters; no fitted coefficient.",
+  "comparison": "One cell versus two subcells divided at actual10639 merge coordinate. Update only speed5x1s; hold stocks/neighbors and lane membership fixed.",
+  "merge": "Use SAME already predicted173 one-second accepted merges for both probes; place it after split in spatial probe. No future measured merges.",
+  "lane_drop": "Freeze the dynamic lane-reduction coefficient reconstructed from the current173 call; apply at physical downstream boundary only. No interior lane-drop.",
+  "no_lateral_exchange": true,
+  "no_future_native_predictor": true,
+  "limits": "No longitudinal/lateral mass update, position renewal, shared receiving, VSL history forecast, waiting or TTT. Observed next5s mean is only a label and contains population change. This screen cannot qualify physical gain or prove that a conservative split would work/fail.",
+  "budget": {
+    "max_probes": 360,
+    "max_canonical_calls": 2700,
+    "fits": 0,
+    "traffic_forecasts": 0,
+    "native": 0,
+    "FZP": 0
+  },
+  "screen": "Do not proceed solely on initial frame: report all150s blocks and both lanes. >=10% aggregate5s RMSE improvement with no block/lane worse>10% is only a reason to examine conservative implementation, not adoption."
+}
