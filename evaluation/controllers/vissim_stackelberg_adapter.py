@@ -6250,6 +6250,20 @@ def _moving_only_link_speeds(
     diag["mean_ratio"] = diag["ratio_sum"] / diag["adjusted"] if diag["adjusted"] else 0.0
     return out, diag
 
+def _record_storage_part(parts: dict, storage_link: str, link: str, assigned: float, stopped: float) -> None:
+    """K8-4: 관측 링크 하나가 저장고 하나에 넣은 (점유, 정지) 몫을 적는다.
+
+    `seed_urban_arrival_buffer` 가 저장고 단위로 건 (이동, 정지) 예약을 이 몫으로 관측 링크에 되돌려 나눈다
+    (`projection_diagnostics.storage_seed_split_by_link`, 명세 보충 §5.8-7 이 정확히 뺀다). 적는 순서가
+    투영 자신의 누적 순서라, 저장고별 몫의 순차 합이 `urban_link_storage_occupancy`·`_stopped` 와 비트로 같다.
+    """
+    if assigned <= 0.0:
+        return
+    row = parts.setdefault(str(storage_link), {}).setdefault(str(link), [0.0, 0.0])
+    row[0] += float(assigned)
+    row[1] += float(stopped)
+
+
 def build_local_observation_summary(
     state_json: Mapping[str, Any],
     cfg,
@@ -6305,6 +6319,11 @@ def build_local_observation_summary(
     # "아직 이동 중인 몫" 을 가르는 근거다(traffic_state_from_vissim 의 버퍼 복원 참조).
     # 관측에서 나오므로 추정이 아니다.
     urban_link_storage_stopped = {link: 0.0 for link in cfg.network.urban_link_storage_veh}
+    # K8-4 (S5): 저장고별 관측 링크 몫 {저장고: {링크: [점유, 정지]}} — 시드 분할 진단의 재료.
+    storage_parts_by_link: dict[str, dict[str, list[float]]] = {}
+    residual_stopped_links = 0
+    residual_stopped_violation_links = 0
+    residual_stopped_violation_veh = 0.0
     storage_requested_veh = 0.0
     storage_assigned_veh = 0.0
     storage_capacity_clipped_veh = 0.0
@@ -6343,6 +6362,7 @@ def build_local_observation_summary(
                 fraction = assigned / n if n else 0.
                 urban_link_storage_occupancy[target] += assigned
                 urban_link_storage_stopped[target] += stopped_n * fraction
+                _record_storage_part(storage_parts_by_link, target, link, assigned, stopped_n * fraction)
                 speed_weight_by_storage[target] = speed_weight_by_storage.get(target, 0.) + assigned
                 speed_moment_by_storage[target] = speed_moment_by_storage.get(target, 0.) + moment * fraction
                 storage_assigned_by_link[link] += assigned
@@ -6403,6 +6423,21 @@ def build_local_observation_summary(
         queue_count = max(0.0, count - storage_count)
         storage_count_by_link[str(link)] = float(storage_count)
         queue_count_by_link[str(link)] = float(queue_count)
+        # K8-4 S5 (DEFECTS §5.3, 보충 1 r2 B7): 저장고 정지분 = max(0, 관측 정지 − ready 큐) / 저장 대수.
+        # contiguous·stopped_instant 출처는 정지 차량을 이미 위 queue_count 로 큐에 보냈다. 저장고 정지분을
+        # 관측 정지/count 로 또 세면 같은 정지 차량이 큐와 저장고(+105 s 도착)에 두 번 쓰인다. 127 을 포함한
+        # 모든 링크에 쓴다. 상수 분할·physical_branch·기록 분할은 그대로다.
+        # ready 큐가 관측 정지보다 크면(관측 출처 불일치) 0 에서 자르고 셀 뿐 오류를 내지 않는다
+        # (RW_DECISION_FAIL_FAST 런이 관측 불일치 하나로 멈추지 않게; 85e 의 ProjectionError 와 다른 점).
+        residual_stopped_share = None
+        if queue_source_by_link.get(str(link)) in ("contiguous", "stopped_instant") and str(link) in link_stopped_counts:
+            observed_stopped = min(float(count), max(0.0, float(link_stopped_counts.get(str(link), 0.0))))
+            residual_stopped_links += 1
+            if queue_count > observed_stopped + 1.0e-8:
+                residual_stopped_violation_links += 1
+                residual_stopped_violation_veh += queue_count - observed_stopped
+            residual_stopped_share = (min(1.0, max(0.0, observed_stopped - queue_count) / storage_count)
+                                      if storage_count > 0.0 else 0.0)
         storage_links: list[str] = []
         for origin in origins:
             for storage_link in _storage_links_for_observed_origin(cfg, origin):
@@ -6438,10 +6473,14 @@ def build_local_observation_summary(
                 storage_capacity_clipped_veh += max(0.0, share - assigned)
                 # 배정된 몫 중 정지 비율만큼을 정지 대수로 같이 옮긴다.
                 if count > 0.0 and assigned > 0.0:
-                    stopped_share = min(1.0, max(0.0, float(link_stopped_counts.get(str(link), 0.0)) / count))
+                    if residual_stopped_share is not None:
+                        stopped_share = residual_stopped_share
+                    else:
+                        stopped_share = min(1.0, max(0.0, float(link_stopped_counts.get(str(link), 0.0)) / count))
                     urban_link_storage_stopped[storage_link] = (
                         urban_link_storage_stopped.get(storage_link, 0.0) + assigned * stopped_share
                     )
+                    _record_storage_part(storage_parts_by_link, storage_link, link, assigned, assigned * stopped_share)
 
     movement_queue = {movement: 0.0 for movement in cfg.network.urban_movements}
     movement_assigned_by_link: dict[str, float] = {}
@@ -6495,6 +6534,8 @@ def build_local_observation_summary(
                     urban_link_storage_stopped[storage_link] = (
                         urban_link_storage_stopped.get(storage_link, 0.0)
                         + assigned * float(_diag.get("route_leaves_stopped_share", 0.0)))
+                    _record_storage_part(storage_parts_by_link, storage_link, link, assigned,
+                                         assigned * float(_diag.get("route_leaves_stopped_share", 0.0)))
                     storage_assigned_by_link[str(link)] = storage_assigned_by_link.get(str(link), 0.0) + assigned
                     storage_assigned_veh += assigned
                     _stored += assigned
@@ -6765,6 +6806,10 @@ def build_local_observation_summary(
             1 for _l, _c in link_counts.items()
             if _c > 0.0 and str(_l) in link_stopped_counts
         )) if _stopped_split_enabled() else 0.0,
+        # K8-4 S5: 규칙을 탄 링크 수, 위반(ready 큐 > 관측 정지) 링크 수와 대수. 위반은 0 에서 잘렸다.
+        "residual_stopped_split_links": float(residual_stopped_links),
+        "residual_stopped_ready_exceeds_stopped_links": float(residual_stopped_violation_links),
+        "residual_stopped_ready_exceeds_stopped_veh": float(residual_stopped_violation_veh),
         "link_queue_tail_observed_count": sum(
             1 for value in link_queue_tail_pos_m.values() if value > 0.0
         ),
@@ -6823,6 +6868,7 @@ def build_local_observation_summary(
         "urban_contiguous_queue_links": float(len(contiguous_queue)),
         "urban_contiguous_queue_veh": float(sum(contiguous_queue.values())),
         "urban_link_storage_stopped": urban_link_storage_stopped,
+        "urban_link_storage_by_link": storage_parts_by_link,
         "urban_link_speed_kph": urban_link_speed_kph,
         "ramp_queue": ramp_queue,
         "ramp_spillback": ramp_spillback,
@@ -10069,6 +10115,10 @@ def seed_urban_arrival_buffer(state, cfg, local_summary: Mapping[str, Any]) -> d
 
     occupancy_by_link = _mapping(local_summary.get("urban_link_storage_occupancy"))
     stopped_by_link = _mapping(local_summary.get("urban_link_storage_stopped"))
+    parts_by_storage = _mapping(local_summary.get("urban_link_storage_by_link"))
+    split_by_link: dict[str, Any] = {}
+    unattributed: dict[str, dict[str, float]] = {}
+    split_residual = 0.0
     routing = set(approach_routing(cfg))
     step_sec = max(float(cfg.simulation.T_u_sec), 1.0e-9)
     start_step = int(round(float(getattr(state, "time_sec", 0.0)) / step_sec))
@@ -10098,7 +10148,60 @@ def seed_urban_arrival_buffer(state, cfg, local_summary: Mapping[str, Any]) -> d
         stats["stopped_veh"] += stopped
         if touched:
             stats["links"] += 1.0
+        split_residual = max(split_residual, _split_seed_storage(
+            split_by_link, unattributed, key, _mapping(parts_by_storage.get(key)), occupied, stopped,
+            moving if moving > 0.0 and tau_moving <= horizon else 0.0,
+            stopped if stopped > 0.0 and tau_stopped <= horizon else 0.0,
+            start_step + max(1, int(round(tau_moving / step_sec))),
+            start_step + max(1, int(round(tau_stopped / step_sec)))))
+    # K8-4 분할 단언: 저장고마다 Σ링크 + unattributed = 시드가 건 값(이동·정지 각각 ±1e-9). 링크 몫이 투영의
+    # 누적과 같은 순서라 구조상 성립한다 — 어긋나면 분할 코드의 결함이다(관측 불일치가 아님).
+    if split_residual > 1.0e-9:
+        raise RuntimeError(f"storage seed split does not reproduce the scheduled seeds (residual {split_residual!r})")
+    diagnostics = local_summary.get("projection_diagnostics")
+    if isinstance(diagnostics, dict):
+        rows = sum(len(row) for row in split_by_link.values())
+        split_by_link["unattributed"] = unattributed
+        diagnostics["storage_seed_split_by_link"] = split_by_link
+        diagnostics["storage_seed_split_rows"] = float(rows)
+        diagnostics["storage_seed_split_unattributed_veh"] = float(sum(
+            abs(row["moving"]) + abs(row["stopped"]) for row in unattributed.values()))
     return stats
+
+
+def _split_seed_storage(split_by_link: dict, unattributed: dict, storage: str, parts: Mapping[str, Any],
+                        occupied: float, stopped: float, moving_placed: float, stopped_placed: float,
+                        due_moving: int, due_stopped: int) -> float:
+    """K8-4: 저장고 하나에 건 (이동, 정지) 시드를 그 저장고를 채운 관측 링크로 나눈다.
+
+    링크 L 이 투영에서 이 저장고에 (a_L, s_L) 을 넣었다(`urban_link_storage_by_link`). 그 행은
+    {moving: max(0, a_L − s_L), stopped: s_L, due_moving_step, due_stopped_step} 이고, 시드가 걸지 않은 종류
+    (0 대이거나 지평 밖)는 모든 행에서 0 이다. 시드가 읽은 점유·정지 가운데 링크 몫으로 설명되지 않는 양은
+    `unattributed[storage]` 에 따로 둔다(배포 투영은 모든 가산이 링크를 적으므로 정확히 0, 그때는 항목 없음).
+    반환값은 |Σ행 + unattributed − 건 값| 의 큰 쪽(분할 단언 잔차)이다.
+    """
+    keep_moving = moving_placed > 0.0
+    keep_stopped = stopped_placed > 0.0
+    occupied_parts = 0.0
+    stopped_parts = 0.0
+    rows_moving = 0.0
+    rows_stopped = 0.0
+    for link, part in parts.items():
+        assigned, part_stopped = float(part[0]), float(part[1])
+        occupied_parts += assigned
+        stopped_parts += part_stopped
+        row_moving = max(0.0, assigned - part_stopped) if keep_moving else 0.0
+        row_stopped = part_stopped if keep_stopped else 0.0
+        split_by_link.setdefault(str(link), {})[str(storage)] = {
+            "moving": row_moving, "stopped": row_stopped,
+            "due_moving_step": int(due_moving), "due_stopped_step": int(due_stopped)}
+        rows_moving += row_moving
+        rows_stopped += row_stopped
+    left_stopped = (stopped_placed - stopped_parts) if keep_stopped else 0.0
+    left_moving = (moving_placed - (occupied_parts - stopped_parts)) if keep_moving else 0.0
+    if left_moving != 0.0 or left_stopped != 0.0:
+        unattributed[str(storage)] = {"moving": left_moving, "stopped": left_stopped}
+    return max(abs(rows_moving + left_moving - moving_placed), abs(rows_stopped + left_stopped - stopped_placed))
 
 
 def restore_urban_release_buffers(state, cfg, local_summary: Mapping[str, Any]) -> dict[str, float]:
