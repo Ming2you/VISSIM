@@ -5411,6 +5411,21 @@ def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float
     입력은 러너의 `queue_bins` = {"link|lane|bin": [total, stopped]}, 빈 크기 `queue_bin_m`
     (기본 7.0m = 실측 잼 간격 6.3m 에 차량 1대). 정렬은 러너가 하지 않는다 — 스캔이 이미
     런의 33% 라 VBScript 정렬을 붙일 수 없다. 여기서 빈 인덱스로 정렬한다.
+
+    차로별 값은 `_contiguous_stopline_queue_by_lane` 이 내고, 여기서는 그 삽입 순서 그대로
+    링크로 더한다(K8-6 #12: 같은 `+` 순서라 비트 동일).
+    """
+    out: dict[str, float] = {}
+    for (link, _lane), queued in _contiguous_stopline_queue_by_lane(state_json).items():
+        out[link] = out.get(link, 0.0) + queued
+    return out
+
+
+def _contiguous_stopline_queue_by_lane(state_json: Mapping[str, Any]) -> dict[tuple[str, str], float]:
+    """`_contiguous_stopline_queue` 의 차로별 걷기: {(link, lane): queued}, queued > 0 만.
+
+    키 순서는 `queue_bins` 에서 (link, lane) 이 처음 나온 순서다. stopline_approach 초기화가
+    차로별 준비 대수로 쓴다(K8-6 #12).
     """
     local = _mapping(state_json.get("local_observation"))
     raw = local.get("queue_bins")
@@ -5432,8 +5447,8 @@ def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float
             total, stopped = _as_float(value, 0.0), 0.0
         by_lane.setdefault((parts[0], parts[1]), {})[idx] = (total, stopped)
     lengths = _link_lengths_m()
-    out: dict[str, float] = {}
-    for (link, _lane), bins in by_lane.items():
+    out: dict[tuple[str, str], float] = {}
+    for (link, lane), bins in by_lane.items():
         if not bins:
             continue
         occupied_idx = [i for i, (t, _s) in bins.items() if t > 0.0]
@@ -5457,7 +5472,7 @@ def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float
                 break             # 움직이는 차가 섞였다 = 행렬의 끝
             queued += stopped
         if queued > 0.0:
-            out[link] = out.get(link, 0.0) + queued
+            out[(link, lane)] = queued
     return out
 
 

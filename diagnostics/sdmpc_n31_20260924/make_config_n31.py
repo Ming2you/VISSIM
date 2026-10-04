@@ -72,6 +72,8 @@ result must pass obs150_contract.validate_tuning_v2 and preflight_tuning_paths.
 
 Run from the worktree root:
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py [--check]
+K8-6 SA arms (separate files, key-only; see STOPLINE_EVIDENCE):
+  python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric [--check]
 """
 from __future__ import annotations
 
@@ -165,6 +167,14 @@ URBAN_B1_UNSIGNALIZED_VALIDATION_SHA256 = 'd8718b9db9e924f148c91da3aed45d71881f0
 URBAN_B1_OFFRAMP_PRIOR = N31D + '/urban/offramp_static_route_prior_v3c3_20261001.json'
 URBAN_B1_OFFRAMP_PRIOR_SHA256 = 'c2ef5b0fb0379fb827ca7c3899ebf6713b69ef4d232525e01b198a08392cfec7'
 OUT_URBAN_B1 = HERE / 'config_n31_v2_urban_b1.json'
+# K8-6 SA arm (OPT1_V2_SPEC 3.1 + amendment 1 r2 3.1, user decision D-K8-1): a SEPARATE arm config, never the
+# default above. --stopline-approach <evidence> --stopline-storage <arm> writes config_n31_v2_stopline_<arm>.json =
+# config_n31_v2.json plus exactly urban.stopline_approach (eight fields, the evidence path and its sha256 pin).
+# observed_full = the judging arm SA-F (the promoted config keeps only this value), geometric = the report arm SA-G.
+# Without the two flags nothing here runs and the default output is byte-identical (T2).
+STOPLINE_EVIDENCE = N31D + '/stopline/sc1001eb_evidence_v3c3_20261004.json'
+STOPLINE_EVIDENCE_SCHEMA = 'stopline-approach-evidence/v2'
+STOPLINE_STORAGES = ('observed_full', 'geometric')
 # The adapter's former code default of urban.ramp.offramp_direct_share (install_offramp_direct_landing), lifted
 # into the config unchanged. The relFlow value per off-ramp group (URBAN_B1_OFFRAMP_PRIOR: OR_D_W 0.5, OR_D_E 0.8,
 # OR_F_W 0.75, OR_F_E 2/3) enters only with the batch-1 candidate, through offramp_direct_route_prior.
@@ -503,6 +513,39 @@ def build_urban_batch1(root=ROOT, components=URBAN_B1_COMPONENTS, *, family=VSL_
     return doc
 
 
+def stopline_section(evidence_rel, storage, root=ROOT):
+    """urban.stopline_approach for one storage arm; the evidence is pinned by the sha256 of its bytes."""
+    if storage not in STOPLINE_STORAGES:
+        raise ValueError('--stopline-storage must be one of %s' % (STOPLINE_STORAGES,))
+    root = Path(root)
+    path = Path(evidence_rel)
+    path = (path if path.is_absolute() else root / path).resolve(strict=True)
+    if not path.is_relative_to(root.resolve()):
+        raise ValueError('stopline evidence must lie in the tree: ' + str(path))
+    data = path.read_bytes()
+    if json.loads(data.decode('utf-8')).get('schema') != STOPLINE_EVIDENCE_SCHEMA:
+        raise ValueError('stopline evidence schema must be ' + STOPLINE_EVIDENCE_SCHEMA)
+    return {'schema': 'stopline-approach/v2',
+            'evidence': {'path': path.relative_to(root.resolve()).as_posix(), 'sha256': hashlib.sha256(data).hexdigest()},
+            'approaches': ['SC1001_EB'], 'lane_model': 'lane_fifo', 'storage': storage, 'merge_rule': 'zipper',
+            'city_admission': 'unconditional', 'origin_tags': 'report'}
+
+
+def apply_stopline_approach(doc, evidence_rel, storage, root=ROOT):
+    """Pure on doc: the default tuning plus exactly urban.stopline_approach (key-only arm, OPT1_V2_SPEC 3.1)."""
+    if 'stopline_approach' in doc.get('urban', {}):
+        raise ValueError('Base tuning already carries urban.stopline_approach')
+    if doc['urban'].get('queue', {}).get('contiguous') is not True or not doc.get('freeway', {}).get('lane_plant'):
+        raise ValueError('urban.stopline_approach needs urban.queue.contiguous and freeway.lane_plant')
+    out = copy.deepcopy(doc)
+    out['urban']['stopline_approach'] = stopline_section(evidence_rel, storage, root)
+    return out
+
+
+def stopline_out(storage):
+    return HERE / ('config_n31_v2_stopline_%s.json' % storage)
+
+
 def family_root(family, out_root):
     """None for the live family in the tree; the resolved overlay folder (outside the tree) otherwise."""
     if out_root is None:
@@ -524,10 +567,22 @@ def main():
                         help='with --urban-batch1: the batch-1 items (U1 always), e.g. U1,U3 -> config_n31_v2_urban_b1_u1u3.json')
     parser.add_argument('--vsl-family', choices=VSL_FAMILIES, default=VSL_FAMILY)
     parser.add_argument('--out-root', help='VSL family overlay folder (outside the tree): read its family files, write there')
+    parser.add_argument('--stopline-approach', metavar='EVIDENCE',
+                        help='K8-6 SA arm: write config_n31_v2_stopline_<storage>.json with this pinned evidence')
+    parser.add_argument('--stopline-storage', choices=STOPLINE_STORAGES,
+                        help='with --stopline-approach: observed_full (judging arm SA-F) or geometric (report arm SA-G)')
     args = parser.parse_args()
+    stopline = (args.stopline_approach, args.stopline_storage)
+    if any(stopline) and not all(stopline):
+        raise SystemExit('--stopline-approach and --stopline-storage go together')
+    if all(stopline) and (args.urban_batch1 or args.out_root is not None or args.vsl_family != VSL_FAMILY):
+        raise SystemExit('--stopline-approach builds only on the default tree tuning')
     components = tuple(c.strip().upper() for c in args.components.split(',') if c.strip())
     overlay = family_root(args.vsl_family, args.out_root)
-    if args.urban_batch1:
+    if all(stopline):
+        out, name = stopline_out(args.stopline_storage), 'CONFIG_N31_STOPLINE_OK'
+        data = dumps(apply_stopline_approach(build(), *stopline))
+    elif args.urban_batch1:
         out, name = urban_batch1_out(components, overlay), 'CONFIG_N31_URBAN_B1_OK'
         data = dumps(build_urban_batch1(components=components, family=args.vsl_family, overlay=overlay))
     else:

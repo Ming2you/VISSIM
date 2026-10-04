@@ -183,6 +183,10 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     from evaluation.controllers import local_signal_service
     metadata.update(head_service_resources.finalize(cfg))
     metadata.update(local_signal_service.configure(cfg, tuning))
+    if (tuning or {}).get('urban', {}).get('stopline_approach') is not None:
+        # K8-6 SA hook #2: after the LSS/HSR pools are final, before any projection.
+        from evaluation.controllers import stopline_approach
+        metadata.update(stopline_approach.configure(cfg, tuning, state_json))
     if (tuning or {}).get('urban', {}).get('native_internal_inputs'):
         if tuning.get('urban', {}).get('movements', {}).get('native_input_signal_authority'):
             from evaluation.controllers.physical_movement_routes import configure_native_input_signal_authority
@@ -251,6 +255,11 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
                                                         lane_context['paths']['runner_config'])
         metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping,
                                                       previous_action_path=previous_action_path))
+        if (tuning or {}).get('urban', {}).get('stopline_approach') is not None:
+            # K8-6 SA hook #3: lane FIFO index over the projected stocks, before the area ledger seeds.
+            from evaluation.controllers import stopline_approach
+            metadata.update(stopline_approach.initialize(state, cfg, state_json, detector_mapping,
+                                                         stopline_approach.seed_split_of(state), tuning=tuning))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))

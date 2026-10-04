@@ -51,6 +51,10 @@ class LaneOfframpRuntime:
                 service=cfg.network.movement_capacity_veh_h*row['lanes']/3600.
                 room=uqm._effective_available_space(state,cfg,target)
                 requests.append((None,target,min(service,room),service,room))
+            elif row.get('approach'):
+                # K8-6 SA hook #4: zipper/lane room/joint in_SC1001_W cap of both ports, once per step.
+                from evaluation.controllers import stopline_approach
+                requests.append(stopline_approach.allocate(state,cfg,step,off,port))
             elif row['direct']:
                 target=row['target']
                 service=cfg.network.movement_capacity_veh_h*row['lanes']/3600.
@@ -88,6 +92,10 @@ class LaneOfframpRuntime:
                 if row.get('local_upstream'):
                     emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,preserve_area=True)
                     state.lane_urban_runtime.schedule_upstream(state,cfg,step,n,entry='off10638')
+                elif row.get('approach'):
+                    # K8-6 SA hook #5: lane packets, tags, paired reservations, keyed ledger transfers.
+                    from evaluation.controllers import stopline_approach
+                    stopline_approach.land_release(state,cfg,step,off,n,routing)
                 elif movement is None:
                     emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,
                         source_inside=self.membership[str(row['connector'])],

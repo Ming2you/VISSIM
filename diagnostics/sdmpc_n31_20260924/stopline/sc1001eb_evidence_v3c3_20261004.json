@@ -1,0 +1,296 @@
+{
+ "schema": "stopline-approach-evidence/v2",
+ "builder": {
+  "path": "diagnostics/sdmpc_n31_20260924/stopline/build_sc1001eb_evidence.py",
+  "sha256": "e6dc0cd65dc35058b400ef0dd01ec66081e89deb409146ce430ff6a10703fffb"
+ },
+ "inputs": {
+  "a1v2_visit": {
+   "file": "a1v2_visit.json",
+   "sha256": "d6e4a0bc5d295f0df9244da14e213fb8938d7081b6464c7879e31ce0c9fdf8e0",
+   "declaration_sha16": "211a48c6b3e3f450"
+  },
+  "s2_lanefull": {
+   "file": "s2_lanefull.json",
+   "sha256": "f9ec730a425ea4ba48a3ba1ff467f323f3159d1e541f016f084c1ce439c03a76",
+   "declaration_sha16": "5864d5b1d518c34e"
+  },
+  "g2_inpx": {
+   "file": "g2_inpx_v3c3.json",
+   "sha256": "69d4a5b5b1ecb6908898d0292ceae3571e6d4d690adc4445731ee6e69281bab0",
+   "extract_sha12": "910bc37a8d69"
+  },
+  "s2_loso": {
+   "file": "s2_loso_out.json",
+   "sha256": "f98d422db3ee1ade32fdab2b1ada16440abe0f547cf131d32c96ea9cc082da58",
+   "declaration_sha16": "2d7a85d124ae2f3d",
+   "checked": false
+  },
+  "mapping": {
+   "path": "evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json",
+   "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e"
+  },
+  "support": {
+   "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_635_proposal_ec2393.json",
+   "sha256": "8d02ed64d43461236ef15f657aeab553440cc981540fbc390fa01c2d0eea7d50"
+  },
+  "network": {
+   "label": "v3c3 s31",
+   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+   "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "checked": false
+  }
+ },
+ "approaches": {
+  "SC1001_EB": {
+   "signal": "SC1001",
+   "stopline_link": "127",
+   "receiver": "in_SC1001_W",
+   "members": {
+    "E": "SC1001_W_to_E_SC1002",
+    "S": "SC1001_W_to_S_SC1003",
+    "N": "SC1001_W_to_N_SC2002"
+   },
+   "lanes": {
+    "1": {
+     "members": [
+      "E",
+      "S"
+     ],
+     "phase": "SC1001_p3",
+     "signal_group": "1001 2",
+     "head_pos_m": 621.666240433568,
+     "s_veh_h_lane": 2030.9375,
+     "storage_veh": {
+      "geometric": 103.61104007226133,
+      "observed_full": 81.0
+     }
+    },
+    "2": {
+     "members": [
+      "E"
+     ],
+     "phase": "SC1001_p3",
+     "signal_group": "1001 2",
+     "head_pos_m": 621.5682806829368,
+     "s_veh_h_lane": 1581.7040358744396,
+     "storage_veh": {
+      "geometric": 103.59471344715614,
+      "observed_full": 63.0
+     }
+    },
+    "3": {
+     "members": [
+      "N"
+     ],
+     "phase": "SC1001_p4",
+     "signal_group": "1001 5",
+     "head_pos_m": 621.461546643362,
+     "s_veh_h_lane": 2101.923076923077,
+     "storage_veh": {
+      "geometric": 103.57692444056033,
+      "observed_full": 103.57692444056033
+     }
+    }
+   },
+   "judging_storage_arm": "observed_full",
+   "p_lane1_given_E": 0.5240301626237849,
+   "upstream_lane_prior": {
+    "1": {
+     "E": 0.6252282956725075,
+     "S": 0.37082858911363964,
+     "N": 0.0039431152138528665
+    },
+    "2": {
+     "E": 0.9924784360891458,
+     "S": 0.00021541471821062173,
+     "N": 0.007306149192643587
+    },
+    "3": {
+     "E": 0.15476190476190477,
+     "S": 0.01488095238095238,
+     "N": 0.8303571428571429
+    }
+   },
+   "upstream_lane_frames": {
+    "1": 130861,
+    "2": 111413,
+    "3": 8064
+   },
+   "posthead_lane_prior": {
+    "1": {
+     "E": 0.842043795620438,
+     "S": 0.15795620437956204
+    },
+    "2": {
+     "E": 0.9922348484848484,
+     "S": 0.007765151515151515
+    },
+    "3": {
+     "N": 1.0
+    }
+   },
+   "posthead_connectors": {
+    "10118": {
+     "from_lanes": [
+      1,
+      2
+     ],
+     "receiver": "SC1001_to_SC1002"
+    },
+    "10368": {
+     "from_lanes": [
+      1
+     ],
+     "receiver": "SC1001_to_SC1003"
+    },
+    "10695": {
+     "from_lanes": [
+      3
+     ],
+     "receiver": "SC1001_to_SC2002"
+    }
+   },
+   "posthead_rehome": {
+    "10695": "SC1001_to_SC2002"
+   },
+   "pre_stopline_links": [
+    "32",
+    "10778",
+    "129",
+    "10777",
+    "127"
+   ],
+   "ports": {
+    "10491": {
+     "off_ramp": "OR_D_W",
+     "landing": [
+      "129",
+      239.38422422843928
+     ],
+     "distance_m": {
+      "1": 684.2080162051288,
+      "2": 684.1100564544977,
+      "3": 684.0033224149229
+     }
+    },
+    "10481": {
+     "off_ramp": "OR_D_E",
+     "landing": [
+      "127",
+      210.27144602258932
+     ],
+     "distance_m": {
+      "1": 411.39479441097865,
+      "2": 411.2968346603475,
+      "3": 411.1901006207727
+     }
+    }
+   },
+   "d1117_m": 228.91967281006077,
+   "tail129_from_m": 239.38422422843928,
+   "link10777_m": 1.001500000142622,
+   "port_progress_route": {
+    "1132:2": "OR_D_W"
+   },
+   "route_exit": {
+    "1117:1": "S",
+    "1117:2": "N",
+    "1117:3": "E"
+   },
+   "init_origin_routes": {
+    "1131:2": "port",
+    "1132:2": "port",
+    "1136:2": "city",
+    "1117": "unknown"
+   },
+   "speed_floor_kmh": 20.0,
+   "jam_spacing_m": 6.0
+  }
+ },
+ "report": {
+  "origin_prior_sg2": {
+   "OFF_W": 0.6048266783677051,
+   "OFF_E": 0.20166739798157085,
+   "URB": 0.193505923650724
+  },
+  "e1_group_s_g45": {
+   "SG2": 1801.5810276679842,
+   "SG5": 2101.923076923077
+  },
+  "e1_lane_loso_range": {
+   "1": [
+    2020.2926829268292,
+    2038.2439024390244
+   ],
+   "2": [
+    1573.9325842696628,
+    1590.7182320441989
+   ],
+   "3": [
+    2097.8571428571427,
+    2104.7619047619046
+   ]
+  },
+  "lane_full_pooled": {
+   "1": {
+    "n": 1780,
+    "p10": 73.0,
+    "p50": 81.0,
+    "p90": 89.0
+   },
+   "2": {
+    "n": 1337,
+    "p10": 54.0,
+    "p50": 63.0,
+    "p90": 69.0
+   },
+   "12": {
+    "n": 1160,
+    "p10": 132.0,
+    "p50": 145.0,
+    "p90": 156.0
+   },
+   "spill12": {
+    "n": 738,
+    "p10": 122.0,
+    "p50": 137.0,
+    "p90": 153.0
+   }
+  },
+  "loso_p50": {
+   "1": {
+    "31": 82.0,
+    "41": 81.0,
+    "43": 81.0,
+    "47": 81.0,
+    "53": 81.0
+   },
+   "2": {
+    "31": 62.0,
+    "41": 63.0,
+    "43": 63.0,
+    "47": 62.0,
+    "53": 63.0
+   }
+  },
+  "loso_flags": {
+   "1": {
+    "loso_p50_min": 81.0,
+    "loso_p50_max": 82.0,
+    "range": 1.0,
+    "threshold": 4.05,
+    "WIDE": false
+   },
+   "2": {
+    "loso_p50_min": 62.0,
+    "loso_p50_max": 63.0,
+    "range": 1.0,
+    "threshold": 3.1500000000000004,
+    "WIDE": false
+   }
+  },
+  "x_10490_m": 299.9855236542128,
+  "exit129_m": 301.92600000000016
+ }
+}

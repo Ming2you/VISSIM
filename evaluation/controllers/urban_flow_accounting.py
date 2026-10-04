@@ -46,6 +46,29 @@ def _receive_corridor(state, cfg, movement, vehicles, urban_step_index):
     return False
 
 
+def _post_service(state, cfg, movement, actual, step_idx, routing, receiving_link):
+    """Receiver debit and travel reservation after an accepted stopline crossing.
+
+    Extracted unchanged from the regular departure loop (same operations, same
+    order) so that stopline_approach.initialize books a post-head vehicle with
+    the very same side effects as an accepted departure (K8-6, spec #11).
+    `receiving_link` is the caller's str(spec.get("receiving_link", "")), so the
+    key-absent loop does no lookup the inline block did not do (K8 amendment 5 N-4).
+    """
+    if receiving_link in state.urban_link_storage:
+        state.urban_link_storage[receiving_link] = max(
+            0.0,
+            state.urban_link_storage.get(receiving_link, 0.0) - actual,
+        )
+        if not _receive_corridor(state, cfg, movement, actual, step_idx):
+            delay_steps = _uqm._link_delay_steps(state, cfg, receiving_link)
+            arrival_step = step_idx + delay_steps
+            # 내부 링크면 다음 교차로 approach buffer로(도착 시 β분할), sink 링크면 release만.
+            if receiving_link in routing:
+                _uqm._schedule(state.urban_arrival_buffer, receiving_link, arrival_step, actual)
+            _uqm._schedule(state.urban_storage_release_buffer, receiving_link, arrival_step, actual)
+
+
 def _corridor_intended(state, control, cfg, movement, available, urban_step_index, ordinary):
     physical_local=is_local_movement(state,movement)
     if getattr(cfg.network, 'route_choice_corridor', None):
@@ -220,6 +243,9 @@ def urban_substep_accounted(
     from evaluation.controllers import head_service_resources
     head_resource_context = head_service_resources.regular_context(cfg, control, step_idx)
     routing = _uqm.approach_routing(cfg)
+    sa = getattr(net, 'stopline_approach', None)     # K8-6 SA view; None (key absent) skips every SA hook
+    if sa is not None:
+        from evaluation.controllers import stopline_approach as _sa
     sink_links = _uqm.sink_storage_links(cfg)
     choice_storages = set(choice['capacity_veh']) if choice else set()
     if choice_storages:
@@ -361,6 +387,13 @@ def urban_substep_accounted(
         if local is not None and source==local.origin:
             local.consume_upstream(state,cfg,step_idx,arrived)
             continue
+        if sa is not None and source == sa['receiver']:
+            # K8-6 SA hook #6: tagged lane packets to their members, the rest by gate beta.
+            for movement, amount in _sa.split_arrival(state, cfg, step_idx, arrived, targets):
+                state.urban_movement_queue[movement] += amount
+                _lane_ready(state, cfg, movement, amount)
+                emit_transfer(state, cfg, 'storage:' + source, 'movement:' + movement, amount, route_key='arrival:' + movement)
+            continue
         if hasattr(net,'physical_ramp_branches'):
             from evaluation.controllers.physical_ramp_branches import split_tagged_arrival
             city_spec = net.physical_ramp_branches.get('shared_city_arrival',{})
@@ -392,6 +425,8 @@ def urban_substep_accounted(
                 state.urban_movement_queue[movement] += beta * landed
                 _lane_ready(state,cfg,movement,beta*landed)
                 emit_transfer(state, cfg, 'transit:gate:' + origin, 'movement:' + movement, beta * landed, route_key='arrival:' + movement)
+                if sa is not None and movement in sa['members']:
+                    _sa.enqueue_city(state, cfg, movement, beta * landed, step_idx)   # K8-6 SA hook #7
         arrival = demand.urban_boundary.get(origin, 0.0) * sim.T_u_h
         targets = routing.get(origin, [])
         if arrival <= 0.0 or not targets:
@@ -537,9 +572,13 @@ def urban_substep_accounted(
         if str(spec.get("kind", "")) == "off_ramp":
             continue  # off_ramp movement는 _drain_offramp_storage가 storage에서 직접 방출.
         available = max(0.0, state.urban_movement_queue.get(movement, 0.0))
-        cap_flow = _uqm._movement_capacity_flow(control, cfg, movement, spec)
-        green_fraction = _uqm._phase_green_fraction(control, cfg, spec, urban_step_index=step_idx)
-        intended = min(available, sim.T_u_h * green_fraction * cap_flow)
+        if sa is not None and movement in sa['members']:
+            # K8-6 SA hook #8 (B6): lane FIFO ready prefix up to s_l*T*phi_l; no capacity table read.
+            intended = _sa.intended(state, control, cfg, step_idx)[movement]
+        else:
+            cap_flow = _uqm._movement_capacity_flow(control, cfg, movement, spec)
+            green_fraction = _uqm._phase_green_fraction(control, cfg, spec, urban_step_index=step_idx)
+            intended = min(available, sim.T_u_h * green_fraction * cap_flow)
         intended = _corridor_intended(state, control, cfg, movement,
                                      available, step_idx, intended)
         if movement_limits is not None:
@@ -576,6 +615,8 @@ def urban_substep_accounted(
                 intended,
                 available_space,
             ))
+    if sa is not None:
+        actual_departure.update(_sa.resolve(state, cfg, actual_departure))   # K8-6 SA hook #9 (head of line)
 
     for movement, departed in actual_departure.items():
         if movement_limits is not None:
@@ -598,31 +639,27 @@ def urban_substep_accounted(
                 receiving_evidence[receiving_key][1]['movement:' + movement] = actual
             if movement in head_resource_context[2]:
                 head_accepted[movement] = actual
-        emit_transfer(state, cfg, 'movement:' + movement, 'storage:' + receiving_key if receiving_key in state.urban_link_storage else None, actual, route_key='movement:' + movement)
+        if sa is not None and movement in sa['members']:
+            # K8-6 SA hook #10 (before the :597 transfer): FIFO dequeue, N_P-keyed transfers;
+            # only the city-side share counts as perimeter inflow (amendment 5.6).
+            counted = _sa.depart(state, cfg, movement, actual, step_idx, receiving_key)
+        else:
+            emit_transfer(state, cfg, 'movement:' + movement, 'storage:' + receiving_key if receiving_key in state.urban_link_storage else None, actual, route_key='movement:' + movement)
+            counted = actual
         total_departures_veh += actual
         state.urban_movement_queue[movement] = max(0.0, before - actual)
-        receiving_link = str(spec.get("receiving_link", ""))
-        if receiving_link in state.urban_link_storage:
-            state.urban_link_storage[receiving_link] = max(
-                0.0,
-                state.urban_link_storage.get(receiving_link, 0.0) - actual,
-            )
-            if not _receive_corridor(state, cfg, movement, actual, step_idx):
-                delay_steps = _uqm._link_delay_steps(state, cfg, receiving_link)
-                arrival_step = step_idx + delay_steps
-                # 내부 링크면 다음 교차로 approach buffer로(도착 시 β분할), sink 링크면 release만.
-                if receiving_link in routing:
-                    _uqm._schedule(state.urban_arrival_buffer, receiving_link, arrival_step, actual)
-                _uqm._schedule(state.urban_storage_release_buffer, receiving_link, arrival_step, actual)
+        _post_service(state, cfg, movement, actual, step_idx, routing, receiving_key)
         if spec.get("kind") == "off_ramp":
             off_ramp = str(spec.get("off_ramp", ""))
             off_ramp_departures[off_ramp] = off_ramp_departures.get(off_ramp, 0.0) + actual
             inbound_service_veh += actual
         elif spec.get("kind") == "boundary_in":
-            inbound_service_veh += actual
-            urban_gate_inflow_veh += actual
+            inbound_service_veh += counted
+            urban_gate_inflow_veh += counted
         elif spec.get("kind") == "boundary_out":
             outbound_service_veh += actual
+    if sa is not None:
+        diagnostics.update(_sa.end_step(state, cfg, step_idx))   # K8-6 SA hook #10b: I1-I8, <= 20 keys
 
     if resource_ledger is not None:
         for storage_link, (available_space, accepted_sources) in receiving_evidence.items():
