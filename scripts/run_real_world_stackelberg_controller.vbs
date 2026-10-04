@@ -1196,6 +1196,7 @@ End Function
 Sub RunControllerDecision(simSec)
     Dim stateJsonPath, outJsonPath, outCsvPath, cmd, result, effController
     Dim wallT0, wallSec, exitCode, outText, errText, perfT0
+    Dim captureOutPath, captureErrPath
     perfT0 = PerfNow()
     stateJsonPath = fso.BuildPath(decisionDir, "state_" & Pad6(simSec) & ".json")
     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
@@ -1210,19 +1211,6 @@ Sub RunControllerDecision(simSec)
         effController = warmupControllerName
         WScript.Echo "WARMUP_CONTROLLER sim_sec=" & simSec & " controller=" & effController
     End If
-    cmd = pythonExe & " " & Q(adapterPath) & " --state-json " & Q(stateJsonPath) & _
-        " --out-action-json " & Q(outJsonPath) & " --out-action-csv " & Q(outCsvPath) & _
-        " --mapping-json " & Q(mappingPath) & " --controller " & Q(effController)
-    If detectorMappingPath <> "" Then cmd = cmd & " --detector-mapping-json " & Q(detectorMappingPath)
-    If calibrationPath <> "" Then cmd = cmd & " --calibration-json " & Q(calibrationPath)
-    If tuningPath <> "" Then cmd = cmd & " --tuning-json " & Q(tuningPath)
-    If LCase(CStr(effController)) = "diagnostic-vsl-profile" Or _
-            LCase(CStr(effController)) = "diagnostic-ramp-profile" Or _
-            LCase(CStr(effController)) = "diagnostic-rule-profile" Or _
-            LCase(CStr(effController)) = "diagnostic-signal-profile" Then
-        cmd = cmd & " --diagnostic-allowed-vsl-speeds " & Q(RW_ALLOWED_VSL_SPEEDS)
-    End If
-    If lastActionJson <> "" Then cmd = cmd & " --previous-action-json " & Q(lastActionJson)
     ' 어댑터 --mode 는 리더 탐색 폭을 정한다(vissim_stackelberg_adapter.py:2790).
     '   fast-smoke  + local_observation -> leader_candidate_count = 1
     '   fuller-smoke                    -> 3
@@ -1231,9 +1219,17 @@ Sub RunControllerDecision(simSec)
     ' 전부 건드려야 하므로 RW_FORCE_STEPWISE 와 같은 방식으로 환경변수를 쓴다.
     ' 안 주면 어댑터 기본값(fast-smoke)이라 기존 거동과 비트 동일하다.
     adapterMode = EnvText("RW_ADAPTER_MODE")
-    If adapterMode <> "" Then cmd = cmd & " --mode " & Q(adapterMode)
+    ' K8-1 (S6): BuildDecisionCommand returns the same string the inline assembly built, and
+    ' RunDecisionCapture sends the adapter's stdout/stderr to action_<T6>.stdout.txt and
+    ' action_<T6>.stderr.txt in this decision folder and reads them after the child exits, so
+    ' no output size can fill a pipe and stall the decision. No timeout (the watchdog owns it).
+    ' The log lines below keep their content.
+    cmd = BuildDecisionCommand(pythonExe, adapterPath, stateJsonPath, outJsonPath, outCsvPath, mappingPath, _
+        effController, detectorMappingPath, calibrationPath, tuningPath, RW_ALLOWED_VSL_SPEEDS, lastActionJson, adapterMode)
+    captureOutPath = DecisionCapturePath(decisionDir, simSec, "stdout")
+    captureErrPath = DecisionCapturePath(decisionDir, simSec, "stderr")
     wallT0 = Timer
-    exitCode = RunCapture3(cmd, outText, errText)
+    exitCode = RunDecisionCapture(cmd, captureOutPath, captureErrPath, outText, errText)
     wallSec = ElapsedSec(wallT0)
     PerfAdd "decision.python", wallT0
     result = "exit=" & exitCode & " stdout=" & OneLine(outText) & " stderr=" & OneLine(errText)
@@ -5177,6 +5173,101 @@ Function RunCapture3Timeout(cmd, timeoutSec, ByRef outText, ByRef errText)
     outText = exec.StdOut.ReadAll
     errText = exec.StdErr.ReadAll
     RunCapture3Timeout = exec.ExitCode
+End Function
+
+' K8-1 (S6) decision command. A pure function of its arguments: the same string, piece for
+' piece, as the inline assembly RunControllerDecision used before (pinned by the K8-1 test).
+Function BuildDecisionCommand(pyExe, adapter, stateJson, outJson, outCsv, mapping, ctrl, _
+        detMapping, calibration, tuning, allowedVsl, previousAction, mode)
+    Dim c
+    c = pyExe & " " & Q(adapter) & " --state-json " & Q(stateJson) & _
+        " --out-action-json " & Q(outJson) & " --out-action-csv " & Q(outCsv) & _
+        " --mapping-json " & Q(mapping) & " --controller " & Q(ctrl)
+    If detMapping <> "" Then c = c & " --detector-mapping-json " & Q(detMapping)
+    If calibration <> "" Then c = c & " --calibration-json " & Q(calibration)
+    If tuning <> "" Then c = c & " --tuning-json " & Q(tuning)
+    If LCase(CStr(ctrl)) = "diagnostic-vsl-profile" Or _
+            LCase(CStr(ctrl)) = "diagnostic-ramp-profile" Or _
+            LCase(CStr(ctrl)) = "diagnostic-rule-profile" Or _
+            LCase(CStr(ctrl)) = "diagnostic-signal-profile" Then
+        c = c & " --diagnostic-allowed-vsl-speeds " & Q(allowedVsl)
+    End If
+    If previousAction <> "" Then c = c & " --previous-action-json " & Q(previousAction)
+    If mode <> "" Then c = c & " --mode " & Q(mode)
+    BuildDecisionCommand = c
+End Function
+
+' K8-1 (S6) capture file of one decision: action_<T6>.stdout.txt / action_<T6>.stderr.txt
+' next to state_<T6>.json and action_<T6>.json, so the evidence stays with the decision.
+Function DecisionCapturePath(folder, simSec, stream)
+    DecisionCapturePath = fso.BuildPath(folder, "action_" & Pad6(simSec) & "." & stream & ".txt")
+End Function
+
+' K8-1 (S6) capture text: ANSI, the decoding the pipe ReadAll of RunCapture3 applies. A file
+' of size 0 is "" without ReadAll. A missing or unreadable file never raises inside the
+' runner; it is named in the text instead.
+Function ReadDecisionCaptureText(path)
+    Dim ts, text, size
+    text = ""
+    On Error Resume Next
+    If Not fso.FileExists(path) Then
+        text = "CAPTURE_MISSING"
+    Else
+        size = fso.GetFile(path).Size
+        If Err.Number = 0 And size > 0 Then
+            Set ts = fso.OpenTextFile(path, 1, False, 0)
+            If Err.Number = 0 Then
+                text = ts.ReadAll
+                ts.Close
+            End If
+        End If
+        If Err.Number <> 0 Then text = "CAPTURE_READ_FAILED " & Err.Description
+    End If
+    Err.Clear
+    On Error GoTo 0
+    ReadDecisionCaptureText = text
+End Function
+
+' K8-1 (S6) the decision call, and only it (RunCapture3 / RunCapture3Timeout keep their other
+' callers). The adapter writes into outPath/errPath through cmd redirection; the files are read
+' after the child has exited, so the 4 KB pipe can no longer stall a decision whatever the
+' output size. No timeout: the decision budget is unbounded and the watchdog owns stalls.
+Function RunDecisionCapture(cmd, outPath, errPath, ByRef outText, ByRef errText)
+    Dim q2, pyPath, exec, wrapped
+    outText = ""
+    errText = ""
+    ' A quoted interpreter path that does not exist goes to the old function with the same cmd:
+    ' its shell.Exec fails there, so the -1 / EXEC_FAILED result stays byte-identical, and no
+    ' capture file is made. Through cmd.exe the Exec would succeed and that path would be lost.
+    If Left(cmd, 1) = """" Then
+        q2 = InStr(2, cmd, """")
+        If q2 > 2 Then
+            pyPath = Mid(cmd, 2, q2 - 2)
+            If Not fso.FileExists(pyPath) Then
+                RunDecisionCapture = RunCapture3(cmd, outText, errText)
+                Exit Function
+            End If
+        End If
+    End If
+    ' /d skips AutoRun. /s makes cmd strip only the outer quote pair, so the quotes that Q()
+    ' and PythonCommandPrefix put inside cmd survive. cmd /c returns the child's exit code.
+    wrapped = "cmd /d /s /c """ & cmd & " 1> " & Q(outPath) & " 2> " & Q(errPath) & """"
+    On Error Resume Next
+    Set exec = shell.Exec(wrapped)
+    If Err.Number <> 0 Then
+        errText = "EXEC_FAILED " & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        RunDecisionCapture = -1
+        Exit Function
+    End If
+    On Error GoTo 0
+    Do While exec.Status = 0
+        WScript.Sleep 50
+    Loop
+    outText = ReadDecisionCaptureText(outPath)
+    errText = ReadDecisionCaptureText(errPath)
+    RunDecisionCapture = exec.ExitCode
 End Function
 
 Sub TerminateExecTree(exec)
