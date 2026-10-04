@@ -1,0 +1,41 @@
+{
+  "created_at": "2026-09-28T18:48:41.217861+09:00",
+  "hypothesis": "Check whether the frozen cell23/city candidate transmits RM and VSL sensitivities into the actual SDMPC continuous predictor. No physical coefficients/constraints changes.",
+  "initial": "actual seed29 stopped run4500s, actual4350 action, causal head/VSL history",
+  "anchor": "10484 legal g8/6/4; all other actual prior commands held",
+  "axes": [
+    {
+      "kind": "meter",
+      "key": "RM_C10484",
+      "block": 2,
+      "steps": [
+        0.001,
+        0.0005
+      ]
+    },
+    {
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "block": 0,
+      "steps": [
+        0.01,
+        0.005
+      ]
+    }
+  ],
+  "max_ad_rollouts": 1,
+  "max_independent_scalar_rollouts": 9,
+  "finite_difference_scope": "Continuous surrogate diagnostics; infinitesimal perturbations are not quantized/native commands and are not tested as feasible physical candidates.",
+  "primal_abs_tolerance": 1e-07,
+  "cost_gradient_atol": 0.0001,
+  "resource_gradient_atol": 0.001,
+  "gradient_rtol": 0.001,
+  "no_optimization": true,
+  "no_native": true,
+  "no_push": true,
+  "before_source": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py",
+    "sha256": "25ff41e970ed859dd58416aa601f42d6652f20bdd0cdc6b2957614be4ce5b5fb",
+    "archive": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\executed_sources\\probe_selected_arrival_path_25ff41e970ed859dd58416aa601f42d6652f20bdd0cdc6b2957614be4ce5b5fb.py"
+  }
+}

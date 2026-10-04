@@ -1,0 +1,97 @@
+{
+  "frozen_multiplier": 2.859774049618318,
+  "serialized_changes": "Only two downstream-lower anticipation coefficients at24/25.",
+  "new_cases": [
+    [
+      "s29_early",
+      "rm",
+      450
+    ],
+    [
+      "s29_early",
+      "both",
+      450
+    ],
+    [
+      "s43_early",
+      "rm",
+      450
+    ],
+    [
+      "s43_early",
+      "both",
+      450
+    ],
+    [
+      "s29_late",
+      "hold",
+      450
+    ],
+    [
+      "s29_late",
+      "release",
+      450
+    ],
+    [
+      "s29_late",
+      "hold_vsl90",
+      450
+    ],
+    [
+      "s29_late",
+      "release_vsl90",
+      450
+    ],
+    [
+      "s61_late",
+      "hold_vsl90",
+      450
+    ],
+    [
+      "s61_late",
+      "release_vsl90",
+      450
+    ]
+  ],
+  "existing_cases": [
+    [
+      "s29_early",
+      "none",
+      750
+    ],
+    [
+      "s29_early",
+      "vsl",
+      750
+    ],
+    [
+      "s43_early",
+      "none",
+      750
+    ],
+    [
+      "s43_early",
+      "vsl",
+      750
+    ],
+    [
+      "s61_late",
+      "hold",
+      450
+    ],
+    [
+      "s61_late",
+      "release",
+      450
+    ]
+  ],
+  "new_forecast_budget": 11,
+  "coefficient_searches": 0,
+  "new_native": 0,
+  "checks": [
+    "One exact serialization parity forecast.",
+    "Same-horizon NC/RM/VSL/both, late four-command rankings, and independent-seed response.",
+    "Conservation, absolute N/v/q and actual accepted merges; ramp/off wait costs retained."
+  ],
+  "qualification": "Freeway/component response only; not full Omega or SDMPC acceptance. Existing states previously inspected; no pristine holdout."
+}

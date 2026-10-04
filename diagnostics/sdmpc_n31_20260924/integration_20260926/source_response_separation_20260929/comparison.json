@@ -1,0 +1,70 @@
+{
+  "rows": [
+    {
+      "case": "nc",
+      "native_source_admissions_veh": 916,
+      "native_delta_omega_veh_h": 0.0,
+      "causal_forecast_delta_omega_veh_h": 0.0,
+      "common_future_nc_source_delta_omega_veh_h": 0.0,
+      "own_future_source_delta_omega_veh_h": 0.0,
+      "model_source_realization_effect_veh_h": 0.0,
+      "native_minus_conditional_veh_h": 0.0
+    },
+    {
+      "case": "rm",
+      "native_source_admissions_veh": 901,
+      "native_delta_omega_veh_h": -1.5472222222222172,
+      "causal_forecast_delta_omega_veh_h": -0.01569345784514553,
+      "common_future_nc_source_delta_omega_veh_h": -0.015737208534574165,
+      "own_future_source_delta_omega_veh_h": -1.4312199417204852,
+      "model_source_realization_effect_veh_h": -1.415482733185911,
+      "native_minus_conditional_veh_h": -0.116002280501732
+    },
+    {
+      "case": "vsl",
+      "native_source_admissions_veh": 955,
+      "native_delta_omega_veh_h": 0.7770833333333371,
+      "causal_forecast_delta_omega_veh_h": 0.20238074488298707,
+      "common_future_nc_source_delta_omega_veh_h": 0.20203076061375214,
+      "own_future_source_delta_omega_veh_h": 1.1420847197081798,
+      "model_source_realization_effect_veh_h": 0.9400539590944277,
+      "native_minus_conditional_veh_h": -0.3650013863748427
+    },
+    {
+      "case": "both",
+      "native_source_admissions_veh": 911,
+      "native_delta_omega_veh_h": -1.4534722222222172,
+      "causal_forecast_delta_omega_veh_h": 0.18874834253063,
+      "common_future_nc_source_delta_omega_veh_h": 0.18842712438663511,
+      "own_future_source_delta_omega_veh_h": -0.6899227657850133,
+      "model_source_realization_effect_veh_h": -0.8783498901716484,
+      "native_minus_conditional_veh_h": -0.7635494564372038
+    }
+  ],
+  "source_only_intervention": true,
+  "other_demands_and_commands_unchanged": true,
+  "model_admissions_match_supplied_native_counts": true,
+  "all_ramp_conservation_passed": true,
+  "common_baseline_non_timing_output_exact": true,
+  "conditional_forecasts_completed": 8,
+  "fitted_parameters": 0,
+  "optimizer_iterations": 0,
+  "new_native_runs": 0,
+  "interpretation": "Model sensitivity to unequal realized source inputs; not an identified causal decomposition of VISSIM treatment effect.",
+  "limitations": [
+    "Future source profiles are diagnostic inputs, not available to the controller.",
+    "Admitted-input differences may include stochastic realization and endogenous admission effects; this test does not identify their source.",
+    "Source profiles use150s mean rates; native30s totals determine those rates.",
+    "Only FW_E source is replaced. Ramp/urban boundary arrivals, actual route choices and downstream response differences remain.",
+    "Native450s totals and predicted450s totals differ by0.1s recording phase.",
+    "Matching a conditional cost difference does not qualify autonomous control or remove the need to validate large gain/loss cases."
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10484_head10119_s43_v2\\summary.json": "6d0133b73b71dbd4456578a87b9786b103ea7a8388b494d6da40f82817c60ba4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_source_common_nc_s43\\summary.json": "28941329c1d55d9fb9804d538feafb768b744f6b76096fa7a0a54dd662bad7dd",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_source_per_arm_s43\\summary.json": "134768df482c1bd897b6c0315749c2e15af9b3144ffd778ed0741919415d2b2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\seed43_fullplant_20260929\\comparison.json": "eba37e7e29beac2546ee64063d3bd39fe6f6cfb5a74be1190d1b8cef24660152",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\source_response_separation_20260929\\protocol.json": "0a29cbde48adcb0db071db75656fc8f9a6700cb4a8827fcda55a21686325f28f"
+  },
+  "goal_complete": false
+}

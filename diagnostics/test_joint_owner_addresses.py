@@ -84,6 +84,30 @@ class OwnerAddressesTests(unittest.TestCase):
         self.assertIn(('signal_sg','9104:1','FW_W','RM_C10644'),c.writes)
         self.assertIn(('signal_sg','9103:1','FW_W','RM_C10646'),c.writes)
 
+    def test_selected_six_zones_keep_entry_and_recovery_fixed(self):
+        heads = [0, 2, 5, 10, 13, 15]
+        net = self.cfg.network
+        net.freeway_vsl_zone_free = [1, 2, 3, 4]
+        for road in net.freeway_links:
+            net.freeway_vsl_zone_heads[road] = heads.copy()
+            net.freeway_vsl_zone_head_of_cell[road] = [max(h for h in heads if h <= i) for i in range(21)]
+        catalog = self.build()
+        self.assertEqual({a.key for a in catalog.addresses if a.field=='vsl' and a.role=='strategy'},
+                         {f'{r}__seg{i}' for r in net.freeway_links for i in (2,5,10,13)})
+        old = self.action(catalog)
+        for index in (0,1,15,20):
+            changed = old.copy(); changed.vsl[f'FW_E__seg{index}'] -= 10.
+            with self.subTest(index=index), self.assertRaises(ValueError):
+                proposed.assert_owner_transition(catalog,'FW_E',old,changed)
+        changed = old.copy(); changed.vsl['FW_E__seg13'] -= 10.
+        self.assertEqual(proposed.assert_owner_transition(catalog,'FW_E',old,changed), (('vsl','FW_E__seg13'),))
+        # A nominal free zone without any writer address remains invalid.
+        for row in self.mapping['segments']:
+            if row['model_link']=='FW_E' and row['model_segment_index'] in (13,14):
+                row['dsd_by_lane']={}; row['extra_dsd_controls']=[]
+        with self.assertRaisesRegex(ValueError,'no mapped native write'):
+            self.build()
+
     def test_active_headless_phase_retained_with_joint_offset(self):
         c = self.build(); old = self.action(c); new = old.copy()
         new.green_times['SC1_p4'] = 36.0

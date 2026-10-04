@@ -1,0 +1,51 @@
+{
+  "complete": true,
+  "historical_source_checks": 90,
+  "core_hashes_unchanged": {
+    "freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+    "area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "physical_lane_groups.py": "0b7476f74ac99ec8ae2e89292e1ca0ba18d9bbdd52ca64ef6dc980196c123b87"
+  },
+  "first_divergence_saved_predictions": 14,
+  "first_divergence_initial_checks": 168,
+  "first_divergence_balance_checks": 3000,
+  "first_divergence_max_balance_error": 1.9326762412674725e-12,
+  "conditional_new_rollouts": 3,
+  "baseline_parity": {
+    "cells": true,
+    "flows": true,
+    "ports": true
+  },
+  "injected_speed_endpoint_checks": 60,
+  "max_injected_speed_endpoint_error": 4.263256414560601e-14,
+  "conditional_state_checks": [
+    {
+      "arm": "release",
+      "updates": 900,
+      "source_error": 4.973799150320701e-14,
+      "merge_error": 5.329070518200751e-15,
+      "max_continuity_error": 1.4210854715202004e-14
+    },
+    {
+      "arm": "release_vsl90",
+      "updates": 900,
+      "source_error": 4.973799150320701e-14,
+      "merge_error": 7.105427357601002e-15,
+      "max_continuity_error": 2.842170943040401e-14
+    }
+  ],
+  "helper_existing_functions_changed": [
+    "diagnose_expanded_merge_boundary"
+  ],
+  "helper_new_functions": [
+    "audit_first_recovery_divergence"
+  ],
+  "new_native": 0,
+  "new_fzp": 0,
+  "fit": false,
+  "adopted": false,
+  "goal_qualified": false,
+  "verification_retry": "First verification incorrectly parsed empty speed fields from out-of-window empty cells; corrected to required24/25,2670.1<t<=3120.1; no simulation/forecast rerun."
+}

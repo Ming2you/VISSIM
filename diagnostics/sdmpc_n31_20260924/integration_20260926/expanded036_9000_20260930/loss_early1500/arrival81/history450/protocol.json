@@ -1,0 +1,48 @@
+{
+  "cases": [
+    [
+      "s29_sd1500",
+      29,
+      "sdmpc",
+      1500
+    ],
+    [
+      "s29_sd3600",
+      29,
+      "sdmpc",
+      3600
+    ],
+    [
+      "s43_nc2250",
+      43,
+      "nc",
+      2250
+    ],
+    [
+      "s47_hold2700",
+      47,
+      "hold",
+      2700
+    ],
+    [
+      "s47_release2700",
+      47,
+      "release",
+      2700
+    ]
+  ],
+  "baseline_history_sec": 150,
+  "candidate_history_sec": 450,
+  "forecast_sec": 450,
+  "error": "Sum of absolute lane1 count errors per150s future bin; same actual total in both estimators",
+  "gate": {
+    "total_error_ratio_max": 0.85,
+    "each_case_error_increase_max_veh": 2.0
+  },
+  "future_used_only_for_scoring": true,
+  "candidate_count": 1,
+  "full_forecasts": 0,
+  "native_runs": 0,
+  "fit": 0,
+  "note": "47hold/release share one past state; not independent samples. Known data, not blind validation."
+}

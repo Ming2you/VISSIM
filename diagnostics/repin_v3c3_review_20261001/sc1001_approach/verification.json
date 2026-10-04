@@ -1,0 +1,71 @@
+{
+  "status": "COMPONENT_TESTED_NOT_BOUND_TO_CANONICAL_RUNTIME",
+  "upstream_commit": "bd39205d7f0b2178ae9cd3be1232e00a84ee666f",
+  "current_head": "7ecace62f68412b6ca2c4900770f3e8a1c2d9422",
+  "test_count": 14,
+  "test_failures": 0,
+  "test_errors": 0,
+  "tests_log_sha256": "fd5dca78dae48683711ece3b55880b9bb15da65f4ab8ac4f4bac71d27c4a4df6",
+  "unchanged_existing_definitions": [
+    "LaneOfframpRuntime"
+  ],
+  "new_definition": "SharedSignalApproach",
+  "core_pins": {
+    "evaluation/controllers/lane_plant_runtime.py": {
+      "expected": "99386fabc599100cbc13dfc0aafa382316acfd37306e545a4d97895ede50fcfc",
+      "actual": "99386fabc599100cbc13dfc0aafa382316acfd37306e545a4d97895ede50fcfc"
+    },
+    "vendor/NumSim-mine/src/models/state.py": {
+      "expected": "3faddc0fc0b1a003f3ccfaf53c49e74e2b69b768e5324f20dea7985e4878e96a",
+      "actual": "3faddc0fc0b1a003f3ccfaf53c49e74e2b69b768e5324f20dea7985e4878e96a"
+    },
+    "evaluation/controllers/area_freeway_accounting.py": {
+      "expected": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+      "actual": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482"
+    },
+    "evaluation/controllers/freeway_fd.py": {
+      "expected": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+      "actual": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c"
+    },
+    "evaluation/controllers/physical_ramp_branches.py": {
+      "expected": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2",
+      "actual": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2"
+    },
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": {
+      "expected": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+      "actual": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+    },
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\reference_config.json": {
+      "expected": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+      "actual": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4"
+    }
+  },
+  "source_sha256": "972eca21c43498194d281e87537e7afe80c8675b53358c97cf4bb110f6800b46",
+  "test_source_sha256": "b5905c8db156a29187ae82eeefe0a2c6f507e5d499a9ac50a6dd6e233071badd",
+  "recorded_initial_sha256": "7684a7c6906c23eb60253d99be9ab5037349b0760e68df504c895ef1510866a6",
+  "local_observation": {
+    "frame_sha256": "7058b319c57ffa37fc9136319e4f9eec2c857c358dcb2583a4921e4644f350f9",
+    "cutoff": 2700,
+    "local_steps": 1,
+    "vehicles_before": 69,
+    "vehicles_after": 69.0,
+    "head_departures": [],
+    "residence_veh_h": 0.019166666666666665
+  },
+  "full_network_forecasts": 0,
+  "native_runs": 0,
+  "new_fzp_scans": 0,
+  "parameter_fits": 0,
+  "ad_check_scope": "Synthetic one-second smooth signal-service derivative only, not full rollout or lateral derivative qualification",
+  "canonical_binding": false,
+  "physical_gain_qualified": false,
+  "limitations": [
+    "Full-network stock migration, city/port arrival hooks, area/NP ledger and SDMPC rollout are not connected yet.",
+    "Current-lane continuation for unresolved destinations is explicit approximation; no future route observations.",
+    "Lateral space is lane-aggregate, not a validated microscopic gap acceptance model.",
+    "Entry-level lane storage and nominal travel are coarse; different physical inlet positions are not wired.",
+    "Lane service is nominal 1400 veh/h from existing parameters, not a newly measured saturation capacity.",
+    "Adjacent lane space transfer uses a declared service-rate bound; microscopic gap response is not calibrated.",
+    "Old signal-gated connector drainage remains the live runtime path until ownership, travel, NP and Omega accounting are connected and verified."
+  ]
+}

@@ -9,7 +9,8 @@ import copy
 import math
 
 from evaluation.controllers.physical_ramp_boundary import (
-    PhysicalRampBoundary, LaneResolvedRampBoundary, gap_acceptance_supply_vph)
+    PhysicalRampBoundary, LaneResolvedRampBoundary, gap_acceptance_supply_vph,
+    ramp_origin_density_supply_vph, ramp_posthead_speed_kmh)
 
 
 # The mirror and its buffer are one stock within this (assert_mirror,
@@ -74,6 +75,7 @@ class LaneRampRuntime:
     def advance(self, state, control, demand, freeway, *, service):
         """Advance old ramp cohorts, debit merges, then expose finite entry room."""
         from evaluation.controllers import area_freeway_accounting as accounting
+        from evaluation.controllers import offramp_routing
         from evaluation.controllers.control_area_objective import get_ledger, emit_transfer
         if self.predebited is not None:
             raise ValueError('Previous physical ramp/urban transfer has not completed')
@@ -96,12 +98,25 @@ class LaneRampRuntime:
             selected, _ = accounting._mn.compute_ramp_release_flows(
                 scratch, unlimited, demand, cfg, include_current_arrivals=False)
             plant = freeway.lanes.get(road)
+            routed_sending = None
+            if plant is None and offramp_routing.inventory_enabled(cfg):
+                # Use the same current destination inventory as mainline
+                # continuity. A historical exit ratio must not remove through
+                # traffic a second time from the ramp's conflicting stream.
+                flows = [accounting._mn.segment_flow_veh_h(rho, speed, lane)
+                         for rho, speed, lane in zip(state.freeway_density[road],
+                             state.freeway_speed[road], state.freeway_effective_lanes[road])]
+                routed_sending, _ = offramp_routing.sending_requests(state, cfg, road, flows, dt)
             for name in cfg.network.ramps:
                 buffer = self.buffers[name]
                 rate = canonical_rate = selected[name]
                 mapping = self.lane_coupling.get(name)
                 lanes = None
                 node = self.receiving_nodes.get(name)
+                density_supply = None
+                if node and node.get('density_supply') == 'origin_capacity':
+                    density_supply = ramp_origin_density_supply_vph(state, control, cfg, name)
+                    rate = min(rate, density_supply)
                 if mapping is not None:
                     if plant is None or not isinstance(buffer, LaneResolvedRampBoundary):
                         raise ValueError('Physical lane receiving requires lane buffers and mainline state')
@@ -122,13 +137,19 @@ class LaneRampRuntime:
                                          if cfg.network.off_ramp_segment_index[o] == i)
                         if not 0 <= split <= 1:
                             raise ValueError('Invalid upstream physical off-ramp split')
-                        conflict = (plant.conflict_vph_per_lane(name) if plant is not None else
-                            state.freeway_density[road][i]*state.freeway_speed[road][i]*(1-split))
+                        if plant is not None:
+                            conflict = plant.conflict_vph_per_lane(name)
+                        elif routed_sending is not None:
+                            conflict = routed_sending[i]/state.freeway_effective_lanes[road][i]
+                        else:
+                            conflict = state.freeway_density[road][i]*state.freeway_speed[road][i]*(1-split)
                         rate = min(rate, buffer.lanes*gap_acceptance_supply_vph(conflict,
                             node['critical_gap_sec'], node['followup_sec']))
                 before = state.ramp_queue[name]
                 receipt = buffer.advance_local_interval(start_sec=freeway.time_sec, duration_sec=1.,
                     cycle_sec=self.cycle_sec, receiving_budget_veh=rate*dt,
+                    **({'posthead_speed_kmh':ramp_posthead_speed_kmh(state,cfg,name,buffer.posthead_travel_speed_kmh)}
+                       if node and node.get('posthead_speed') == 'merge_cell_cap' else {}),
                     **({'receiving_budget_by_lane_veh':[q*dt for q in lanes]} if lanes is not None else {}),
                     request_arrivals_veh=0., allow_partial_cycle=True, **service[name])
                 merged = receipt['accepted_merge_veh']
@@ -142,6 +163,9 @@ class LaneRampRuntime:
                     group_releases[name] = values
                 if ledger is not None and ledger.captures_response:
                     source = {'ramp:'+name:merged}
+                    if density_supply is not None:
+                        ledger.record_resource_allocation('physical_ramp_merge_origin_density',
+                            name, density_supply*dt, source)
                     for kind, limit in (('stock',before),('canonical_receiving',canonical_rate*dt),
                                         ('physical_receiving',rate*dt),('eligible',receipt['eligible_merge_veh'])):
                         ledger.record_resource_allocation('physical_ramp_merge_'+kind,name,limit,source)

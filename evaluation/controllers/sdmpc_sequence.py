@@ -113,6 +113,8 @@ class SequenceCoordinates:
         if options.get('control_blocks') != 3 or cfg.mpc.horizon_steps != 3:
             raise ValueError('Sequence coordinates require exactly three intervals')
         self.cfg, self.reference, self.move_box = cfg, first_action(reference), move_box
+        self.vsl_activation_secant = options.get('vsl_activation_secant',False)
+        self.meter_activation_secant = options.get('meter_activation_secant', False)
         self.blocks = [Coordinates(cfg,self.reference,reanchor(move_box,self.reference,k+1),options)
                        for k in range(3)]
         self.width = len(self.blocks[0].axes)
@@ -200,4 +202,8 @@ class SequenceCoordinates:
                 'applied_block':0,'all_actuator_and_step_constraints_checked':True}
 
     def stencil(self,z,j):
+        if (self.vsl_activation_secant and self.axes[j]['kind']=='vsl'
+                or getattr(self, 'meter_activation_secant', False) and self.axes[j]['kind']=='meter'):
+            from evaluation.controllers.sdmpc import Coordinates
+            return Coordinates.stencil(self,z,j)
         raise ValueError('Three-block SDMPC requires direct tangent derivatives')

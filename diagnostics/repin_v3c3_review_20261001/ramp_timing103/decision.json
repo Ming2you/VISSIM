@@ -1,0 +1,45 @@
+{
+  "status": "NOT_PROMOTED_GAIN_RESPONSE_STILL_FAILS",
+  "cost": [
+    {
+      "seed": 67,
+      "actual": -2.0650000000005093,
+      "old": -0.0488139429176897,
+      "new": 0.1025620937595022
+    },
+    {
+      "seed": 73,
+      "actual": -0.5593888888865877,
+      "old": 0.9362122571390898,
+      "new": 1.069995078264384
+    }
+  ],
+  "first150_posthead_stock_change_errors": [
+    {
+      "seed": 67,
+      "arm": "release",
+      "old_error": -2.2949582821577295,
+      "new_error": -3.5236060478209055
+    },
+    {
+      "seed": 67,
+      "arm": "release_vsl90",
+      "old_error": -4.308186744159137,
+      "new_error": -5.52781882639858
+    },
+    {
+      "seed": 73,
+      "arm": "release",
+      "old_error": -1.3138712993861006,
+      "new_error": -2.187040556620971
+    },
+    {
+      "seed": 73,
+      "arm": "release_vsl90",
+      "old_error": -1.34065154234505,
+      "new_error": -2.1942458904276947
+    }
+  ],
+  "finding": "10490 merge totals improve but posthead stock errors remain; independent73 initial arrival gets worse. VSL gain still missed.",
+  "next": "Reuse current model regional discharge evidence; do not repeat geometry/FD parameter grids or override receiving to force gain."
+}

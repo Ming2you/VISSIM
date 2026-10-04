@@ -1,0 +1,30 @@
+{
+  "status": "prepared",
+  "previous_goal_turn": "progress: REVIEW51 evaluated and restored; structural inlet hypothesis found",
+  "candidate_count": 1,
+  "max_forecasts": 6,
+  "coefficient_fit_calls": 0,
+  "base": "REVIEW51 frozen cell11 parameters and REVIEW50 code",
+  "change": "Current upstream500m per-destination N*v lane shares for all destinations, replacing tiny previous-cell count share; zero-speed falls back to current-window counts",
+  "preserved": [
+    "initial physical lane stock",
+    "total destination demand",
+    "off entry/drain/storage and route conservation",
+    "all coefficients",
+    "commands",
+    "Omega objective"
+  ],
+  "limitations": [
+    "Spatial N*v is a current flow proxy, not observed future boundary crossings.",
+    "Frozen horizon allocation still an approximation.",
+    "43/47 previously examined; not blind holdouts."
+  ],
+  "qualification": [
+    "Recover47upstream without sacrificing43congestion",
+    "8off entry/drain/stock and ramp waiting",
+    "Common-initial cost direction and magnitude, not tiny VSL sign alone"
+  ],
+  "new_native": 0,
+  "new_fzp": 0,
+  "push": 0
+}

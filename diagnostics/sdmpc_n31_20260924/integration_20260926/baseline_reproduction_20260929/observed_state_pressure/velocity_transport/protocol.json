@@ -1,0 +1,32 @@
+{
+  "cases": [
+    "s29 none",
+    "s29 vsl",
+    "s43 none",
+    "s43 vsl"
+  ],
+  "start": 2220.1,
+  "end": 2670.1,
+  "sampling_sec": 5,
+  "target_cells": [
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "fit": false,
+  "new_native": 0,
+  "identity": "mean(v1)-mean(v0) = sum_stayers(v1-v0)/N1 + sum_entries(v1-mean(v0))/N1 - sum_exits(v0-mean(v0))/N1",
+  "limitations": [
+    "Sampled entries/exits are set differences, not exact crossing times.",
+    "Entry speed at interval end includes acceleration after crossing; before/after speeds are both retained.",
+    "Terms are a population accounting identity, not separately identified METANET force terms or a new dynamics closure.",
+    "Do not substitute actual future crossing speeds or variances into autonomous MPC."
+  ],
+  "purpose": "Check whether the upstream cell mean represents the vehicles that actually advance to a recovery cell."
+}

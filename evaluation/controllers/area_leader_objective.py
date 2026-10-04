@@ -261,10 +261,13 @@ def validate_joint_leader_result(response, *, target_np_veh, target_nuf_veh_h, c
                 _joint_number(value, field + ':' + owner)
     objective = _joint_number(score.get('objective_veh_h'), 'Final Omega score')
     area = mapping(score.get('control_area'), 'Final Omega metrics')
-    if (_joint_number(area.get('near_score_veh_h'), 'Captured Omega score') != objective
-            or _joint_number(area.get('additional_cost_veh_h'), 'Additional cost') != 0.
-            or score.get('price_or_quantity_terms_included') is not False):
-        raise ValueError('Joint leader requires the pure captured Omega score')
+    _joint_number(area.get('near_score_veh_h'), 'Captured Omega score')
+    _joint_number(area.get('additional_cost_veh_h'), 'Additional cost',
+                  nonnegative=not (cfg is not None and getattr(cfg.network,'sdmpc_distance_reward',None)))
+    from evaluation.controllers import sdmpc_terminal
+    sdmpc_terminal.validate_score(area, objective, cfg)
+    if score.get('price_or_quantity_terms_included') is not False:
+        raise ValueError('Joint leader prohibits price or quantity objective terms')
     coverage = mapping(score.get('model_constraint_coverage'), 'Model constraint coverage')
     if (coverage.get('complete') is not True
             or coverage.get('conditional_model_feasibility_witness') is not True

@@ -1,0 +1,160 @@
+"""Independent168 execution checks and observed/predicted-state closure comparison."""
+import collections
+import math
+from pathlib import Path
+from diagnostics.repin_v3c3_review_20261001.junction_calibration125 import run as h
+
+HERE=Path(__file__).resolve().parent
+PAIRS=((0,1),(1,0),(1,2),(2,1))
+WINDOWS=((2670.1,2820.1),(2820.1,2970.1),(2970.1,3120.1))
+
+def independent_rates(c,mode,i,n,v,L):
+    a=[[0.]*3 for _ in range(3)]
+    for j,(g,k) in enumerate(PAIRS):
+        x=c[mode][4*int(i>=22)+j]
+        if mode=='state':
+            dv=max(-1.,min(1.,(v[k]-v[g])/110)) if n[g]>0 and n[k]>0 else 0.
+            dr=max(-1.,min(1.,(n[g]-n[k])/(180*L)))
+            x+=c[mode][8]*dv+c[mode][9]*dr
+        a[g][k]=math.exp(max(math.log(1e-5),min(math.log(.05),x)))
+    return a
+
+def main():
+    assert not (HERE/'verification.json').exists()
+    protocol=h.read(HERE/'protocol.json')
+    preserved=h.read(HERE/'forecast/preservation.json')
+    pins={str(Path(__file__)):h.sha(__file__)}
+    def read(p):pins[str(p)]=h.sha(p);return h.read(p)
+    protected={**preserved['input_sha256'],**protocol['protected_sha256']}
+    for p,d in protected.items():assert h.sha(p)==d,p
+    assert h.sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+    assert all(read(HERE/'forecast/parity.json').values())
+    assert read(HERE/'forecast/status.json')==dict(status='complete',forecasts=17)
+    coeff=read(HERE/'coefficients.json')
+    assert read(HERE/'forecast/preflight.json')['frozen_coeff_sha256']==h.sha(HERE/'coefficients.json')
+    bounds=read(h.F/'route_inventory/mapping31.json')['freeway_model_links']['FW_E']['segment_bounds_m']
+    sources=read(HERE/'forecast/executed_function_sources.json')
+    base=read(h.R/'spatial_context148/forecast/executed_function_sources.json')
+    assert all(sources[k]==v for k,v in base.items() if k!='RouteLaneRegion')
+    block="""            matrix = []
+            for g,rates in enumerate(self.rates):
+                hazard = sum(rates)
+                matrix.append([ns[g]*(1.-math.exp(-hazard*dt*3600))*r/hazard if hazard else 0. for r in rates])
+"""
+    assert sources['RouteLaneRegion']==base['RouteLaneRegion'].replace(block,'            matrix = _lateral168_matrix(self, i, ns, state.time_sec, dt*3600)\n')
+    errors=collections.defaultdict(float);counts=collections.Counter()
+    def close(kind,a,b):
+        err=abs(a-b);errors[kind]=max(errors[kind],err);counts[kind]+=1
+        assert err<1e-8,(kind,a,b)
+    accepted_windows=collections.defaultdict(float);off_windows=[];traces={}
+    for mode in ('regional','state'):
+        rows=read(HERE/f'forecast/{mode}/rows.json');assert len(rows)==8
+        for summary in rows:
+            key=summary['case']+'_'+summary['arm']
+            pred=read(HERE/f'forecast/{mode}/{key}.json.gz')
+            diag=pred['diagnostics']['roads'][0]['joint_lane_region']
+            states=collections.defaultdict(dict)
+            for r in diag['rows']:states[round(r['time_s'],6)][r['cell'],r['lane']]=r
+            off={round(r['time_s'],6):r['off_accepted_veh'] for r in diag['junction_rows']}
+            trace=read(HERE/f'forecast/{mode}/{key}_transfers.json.gz');assert len(trace)==2700
+            first=min(r['time_s'] for r in trace)
+            target=summary['case']=='s67_late' and summary['arm'] in ('release','release_vsl90')
+            for r in trace:
+                t=round(r['time_s'],6);i=r['cell']
+                n,v,donor=r['state_n'],r['state_v'],r['donor_stock']
+                L=(bounds[i+1]-bounds[i])/1000;close('length',r['length_km'],L)
+                end=states[round(t+1,6)]
+                if t>first+1e-6:
+                    for g in range(3):
+                        close('current_N_binding',n[g],states[t][i,g+1]['n_veh'])
+                        close('current_v_binding',v[g],states[t][i,g+1]['v_kmh'])
+                rates=independent_rates(coeff,mode,i,n,v,L);mat=[[0.]*3 for _ in range(3)]
+                for g in range(3):
+                    z=end[i,g+1]
+                    expected=n[g]+z['mainline_in_veh']+z['merge_veh']-z['mainline_out_veh']-(off[t] if i==20 and g==0 else 0)
+                    close('postflow_donor',donor[g],expected)
+                    hazard=sum(rates[g])
+                    for k in range(3):
+                        close('rates',r['rates'][g][k],rates[g][k])
+                        mat[g][k]=donor[g]*(1-math.exp(-hazard))*rates[g][k]/hazard
+                        close('requested',r['requested'][g][k],mat[g][k])
+                    assert sum(mat[g])<=donor[g]+1e-8
+                for k in range(3):
+                    request=sum(mat[g][k] for g in range(3))
+                    factor=min(1.,max(0.,180*L-donor[k])/request) if request else 0
+                    for g in range(3):mat[g][k]*=factor
+                moment=[donor[g]*v[g] for g in range(3)]
+                for g in range(3):
+                    for k in range(3):
+                        amount=mat[g][k]*v[g];moment[g]-=amount;moment[k]+=amount
+                close('lateral_moment',sum(moment),sum(donor[g]*v[g] for g in range(3)))
+                for g in range(3):
+                    net=sum(mat[k][g] for k in range(3))-sum(mat[g])
+                    close('accepted_lane_balance',end[i,g+1]['n_veh'],donor[g]+net)
+                    if target:
+                        lo=next(lo for lo,hi in WINDOWS if lo-1e-6<=t<hi-1e-6)
+                        accepted_windows[mode,summary['arm'],lo,i,g+1]+=net
+            if target:
+                traces[mode,summary['arm']]={(round(r['time_s'],6),r['cell']):r for r in trace}
+                for lo,hi in WINDOWS:
+                    off_windows.append(dict(mode=mode,arm=summary['arm'],lo=lo,hi=hi,
+                        accepted_off20=sum(q for t,q in off.items() if lo-1e-6<=t<hi-1e-6)))
+    assert counts['accepted_lane_balance']==129600
+    closure=[]
+    # Linear intensity5*N*rate matches the fit objective. This is NOT runtime
+    # accepted transfer: postflow donors, hazard transform and room differ.
+    for arm in ('release','release_vsl90'):
+        doc=read(h.F/f'flow67/{arm}_frames.json.gz')
+        frames={round(float(t),6):{str(vid):dict(zip(doc['fields'],r)) for vid,r in f.items()} for t,f in doc['frames'].items()}
+        for lo,hi in WINDOWS:
+            for i in range(20,26):
+                actual=[[0.]*3 for _ in range(3)]
+                conditional={m:[[0.]*3 for _ in range(3)] for m in ('regional','state')}
+                predicted={m:[[0.]*3 for _ in range(3)] for m in ('regional','state')}
+                for t in sorted(frames):
+                    if not lo-1e-6<=t<hi-1e-6:continue
+                    a,b=frames[t],frames[round(t+5,6)]
+                    groups=[[r for r in a.values() if r['cell']==i and r['lane']==g+1] for g in range(3)]
+                    n=[len(z) for z in groups]
+                    v=[sum(r['speed_kmh'] for r in z)/len(z) if z else 0. for z in groups]
+                    for vid in a.keys()&b.keys():
+                        x,y=a[vid],b[vid]
+                        if x['cell']==y['cell']==i and x['lane']!=y['lane']:actual[x['lane']-1][y['lane']-1]+=1
+                    L=(bounds[i+1]-bounds[i])/1000
+                    for mode in ('regional','state'):
+                        r=traces[mode,arm][t,i];rate=independent_rates(coeff,mode,i,n,v,L)
+                        for g,k in PAIRS:
+                            conditional[mode][g][k]+=5*n[g]*rate[g][k]
+                            predicted[mode][g][k]+=5*r['state_n'][g]*r['rates'][g][k]
+                        if abs(t-2670.1)<1e-6:
+                            for g in range(3):
+                                close('initial_N_native',r['state_n'][g],n[g])
+                                if n[g]:close('initial_v_native',r['state_v'][g],v[g])
+                for mode in ('regional','state'):
+                    for g in range(3):
+                        c,p=conditional[mode],predicted[mode]
+                        closure.append(dict(mode=mode,arm=arm,lo=lo,hi=hi,cell=i,lane=g+1,
+                            observed_net_all=sum(actual[k][g] for k in range(3))-sum(actual[g]),
+                            observed_net_adjacent=sum(actual[k][g] for k in range(3) if abs(k-g)==1)-sum(actual[g][k] for k in range(3) if abs(k-g)==1),
+                            observed_state_net=sum(c[k][g] for k in range(3))-sum(c[g]),
+                            predicted_state_net=sum(p[k][g] for k in range(3))-sum(p[g]),
+                            accepted_net=accepted_windows[mode,arm,lo,i,g+1],
+                            observed_out_adjacent=sum(actual[g][k] for k in range(3) if abs(k-g)==1),
+                            observed_state_out=sum(c[g]),predicted_state_out=sum(p[g])))
+    h.save(HERE/'state_comparison.json',dict(rows=closure,off_windows=off_windows,
+        definition='Observed/current-predicted5*N*rate are matched proxy intensities, not autonomous state resets. accepted uses exact postflow-donor/hazard/receiving. Native same-cell endpoint transfers only; cross-cell changes remain unlocated.',
+        scope='FW_E diagnostic, not wholeOmega or causal attribution; no fit or new forecast.'))
+    for p,d in {**pins,**protected}.items():assert h.sha(p)==d,p
+    assert h.sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+    h.save(HERE/'verification.json',dict(status='pass',counts=dict(counts),max_errors=dict(errors),
+        parity=True,one_source_callback_change=True,core=True,STOP=True,input_sha256=pins,
+        new_forecasts=0,new_fits=0,production_adopted=False))
+    print(dict(counts=dict(counts),errors=dict(errors)))
+    for mode in ('regional','state'):
+        for cell,lane,lo in ((20,1,2820.1),(25,3,2970.1)):
+            pair={r['arm']:r for r in closure if r['mode']==mode and r['cell']==cell and r['lane']==lane and r['lo']==lo}
+            keys=['observed_net_all','observed_net_adjacent','observed_state_net','predicted_state_net','accepted_net']
+            print(mode,cell,lane,lo,{k:pair['release_vsl90'][k]-pair['release'][k] for k in keys})
+    print(off_windows)
+
+if __name__=='__main__':main()

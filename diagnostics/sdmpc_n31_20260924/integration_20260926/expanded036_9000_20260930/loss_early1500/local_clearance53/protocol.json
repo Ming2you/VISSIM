@@ -1,0 +1,24 @@
+{
+  "hypothesis": "Sparse predicted target-lane states plus existing low-speed clearance may explain posthead waiting missed by the earlier gap-only local-lane candidate.",
+  "cases": [
+    "hold",
+    "release",
+    "hold_vsl90",
+    "release_vsl90"
+  ],
+  "methods": [
+    "saved_supply",
+    "local_clearance"
+  ],
+  "maximum_buffer_replays": 8,
+  "new_full_forecasts": 0,
+  "new_native": 0,
+  "refit": 0,
+  "stage": "One-way screen: head/admission/backlog re-evolve; saved autonomous mainline states and canonical receiving stay frozen.",
+  "future_native_inputs": false,
+  "unchanged": "Existing nominal travel, head table, meter clock, arrivals, full connector conservation; no new parameter fit.",
+  "gate": "At least20% reduction in RM delta posthead residence error; hold merge error grows at most1veh; release endpoint posthead error must not grow; no conservation failure.",
+  "next_if_pass": "Coupled replay required before adoption; no one-way objective or SDMPC qualification.",
+  "previous_goal_turn": "PROGRESS",
+  "current_goal_turn": "PROGRESS"
+}

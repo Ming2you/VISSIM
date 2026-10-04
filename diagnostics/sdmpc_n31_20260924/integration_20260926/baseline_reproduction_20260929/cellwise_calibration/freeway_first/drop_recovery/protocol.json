@@ -1,0 +1,23 @@
+{
+  "previous_phi_zero_ablation": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\lane_drop_response\\summary.json",
+  "justification": "Current expanded036/current-route model and newly observed NC750 recovery; previous phi0 experiment used older delta1/E4 and failed RM cost. Not repeating phi0.",
+  "candidates": [
+    1.5,
+    1.0
+  ],
+  "baseline_phi": 3.0,
+  "train": "seed29 NC only,2220.1..2970.1; no control-effect objective in fitting",
+  "changes": "Existing directional lane_drop_phi parameter only in FW_E; all physical lane counts/off storage/routing/merge coefficients unchanged. This also affects dynamic lane-loss deceleration in FW_E, not cell18 only.",
+  "train_loss": "Mean squared cell15-20 errors in N/10veh, v/20kmh,30s downstream count/(1000/120)veh; before450 and last300 separately.",
+  "train_gate": "Tail loss at least10% lower; first450 local loss no more than10% higher; whole-road speed RMSE no more than2km/h worse.",
+  "validation": "If train passes, freeze lower-tail-loss phi and check29 early four arms,29late four arms,43early four arms. Existing inspected seed43 not a blind holdout.",
+  "max_new_forecasts": 14,
+  "fit_seed": 29,
+  "excluded_fit_seeds": [
+    43,
+    61
+  ],
+  "future_inputs": false,
+  "new_native": 0,
+  "stop": "Only two phi candidates. No refinement grid. No adoption from NC-only fit; preserve meaningful RM/VSL response directions and assess flow/queue costs."
+}

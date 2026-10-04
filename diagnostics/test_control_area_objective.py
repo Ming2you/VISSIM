@@ -330,6 +330,36 @@ class ModelResponseTests(unittest.TestCase):
         self.assertEqual(row["entered_veh"], ledger.metrics.entered_veh)
 
 
+class NumericalTransferTests(unittest.TestCase):
+    def test_inside_only_fractional_transfer_can_seed_a_continuation(self):
+        ledger = ModelAreaLedger({'a': {'inside': .01}})
+        ledger.transfer('a', 'b', .007, inside_to_inside=1., outside_to_inside=0.)
+        # Multiplying count*inside before dividing by total used to draw
+        # .007000000000000001 and create a negative outside cohort at b.
+        self.assertEqual(ledger.stocks['a']['outside'], 0.)
+        self.assertEqual(ledger.stocks['b'], {'inside': .007, 'outside': 0.})
+        continued = ModelAreaLedger(ledger.stocks)
+        self.assertAlmostEqual(sum(sum(v.values()) for v in continued.stocks.values()), .01)
+        self.assertEqual(ledger.metrics.ttd_veh, 0.)
+
+    def test_mixed_fractional_transfer_preserves_cohorts_and_counts(self):
+        ledger = ModelAreaLedger({'a': {'inside': .01, 'outside': .03}})
+        ledger.transfer('a', 'b', .007, inside_to_inside=0., outside_to_inside=1.)
+        self.assertAlmostEqual(ledger.stocks['b']['inside'], .00525)
+        self.assertAlmostEqual(ledger.stocks['b']['outside'], .00175)
+        self.assertAlmostEqual(ledger.metrics.ttd_veh, .00175)
+        self.assertAlmostEqual(ledger.metrics.entered_veh, .00525)
+        self.assertAlmostEqual(sum(sum(v.values()) for v in ledger.stocks.values()), .04)
+        ModelAreaLedger(ledger.stocks)
+
+    def test_bad_initial_stock_and_real_overdraw_still_fail(self):
+        with self.assertRaises(ValueError):
+            ModelAreaLedger({'a': {'outside': -2.4e-17}})
+        ledger = ModelAreaLedger({'a': {'inside': .01}})
+        with self.assertRaises(MembershipError):
+            ledger.transfer('a', 'b', .011, inside_to_inside=1., outside_to_inside=0.)
+
+
 class MembershipTests(unittest.TestCase):
     def test_projection_cohorts_use_assigned_counts_not_number_of_links(self):
         cohorts = projection_stock_cohorts(

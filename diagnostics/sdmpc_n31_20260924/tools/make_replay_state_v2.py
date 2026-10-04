@@ -47,6 +47,7 @@ import copy
 import csv
 import io
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -231,18 +232,38 @@ def _json_diff(a, b, path='', out=None, limit=40):
     return out
 
 
-def action_contract(csv_path, vsl_expected):
+def action_contract(csv_path, vsl_expected, *, vsl_allowed=None):
     with open(csv_path, newline='', encoding='utf-8-sig') as handle:
         rows = list(csv.DictReader(handle))
     vsl = [r for r in rows if r.get('kind') == 'vsl']
     meters = [r for r in rows if r.get('kind') == 'ramp_meter']
-    speeds = sorted({float(r['speed_kph']) for r in vsl})
-    ok = len(vsl) == VSL_ROWS and len(meters) == METER_ROWS and (vsl_expected is None or speeds == [vsl_expected])
+    speeds, invalid = set(), []
+    for row in vsl:
+        value = row.get('speed_kph')
+        try:
+            speed = float(value)
+        except (TypeError, ValueError):
+            invalid.append(value)
+            continue
+        if not math.isfinite(speed) or speed <= 0:
+            invalid.append(value)
+        else:
+            speeds.add(speed)
+    speeds = sorted(speeds)
+    allowed = None
+    if vsl_allowed is not None:
+        require(bool(vsl_allowed) and all(not isinstance(v, bool) and isinstance(v, (int, float))
+                                     and math.isfinite(v) and v > 0 for v in vsl_allowed),
+                'Invalid effective VSL action set')
+        allowed = sorted(set(map(float, vsl_allowed)))
+    ok = (len(vsl) == VSL_ROWS and len(meters) == METER_ROWS and not invalid
+          and (vsl_expected is None or speeds == [vsl_expected])
+          and (allowed is None or set(speeds).issubset(allowed)))
     return {'ok': ok, 'vsl_rows': len(vsl), 'vsl_speeds': speeds, 'vsl_expected': vsl_expected,
-            'meter_rows': len(meters)}
+            'vsl_allowed': allowed, 'invalid_vsl_values': invalid, 'meter_rows': len(meters)}
 
 
-def compare(out_dir, vsl_expected=None):
+def compare(out_dir, vsl_expected=None, *, vsl_allowed=None):
     out_dir = Path(out_dir).resolve()
     manifest = read_json(out_dir / MANIFEST_NAME)
     require(manifest.get('schema') == MANIFEST_SCHEMA, f'Not a replay folder: {out_dir}')
@@ -297,7 +318,7 @@ def compare(out_dir, vsl_expected=None):
                             and repr(obj_a['objective']) == repr(obj_b['objective'])
                             and repr(obj_a['held_objective']) == repr(obj_b['held_objective'])),
                            'sdmpc_active': active, 'required': required, 'original': obj_a, 'replay': obj_b}
-    checks['action_contract'] = action_contract(csv_b, vsl_expected)
+    checks['action_contract'] = action_contract(csv_b, vsl_expected, vsl_allowed=vsl_allowed)
     # None is left only for the objective of a decision without SDMPC (warmup).
     verdict = 'IDENTICAL' if all(c['ok'] in (True, None) for c in checks.values()) else 'DIFFERENT'
     report = {'schema': 'sdmpc31-replay-compare/v1', 'sim_sec': t, 'verdict': verdict, 'checks': checks}
@@ -319,16 +340,18 @@ def main(argv):
     c = sub.add_parser('compare')
     c.add_argument('out_dir')
     c.add_argument('--vsl-expected', type=float, default=None)
-    c.add_argument('--tuning', default=None, help='effective tuning whose max(vsl_set) is the expected VSL')
+    c.add_argument('--tuning', default=None, help='effective tuning defining the allowed VSL action set')
     args = parser.parse_args(argv)
     if args.command == 'prepare':
         prepare(args.decisions_dir, args.sim_sec, args.out_dir, args.previous_sec)
         return 0
-    expected = args.vsl_expected
-    if expected is None and args.tuning:
-        from n31_common import effective_vsl_max, load_effective_tuning
-        expected = effective_vsl_max(load_effective_tuning(args.tuning)[0])
-    return 0 if compare(args.out_dir, expected)['verdict'] == 'IDENTICAL' else 1
+    allowed = None
+    if args.tuning:
+        from n31_common import load_effective_tuning
+        tuning = load_effective_tuning(args.tuning)[0]
+        allowed = (tuning.get('config_overrides', {}).get('freeway_follower', {}) or {}).get('vsl_set')
+        require(isinstance(allowed, list) and allowed, 'Tuning lacks config_overrides.freeway_follower.vsl_set')
+    return 0 if compare(args.out_dir, args.vsl_expected, vsl_allowed=allowed)['verdict'] == 'IDENTICAL' else 1
 
 
 if __name__ == '__main__':

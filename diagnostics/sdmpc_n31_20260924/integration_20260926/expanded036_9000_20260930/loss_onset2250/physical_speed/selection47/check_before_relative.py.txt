@@ -1,0 +1,76 @@
+"""Run the existing two-command check and record its actual17-owner resource ledger."""
+import ctypes
+import hashlib
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+L = Path(__file__).resolve().parent
+I = L.parent.parent
+O = L / 'physical_speed/selection47'
+ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x4000)
+from evaluation.controllers import obs150_contract as oc
+
+
+def verify_existing(raw, derived):
+    obs = raw[oc.RAW_STATE_KEY]
+    path = oc.resolve(obs, oc.derived_path(obs['sim_sec']))
+    assert path.read_bytes() == oc.derived_bytes(derived)
+    return path
+
+
+oc.write_derived = verify_existing
+script = I / 'probe_selected_arrival_path.py'
+spec = importlib.util.spec_from_file_location('selected_speed_probe', script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+original = module.probe_levers
+saved = json.loads((I/'closedloop_recorded2700_select_ps47v1/unused_action.joint.json').read_bytes())['selection']
+
+
+def audited(captured, reference, output, **kwargs):
+    from evaluation.controllers import area_leader_objective as constraints
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from src.controllers import rollout_endpoint as endpoint
+    follower = adapter._PHASE_VECTOR_FOLLOWER['ref']
+    assert follower.cfg is captured['cfg']
+    assert len(follower.cfg.network.signals) == 17
+    evaluate = endpoint.evaluate_price_point
+    rows = []
+
+    def checked(state, action, *args, **kw):
+        assert len(rows) < 2
+        point = evaluate(state, action, *args, **kw)
+        assert not point.aborted and len(point.states) == 3
+        q = constraints.shared_urban_quantities(follower, point.control_area_response,
+            start_sec=state.time_sec, horizon_steps=3)
+        cap = saved['final_constraints']
+        budget = constraints.shared_quantity_constraints(follower, action, q,
+            start_sec=state.time_sec, horizon_steps=3,
+            np_mode='cap', target_np_veh=cap['np']['target'], np_tolerance_veh=cap['np']['tolerance'],
+            nuf_mode='cap', target_nuf_veh_h=cap['nuf']['target'], nuf_tolerance_veh_h=cap['nuf']['tolerance'])
+        rows.append(dict(case='held_actual' if not rows else 'selected',ttt=point.ttt,
+            resource=budget,quantities=q))
+        (O/'execution_quantities.json').write_text(json.dumps(rows,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        return point
+
+    endpoint.evaluate_price_point = checked
+    try:
+        result = original(captured, reference, output, **kwargs)
+    finally:
+        endpoint.evaluate_price_point = evaluate
+    assert len(rows) == 2
+    return result
+
+
+module.probe_levers = audited
+sys.argv = [str(script),'--closedloop-recorded','--at=2700','--warm-head-history','--replay-vsl-history',
+    '--selection-check','--probe-label=ps47v1',
+    '--recording-dir=D:/VISSIM_runs/20260928_rm_observation2700_s47_v3/hold/decisions_sdmpc31_g_2700_hold_s47',
+    '--fixed-replay-summary='+str(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json'),
+    '--tuning-json='+str(L/'physical_speed/candidate_config.json')]
+pins = json.loads((O/'protocol.json').read_bytes())['source_pins']
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+module.main()
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())

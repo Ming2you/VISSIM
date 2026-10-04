@@ -1,0 +1,44 @@
+{
+  "status": "PREPARED_PREFLIGHT_ONLY",
+  "time": "2026-09-28T21:12:45.166829+09:00",
+  "source_functions_changed": [
+    "main"
+  ],
+  "source_functions_added": [
+    "prepare_rm_observation_commands"
+  ],
+  "pins_checked": 92,
+  "provenance": [
+    {
+      "arm": "hold",
+      "path": "D:\\VISSIM_runs\\20260928_rm_observation2700_s47\\hold\\run_provenance_sdmpc31_g_2700_hold_s47.json",
+      "sha256": "c322bde558b31fef85573114996dbfc2bc75f0377a23bca980cfc913e7efbb29",
+      "preflight_log": "D:\\VISSIM_runs\\20260928_rm_observation2700_s47\\hold\\preflight.log"
+    },
+    {
+      "arm": "release",
+      "path": "D:\\VISSIM_runs\\20260928_rm_observation2700_s47\\release\\run_provenance_sdmpc31_g_2700_release_s47.json",
+      "sha256": "6123a5b1845eeec41fa15e96b7da084c02507f4b282dd1d1eff564b17684ad4f",
+      "preflight_log": "D:\\VISSIM_runs\\20260928_rm_observation2700_s47\\release\\preflight.log"
+    }
+  ],
+  "common_prefix_command_files_exact": 36,
+  "commands_per_arm": 22,
+  "actual_runs_started": 0,
+  "physical_forecast_rollouts": 0,
+  "optimizer_iterations": 0,
+  "prior_stop_unchanged": true,
+  "native_authorization_pending": true,
+  "limitations": [
+    "No native execution or observations yet",
+    "FZP/common state equality must be checked after execution",
+    "Replay actions do not carry SDMPC price-applied markers. Future offline reuse must require LDP/readback validation, not fabricate applied receipts.",
+    "Preflight is not frozen launch verification; freeze and verify runtime after launch authorization"
+  ],
+  "source_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "e54487c17affc4d9ce5b8c13547804193fb6f3d63044b4837ed42e02fc6038d4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\native_pair1200\\run_pair.ps1": "c149c9f2919cac8eebe3f35f9b8b1f08010e0d864abb41172ecd40414d6b8cda",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\native_rm_observation2700\\protocol.json": "62dbad1aa8e6e985184bcb488215b9ac54c5d6e1b4e3a9fc958efce6d8e13dbc"
+  },
+  "native_launch_guard_rejected_before_runtime": true
+}

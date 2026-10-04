@@ -1,0 +1,908 @@
+{
+  "status": "complete_bounded_sensitivity",
+  "protocol": {
+    "hypothesis": "Local23 merge loss depends on current whole-cell density; bounded one-candidate sensitivity, not a fitted calibration or capacity bonus.",
+    "formula": "delta = baseline_delta*(0.5+1.5*clip(rho/rho_critical-0.5,0,1))",
+    "free_multiplier": 0.5,
+    "congested_multiplier": 2.0,
+    "low_relative_density": 0.5,
+    "high_relative_density": 1.5,
+    "coefficient_fit": 0,
+    "candidate_count": 1,
+    "forecast_budget": 3,
+    "other_speed_terms_unchanged": true,
+    "current_predicted_state_only": true,
+    "cell": 23,
+    "road": "FW_E",
+    "gates": [
+      "All initial states, command schedules, mass, route/off-ramp dynamics remain identical except23 merge speed coefficient.",
+      "Onset23 speed+stock absolute errors improve without worsening24 recovery by more than2km/h.",
+      "RM hold/release mainline+8ramp component DeltaTTT retains large observed sign and magnitude error does not worsen; Omega rank and outside diagnostic reported.",
+      "Hold23/24 speed MAE does not worsen by more than2km/h; no gain forced from microscopic noise."
+    ],
+    "new_native": 0,
+    "new_fzp_reads": 0,
+    "live_monitoring": 0,
+    "adopted": false
+  },
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\protocol.json": "04bb2346700b49f414026dfd4138469ff95c524270ba891f4924e4718f102019",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\speed_terms23\\assessment.json": "b1339d0d45cbaf210309e7e08ba646370c21abc527fe1fd120376089d726ef58",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\convection84\\pressure24\\assessment.json": "9610096029f8b1232a71df729b5e4f93ea7fa9d664b5883a59be599d82a48a43",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\convection84\\pressure24\\details.json": "5c5b1cd67368d735feb9eea1343165fff8fbeceef76101e6571860312c9441da",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\geometry.json": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\lane84\\ind47_base\\output.json": "33807f6f4054a687f9c672a5ec310ff0d18a9b99505347561d1005f49731d2ec",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\onset\\run_completion.json": "d49dc1dbc7be9c8a0f0abe6407c5804e9fa3930fc073d35b581ab1f28f6dd931",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\onset\\output.json": "339132a7ae391278196c7a2026eb2f731db18f9d6aef444e9fb79831289d3c02",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded1500_lever450_RM_C10484_trace10484_merge_state23_onset\\summary.json": "2fe7ac06238c44cc5773ec12ef6c9a857b720762f6350e8b078ee22f2c4f961a",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\onset\\speed_terms.json": "a19ba5c1c653c0c112a2c472fdaf74e0f9bc29a73fe65512348e30813eceefc9",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded1500_lever450_RM_C10484_trace10484_early1500\\held_actual.json": "77f02cc99dc9ddf0f8870a1581fed7706c40e313c9c8f348ac1647a7b3df67bd",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded1500_lever450_RM_C10484_trace10484_merge_state23_onset\\held_actual.json": "2894908cd6020b724bc053c1df91d052c2eb805ea974414ee0bdd07c6e9863dd",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded1500_lever450_RM_C10484_trace10484_early1500\\held_actual_RM_C10484_trace.json.gz": "9cfaaaf7eea9c99da675d8033afa2b2e9071e2e146f446d9bedc2e904e9d37bd",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded1500_lever450_RM_C10484_trace10484_merge_state23_onset\\held_actual_RM_C10484_trace.json.gz": "d72b28ba3b5e4374d58a2ef1a2099e8fb32d7a96d37f5948d75c0e3f3d3c93df",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\onset\\execution_pins.json": "9d321941a5c55578c0303e1bf0ac44ee16710f9de5cc6ca7f2bbbdb3b8e7a2a1",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\ind47\\run_completion.json": "3e1c5b03cd5f1c5663f6459582417690206aab3d965e090915a9efeefa87e960",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\ind47\\output.json": "9c3a41aaa78352a704594c216349e2c887706e6b1b0d88e570342485513906c3",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_merge_state23_ind47\\summary.json": "2068b99204d23b5e5e5dc75442d1d3d123044a9366409a8df0fc724b7deab31c",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\ind47\\speed_terms.json": "07be6faf88485b5fbb7a8baf164ef089bcf291b20166179cf154297c003cdeba",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\held_actual.json": "8a751e54940cf930dee90a1268b5f6abbe090b3b44301804f7ddbb6be95d235d",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_merge_state23_ind47\\held_actual.json": "9819055c6d592dcbf5f8e1ecd43cd65c20d8aff673507257476466919766cb3c",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\held_actual_RM_C10484_trace.json.gz": "f66feecd22e85c9472aa0959b7711297b91304e07db67c1711cc70ab2f0b4dc1",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_merge_state23_ind47\\held_actual_RM_C10484_trace.json.gz": "d6e56ae14a2edfce8a62eb28013118f89ed4002166b64534fec583dd0e41a7d7",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\release_actual.json": "343b6232c7a5b502d61d33f46280c90900e194bfde4dcbd70925f6d8b63e6b63",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_merge_state23_ind47\\release_actual.json": "84646ba1e371c0e56c1f816afc6b254e2a46ada85ece979684dc4ca058ac0584",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\release_actual_RM_C10484_trace.json.gz": "e2199497e2b1f62b0b7b638549eef228425ffc4cb35d2801a723bfac98711866",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_merge_state23_ind47\\release_actual_RM_C10484_trace.json.gz": "7033a4e325f11b6b4fe1e4f79602a1348e7becd28d01e6e9bb6a45f15b9c4011",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\merge_state23\\ind47\\execution_pins.json": "fcea7cc63b70708c0dfb0867db703d6bd0614bbbd37fdd5646cc85cb03ae015a"
+  },
+  "local": {
+    "21": {
+      "baseline": {
+        "speed_mae": 25.528888233952237,
+        "stock_mae": 4.162919480309716,
+        "mean_speed": 51.12703458831653,
+        "mean_stock": 11.067125029065702
+      },
+      "candidate": {
+        "speed_mae": 27.741206617021138,
+        "stock_mae": 4.6296771898270785,
+        "mean_speed": 48.82857711236359,
+        "mean_stock": 11.567951534064765
+      }
+    },
+    "22": {
+      "baseline": {
+        "speed_mae": 11.230950606709735,
+        "stock_mae": 1.7209110490565618,
+        "mean_speed": 52.67445042864202,
+        "mean_stock": 17.68838969154731
+      },
+      "candidate": {
+        "speed_mae": 12.633713739901205,
+        "stock_mae": 1.9089620215759975,
+        "mean_speed": 48.629641970416905,
+        "mean_stock": 18.888930781230954
+      }
+    },
+    "23": {
+      "baseline": {
+        "speed_mae": 13.709665776502016,
+        "stock_mae": 7.16192118855223,
+        "mean_speed": 50.140401111112936,
+        "mean_stock": 21.26148537796901
+      },
+      "candidate": {
+        "speed_mae": 8.779336185517144,
+        "stock_mae": 5.59882050890255,
+        "mean_speed": 44.97782661034991,
+        "mean_stock": 22.933035440744806
+      }
+    },
+    "24": {
+      "baseline": {
+        "speed_mae": 12.848285306881431,
+        "stock_mae": 2.8531738613643114,
+        "mean_speed": 56.666812997782316,
+        "mean_stock": 18.556458431198514
+      },
+      "candidate": {
+        "speed_mae": 14.734882460685217,
+        "stock_mae": 2.5604196404374724,
+        "mean_speed": 54.78021584397853,
+        "mean_stock": 18.264982927064604
+      }
+    }
+  },
+  "endpoints": {
+    "baseline": {
+      "all31_stock_L1": 239.5703455599556,
+      "cells": {
+        "21": {
+          "stock": 11.999545560713479,
+          "speed": 44.207223572291404,
+          "actual_stock": 8,
+          "actual_speed": 89.70451145764599
+        },
+        "22": {
+          "stock": 23.879328821141012,
+          "speed": 44.11194489522906,
+          "actual_stock": 22,
+          "actual_speed": 38.45379118063254
+        },
+        "23": {
+          "stock": 25.029105696773673,
+          "speed": 44.8891098004081,
+          "actual_stock": 29,
+          "actual_speed": 33.03919760962626
+        },
+        "24": {
+          "stock": 21.26576822022265,
+          "speed": 51.63728524619372,
+          "actual_stock": 15,
+          "actual_speed": 76.91238672743003
+        },
+        "25": {
+          "stock": 44.1921915897935,
+          "speed": 71.33025631317209,
+          "actual_stock": 34,
+          "actual_speed": 96.78566016704468
+        }
+      },
+      "first150_ramps": {
+        "RM_C10480": {
+          "initial_stock": 1.0,
+          "arrival": 27.336569333531624,
+          "head": 27.48065265173372,
+          "merge": 27.268347686296273,
+          "final_stock": 1.068221647235347
+        },
+        "RM_C10482": {
+          "initial_stock": 28.0,
+          "arrival": 89.07397741935485,
+          "head": 98.74297741935469,
+          "merge": 106.96000000000001,
+          "final_stock": 10.113977419354654
+        },
+        "RM_C10646": {
+          "initial_stock": 3.0,
+          "arrival": 10.823994470655947,
+          "head": 11.47612038626458,
+          "merge": 10.69580292594712,
+          "final_stock": 3.1281915447088298
+        },
+        "RM_C10644": {
+          "initial_stock": 16.0,
+          "arrival": 23.3,
+          "head": 27.38888888888887,
+          "merge": 25.999999999999993,
+          "final_stock": 13.299999999999992
+        },
+        "RM_C10639": {
+          "initial_stock": 11.0,
+          "arrival": 21.0,
+          "head": 14.259999999999998,
+          "merge": 19.58073751437317,
+          "final_stock": 12.419262485626831
+        },
+        "RM_C10681": {
+          "initial_stock": 23.0,
+          "arrival": 39.65538166693054,
+          "head": 43.397204696208625,
+          "merge": 40.367409402945434,
+          "final_stock": 22.28797226398501
+        },
+        "RM_C10490": {
+          "initial_stock": 5.0,
+          "arrival": 40.90434559532525,
+          "head": 44.904345595325175,
+          "merge": 45.904345595325175,
+          "final_stock": 8.881784197001252e-16
+        },
+        "RM_C10484": {
+          "initial_stock": 13.0,
+          "arrival": 38.88031539295326,
+          "head": 43.61370545106096,
+          "merge": 45.75916522735338,
+          "final_stock": 6.121150165599985
+        }
+      }
+    },
+    "candidate": {
+      "all31_stock_L1": 245.32965898208755,
+      "cells": {
+        "21": {
+          "stock": 14.251501970171033,
+          "speed": 34.10708649502667,
+          "actual_stock": 8,
+          "actual_speed": 89.70451145764599
+        },
+        "22": {
+          "stock": 28.557670160389314,
+          "speed": 32.302839589858294,
+          "actual_stock": 22,
+          "actual_speed": 38.45379118063254
+        },
+        "23": {
+          "stock": 29.18121722244085,
+          "speed": 34.130612601126984,
+          "actual_stock": 29,
+          "actual_speed": 33.03919760962626
+        },
+        "24": {
+          "stock": 20.146120380818818,
+          "speed": 48.45892464204965,
+          "actual_stock": 15,
+          "actual_speed": 76.91238672743003
+        },
+        "25": {
+          "stock": 39.82418676568291,
+          "speed": 71.78248651965129,
+          "actual_stock": 34,
+          "actual_speed": 96.78566016704468
+        }
+      },
+      "first150_ramps": {
+        "RM_C10480": {
+          "initial_stock": 1.0,
+          "arrival": 27.336569333531624,
+          "head": 27.48065265173372,
+          "merge": 27.268347686296273,
+          "final_stock": 1.068221647235347
+        },
+        "RM_C10482": {
+          "initial_stock": 28.0,
+          "arrival": 89.07397741935485,
+          "head": 98.74297741935469,
+          "merge": 106.96000000000001,
+          "final_stock": 10.113977419354654
+        },
+        "RM_C10646": {
+          "initial_stock": 3.0,
+          "arrival": 10.823994470655947,
+          "head": 11.47612038626458,
+          "merge": 10.69580292594712,
+          "final_stock": 3.1281915447088298
+        },
+        "RM_C10644": {
+          "initial_stock": 16.0,
+          "arrival": 23.3,
+          "head": 27.38888888888887,
+          "merge": 25.999999999999993,
+          "final_stock": 13.299999999999992
+        },
+        "RM_C10639": {
+          "initial_stock": 11.0,
+          "arrival": 21.0,
+          "head": 14.259999999999998,
+          "merge": 19.58073751573898,
+          "final_stock": 12.419262484261019
+        },
+        "RM_C10681": {
+          "initial_stock": 23.0,
+          "arrival": 39.65538166693054,
+          "head": 43.39720469620865,
+          "merge": 40.367409837802406,
+          "final_stock": 22.28797182912807
+        },
+        "RM_C10490": {
+          "initial_stock": 5.0,
+          "arrival": 40.90434559532525,
+          "head": 44.904345595325175,
+          "merge": 45.904345595325175,
+          "final_stock": 8.881784197001252e-16
+        },
+        "RM_C10484": {
+          "initial_stock": 13.0,
+          "arrival": 38.88031539295326,
+          "head": 43.61370545106095,
+          "merge": 45.75916522735337,
+          "final_stock": 6.121150165599985
+        }
+      }
+    }
+  },
+  "actual_delta": {
+    "omega": 2.0538333333352057,
+    "east": 4.8699444444444,
+    "ramps": -2.6797222222222246
+  },
+  "response": {
+    "baseline": {
+      "delta": {
+        "omega": 1.8430415480386273,
+        "east": 5.2356381223731745,
+        "ramps": -3.299280104271942,
+        "outside": -0.000278933759972233,
+        "component": 1.9363580181012323
+      },
+      "component_error": 0.2538642041209429,
+      "omega_error": 0.21079178529657838,
+      "ramp10484": {
+        "held_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 45.3290703081646,
+          "final_stock": 56.94453610242348,
+          "residual": -7.105427357601002e-15
+        },
+        "release_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 95.00103208993262,
+          "final_stock": 7.272574320655623,
+          "residual": -1.7141843500212417e-13
+        }
+      }
+    },
+    "candidate": {
+      "delta": {
+        "omega": 3.5857029576880564,
+        "east": 7.0768758048031515,
+        "ramps": -3.306825147229517,
+        "outside": -0.007955046361502127,
+        "component": 3.7700506575736346
+      },
+      "component_error": 1.5798284353514593,
+      "omega_error": 1.5318696243528507,
+      "ramp10484": {
+        "held_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 45.32778594317323,
+          "final_stock": 56.945820467414855,
+          "residual": -1.4210854715202004e-14
+        },
+        "release_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 95.03108163095315,
+          "final_stock": 7.24252477963507,
+          "residual": -1.5010215292932116e-13
+        }
+      }
+    }
+  },
+  "hold_speed_mae": {
+    "23": {
+      "baseline": 26.235527555703896,
+      "candidate": 27.17211405546441
+    },
+    "24": {
+      "baseline": 30.02733732307333,
+      "candidate": 30.594667426559017
+    }
+  },
+  "native47_endpoint_comparisons": [
+    {
+      "arm": "hold",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 59.20386935174498,
+      "native_n": 12,
+      "models": {
+        "baseline": {
+          "v": 43.95734347788835,
+          "n": 12.806693104110531
+        },
+        "candidate": {
+          "v": 43.72126430896296,
+          "n": 12.847128547530833
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 73.1291734036949,
+      "native_n": 12,
+      "models": {
+        "baseline": {
+          "v": 59.101658434888904,
+          "n": 18.82184067148029
+        },
+        "candidate": {
+          "v": 58.56649629391114,
+          "n": 18.943254582094344
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 85.51168976925975,
+      "native_n": 9,
+      "models": {
+        "baseline": {
+          "v": 60.616505404396854,
+          "n": 19.552882818934947
+        },
+        "candidate": {
+          "v": 59.81138664513165,
+          "n": 19.73634939387788
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 96.1080124617885,
+      "native_n": 15,
+      "models": {
+        "baseline": {
+          "v": 58.98547975532619,
+          "n": 19.903755191356428
+        },
+        "candidate": {
+          "v": 58.6487604913882,
+          "n": 19.958421427088684
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 97.75419827402486,
+      "native_n": 35,
+      "models": {
+        "baseline": {
+          "v": 71.62355115572342,
+          "n": 47.96584780907519
+        },
+        "candidate": {
+          "v": 71.58607793043467,
+          "n": 47.758830502172806
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 96.9151621929891,
+      "native_n": 8,
+      "models": {
+        "baseline": {
+          "v": 44.284041501187176,
+          "n": 12.069019567041758
+        },
+        "candidate": {
+          "v": 43.6531416873492,
+          "n": 12.21362815689264
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 94.36255725738721,
+      "native_n": 11,
+      "models": {
+        "baseline": {
+          "v": 59.3996278230813,
+          "n": 17.684478047896512
+        },
+        "candidate": {
+          "v": 58.27291684870741,
+          "n": 18.037790108810082
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 99.05419395725148,
+      "native_n": 12,
+      "models": {
+        "baseline": {
+          "v": 60.32307527211043,
+          "n": 19.177147966562753
+        },
+        "candidate": {
+          "v": 58.960856531662905,
+          "n": 19.585059697433813
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 94.42650978226074,
+      "native_n": 11,
+      "models": {
+        "baseline": {
+          "v": 57.95588987686844,
+          "n": 20.000122502361215
+        },
+        "candidate": {
+          "v": 57.218522686605084,
+          "n": 20.2571106232361
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 100.07392149777925,
+      "native_n": 30,
+      "models": {
+        "baseline": {
+          "v": 70.42537480411974,
+          "n": 48.97560337125808
+        },
+        "candidate": {
+          "v": 70.24078374736399,
+          "n": 48.96954988972245
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 98.71730080237367,
+      "native_n": 7,
+      "models": {
+        "baseline": {
+          "v": 46.198283975476905,
+          "n": 10.11938014079034
+        },
+        "candidate": {
+          "v": 45.78860743079797,
+          "n": 10.218986321467362
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 93.45627191800165,
+      "native_n": 14,
+      "models": {
+        "baseline": {
+          "v": 64.14084212295107,
+          "n": 14.294862868603396
+        },
+        "candidate": {
+          "v": 63.48350830854582,
+          "n": 14.531043723835564
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 80.09111689251893,
+      "native_n": 19,
+      "models": {
+        "baseline": {
+          "v": 65.01083727541118,
+          "n": 16.28721534761398
+        },
+        "candidate": {
+          "v": 64.36841527584238,
+          "n": 16.554022129316202
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 78.46626300553848,
+      "native_n": 17,
+      "models": {
+        "baseline": {
+          "v": 61.97740364817311,
+          "n": 17.48718898435061
+        },
+        "candidate": {
+          "v": 61.349499791917374,
+          "n": 17.765311829264945
+        }
+      }
+    },
+    {
+      "arm": "hold",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 100.74709225022518,
+      "native_n": 30,
+      "models": {
+        "baseline": {
+          "v": 72.57107028927915,
+          "n": 45.453306742012494
+        },
+        "candidate": {
+          "v": 72.26820631532411,
+          "n": 45.84715156072334
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 56.92355346058382,
+      "native_n": 13,
+      "models": {
+        "baseline": {
+          "v": 36.601270620124204,
+          "n": 14.597508497705554
+        },
+        "candidate": {
+          "v": 33.23035888029661,
+          "n": 15.462856145069836
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 55.09936945415502,
+      "native_n": 16,
+      "models": {
+        "baseline": {
+          "v": 45.519978996166124,
+          "n": 23.07106537700425
+        },
+        "candidate": {
+          "v": 39.38701128683563,
+          "n": 25.1553122274679
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 38.72064514020276,
+      "native_n": 29,
+      "models": {
+        "baseline": {
+          "v": 47.11923706451831,
+          "n": 24.595594377140777
+        },
+        "candidate": {
+          "v": 40.09013705670408,
+          "n": 27.02764090353357
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 71.6698699825118,
+      "native_n": 16,
+      "models": {
+        "baseline": {
+          "v": 51.1294955729622,
+          "n": 22.134039191091933
+        },
+        "candidate": {
+          "v": 48.57252687472069,
+          "n": 21.77800885836629
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 91.4275268314683,
+      "native_n": 34,
+      "models": {
+        "baseline": {
+          "v": 69.33016607291752,
+          "n": 48.34211841005469
+        },
+        "candidate": {
+          "v": 69.31886024174246,
+          "n": 46.05020135811972
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 35.641097269785625,
+      "native_n": 15,
+      "models": {
+        "baseline": {
+          "v": 17.742505717776528,
+          "n": 22.543692033691844
+        },
+        "candidate": {
+          "v": 12.522964205347856,
+          "n": 25.97805720166748
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 34.31504185707019,
+      "native_n": 29,
+      "models": {
+        "baseline": {
+          "v": 20.501498289619597,
+          "n": 37.64757914892638
+        },
+        "candidate": {
+          "v": 14.701103927877895,
+          "n": 43.6985860545202
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 32.71835217768029,
+      "native_n": 31,
+      "models": {
+        "baseline": {
+          "v": 25.80016857491952,
+          "n": 35.29066017562707
+        },
+        "candidate": {
+          "v": 19.891689884317245,
+          "n": 40.17464522275396
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 76.22406260366812,
+      "native_n": 11,
+      "models": {
+        "baseline": {
+          "v": 44.299497645321786,
+          "n": 20.608220645620086
+        },
+        "candidate": {
+          "v": 45.76573754383656,
+          "n": 17.181061762633725
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 99.73302655677384,
+      "native_n": 32,
+      "models": {
+        "baseline": {
+          "v": 70.00606779203278,
+          "n": 40.431196116651144
+        },
+        "candidate": {
+          "v": 73.66533117470166,
+          "n": 32.68826637899612
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 33.25520499500435,
+      "native_n": 15,
+      "models": {
+        "baseline": {
+          "v": 19.59005446699962,
+          "n": 21.49532438929865
+        },
+        "candidate": {
+          "v": 15.558877878939402,
+          "n": 23.84116947503445
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 27.863233089527338,
+      "native_n": 30,
+      "models": {
+        "baseline": {
+          "v": 23.078084889279094,
+          "n": 35.68398783912696
+        },
+        "candidate": {
+          "v": 18.18235976772513,
+          "n": 39.7580479977341
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 37.4994852135631,
+      "native_n": 27,
+      "models": {
+        "baseline": {
+          "v": 27.760908185707795,
+          "n": 33.87615499909415
+        },
+        "candidate": {
+          "v": 22.440872017061643,
+          "n": 37.077062409485265
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 75.35411405783697,
+      "native_n": 15,
+      "models": {
+        "baseline": {
+          "v": 44.31158692170171,
+          "n": 21.30166100979968
+        },
+        "candidate": {
+          "v": 44.82363290243267,
+          "n": 18.5365977708362
+        }
+      }
+    },
+    {
+      "arm": "release",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 92.31920699706174,
+      "native_n": 36,
+      "models": {
+        "baseline": {
+          "v": 69.59234556557756,
+          "n": 42.18821472135249
+        },
+        "candidate": {
+          "v": 71.92769790177448,
+          "n": 36.29663698815138
+        }
+      }
+    }
+  ],
+  "gates": {
+    "onset23_speed_and_stock": true,
+    "onset24_recovery": true,
+    "rm_component_magnitude": false,
+    "large_rank": true,
+    "hold_recovery": true
+  },
+  "passed": false,
+  "formula_checks": 1350,
+  "full_forecasts": 3,
+  "compute_sec": 77.690801900113,
+  "wall_sec": 113.14386309997644,
+  "fit": 0,
+  "new_native": 0,
+  "new_fzp_reads": 0,
+  "live_monitoring": 0,
+  "initial_commands_mass_verified": true,
+  "adopted": false,
+  "goal_qualified": false,
+  "limitations": [
+    "Single density-response sensitivity, not fitted or externally qualified.",
+    "Only first150s compared to native for onset;47 holds exact executed RM schedules450s.",
+    "Hold recovery MAE is based on three150s endpoints, not every second.",
+    "Actual effect of the new parameters on VSL choice and SDMPC AD has not been qualified."
+  ]
+}

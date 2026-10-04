@@ -1,0 +1,102 @@
+{
+  "scope": "Two3150s fixed-command runs;2700..3150 response,not closed-loop performance or independent seed",
+  "start_sec": 2700,
+  "end_sec": 3150,
+  "arms": {
+    "selected": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2627.2540416666684,
+      "TTT_2700p1_3150_veh_h": 470.51583333333383,
+      "Omega_TTD_events": 21054,
+      "Omega_end_vehicles": 3805,
+      "native_removals": 64,
+      "uninserted_at_end": 8207,
+      "unresolved_Omega_disappearances": 276,
+      "outside_Omega_residence_veh_h": 989.9926666666684,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 5.179027777777874,
+      "sampled_TVD_Omega_veh_km": 130774.1097658333,
+      "sampled_TVD_censored_tail_veh_km": 224.73791472222365,
+      "distance_definition": "Integral of sum of observed vehicle speeds inside Omega; trapezoid at actual timestamps.",
+      "native_physical_network_time_veh_h": 3617.3337416305553,
+      "native_uninserted_delay_veh_h": 3018.0096388888887,
+      "native_total_time_including_uninserted_veh_h": 6635.343380519444,
+      "native_uninserted_at_end": 8207.0,
+      "native_network_end_vehicles": 5362.0,
+      "native_arrived_vehicles": 23583.0
+    },
+    "vsl90": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2627.9197083333315,
+      "TTT_2700p1_3150_veh_h": 471.18149999999696,
+      "Omega_TTD_events": 21034,
+      "Omega_end_vehicles": 3791,
+      "native_removals": 64,
+      "uninserted_at_end": 8240,
+      "unresolved_Omega_disappearances": 276,
+      "outside_Omega_residence_veh_h": 989.7148888888906,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 5.159972222222318,
+      "sampled_TVD_Omega_veh_km": 130645.41374361108,
+      "sampled_TVD_censored_tail_veh_km": 219.66001750000578,
+      "distance_definition": "Integral of sum of observed vehicle speeds inside Omega; trapezoid at actual timestamps.",
+      "native_physical_network_time_veh_h": 3617.7231582958334,
+      "native_uninserted_delay_veh_h": 3018.4105555555557,
+      "native_total_time_including_uninserted_veh_h": 6636.133713851389,
+      "native_uninserted_at_end": 8240.0,
+      "native_network_end_vehicles": 5352.0,
+      "native_arrived_vehicles": 23560.0
+    }
+  },
+  "reused_nc_run": null,
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "original_prefix_source": {
+    "scope": "within_new_seed67_pair_from_its_observed2700_state",
+    "paired_native_effect_valid": true,
+    "original_raw_prefix_exact": false,
+    "old_new_common_recorded_interval_exact": true,
+    "alignment_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_full_observation\\recording_start_alignment76.json",
+    "alignment_sha256": "f7e227e5b113c3fd5d58a573598575cf1cb1e97af87b51a867d45618fee331fa",
+    "original_summary_sha256": "7cb09b8d71d2ddeb759f3729258a6185d8361eb461c070b2faad7817fdae0b4a"
+  },
+  "common_start_vehicle_records_exact": true,
+  "prefixes": {
+    "selected": {
+      "sha256": "71fdea1c06f12cafa91ef47627ede9246ff3f947ffd7919c71049819377a3e4b",
+      "rows": 2127628,
+      "last_time_s": 2695.1
+    },
+    "vsl90": {
+      "sha256": "71fdea1c06f12cafa91ef47627ede9246ff3f947ffd7919c71049819377a3e4b",
+      "rows": 2127628,
+      "last_time_s": 2695.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "71fdea1c06f12cafa91ef47627ede9246ff3f947ffd7919c71049819377a3e4b",
+    "rows": 2127628,
+    "last_time_s": 2695.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_definition": "vsl90 minus selected",
+  "delta_TTT_veh_h": 0.6656666666631281,
+  "delta_outside_Omega_residence_veh_h": -0.2777777777777146,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Same selected SDMPC city/RM sequence; only DSD63..66 differ110vs90 after2700. Original observed2700 state and qualified new67 prefix required. No independent-seed claim.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": 0.790333331945476,
+  "delta_native_uninserted_delay_veh_h": 0.40091666666694437,
+  "protocol_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_native_selected_s67_selected_vsl78\\protocol.json",
+  "protocol_sha256": "eddc79cb27234b5abb6296b2d5c6713f782f6541599a2b73c27989d5f9ec5933",
+  "prediction_source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_budget_check_selected_vsl13_s67_service66_selection77_access\\summary.json",
+  "predicted_delta_omega_veh_h": 0.5575609917786437,
+  "counterfactual_valid": true
+}

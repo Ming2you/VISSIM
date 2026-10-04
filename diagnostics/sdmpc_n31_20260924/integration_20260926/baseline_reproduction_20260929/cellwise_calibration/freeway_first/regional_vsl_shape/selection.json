@@ -1,0 +1,78 @@
+{
+  "candidates": [
+    {
+      "E": 1.0,
+      "loss": 2.5917696181142014,
+      "baseline_loss": 1.3624214644329526,
+      "ratio": 1.9023258850321403,
+      "guards": [
+        {
+          "case": "s29_early",
+          "arm": "vsl",
+          "main_cost": false,
+          "component_cost": false,
+          "speed": true,
+          "no_new_wrong_large_sign": true
+        },
+        {
+          "case": "s29_late",
+          "arm": "hold_vsl90",
+          "main_cost": false,
+          "component_cost": true,
+          "speed": true,
+          "no_new_wrong_large_sign": true
+        },
+        {
+          "case": "s29_late",
+          "arm": "release_vsl90",
+          "main_cost": true,
+          "component_cost": true,
+          "speed": true,
+          "no_new_wrong_large_sign": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "E": 4.0,
+      "loss": 1.3754559256136465,
+      "baseline_loss": 1.3624214644329526,
+      "ratio": 1.0095671284701309,
+      "guards": [
+        {
+          "case": "s29_early",
+          "arm": "vsl",
+          "main_cost": false,
+          "component_cost": false,
+          "speed": true,
+          "no_new_wrong_large_sign": false
+        },
+        {
+          "case": "s29_late",
+          "arm": "hold_vsl90",
+          "main_cost": true,
+          "component_cost": false,
+          "speed": true,
+          "no_new_wrong_large_sign": true
+        },
+        {
+          "case": "s29_late",
+          "arm": "release_vsl90",
+          "main_cost": true,
+          "component_cost": true,
+          "speed": true,
+          "no_new_wrong_large_sign": true
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "selected": null,
+  "parity": {
+    "cells": true,
+    "flows": true,
+    "ports": true,
+    "ramps": true
+  },
+  "adopted": false
+}

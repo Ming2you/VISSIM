@@ -1,0 +1,25 @@
+{
+  "hypothesis": "Local23 merge loss depends on current whole-cell density; bounded one-candidate sensitivity, not a fitted calibration or capacity bonus.",
+  "formula": "delta = baseline_delta*(0.5+1.5*clip(rho/rho_critical-0.5,0,1))",
+  "free_multiplier": 0.5,
+  "congested_multiplier": 2.0,
+  "low_relative_density": 0.5,
+  "high_relative_density": 1.5,
+  "coefficient_fit": 0,
+  "candidate_count": 1,
+  "forecast_budget": 3,
+  "other_speed_terms_unchanged": true,
+  "current_predicted_state_only": true,
+  "cell": 23,
+  "road": "FW_E",
+  "gates": [
+    "All initial states, command schedules, mass, route/off-ramp dynamics remain identical except23 merge speed coefficient.",
+    "Onset23 speed+stock absolute errors improve without worsening24 recovery by more than2km/h.",
+    "RM hold/release mainline+8ramp component DeltaTTT retains large observed sign and magnitude error does not worsen; Omega rank and outside diagnostic reported.",
+    "Hold23/24 speed MAE does not worsen by more than2km/h; no gain forced from microscopic noise."
+  ],
+  "new_native": 0,
+  "new_fzp_reads": 0,
+  "live_monitoring": 0,
+  "adopted": false
+}

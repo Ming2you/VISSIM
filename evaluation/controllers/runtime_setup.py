@@ -48,6 +48,12 @@ def configure_freeway_runtime(adapter, cfg, tuning, mapping, *, component_valida
         raise ValueError('component_vsl_transport is component-only; only the lane-plant component installs it')
     metadata = dict(adapter.install_freeway_segment_lanes(cfg, tuning, mapping))
     freeway_settings = tuning.get("freeway", {}) or {}
+    if 'physical_vsl_sign_binding' in freeway_settings:
+        flag=freeway_settings['physical_vsl_sign_binding']
+        if type(flag) is not bool:raise ValueError('physical_vsl_sign_binding must be boolean')
+        cfg.network.physical_vsl_sign_binding=flag
+        cfg.network.physical_vsl_groups=[dict(road=s['model_link'],parent=int(s['model_segment_index']),
+            dsds=[int(d['dsd_no']) for d in s['dsds']]) for s in mapping['segments'] if s.get('dsds')] if flag else []
     if "physical_vehicle_counts" in freeway_settings:
         flag = freeway_settings["physical_vehicle_counts"]
         if not isinstance(flag, bool):
@@ -118,6 +124,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(a.install_leg_ramp_split_fold(cfg, tuning))
     detector_mapping, merged = a.install_merged_movements(cfg, tuning, detector_mapping)
     metadata.update(merged)
+    from evaluation.controllers.physical_movement_routes import configure_native_choice_groups
+    metadata.update(configure_native_choice_groups(cfg, detector_mapping, tuning, state_json=state_json))
     if (tuning or {}).get('urban', {}).get('movements', {}).get('physical_phase_authority'):
         from evaluation.controllers.physical_movement_routes import configure_phase_authority
         metadata.update(configure_phase_authority(
@@ -132,11 +140,16 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(a.install_landing_storage_runtime(cfg))
     # Observed capacity already contains the native simultaneous-green effect.
     metadata.update(a.install_native_signal_structure(cfg, tuning))
-    metadata.update(signal_actuation_contract.configure(cfg, tuning, a.load_signal_group_actuation_plan()))
+    metadata.update(signal_actuation_contract.configure(cfg, tuning, a.load_signal_group_actuation_plan(),
+        network_path=lane_context['paths']['network'] if lane_context is not None else None))
     if getattr(cfg.network, 'native_signal_minimum_policy', None) == 'include_source_reference':
         metadata.update(a.validate_native_signal_runtime_source(cfg, state_json))
     from evaluation.controllers import head_service_resources
     from evaluation.controllers import signal_head_observation
+    shared_sc1001=(tuning.get('urban',{}) or {}).get('shared_sc1001_approach')
+    if shared_sc1001 not in (None,'boundary_only_v1'):
+        raise ValueError('Unknown SC1001 boundary experiment')
+    cfg.network.sc1001_shared_observation_enabled=shared_sc1001 is not None
     metadata.update(signal_head_observation.configure_head_free_service(cfg, tuning, state_json))
     metadata.update(head_service_resources.configure(
         cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
@@ -208,6 +221,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(physical_ramp_metadata)
     if lane_context is None:
         metadata.update(offramp_routing.configure_inventory(cfg, tuning, state_json, mapping))
+    metadata.update(observation_projection.configure_head_queue_lanes(cfg, tuning, state_json))
+    metadata.update(observation_projection.configure_kinematic_queue_projection(cfg, tuning, state_json))
     state = a.traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input)
@@ -220,6 +235,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     if 'conservative_initial_transit' in (tuning or {}).get('urban', {}):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure_initial_transit(cfg, tuning, state))
+    metadata.update(physical_ramp_branches.initialize_gate_routes(state, cfg, tuning, state_json))
     if getattr(cfg.network, 'shared_approach', None):
         from evaluation.controllers import shared_approach
         metadata.update(shared_approach.initialize(state, cfg, state_json, detector_mapping))
@@ -242,15 +258,29 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(metanet_parameter_transfer.configure_demand(cfg, mapping))
     if lane_context is not None:
         metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping,
-                                                      previous_action_path=previous_action_path))
+            previous_action_path=previous_action_path,
+            shared_sc1001=(tuning.get('urban',{}) or {}).get('shared_sc1001_approach')))
+        route_inventory = (tuning.get('freeway', {}) or {}).get('offramp_route_inventory')
+        if route_inventory is not None:
+            metadata.update(state.lane_freeway_runtime.initialize_route_inventory(
+                state, cfg, state_json, route_inventory))
+    history=(tuning.get('freeway',{}) or {}).get('observed_vsl_history',False)
+    if type(history) is not bool:raise ValueError('observed_vsl_history must be boolean')
+    if history:
+        if lane_context is None:raise ValueError('Observed VSL history requires a lane plant')
+        from evaluation.controllers import vsl_exposure_history
+        metadata.update(vsl_exposure_history.initialize(lane_context,state_json,state,cfg))
+    metadata.update(observation_projection.initialize_kinematic_arrivals(
+        a, state, cfg, tuning, state_json, detector_mapping))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))
         from evaluation.controllers import area_meter_finalization
         metadata.update(area_meter_finalization.configure(
             a, cfg, tuning, mapping, state_json, previous_action_path, state, calibration))
-    from evaluation.controllers.route_choice_corridor import configure_known_legsplit
+    from evaluation.controllers.route_choice_corridor import configure_known_legsplit, configure_direct_exit_legsplit
     metadata.update(configure_known_legsplit(cfg, tuning, state, state_json))
+    metadata.update(configure_direct_exit_legsplit(cfg, tuning, state, state_json))
     if lane_context is not None:
         lane_plant_runtime.bind_area(state,cfg)
     return state, detector_mapping, metadata

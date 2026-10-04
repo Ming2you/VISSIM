@@ -1,0 +1,182 @@
+{
+  "candidates_critical_gap_sec": [
+    2.5,
+    3.0
+  ],
+  "original_critical_gap_sec": 2.0,
+  "changed": "Existing RM_C10484 critical_gap_sec only. Follow-up1.5s/head curve/density supply/all cell coefficients unchanged.",
+  "training_cases": [
+    {
+      "case": "s29_late",
+      "arm": "hold"
+    },
+    {
+      "case": "s29_late",
+      "arm": "release"
+    },
+    {
+      "case": "s29_late",
+      "arm": "hold_vsl90"
+    },
+    {
+      "case": "s29_late",
+      "arm": "release_vsl90"
+    }
+  ],
+  "checks": [
+    {
+      "case": "s29_early",
+      "arm": "none"
+    },
+    {
+      "case": "s29_early",
+      "arm": "vsl"
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm"
+    },
+    {
+      "case": "s29_early",
+      "arm": "both"
+    },
+    {
+      "case": "s43_early",
+      "arm": "none"
+    },
+    {
+      "case": "s43_early",
+      "arm": "vsl"
+    },
+    {
+      "case": "s43_early",
+      "arm": "rm"
+    },
+    {
+      "case": "s43_early",
+      "arm": "both"
+    },
+    {
+      "case": "s53_late",
+      "arm": "hold"
+    },
+    {
+      "case": "s53_late",
+      "arm": "release"
+    },
+    {
+      "case": "s53_late",
+      "arm": "hold_vsl90"
+    },
+    {
+      "case": "s53_late",
+      "arm": "release_vsl90"
+    }
+  ],
+  "training_only_selection": "Lowest original paired response loss; require20% reduction, no meaningful sign reversal, and at most10% worse mean stock/flow RMSE. No further gap candidates after failure.",
+  "forecast_limit": 20,
+  "new_native": 0,
+  "future_input": false,
+  "previously_inspected_states_not_blind": true,
+  "rationale": "Observed-inflow diagnostic over-releases10484 after meter relaxation; existing mean-flow gap service is the active budget. Test this parameter before any new receiving law.",
+  "manifest": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\local_merge_cell23\\candidate_manifest.json",
+  "manifest_sha256": "45ec8b73f8d55e275d55b3f3f60152b9270188931d73a9af48b383e0ea724429",
+  "core_pins": {
+    "evaluation/controllers/freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "evaluation/controllers/area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+    "evaluation/controllers/lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "692e0326d2cd6cab049a443e3d55f2c8cfef623a12ef22f0e36aad07855d6771",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/scoring.py": "8a14bb32b2e737ab2c3b9ac9b158c3885944765de1846d52e9277c6b750949a5"
+  },
+  "baseline_train_loss": {
+    "state": 0.8402175356896507,
+    "response": 0.24546350571229483,
+    "prior": 0.0,
+    "pairs": [
+      {
+        "case": "s29_late",
+        "arm": "release",
+        "predicted": {
+          "ttt": 0.8912843778925037,
+          "ramp_ttt": -5.713609132695986,
+          "exits": -29.793929684831937
+        },
+        "actual": {
+          "ttt": 4.70416666666668,
+          "ramp_ttt": -4.812500000000002,
+          "exits": -90.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.868944467695826,
+          "RM_C10490": 0.0,
+          "RM_C10639": 48.48986690491436,
+          "RM_C10681": -3.0505788646434553
+        },
+        "actual_merges": {
+          "RM_C10484": 44.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "hold_vsl90",
+        "predicted": {
+          "ttt": 0.2318635307007355,
+          "ramp_ttt": -0.0002457061160967555,
+          "exits": -7.325547762441602
+        },
+        "actual": {
+          "ttt": 0.7833333333333599,
+          "ramp_ttt": 0.00833333333333286,
+          "exits": -7.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0018441897587919698,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0010613533529522101
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "release_vsl90",
+        "predicted": {
+          "ttt": 0.9410279228814034,
+          "ramp_ttt": -5.713474228508,
+          "exits": -30.526565091881366
+        },
+        "actual": {
+          "ttt": 4.75,
+          "ramp_ttt": -4.695833333333335,
+          "exits": -100.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.86863829811834,
+          "RM_C10490": 0.0,
+          "RM_C10639": 48.48986690491436,
+          "RM_C10681": -3.0434130723729993
+        },
+        "actual_merges": {
+          "RM_C10484": 42.0,
+          "RM_C10490": 1.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      }
+    ],
+    "state_objective": 0.8402175356896507,
+    "response_objective": 1.3311445471142405,
+    "meaningful_signs_pass": true,
+    "mean_n_rmse": 11.458212658954718,
+    "mean_q_rmse": 975.2613965505652
+  }
+}

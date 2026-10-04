@@ -254,7 +254,23 @@ def validate_writer(control, cfg, plan_table, offset_writer):
             raise ValueError(f'{signal}: model and writer native clock bases differ')
 
 
-def configure(cfg, tuning, plan_table):
+def verify_native_source(plan, amber, all_red, source=None):
+    """Check the selected network's program without editing archived plan pins."""
+    from pathlib import Path
+    from vissim_strict.signal_program import parse_sig
+    basis = plan.native_clock_basis
+    source = Path(basis['source_path'] if source is None else source)
+    if not source.is_absolute():
+        source = Path(__file__).resolve().parents[2] / source
+    source = source.resolve(strict=True)
+    program = parse_sig(source, int(basis['active_prog_no']))
+    proved = signal_group_plan.build_native_clock_basis(plan, program, amber_sec=amber,
+        all_red_sec=all_red, controller_offset_sec=float(basis['controller_offset_sec']))
+    if proved != dict(basis, source_path=str(source)):
+        raise ValueError(f'{plan.node_id}: declared native clock differs from active source program')
+
+
+def configure(cfg, tuning, plan_table, *, network_path=None):
     flag = (tuning.get("urban") or {}).get("physical_signal_contract", False)
     if not isinstance(flag, bool):
         raise ValueError("urban.physical_signal_contract must be boolean")
@@ -268,6 +284,18 @@ def configure(cfg, tuning, plan_table):
     if (float(plan_table.get("amber_sec", amber)), float(plan_table.get("all_red_sec", all_red))) != (amber, all_red):
         raise ValueError("selected signal plan clearance differs from the actual writer")
     nodes = {}
+    native_sources = {}
+    source_programs = {}
+    if network_path is not None:
+        from pathlib import Path
+        import xml.etree.ElementTree as ET
+        network_path = Path(network_path)
+        for row in ET.parse(network_path).getroot().findall('.//signalController'):
+            supply = row.get('supplyFile2', '')
+            if supply.startswith('#data#'):
+                native_sources['SC' + row.get('no')] = (
+                    network_path.parent / supply[len('#data#'):],
+                    int(row.get('progNo')), float(row.get('offset')))
     for signal in net.signals:
         raw = plan_table["controllers"][str(int(signal[2:]))]
         plan = signal_group_plan.node_plan_from_json(raw)
@@ -282,13 +310,19 @@ def configure(cfg, tuning, plan_table):
         if plan.native_clock_basis is not None:
             # Verify the explicit basis once during setup against its active
             # source program. Candidate/clock calls then use the captured plan.
-            from vissim_strict.signal_program import parse_sig
-            basis = plan.native_clock_basis
-            program = parse_sig(basis['source_path'], int(basis['active_prog_no']))
-            proved = signal_group_plan.build_native_clock_basis(plan, program, amber_sec=amber,
-                all_red_sec=all_red, controller_offset_sec=float(basis['controller_offset_sec']))
-            if proved != basis:
-                raise ValueError(f'{signal}: declared native clock differs from active source program')
+            source = None
+            if network_path is not None:
+                if signal not in native_sources:
+                    raise ValueError(f'{signal}: active network has no local native program')
+                source, program_no, offset = native_sources[signal]
+                basis = plan.native_clock_basis
+                if (program_no != basis['active_prog_no'] or offset != basis['controller_offset_sec']):
+                    raise ValueError(f'{signal}: native program number/offset differs from active network')
+            verify_native_source(plan, amber, all_red, source)
+            if source is not None:
+                import hashlib
+                source_programs[signal] = {'path': str(source.resolve(strict=True)),
+                    'sha256': hashlib.sha256(source.read_bytes()).hexdigest()}
             _validate_native_vector(net, signal, raw, plan.axis_green_sec)
             cycle = signal_group_plan.node_cycle_sec(plan, plan.axis_green_sec, amber, all_red)
         else:
@@ -300,6 +334,7 @@ def configure(cfg, tuning, plan_table):
         nodes[signal]["_segments"] = tuple((p, plan.phase_segments[p]) for p in PHASES)
         nodes[signal]["_order"] = signal_group_plan.phase_layout_order(raw.get("major_maps_to", "p2"))
     net.signal_actuation_contract = {"nodes": nodes, "amber": amber, "all_red": all_red,
+                                    "source_programs": source_programs,
                                     "offset_writer": offset_promotion.resolve_writer(tuning.get("actuation"), physical_signal_contract=flag)}
     install_candidates(cfg)
     return {"physical_signal_contract_enabled": 1.0, "physical_signal_contract_nodes": len(nodes)}

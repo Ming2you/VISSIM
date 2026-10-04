@@ -1,0 +1,42 @@
+{
+  "status": "completed_bounded_five",
+  "candidate_count": 1,
+  "coefficient_fits": 0,
+  "max_physical_forecasts": 5,
+  "stages": [
+    "Default2250 exact parity with existing all8 trace",
+    "Candidate2250 held450: primary first150 matched native gate",
+    "Candidate3600 held450 only if primary passes; native commands must be checked",
+    "Only if both survive: seed47 RM hold/release paired450"
+  ],
+  "primary_gate": "At least20% reduction in absolute10490 first150 merge AND posthead-stock errors; conservation and actual actuator history unchanged. Failure stops further forecasts.",
+  "changes": "Only density receiving scale for10490: origin1800 capacity instead of loose whole-freeway capacity. Existing gap, effective rho_crit, speeds, objectives and demand unchanged.",
+  "limitations": [
+    "Aggregate density, not lane-selective receiving",
+    "Native37/150 is NOT saturation calibration",
+    "No extra lane-drop, capacity or control bonuses"
+  ],
+  "source_pins": {
+    "evaluation/controllers/physical_ramp_boundary.py": "46703b814b389ed82b43bb41fd8b244bd1ba14684e9c24065a3252a6251c6e73",
+    "evaluation/controllers/lane_ramp_runtime.py": "22dbd42be58fde3ba4c7161784af7da4f8f2c351fb329f556e483448baa90ed1",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "41e4cc279b080c78d818a04de51df448c0b7223b3a2f2b1597424cdeef6cf8bd",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\audit_city_arrival.py": "a783a0051ad8e1b6e7ec378a8838daeec6d9dbd73c9b863d3bfb65d33a9f1a02"
+  },
+  "base_tuning_sha256": "4dad50007e42915e848c1901e725612bab8996881c47f7f90be468248770a762",
+  "reference_before": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/cellwise_calibration/expanded_joint/eval_036/reference_config.json",
+    "sha256": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4"
+  },
+  "literature": "https://web.dcsc.tudelft.nl/~bdeschutter/research/phd_theses/phd_hegyi_2004.pdf Eq3.6",
+  "reuse": [
+    "check53/origin_supply_scale_screen:10484 nonbinding conditional screen; not10490 autonomous test",
+    "native10484/receiving_screen:reject naive lane1 conflict/residual supply"
+  ],
+  "new_native": 0,
+  "live_monitoring": 0,
+  "push": 0,
+  "reference_candidate": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\origin_supply10490\\reference_config.json",
+    "sha256": "439936f5b9a37a54de21167f112268447ff05ff1e71ac70ddfd5a295a817dad5"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "purpose": "Does averaging lanes erase conditional stop/restart response in10483 approach cells19/20?",
+  "prior": "108 rejects delayed route alignment as the main explanation for observed aligned exit cohort;107 receiving failed autonomously;114/117 aggregate stopped closure failed.",
+  "distinction": "Same114 equation and coefficients, applied per physical lane rather than cell mean. No new rates, transport, grid, or VSL-specific term.",
+  "theta": [
+    0.029789731221545032,
+    0.9532879549597472
+  ],
+  "scope": "FW_E zero-based cells19/20; downstream20/21. All boundaries use the same3 lane numbering.",
+  "conditional": "Current observed lane N/v/stopped fraction predicts next5s label. Next record is used only as outcome and to identify censored records, never as a feature.",
+  "exposure": "Only current vehicles whose next mainline speed is known, including cross-cell and cross-lane moves. Missing labels censored, not assumed stopped.",
+  "budget": {
+    "fits": 0,
+    "native": 0,
+    "fzp_scans": 0,
+    "autonomous": 0,
+    "alternatives": 1
+  },
+  "gate": "Both43 and67:150s net-onset RMSE improves>=20% vs aggregate; paired net-onset-delta error improves>=20%. Otherwise no autonomous extension or refit.",
+  "gain_qualified": false,
+  "core_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "input_pins": {
+    "29_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_none_frames.json.gz",
+      "sha256": "5b05cf5366daf96afc6832118f4c3d8e1273e1c8bcdd1a22c905fca7fd2bc713"
+    },
+    "29_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_vsl_frames.json.gz",
+      "sha256": "456db85b5dd98135a4c4cea8309944397709f37478ea731b54d3b71bfdfb0ab1"
+    },
+    "43_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_none_frames.json.gz",
+      "sha256": "7646676de2327a018fa7ebebac6439c72962008785c979c3f9ca72701cb18a3d"
+    },
+    "43_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_vsl_frames.json.gz",
+      "sha256": "698418a50715149af32cd50eecaa8734d32083482c80748e3729303cbb086e52"
+    },
+    "67_release": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz",
+      "sha256": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c"
+    },
+    "67_release_vsl90": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz",
+      "sha256": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93"
+    }
+  },
+  "coefficient_sha256": "29ffaf2a8d82657923c9b81121847d48728c98e42d0f183a7f8d95d34b318d3e"
+}

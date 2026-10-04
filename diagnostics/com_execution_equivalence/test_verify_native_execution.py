@@ -80,6 +80,49 @@ class SingleRunTests(unittest.TestCase):
         self.assertEqual(result['checks']['native_ldp']['sample_count'],36)
         self.assertEqual(result['checks']['actual_commands']['red_only_controlled_groups'],['2:2'])
 
+    def test_explicit_run_name_for_differently_named_output_directory(self):
+        moved = self.root / 'held-arm'
+        self.run.rename(moved)
+        result = v.verify_native_execution(moved, 12, run_name='run')
+        self.assertTrue(result['native_execution_passed'], result)
+        self.assertFalse(v.verify_native_execution(moved, 12)['native_execution_passed'])
+
+    def test_additional_known_native_only_recording_column(self):
+        import xml.etree.ElementTree as ET
+        plan = Path(self.prov['files']['signal_group_plan']['path'])
+        plan.write_text('RW_SIGNAL_SG_EXPECTED = "2:1:1,2:2:0,2:9:0"\n')
+        root = ET.parse(self.network).getroot()
+        conf = root.find('./signalControllers/signalController[@no="2"]/scDetRecConf')
+        ET.SubElement(conf, 'signalOutputConfigurationElement', configName='SG_BILD', sg='2 9')
+        ET.ElementTree(root).write(self.network)
+        for key in ('network', 'signal_group_plan'):
+            self.prov['files'][key]['sha256'] = v.sha(Path(self.prov['files'][key]['path']))
+        save(self.pp, self.prov)
+        p = self.native/'actual_loaded_2_001.ldp'
+        p.write_bytes(ldp(2, [1,2,9], [(t,s+'I') for t,s in self.ldp_rows[2]]))
+        result = self.verify()
+        self.assertTrue(result['native_execution_passed'], result)
+        self.assertEqual(result['checks']['native_ldp']['native_only_groups'], ['2:9'])
+        p.write_bytes(ldp(2, [1,2], self.ldp_rows[2]))
+        self.assertFalse(self.verify()['native_execution_passed'])
+
+    def test_obs150_sparse_posts_require_complete_native_ldp(self):
+        self.prov['env'].update(RW_OBSERVATION_CADENCE='decision150', RW_OBS150_EXPECTED_SIMRES='10')
+        runner = Path(self.prov['files']['main_vbs_runner']['path'])
+        runner.write_text(runner.read_text()+'Const OBS150_FRAME_ADVANCE = 1\n')
+        self.prov['files']['main_vbs_runner']['sha256'] = v.sha(runner)
+        save(self.pp, self.prov)
+        log = self.run/'runlog_run.txt'
+        log.write_text(log.read_text()+'SIMRES=10 source=network\nSIGNAL_FRAME_ADVANCE=1 simres=10 probe\n')
+        sparse = [r for r in self.sgrows if r[-1]=='immediate' or r[0] in (6,12)]
+        table(self.folder/'signal_readback.csv', v.SG_FIELDS, sparse)
+        result = self.verify()
+        self.assertTrue(result['native_execution_passed'], result)
+        self.assertFalse(result['checks']['actual_signal_readbacks']['minimum_next_step_and_control_boundary_posts_required'])
+        p = self.native/'actual_loaded_9101_001.ldp'
+        p.write_bytes(ldp(9101, [1], self.ldp_rows[9101][1:]))
+        self.assertFalse(self.verify()['native_execution_passed'])
+
     def test_missing_ldp_and_second_never_replaced_by_command(self):
         p=self.native/'actual_loaded_2_001.ldp'; original=p.read_bytes()
         p.unlink();self.assertFalse(self.verify()['native_execution_passed'])

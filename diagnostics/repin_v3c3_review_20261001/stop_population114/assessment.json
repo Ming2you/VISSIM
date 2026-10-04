@@ -1,0 +1,50 @@
+{
+  "decision": "DO_NOT_CONNECT",
+  "reason": "Sampling correction improves absolute stopped-stock error but fails cross-state and meaningful control-response gates.",
+  "comparisons": [
+    {
+      "seed": "43",
+      "rmse_before": 8.723400961258507,
+      "rmse_after": 7.957105781452278,
+      "rmse_improvement": 0.08784362695345793,
+      "meaningful_delta": [],
+      "passed": false
+    },
+    {
+      "seed": "67",
+      "rmse_before": 12.469600459699617,
+      "rmse_after": 8.093459086841529,
+      "rmse_improvement": 0.35094479466293227,
+      "meaningful_delta": [
+        {
+          "actual": -11.133333333333335,
+          "before": -2.224964543112506,
+          "after": -1.58722561006031,
+          "error_improvement": -0.07158874403047566
+        },
+        {
+          "actual": -30.333333333333336,
+          "before": -7.445141896196141,
+          "after": -5.294779409093742,
+          "error_improvement": -0.09395073844119173
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "initial_native_frames_exact": {
+    "43": true,
+    "67": true
+  },
+  "production_unchanged": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": true
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "previous_goal_turn": "NO_PROGRESS: user question answered from completed128/130; no new evidence in that answer.",
+  "hypothesis": "Observed lane mean velocity vs exit-class velocity accounts for missing cell20 exit response.",
+  "scope": "seed67 RM release VSL110/90; existing current NEXTLINK labels, common2700.1 state; three disjoint windows totaling420s.",
+  "windows": [
+    [
+      2700.1,
+      2820.1
+    ],
+    [
+      2820.1,
+      2970.1
+    ],
+    [
+      2970.1,
+      3120.1
+    ]
+  ],
+  "budget": {
+    "native": 0,
+    "fzp": 0,
+    "fits": 0,
+    "plant_rollouts": 0
+  },
+  "comparisons": [
+    "Native-state N_exit*lane_v/L vs sum(exit_v)/L, with 5s left and trapezoid quadratures.",
+    "Native physical connector transition vs detector1m event with boundary-stock correction.",
+    "Recorded model request with native N and/or native lane v: conditional algebra only, not rollout.",
+    "Exit-class spatial moment ledger: future positions are response labels only."
+  ],
+  "prior_failures_reused": [
+    "91 mean-speed distance transport",
+    "108 preserve aligned exit lane",
+    "119 two-bin same-speed transport",
+    "106 spatial moment identity"
+  ],
+  "limitations": [
+    "No causal stopped-vehicle classification, no autonomous response qualification.",
+    "Native state is observed every5s, held only in the explicitly conditional formula decomposition.",
+    "Off entry is an internal network transfer, not Omega TTD.",
+    "Current routes identify features; future native events only verify exit labels/mass/moments."
+  ],
+  "model_length_m": 199.9681500166189,
+  "physical_exit_length_m": 198.56102321609342,
+  "protected_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+  "input_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\lane_interaction110\\frames.json.gz": "a2e50e661e39fd58b511afbc1ab33d57216b81ef0ca6c0131b611f141a8a6ffa",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\boundary_time88\\events.json": "afab9c856cbdff85f0e01a1a40b7b975106b1ebc9379ca3436c9e3fa0bb0ce5f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\exit_constraints130\\protocol.json": "3a824b06c27e3f6767a5fabdb435fe00cfa82d0789ee4d4f558248a552ae6d49",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  }
+}

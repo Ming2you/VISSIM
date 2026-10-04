@@ -1,0 +1,22 @@
+{
+  "previous_goal_turn": "PROGRESS: rejected candidate verified and restored; freeway-first priority retained.",
+  "hypothesis": "Find whether recovery-cell inventory error comes from excessive accepted inflow or deficient discharge before widening calibration.",
+  "scope": "Saved full predictions only; cells15..26 for detailed comparison,21..25 for recovery. First30/60/150/450s and sustained speed bias>=10km/h for two30s samples; diagnostic thresholds, not new calibration gates.",
+  "method": "Infer model initial inventory from first end state minus accepted net flux; compare with native initial inventory. Attribute later inventory error exactly to cumulative inflow minus outflow errors.",
+  "limitations": [
+    "Temporal resolution30s cannot establish sub30s causal ordering.",
+    "Native mean speed is a snapshot, flows are interval counts.",
+    "Seed67 inputs use future observed source/merge counts: conditional diagnosis only.",
+    "Candidate shared moment sum is not a proof of the full velocity discretization."
+  ],
+  "new_forecasts": 0,
+  "new_native": 0,
+  "new_fzp": 0,
+  "fit": false,
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "52d99486415426c7f9e96edf0f6cb27a408c6ead82f2e56008ba7964d3f90a88",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\face_recovery\\dynamic\\summary.json": "c59bded9ec8c48fedb09d3d3106680a71e22bb37492424e3f76ce2614249f089",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\face_recovery\\verification.json": "62473229750f7ed55866c0ef880fecd91bf6a5a772641f78c8b3339cf53444a4",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  }
+}

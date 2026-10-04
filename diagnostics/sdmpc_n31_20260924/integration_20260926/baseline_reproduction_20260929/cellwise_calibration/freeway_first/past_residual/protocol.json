@@ -1,0 +1,34 @@
+{
+  "previous_goal_turn": "PROGRESS: actual SDMPC selection after AD correction; same physical commands.",
+  "hypothesis": "A recent local speed-equation residual may persist enough to support a small causal disturbance estimate.",
+  "method": "At t, add the mean actual-minus-model rate of six completed5s intervals [t-30,t) to the current conditional model rate.",
+  "residual_window_sec": 30,
+  "score_horizon_sec": 5,
+  "fit": false,
+  "new_rollouts": 0,
+  "new_native": 0,
+  "candidate_count": 1,
+  "comparators": [
+    "unchanged_model",
+    "zero_speed_change",
+    "previous_completed5s_rate"
+  ],
+  "screen": "At least10% lower rate RMSE than both unchanged model and zero-change in each separate case; at least75% of cells not worse than zero-change.",
+  "no_adoption_on_screen_alone": true,
+  "autonomous_prediction": false,
+  "limitations": [
+    "Current model terms use observed current neighbors and some actual5s fluxes/effective lanes; this remains a conditional diagnostic.",
+    "The one-second equation increment and five-second spatial-mean rate are different operators.",
+    "Seed29/43 use the archived connected-FD diagnostic; seed67 uses expanded036. Never pool them as one parameter model.",
+    "Only past completed intervals enter the correction; current/future target is scoring only. No TTT/control gain claim."
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\local67\\rows.json": "07d44c9c085411725dc2eeb7fa370007cbea6b6d229bca156dec894f738c03b4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\merge_population\\rows.json": "761c4d5476f15fa1e4e6ef35735cdd36e1a68ee9432c27216e1c167d9527f2d8",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\acceleration_balance\\rows.json": "09432d32842edda561b81df08008e7d0d0284343a2a19281db42f7ffc6d99beb",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "f61449155f8bcb243868abafd5ef0dd76a590479c62524e7589d1e0c90ebc21c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "327f16a14b2006a1d4881f6da3419e126ce0152b2c53ac493b7ea14850a9af4d"
+  }
+}

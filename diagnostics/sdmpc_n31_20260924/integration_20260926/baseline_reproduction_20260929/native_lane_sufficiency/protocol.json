@@ -1,0 +1,24 @@
+{
+  "cases": [
+    "seed29 none/vsl",
+    "seed43 none/vsl"
+  ],
+  "cells": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "new_rollouts": 0,
+  "new_native": 0,
+  "coefficient_fit": false,
+  "matching": "Same cell, same control arm, same150s signal phase; distinct seeds or >=150s separation in one seed. Local absN<=3veh,absv<=5km/h. Stronger screen also requires upstream/downstream absN<=3 and absv<=10, plus all8east connector absstock<=3.",
+  "interpretation": "Matched descriptive states, not independent causal samples. Future30s outflow is an outcome only. Missing future arrivals, command exposure distributions and within-cell positions can also explain differences; do not assign all residuals to lanes.",
+  "flow_proxy": "Trapezoidal5s integral of Nv/L is space-average cell production, not boundary discharge/capacity. Its difference is not a capacity bonus."
+}

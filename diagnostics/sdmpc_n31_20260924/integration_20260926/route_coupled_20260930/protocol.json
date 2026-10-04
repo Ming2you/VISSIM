@@ -1,0 +1,22 @@
+{
+  "previous_turn": "PROGRESS: matched NC precheck completed, live native job confirmed",
+  "hypothesis": "Current route inventory used in freeway calibration is skipped by coupled v2 runtime; explicit opt-in must reach the same accepted-flow ledger.",
+  "base_config": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_config.json",
+  "base_sha256": "c4abfccb63110bb4f7458a666d5e87b7ae367a07c12ae8403169ec3d674ce6dc",
+  "core_before": {
+    "evaluation/controllers/runtime_setup.py": "1d1d9568e2083a9c7eb5b50e554f35e1b33228fede5e2aead0a69005d555a8c9",
+    "evaluation/controllers/lane_freeway_runtime.py": "1707e476dadc032cc2d5fbb6cc68d48700585f17498ed9bb84fa19573b0fea62",
+    "evaluation/controllers/offramp_routing.py": "e9eef95455df833c7ab2c332d7096597165f712a30eccf3d61165dac869b1b03"
+  },
+  "fit": false,
+  "new_native": 0,
+  "frozen_run_mutations": 0,
+  "candidate_only": true,
+  "checks": [
+    "explicit-option initialization before and after",
+    "default disabled initialization",
+    "conservative per-road stock partition",
+    "same frozen 4 commands 450s if initialization passes"
+  ],
+  "scope": "current checkout only; no production config change"
+}

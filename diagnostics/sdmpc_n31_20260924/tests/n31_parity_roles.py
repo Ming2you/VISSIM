@@ -132,14 +132,27 @@ def parent(folder):
     from evaluation.controllers import lane_plant_runtime as lpr
     from evaluation.controllers.freeway_refined_geometry import parents
     from src.models.demand import DemandStep
+    from src.models.state import TrafficState, ControlAction
+    from src.controllers.leader import Leader
+    original_merge_capacity = Leader._feasible_nuf_capacity
     component = fx.component()
     tuning = fx.build_full_tuning()
     mapping = json.loads((fx.ROOT / tuning['mapping_json']).read_text(encoding='utf-8-sig'))
     cfg = adapter.build_config(fx.ROOT / 'vendor/NumSim-mine', 150.0, 9000.0, 'normal', {}, tuning,
                                local_observation=True, flagship=True)
     runtime_setup.configure_freeway_runtime(adapter, cfg, tuning, mapping)
+    legacy_state = TrafficState.initial(cfg)
+    legacy_action = ControlAction.uncontrolled(cfg)
+    old_capacity = original_merge_capacity(Leader(cfg), legacy_state, legacy_action)
+    legacy_capacity = Leader(cfg)._feasible_nuf_capacity(legacy_state, legacy_action)
     params = fx.parameters()['by_direction']
     confs = {road: component._config(road, params[road]) for road in component.roads}
+    # This fixture initializes only freeway hooks. Supply the physical ramp
+    # catalog that physical_ramp_branches.configure installs in the full runtime.
+    cfg.network.ramps = list(component.ramps)
+    cfg.network.ramp_to_freeway = {r: data['road'] for r, data in component.ramps.items()}
+    cfg.network.ramp_capacity_veh_h = {
+        r: confs[data['road']].network.ramp_capacity_veh_h[r] for r, data in component.ramps.items()}
     geometry = fx.load_json(fx.GEOMETRY)
     context = {'parents': parents(geometry), 'geometry': geometry, 'component': component,
                'document': {'vsl_command_space': 'parent_21'}}
@@ -153,18 +166,25 @@ def parent(folder):
                                 types.SimpleNamespace(configs=confs))
     for road, conf in confs.items():
         cfg.network.freeway_segment_params[road] = copy.deepcopy(conf.network.freeway_segment_params[road])
+    state.lane_freeway_runtime = types.SimpleNamespace(configs=confs)
+    state.ramp_queue = {r: 100.0 for r in cfg.network.ramps}
+    physical_action = ControlAction.uncontrolled(cfg)
+    physical_capacity = Leader(cfg)._feasible_nuf_capacity(state, physical_action)
     rows_after = {road: len(cfg.network.freeway_segment_params[road]) for road in component.roads}
     blocks = a1_record(cfg)
     demand = [DemandStep({road: blocks[road][i] for road in blocks}, {}, {}) for i in range(5)]
     boundary = inputs(component)
     init = initial(confs)
-    payload = {'cfg': cfg, 'confs': confs, 'init': init, 'inputs': boundary, 'demand': demand}
+    payload = {'cfg': cfg, 'confs': confs, 'init': init, 'inputs': boundary, 'demand': demand,
+               'physical_state': state, 'physical_action': physical_action}
     (folder / 'payload.pickle').write_bytes(pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL))
     result = {'rollout': step_all(confs, init, boundary), 'vsl_reads': vsl_reads(confs),
               'head_of_cell': {r: c.network.freeway_vsl_zone_head_of_cell[r] for r, c in confs.items()},
               'binding_head_of_cell': binding['vsl_zone_head_of_cell'],
               'full_cfg_fd_rows_before_bind': rows_before, 'full_cfg_fd_rows_after_bind': rows_after,
-              'a1_blocks': blocks}
+              'a1_blocks': blocks, 'physical_merge_capacity': physical_capacity,
+              'legacy_merge_capacity_before': old_capacity, 'legacy_merge_capacity_after': legacy_capacity,
+              'physical_merge_hook': bool(getattr(Leader._feasible_nuf_capacity, '_rw_refined_merge_capacity', False))}
     (folder / 'parent.json').write_text(json.dumps(result), encoding='utf-8')
 
 
@@ -172,6 +192,7 @@ def worker(folder):
     from evaluation.controllers import vissim_stackelberg_adapter as adapter
     from evaluation.controllers import runtime_setup
     from evaluation.controllers import source_boundary as sb
+    from src.controllers.leader import Leader
     payload = pickle.loads((folder / 'payload.pickle').read_bytes())
     cfg = payload['cfg']
     runtime_setup.install_freeway_runtime(adapter, cfg, None)
@@ -181,7 +202,9 @@ def worker(folder):
     result = {'rollout': step_all(confs, payload['init'], payload['inputs']), 'vsl_reads': vsl_reads(confs),
               'head_of_cell': {r: c.network.freeway_vsl_zone_head_of_cell[r] for r, c in confs.items()},
               'full_cfg_fd_rows': {r: len(cfg.network.freeway_segment_params[r]) for r in confs},
-              'a1_blocks': blocks, 'demand_received': received}
+              'a1_blocks': blocks, 'demand_received': received,
+              'physical_merge_capacity': Leader(cfg)._feasible_nuf_capacity(payload['physical_state'], payload['physical_action']),
+              'physical_merge_hook': bool(getattr(Leader._feasible_nuf_capacity, '_rw_refined_merge_capacity', False))}
     (folder / 'worker.json').write_text(json.dumps(result), encoding='utf-8')
 
 

@@ -1,0 +1,43 @@
+{
+  "variants": {
+    "baseline": null,
+    "tau8": 8.0,
+    "tau6": 6.0,
+    "tau4": 4.0
+  },
+  "affected_cells": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "model_reference": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout53_response_v2\\candidate_manifest.json",
+  "train": "Only seed29 early/late reference commands; no DeltaTTT fitting",
+  "selection": "Mean normalized stock RMSE plus downstream-count RMSE; each training metric must not worsen >5% versus baseline.",
+  "check": "Frozen selection on all saved commands, seed43/47/53; these seeds were inspected earlier, not pristine blind holdouts.",
+  "unchanged": "FD, critical densities, sending/receiving, merge, lane loss, VSL response, route fractions, objective and horizon.",
+  "coefficient": "Existing recovery_relaxation acceleration_sec; nu/tau pressure ratio preserved.",
+  "max_rollouts": 44,
+  "new_native": 0,
+  "optimizer_iterations": 0,
+  "production_adopted": false,
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout53_response_v2\\candidate_manifest.json": "df0e9cc18aaf6ab146973e266b3f71fac1f637e4072dc35661781a67f704897a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\decision_response\\capture.json": "54e931d563b2d48375a9ae11a3e312df6fd5f8a0bfac84e97fddb4efa73f2c40",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout53_response_v2\\capture.json": "7b282eb922a198bdc4d9f099ddba358e1ef7a08768bab57f1e75eef686e00031",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "b7fc635312ff68a938824419ee7013aa48a1e66e13e6e5570c04ab7a7505e597"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "variants": {
+    "baseline": null,
+    "cell23": null,
+    "recovery_acc6": {
+      "recovery_relaxation": {
+        "acceleration_sec": 6.0
+      }
+    },
+    "combined_acc6": {
+      "recovery_relaxation": {
+        "acceleration_sec": 6.0
+      }
+    },
+    "recovery_dec24": {
+      "relaxation": {
+        "acceleration_sec": 12.0,
+        "deceleration_sec": 24.0
+      }
+    },
+    "combined_dec24": {
+      "relaxation": {
+        "acceleration_sec": 12.0,
+        "deceleration_sec": 24.0
+      }
+    },
+    "recovery_acc6_dec24": {
+      "relaxation": {
+        "acceleration_sec": 12.0,
+        "deceleration_sec": 24.0
+      },
+      "recovery_relaxation": {
+        "acceleration_sec": 6.0
+      }
+    },
+    "combined_acc6_dec24": {
+      "relaxation": {
+        "acceleration_sec": 12.0,
+        "deceleration_sec": 24.0
+      },
+      "recovery_relaxation": {
+        "acceleration_sec": 6.0
+      }
+    }
+  },
+  "affected_cells": [
+    24,
+    25
+  ],
+  "model_reference": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout53_response_v2\\candidate_manifest.json",
+  "train": "Seed29 late2670.1 hold/release only; coefficients frozen before scoring other cases",
+  "selection": "One shared24/25 parameter set: mean normalized N/v/q+terminal RMSE across both cell23 contexts. Each whole31 N/q training RMSE <=1.05 its matching context. No DeltaTTT fitting.",
+  "check": "Frozen selection on all saved commands, seed43/47/53; these seeds were inspected earlier, not pristine blind holdouts.",
+  "unchanged": "Cell21/22 and all other cells except existing cell23 variant; FD, critical density, convection coefficient, conservation, actual merges, dynamic off storage/drain/spillback, demand, objective, control and forecast horizon.",
+  "coefficient": "Existing recovery acceleration6s; asymmetric deceleration24s; their combination.24/25 always share coefficients. Deceleration tau also reduces nu/tau; recovery override preserves pressure ratio.",
+  "max_rollouts": 48,
+  "new_native": 0,
+  "optimizer_iterations": 0,
+  "production_adopted": false,
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout53_response_v2\\candidate_manifest.json": "df0e9cc18aaf6ab146973e266b3f71fac1f637e4072dc35661781a67f704897a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\decision_response\\capture.json": "54e931d563b2d48375a9ae11a3e312df6fd5f8a0bfac84e97fddb4efa73f2c40",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout53_response_v2\\capture.json": "7b282eb922a198bdc4d9f099ddba358e1ef7a08768bab57f1e75eef686e00031",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "df59c42c3b0f58b2090e46623cf6514aa96881720852aeb2d6c969a7b6b9682a"
+  },
+  "diagnostic_cells": [
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "max_coefficient_candidates": 3,
+  "max_wall_sec": 1800,
+  "comparison": "baseline/cell23/recovery-only/combined;40 completed baseline/cell23 predictions reused with hashes",
+  "state_condition": "Canonical current predicted desired>speed/downstream<=rho/downstream<critical for recovery; desired>=speed for general relaxation. No seed/time/control bonus.",
+  "event_definition": "30s snapshots. Congestion<60kmh, recovery>=80kmh for3 consecutive snapshots after congestion; censored within450s. Diagnostic thresholds, not coefficient selection targets.",
+  "stop_rule": "Single grid only. If no admitted improvement, preserve least-error candidate as rejected diagnostic; no repeated parameter search. Reject premature clearing of sustained release congestion.",
+  "known_data_limit": "seed47 VSL90 has4 unexplained losses and is excluded from clean ranking. Other seeds were historically inspected, not pristine blind holdouts."
+}

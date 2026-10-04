@@ -1,0 +1,1893 @@
+{
+  "status": "complete_factor_separation",
+  "protocol": {
+    "hypothesis": "Separate upstream21 merge braking and downstream24 negative relaxation; original23 unchanged.",
+    "modes": {
+      "merge21": {
+        "merge21_multiplier": 0.5,
+        "negative_relaxation24_multiplier": 1.0
+      },
+      "relax24": {
+        "merge21_multiplier": 1.0,
+        "negative_relaxation24_multiplier": 0.5
+      },
+      "both": {
+        "merge21_multiplier": 0.5,
+        "negative_relaxation24_multiplier": 0.5
+      }
+    },
+    "relaxation_rule": "For current desired<speed only, double24 tau and nu together so anticipation is unchanged; no command/time/seed bonus.",
+    "candidate_count": 3,
+    "fit": 0,
+    "forecast_budget": {
+      "primary": 6,
+      "one_selected_onset": 1,
+      "total_max": 7
+    },
+    "selection_rule": "Require RM hold/release region21..25 endpoint speed+stock error and separately normalized East/ramp DeltaTTT error to improve vs baseline; retain large East and Omega loss signs. Select lowest combined normalized score. No cost-only cancellation target.",
+    "rollout_scope": "Full coupled31-cell/8-ramp/17-city model, existing command-conditioned2700-3150 pair; baseline reused.",
+    "new_native": 0,
+    "new_fzp_reads": 0,
+    "live_poll": 0,
+    "adopted": false
+  },
+  "results": {
+    "baseline": {
+      "delta": {
+        "omega": 1.8430415480386273,
+        "east": 5.2356381223731745,
+        "ramps": -3.299280104271942,
+        "outside": -0.000278933759972233
+      },
+      "response_error": 0.3062942388744411,
+      "endpoints": {
+        "speed_mae": 23.820815171995214,
+        "stock_mae": 6.921358087204156
+      },
+      "by_arm_cell": {
+        "hold": {
+          "21": {
+            "speed_error": 40.132221130851775,
+            "stock_error": 2.66503093731421
+          },
+          "22": {
+            "speed_error": 26.101958066054163,
+            "stock_error": 4.6003938626600664
+          },
+          "23": {
+            "speed_error": 26.235527555703896,
+            "stock_error": 6.814271812627907
+          },
+          "24": {
+            "speed_error": 30.02733732307333,
+            "stock_error": 4.797022226022751
+          },
+          "25": {
+            "speed_error": 27.98507192430233,
+            "stock_error": 15.798252640781923
+          }
+        },
+        "release": {
+          "21": {
+            "speed_error": 17.29534164015781,
+            "stock_error": 5.212174973565349
+          },
+          "22": {
+            "speed_error": 9.392694075229244,
+            "stock_error": 7.134210788352529
+          },
+          "23": {
+            "speed_error": 8.351784184977205,
+            "stock_error": 5.1904069325268125
+          },
+          "24": {
+            "speed_error": 27.835822168010395,
+            "stock_error": 7.3479736155039
+          },
+          "25": {
+            "speed_error": 24.850393651592004,
+            "stock_error": 9.653843082686107
+          }
+        }
+      },
+      "ramp10484": {
+        "held_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 45.3290703081646,
+          "final_stock": 56.94453610242348,
+          "residual": -7.105427357601002e-15
+        },
+        "release_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 95.00103208993262,
+          "final_stock": 7.272574320655623,
+          "residual": -1.7141843500212417e-13
+        }
+      },
+      "score": 3.0,
+      "gates": {
+        "region_improves": false,
+        "response_improves": false,
+        "large_rank": true
+      }
+    },
+    "merge21": {
+      "delta": {
+        "omega": 1.8264287391888274,
+        "east": 5.210531282923654,
+        "ramps": -3.2986540425479607,
+        "outside": -0.0002505717751830616
+      },
+      "response_error": 0.3009051422149602,
+      "endpoints": {
+        "speed_mae": 21.975411653563945,
+        "stock_mae": 6.871044975814693
+      },
+      "by_arm_cell": {
+        "hold": {
+          "21": {
+            "speed_error": 29.349065520762107,
+            "stock_error": 1.6302437230403577
+          },
+          "22": {
+            "speed_error": 22.905547665782773,
+            "stock_error": 4.349213200987631
+          },
+          "23": {
+            "speed_error": 24.89361362512997,
+            "stock_error": 6.932182585692929
+          },
+          "24": {
+            "speed_error": 29.250800947927544,
+            "stock_error": 4.721313750920057
+          },
+          "25": {
+            "speed_error": 27.950536532440683,
+            "stock_error": 16.08372991261096
+          }
+        },
+        "release": {
+          "21": {
+            "speed_error": 14.176993392115667,
+            "stock_error": 4.82596203708463
+          },
+          "22": {
+            "speed_error": 9.338001804914514,
+            "stock_error": 7.349964224815056
+          },
+          "23": {
+            "speed_error": 8.799802810063019,
+            "stock_error": 5.44018419770552
+          },
+          "24": {
+            "speed_error": 28.028796309762026,
+            "stock_error": 7.4489926551303185
+          },
+          "25": {
+            "speed_error": 25.060957926741153,
+            "stock_error": 9.928663470159469
+          }
+        }
+      },
+      "ramp10484": {
+        "held_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 45.3334336381023,
+          "final_stock": 56.940172772485795,
+          "residual": -2.1316282072803006e-14
+        },
+        "release_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 95.00553960076314,
+          "final_stock": 7.26806680982512,
+          "residual": -1.900701818158268e-13
+        }
+      },
+      "score": 2.897666028547217,
+      "gates": {
+        "region_improves": true,
+        "response_improves": true,
+        "large_rank": true
+      }
+    },
+    "relax24": {
+      "delta": {
+        "omega": 1.7205972737286856,
+        "east": 5.094722992178063,
+        "ramps": -3.297388641983982,
+        "outside": -0.00015717926669367444
+      },
+      "response_error": 0.2766527211054273,
+      "endpoints": {
+        "speed_mae": 21.56669587663623,
+        "stock_mae": 6.368267879580543
+      },
+      "by_arm_cell": {
+        "hold": {
+          "21": {
+            "speed_error": 38.736774967951646,
+            "stock_error": 2.3714876180935143
+          },
+          "22": {
+            "speed_error": 23.507564293040588,
+            "stock_error": 4.213777839288833
+          },
+          "23": {
+            "speed_error": 22.469623452827374,
+            "stock_error": 6.571159208601373
+          },
+          "24": {
+            "speed_error": 24.064571078024134,
+            "stock_error": 3.9402298516039664
+          },
+          "25": {
+            "speed_error": 25.85715501379082,
+            "stock_error": 14.55564472746378
+          }
+        },
+        "release": {
+          "21": {
+            "speed_error": 16.0522905602331,
+            "stock_error": 4.518167389222028
+          },
+          "22": {
+            "speed_error": 7.750483909840373,
+            "stock_error": 5.939880140949661
+          },
+          "23": {
+            "speed_error": 7.768108145631701,
+            "stock_error": 4.648705801323811
+          },
+          "24": {
+            "speed_error": 25.077629223100747,
+            "stock_error": 6.64619267977064
+          },
+          "25": {
+            "speed_error": 24.38275812192182,
+            "stock_error": 10.277433539487822
+          }
+        }
+      },
+      "ramp10484": {
+        "held_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 45.33250677002323,
+          "final_stock": 56.94109964056486,
+          "residual": -1.4210854715202004e-14
+        },
+        "release_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 94.99334354833917,
+          "final_stock": 7.2802628622491055,
+          "residual": -2.0161650127192843e-13
+        }
+      },
+      "score": 2.728686568075302,
+      "gates": {
+        "region_improves": true,
+        "response_improves": true,
+        "large_rank": true
+      }
+    },
+    "both": {
+      "delta": {
+        "omega": 1.70258238205804,
+        "east": 5.06692681389714,
+        "ramps": -3.2965416815355875,
+        "outside": -0.00012440820344750136
+      },
+      "response_error": 0.2706289590722469,
+      "endpoints": {
+        "speed_mae": 19.435534515438672,
+        "stock_mae": 6.307175746011148
+      },
+      "by_arm_cell": {
+        "hold": {
+          "21": {
+            "speed_error": 27.34725060519578,
+            "stock_error": 1.4661734249120155
+          },
+          "22": {
+            "speed_error": 19.821821003069534,
+            "stock_error": 4.060350494641427
+          },
+          "23": {
+            "speed_error": 20.647590394597813,
+            "stock_error": 6.552473953123408
+          },
+          "24": {
+            "speed_error": 22.79799953000165,
+            "stock_error": 4.073102126070621
+          },
+          "25": {
+            "speed_error": 25.608609819480993,
+            "stock_error": 14.679411736069063
+          }
+        },
+        "release": {
+          "21": {
+            "speed_error": 12.531195271235902,
+            "stock_error": 3.99433622055936
+          },
+          "22": {
+            "speed_error": 7.542455740715758,
+            "stock_error": 6.006007508030109
+          },
+          "23": {
+            "speed_error": 8.222397483139686,
+            "stock_error": 4.843963157772568
+          },
+          "24": {
+            "speed_error": 25.21389640855892,
+            "stock_error": 6.75153978241105
+          },
+          "25": {
+            "speed_error": 24.622128898390656,
+            "stock_error": 10.644399056521854
+          }
+        }
+      },
+      "ramp10484": {
+        "held_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 45.33655338983984,
+          "final_stock": 56.93705302074826,
+          "residual": -2.842170943040401e-14
+        },
+        "release_actual": {
+          "arrival": 72.27360641058807,
+          "merge": 94.99790735760914,
+          "final_stock": 7.275699052979102,
+          "residual": -1.6608936448392342e-13
+        }
+      },
+      "score": 2.610727022305826,
+      "gates": {
+        "region_improves": true,
+        "response_improves": true,
+        "large_rank": true
+      }
+    }
+  },
+  "actual_delta": {
+    "omega": 2.0538333333352057,
+    "east": 4.8699444444444,
+    "ramps": -2.6797222222222246
+  },
+  "rows": [
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 59.20386935174498,
+      "native_n": 12,
+      "v": 43.95734347788835,
+      "n": 12.806693104110531,
+      "speed_error": 15.246525873856626,
+      "stock_error": 0.806693104110531
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 73.1291734036949,
+      "native_n": 12,
+      "v": 59.101658434888904,
+      "n": 18.82184067148029,
+      "speed_error": 14.027514968806003,
+      "stock_error": 6.821840671480292
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 85.51168976925975,
+      "native_n": 9,
+      "v": 60.616505404396854,
+      "n": 19.552882818934947,
+      "speed_error": 24.895184364862892,
+      "stock_error": 10.552882818934947
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 96.1080124617885,
+      "native_n": 15,
+      "v": 58.98547975532619,
+      "n": 19.903755191356428,
+      "speed_error": 37.122532706462316,
+      "stock_error": 4.903755191356428
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 97.75419827402486,
+      "native_n": 35,
+      "v": 71.62355115572342,
+      "n": 47.96584780907519,
+      "speed_error": 26.13064711830144,
+      "stock_error": 12.965847809075193
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 96.9151621929891,
+      "native_n": 8,
+      "v": 44.284041501187176,
+      "n": 12.069019567041758,
+      "speed_error": 52.631120691801925,
+      "stock_error": 4.069019567041758
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 94.36255725738721,
+      "native_n": 11,
+      "v": 59.3996278230813,
+      "n": 17.684478047896512,
+      "speed_error": 34.962929434305906,
+      "stock_error": 6.684478047896512
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 99.05419395725148,
+      "native_n": 12,
+      "v": 60.32307527211043,
+      "n": 19.177147966562753,
+      "speed_error": 38.731118685141055,
+      "stock_error": 7.177147966562753
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 94.42650978226074,
+      "native_n": 11,
+      "v": 57.95588987686844,
+      "n": 20.000122502361215,
+      "speed_error": 36.4706199053923,
+      "stock_error": 9.000122502361215
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 100.07392149777925,
+      "native_n": 30,
+      "v": 70.42537480411974,
+      "n": 48.97560337125808,
+      "speed_error": 29.64854669365951,
+      "stock_error": 18.97560337125808
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 98.71730080237367,
+      "native_n": 7,
+      "v": 46.198283975476905,
+      "n": 10.11938014079034,
+      "speed_error": 52.51901682689677,
+      "stock_error": 3.1193801407903408
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 93.45627191800165,
+      "native_n": 14,
+      "v": 64.14084212295107,
+      "n": 14.294862868603396,
+      "speed_error": 29.315429795050576,
+      "stock_error": 0.2948628686033956
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 80.09111689251893,
+      "native_n": 19,
+      "v": 65.01083727541118,
+      "n": 16.28721534761398,
+      "speed_error": 15.080279617107749,
+      "stock_error": 2.71278465238602
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 78.46626300553848,
+      "native_n": 17,
+      "v": 61.97740364817311,
+      "n": 17.48718898435061,
+      "speed_error": 16.48885935736537,
+      "stock_error": 0.48718898435060964
+    },
+    {
+      "mode": "baseline",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 100.74709225022518,
+      "native_n": 30,
+      "v": 72.57107028927915,
+      "n": 45.453306742012494,
+      "speed_error": 28.17602196094603,
+      "stock_error": 15.453306742012494
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 56.92355346058382,
+      "native_n": 13,
+      "v": 36.601270620124204,
+      "n": 14.597508497705554,
+      "speed_error": 20.322282840459614,
+      "stock_error": 1.5975084977055545
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 55.09936945415502,
+      "native_n": 16,
+      "v": 45.519978996166124,
+      "n": 23.07106537700425,
+      "speed_error": 9.579390457988893,
+      "stock_error": 7.071065377004249
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 38.72064514020276,
+      "native_n": 29,
+      "v": 47.11923706451831,
+      "n": 24.595594377140777,
+      "speed_error": 8.398591924315546,
+      "stock_error": 4.4044056228592225
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 71.6698699825118,
+      "native_n": 16,
+      "v": 51.1294955729622,
+      "n": 22.134039191091933,
+      "speed_error": 20.5403744095496,
+      "stock_error": 6.134039191091933
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 91.4275268314683,
+      "native_n": 34,
+      "v": 69.33016607291752,
+      "n": 48.34211841005469,
+      "speed_error": 22.097360758550778,
+      "stock_error": 14.342118410054688
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 35.641097269785625,
+      "native_n": 15,
+      "v": 17.742505717776528,
+      "n": 22.543692033691844,
+      "speed_error": 17.898591552009098,
+      "stock_error": 7.543692033691844
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 34.31504185707019,
+      "native_n": 29,
+      "v": 20.501498289619597,
+      "n": 37.64757914892638,
+      "speed_error": 13.813543567450594,
+      "stock_error": 8.647579148926383
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 32.71835217768029,
+      "native_n": 31,
+      "v": 25.80016857491952,
+      "n": 35.29066017562707,
+      "speed_error": 6.918183602760767,
+      "stock_error": 4.2906601756270675
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 76.22406260366812,
+      "native_n": 11,
+      "v": 44.299497645321786,
+      "n": 20.608220645620086,
+      "speed_error": 31.92456495834633,
+      "stock_error": 9.608220645620086
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 99.73302655677384,
+      "native_n": 32,
+      "v": 70.00606779203278,
+      "n": 40.431196116651144,
+      "speed_error": 29.726958764741056,
+      "stock_error": 8.431196116651144
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 33.25520499500435,
+      "native_n": 15,
+      "v": 19.59005446699962,
+      "n": 21.49532438929865,
+      "speed_error": 13.665150528004727,
+      "stock_error": 6.4953243892986485
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 27.863233089527338,
+      "native_n": 30,
+      "v": 23.078084889279094,
+      "n": 35.68398783912696,
+      "speed_error": 4.785148200248244,
+      "stock_error": 5.6839878391269565
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 37.4994852135631,
+      "native_n": 27,
+      "v": 27.760908185707795,
+      "n": 33.87615499909415,
+      "speed_error": 9.738577027855303,
+      "stock_error": 6.8761549990941475
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 75.35411405783697,
+      "native_n": 15,
+      "v": 44.31158692170171,
+      "n": 21.30166100979968,
+      "speed_error": 31.042527136135256,
+      "stock_error": 6.30166100979968
+    },
+    {
+      "mode": "baseline",
+      "arm": "release",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 92.31920699706174,
+      "native_n": 36,
+      "v": 69.59234556557756,
+      "n": 42.18821472135249,
+      "speed_error": 22.72686143148418,
+      "stock_error": 6.188214721352487
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 59.20386935174498,
+      "native_n": 12,
+      "v": 52.53277397712625,
+      "n": 11.75415367038924,
+      "speed_error": 6.67109537461873,
+      "stock_error": 0.24584632961076025
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 73.1291734036949,
+      "native_n": 12,
+      "v": 61.03686090501033,
+      "n": 18.425749659337235,
+      "speed_error": 12.092312498684578,
+      "stock_error": 6.425749659337235
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 85.51168976925975,
+      "native_n": 9,
+      "v": 61.11073268260064,
+      "n": 19.475369709187277,
+      "speed_error": 24.400957086659105,
+      "stock_error": 10.475369709187277
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 96.1080124617885,
+      "native_n": 15,
+      "v": 58.95001825128408,
+      "n": 20.163411843419752,
+      "speed_error": 37.15799421050443,
+      "stock_error": 5.163411843419752
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 97.75419827402486,
+      "native_n": 35,
+      "v": 71.19830338266578,
+      "n": 48.86453336274298,
+      "speed_error": 26.555894891359074,
+      "stock_error": 13.864533362742982
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 96.9151621929891,
+      "native_n": 8,
+      "v": 54.61229741507433,
+      "n": 10.872581692703891,
+      "speed_error": 42.30286477791477,
+      "stock_error": 2.872581692703891
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 94.36255725738721,
+      "native_n": 11,
+      "v": 62.41095987444673,
+      "n": 17.0642889418643,
+      "speed_error": 31.951597382940477,
+      "stock_error": 6.064288941864302
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 99.05419395725148,
+      "native_n": 12,
+      "v": 61.55007456785047,
+      "n": 18.72296217363666,
+      "speed_error": 37.50411938940101,
+      "stock_error": 6.72296217363666
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 94.42650978226074,
+      "native_n": 11,
+      "v": 58.58488488193654,
+      "n": 19.91753127771939,
+      "speed_error": 35.8416249003242,
+      "stock_error": 8.917531277719391
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 100.07392149777925,
+      "native_n": 30,
+      "v": 70.39139306440435,
+      "n": 49.367045271305535,
+      "speed_error": 29.682528433374898,
+      "stock_error": 19.367045271305535
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 98.71730080237367,
+      "native_n": 7,
+      "v": 59.644064392620855,
+      "n": 8.772303146806422,
+      "speed_error": 39.073236409752816,
+      "stock_error": 1.772303146806422
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 93.45627191800165,
+      "native_n": 14,
+      "v": 68.78353880227839,
+      "n": 13.442398998238644,
+      "speed_error": 24.67273311572326,
+      "stock_error": 0.5576010017613555
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 80.09111689251893,
+      "native_n": 19,
+      "v": 67.31535249318914,
+      "n": 15.401784125745149,
+      "speed_error": 12.775764399329788,
+      "stock_error": 3.5982158742548513
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 78.46626300553848,
+      "native_n": 17,
+      "v": 63.71347927258447,
+      "n": 16.91700186837897,
+      "speed_error": 14.752783732954008,
+      "stock_error": 0.08299813162102865
+    },
+    {
+      "mode": "merge21",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 100.74709225022518,
+      "native_n": 30,
+      "v": 73.1339059776371,
+      "n": 45.019611103784364,
+      "speed_error": 27.61318627258808,
+      "stock_error": 15.019611103784364
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 56.92355346058382,
+      "native_n": 13,
+      "v": 43.27460693054469,
+      "n": 13.580631205536335,
+      "speed_error": 13.648946530039126,
+      "stock_error": 0.580631205536335
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 55.09936945415502,
+      "native_n": 16,
+      "v": 46.70505033422657,
+      "n": 22.725569000581785,
+      "speed_error": 8.394319119928447,
+      "stock_error": 6.725569000581785
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 38.72064514020276,
+      "native_n": 29,
+      "v": 47.46226460978217,
+      "n": 24.60359014694923,
+      "speed_error": 8.741619469579405,
+      "stock_error": 4.39640985305077
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 71.6698699825118,
+      "native_n": 16,
+      "v": 50.93435625543292,
+      "n": 22.486548334799892,
+      "speed_error": 20.73551372707888,
+      "stock_error": 6.486548334799892
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 91.4275268314683,
+      "native_n": 34,
+      "v": 68.85500253840796,
+      "n": 49.304106267357156,
+      "speed_error": 22.57252429306034,
+      "stock_error": 15.304106267357156
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 35.641097269785625,
+      "native_n": 15,
+      "v": 19.33849170911648,
+      "n": 22.25744978567854,
+      "speed_error": 16.302605560669146,
+      "stock_error": 7.2574497856785385
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 34.31504185707019,
+      "native_n": 29,
+      "v": 20.354329215259668,
+      "n": 37.77967188157551,
+      "speed_error": 13.960712641810524,
+      "stock_error": 8.77967188157551
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 32.71835217768029,
+      "native_n": 31,
+      "v": 25.630408480160966,
+      "n": 35.42202800158443,
+      "speed_error": 7.0879436975193215,
+      "stock_error": 4.4220280015844295
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 76.22406260366812,
+      "native_n": 11,
+      "v": 44.1344451594653,
+      "n": 20.66243977704913,
+      "speed_error": 32.089617444202815,
+      "stock_error": 9.66243977704913
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 99.73302655677384,
+      "native_n": 32,
+      "v": 69.81853924836187,
+      "n": 40.60588187855177,
+      "speed_error": 29.914487308411964,
+      "stock_error": 8.60588187855177
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 33.25520499500435,
+      "native_n": 15,
+      "v": 20.67577690936562,
+      "n": 21.639805120039018,
+      "speed_error": 12.579428085638728,
+      "stock_error": 6.639805120039018
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 27.863233089527338,
+      "native_n": 30,
+      "v": 22.20425943652277,
+      "n": 36.54465179228787,
+      "speed_error": 5.658973653004569,
+      "stock_error": 6.544651792287873
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 37.4994852135631,
+      "native_n": 27,
+      "v": 26.92963995047277,
+      "n": 34.50211473848136,
+      "speed_error": 10.569845263090329,
+      "stock_error": 7.50211473848136
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 75.35411405783697,
+      "native_n": 15,
+      "v": 44.09285629983259,
+      "n": 21.197989853541934,
+      "speed_error": 31.261257758004376,
+      "stock_error": 6.197989853541934
+    },
+    {
+      "mode": "merge21",
+      "arm": "release",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 92.31920699706174,
+      "native_n": 36,
+      "v": 69.62334481831058,
+      "n": 41.87600226456948,
+      "speed_error": 22.695862178751156,
+      "stock_error": 5.876002264569479
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 59.20386935174498,
+      "native_n": 12,
+      "v": 44.72923388497795,
+      "n": 12.642370783779239,
+      "speed_error": 14.474635466767026,
+      "stock_error": 0.6423707837792385
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 73.1291734036949,
+      "native_n": 12,
+      "v": 60.632720148499985,
+      "n": 18.406828061785017,
+      "speed_error": 12.496453255194922,
+      "stock_error": 6.406828061785017
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 85.51168976925975,
+      "native_n": 9,
+      "v": 63.01319977628406,
+      "n": 18.972668342302114,
+      "speed_error": 22.498489992975685,
+      "stock_error": 9.972668342302114
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 96.1080124617885,
+      "native_n": 15,
+      "v": 64.10069131376272,
+      "n": 18.49396246690743,
+      "speed_error": 32.00732114802578,
+      "stock_error": 3.49396246690743
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 97.75419827402486,
+      "native_n": 35,
+      "v": 73.24806784510236,
+      "n": 47.39333481285647,
+      "speed_error": 24.506130428922503,
+      "stock_error": 12.393334812856473
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 96.9151621929891,
+      "native_n": 8,
+      "v": 46.11557546613202,
+      "n": 11.673988019186714,
+      "speed_error": 50.79958672685708,
+      "stock_error": 3.673988019186714
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 94.36255725738721,
+      "native_n": 11,
+      "v": 62.773523776833585,
+      "n": 16.690547942037995,
+      "speed_error": 31.589033480553624,
+      "stock_error": 5.690547942037995
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 99.05419395725148,
+      "native_n": 12,
+      "v": 65.03214478751458,
+      "n": 17.878439488466437,
+      "speed_error": 34.0220491697369,
+      "stock_error": 5.878439488466437
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 94.42650978226074,
+      "native_n": 11,
+      "v": 64.6149315245013,
+      "n": 18.07212015186645,
+      "speed_error": 29.811578257759436,
+      "stock_error": 7.07212015186645
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 100.07392149777925,
+      "native_n": 30,
+      "v": 72.65909784786773,
+      "n": 47.839969294272706,
+      "speed_error": 27.414823649911526,
+      "stock_error": 17.839969294272706
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 98.71730080237367,
+      "native_n": 7,
+      "v": 47.781198092142844,
+      "n": 9.79810405131459,
+      "speed_error": 50.93610271023083,
+      "stock_error": 2.7981040513145903
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 93.45627191800165,
+      "native_n": 14,
+      "v": 67.01906577462843,
+      "n": 13.45604248595651,
+      "speed_error": 26.437206143373217,
+      "stock_error": 0.5439575140434894
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 80.09111689251893,
+      "native_n": 19,
+      "v": 69.2027856967494,
+      "n": 15.137630204964431,
+      "speed_error": 10.888331195769524,
+      "stock_error": 3.862369795035569
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 78.46626300553848,
+      "native_n": 17,
+      "v": 68.09144917725129,
+      "n": 15.74539306396198,
+      "speed_error": 10.374813828287188,
+      "stock_error": 1.2546069360380194
+    },
+    {
+      "mode": "relax24",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 100.74709225022518,
+      "native_n": 30,
+      "v": 75.09658128768675,
+      "n": 43.433630075262165,
+      "speed_error": 25.650510962538434,
+      "stock_error": 13.433630075262165
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 56.92355346058382,
+      "native_n": 13,
+      "v": 37.41784090969463,
+      "n": 14.389064093233861,
+      "speed_error": 19.505712550889186,
+      "stock_error": 1.389064093233861
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 55.09936945415502,
+      "native_n": 16,
+      "v": 46.96570511334491,
+      "n": 22.5828290028048,
+      "speed_error": 8.133664340810107,
+      "stock_error": 6.5828290028048
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 38.72064514020276,
+      "native_n": 29,
+      "v": 48.915523286055205,
+      "n": 24.026007863751722,
+      "speed_error": 10.194878145852442,
+      "stock_error": 4.9739921362482775
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 71.6698699825118,
+      "native_n": 16,
+      "v": 55.46898708346667,
+      "n": 20.713381001349582,
+      "speed_error": 16.200882899045126,
+      "stock_error": 4.713381001349582
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 91.4275268314683,
+      "native_n": 34,
+      "v": 70.58734545160686,
+      "n": 48.1313649321494,
+      "speed_error": 20.840181379861434,
+      "stock_error": 14.131364932149403
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 35.641097269785625,
+      "native_n": 15,
+      "v": 19.174712542225798,
+      "n": 21.609938890215755,
+      "speed_error": 16.466384727559827,
+      "stock_error": 6.609938890215755
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 34.31504185707019,
+      "native_n": 29,
+      "v": 22.157823171478434,
+      "n": 36.09173560138938,
+      "speed_error": 12.157218685591758,
+      "stock_error": 7.091735601389381
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 32.71835217768029,
+      "native_n": 31,
+      "v": 27.47269658684025,
+      "n": 34.18302407362643,
+      "speed_error": 5.2456555908400375,
+      "stock_error": 3.1830240736264273
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 76.22406260366812,
+      "native_n": 11,
+      "v": 46.0483912264747,
+      "n": 20.361339044625968,
+      "speed_error": 30.175671377193417,
+      "stock_error": 9.361339044625968
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 99.73302655677384,
+      "native_n": 32,
+      "v": 70.07053223185375,
+      "n": 41.44566317272022,
+      "speed_error": 29.66249432492009,
+      "stock_error": 9.445663172720216
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 33.25520499500435,
+      "native_n": 15,
+      "v": 21.070430592754068,
+      "n": 20.55549918421647,
+      "speed_error": 12.18477440225028,
+      "stock_error": 5.555499184216469
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 27.863233089527338,
+      "native_n": 30,
+      "v": 24.902664386408084,
+      "n": 34.1450758186548,
+      "speed_error": 2.960568703119254,
+      "stock_error": 4.145075818654803
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 37.4994852135631,
+      "native_n": 27,
+      "v": 29.635694513360473,
+      "n": 32.78910119409673,
+      "speed_error": 7.863790700202625,
+      "stock_error": 5.78910119409673
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 75.35411405783697,
+      "native_n": 15,
+      "v": 46.497780664773266,
+      "n": 20.86385799333637,
+      "speed_error": 28.8563333930637,
+      "stock_error": 5.863857993336371
+    },
+    {
+      "mode": "relax24",
+      "arm": "release",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 92.31920699706174,
+      "native_n": 36,
+      "v": 69.6736083360778,
+      "n": 43.255272513593845,
+      "speed_error": 22.645598660983936,
+      "stock_error": 7.2552725135938445
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 59.20386935174498,
+      "native_n": 12,
+      "v": 53.8504221500982,
+      "n": 11.534745387988309,
+      "speed_error": 5.35344720164678,
+      "stock_error": 0.46525461201169094
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 73.1291734036949,
+      "native_n": 12,
+      "v": 63.2297563240872,
+      "n": 17.87383787601774,
+      "speed_error": 9.899417079607709,
+      "stock_error": 5.873837876017738
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 85.51168976925975,
+      "native_n": 9,
+      "v": 64.42412684952374,
+      "n": 18.670928239891627,
+      "speed_error": 21.087562919736,
+      "stock_error": 9.670928239891627
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 96.1080124617885,
+      "native_n": 15,
+      "v": 64.76443097708108,
+      "n": 18.587912874468223,
+      "speed_error": 31.34358148470743,
+      "stock_error": 3.5879128744682234
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 97.75419827402486,
+      "native_n": 35,
+      "v": 72.9996987591986,
+      "n": 48.310099542375234,
+      "speed_error": 24.754499514826264,
+      "stock_error": 13.310099542375234
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 96.9151621929891,
+      "native_n": 8,
+      "v": 57.22604927098541,
+      "n": 10.444942375295456,
+      "speed_error": 39.68911292200369,
+      "stock_error": 2.444942375295456
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 94.36255725738721,
+      "native_n": 11,
+      "v": 66.38765380705917,
+      "n": 16.003476072112182,
+      "speed_error": 27.974903450328043,
+      "stock_error": 5.003476072112182
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 99.05419395725148,
+      "native_n": 12,
+      "v": 66.75706042355209,
+      "n": 17.288173224663932,
+      "speed_error": 32.297133533699395,
+      "stock_error": 5.288173224663932
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 94.42650978226074,
+      "native_n": 11,
+      "v": 65.80751652800566,
+      "n": 17.826970088922526,
+      "speed_error": 28.618993254255074,
+      "stock_error": 6.8269700889225255
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 100.07392149777925,
+      "native_n": 30,
+      "v": 72.89667471366089,
+      "n": 47.94292837642597,
+      "speed_error": 27.177246784118367,
+      "stock_error": 17.942928376425968
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 98.71730080237367,
+      "native_n": 7,
+      "v": 61.7181091104368,
+      "n": 8.4883232874289,
+      "speed_error": 36.99919169193687,
+      "stock_error": 1.4883232874288996
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 93.45627191800165,
+      "native_n": 14,
+      "v": 71.8651294387288,
+      "n": 12.69626246420564,
+      "speed_error": 21.591142479272847,
+      "stock_error": 1.30373753579436
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 80.09111689251893,
+      "native_n": 19,
+      "v": 71.53304216216088,
+      "n": 14.301679605185333,
+      "speed_error": 8.558074730358044,
+      "stock_error": 4.698320394814667
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 78.46626300553848,
+      "native_n": 17,
+      "v": 70.03483915449603,
+      "n": 15.195576585178886,
+      "speed_error": 8.431423851042453,
+      "stock_error": 1.8044234148211142
+    },
+    {
+      "mode": "both",
+      "arm": "hold",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 100.74709225022518,
+      "native_n": 30,
+      "v": 75.85300909072683,
+      "n": 42.78520728940599,
+      "speed_error": 24.89408315949835,
+      "stock_error": 12.785207289405989
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 2850,
+      "cell": 21,
+      "native_v": 56.92355346058382,
+      "native_n": 13,
+      "v": 44.38024282652652,
+      "n": 13.3450375478583,
+      "speed_error": 12.543310634057299,
+      "stock_error": 0.34503754785830054
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 2850,
+      "cell": 22,
+      "native_v": 55.09936945415502,
+      "native_n": 16,
+      "v": 48.390878464910955,
+      "n": 22.173515111041176,
+      "speed_error": 6.708490989244062,
+      "stock_error": 6.173515111041176
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 2850,
+      "cell": 23,
+      "native_v": 38.72064514020276,
+      "native_n": 29,
+      "v": 49.47508304121457,
+      "n": 23.962527678420237,
+      "speed_error": 10.754437901011805,
+      "stock_error": 5.037472321579763
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 2850,
+      "cell": 24,
+      "native_v": 71.6698699825118,
+      "native_n": 16,
+      "v": 55.5438300419104,
+      "n": 20.964567738925435,
+      "speed_error": 16.1260399406014,
+      "stock_error": 4.964567738925435
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 2850,
+      "cell": 25,
+      "native_v": 91.4275268314683,
+      "native_n": 34,
+      "v": 70.18288319972608,
+      "n": 49.08382612874718,
+      "speed_error": 21.24464363174222,
+      "stock_error": 15.083826128747177
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3000,
+      "cell": 21,
+      "native_v": 35.641097269785625,
+      "native_n": 15,
+      "v": 21.271487089665122,
+      "n": 21.130075308950754,
+      "speed_error": 14.369610180120503,
+      "stock_error": 6.1300753089507545
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3000,
+      "cell": 22,
+      "native_v": 34.31504185707019,
+      "native_n": 29,
+      "v": 22.181405049009626,
+      "n": 36.01449011920345,
+      "speed_error": 12.133636808060565,
+      "stock_error": 7.014490119203451
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3000,
+      "cell": 23,
+      "native_v": 32.71835217768029,
+      "native_n": 31,
+      "v": 27.45060355137659,
+      "n": 34.19042045945755,
+      "speed_error": 5.267748626303696,
+      "stock_error": 3.190420459457549
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3000,
+      "cell": 24,
+      "native_v": 76.22406260366812,
+      "native_n": 11,
+      "v": 45.899569626177744,
+      "n": 20.45454594861057,
+      "speed_error": 30.324492977490372,
+      "stock_error": 9.45454594861057
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3000,
+      "cell": 25,
+      "native_v": 99.73302655677384,
+      "native_n": 32,
+      "v": 69.8157740052291,
+      "n": 41.77595441560318,
+      "speed_error": 29.917252551544735,
+      "stock_error": 9.77595441560318
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3150,
+      "cell": 21,
+      "native_v": 33.25520499500435,
+      "native_n": 15,
+      "v": 22.574539995474446,
+      "n": 20.507895804869026,
+      "speed_error": 10.680664999529903,
+      "stock_error": 5.507895804869026
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3150,
+      "cell": 22,
+      "native_v": 27.863233089527338,
+      "native_n": 30,
+      "v": 24.07799366468469,
+      "n": 34.8300172938457,
+      "speed_error": 3.785239424842647,
+      "stock_error": 4.8300172938456996
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3150,
+      "cell": 23,
+      "native_v": 37.4994852135631,
+      "native_n": 27,
+      "v": 28.85447929145954,
+      "n": 33.30399669228039,
+      "speed_error": 8.645005922103557,
+      "stock_error": 6.303996692280393
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3150,
+      "cell": 24,
+      "native_v": 75.35411405783697,
+      "native_n": 15,
+      "v": 46.162957750251984,
+      "n": 20.835505659697144,
+      "speed_error": 29.191156307584983,
+      "stock_error": 5.835505659697144
+    },
+    {
+      "mode": "both",
+      "arm": "release",
+      "time": 3150,
+      "cell": 25,
+      "native_v": 92.31920699706174,
+      "native_n": 36,
+      "v": 69.61471648517673,
+      "n": 43.0734166252152,
+      "speed_error": 22.704490511885012,
+      "stock_error": 7.073416625215202
+    }
+  ],
+  "selected_onset_followup": "both",
+  "interaction_effects": {
+    "omega": {
+      "merge21": -0.016612808849799876,
+      "relax24": -0.12244427430994165,
+      "interaction": -0.0014020828208458624
+    },
+    "east": {
+      "merge21": -0.025106839449520635,
+      "relax24": -0.14091513019511126,
+      "interaction": -0.0026893388314022104
+    },
+    "ramps": {
+      "merge21": 0.000626061723981497,
+      "relax24": 0.0018914622879599996,
+      "interaction": 0.000220898724413221
+    }
+  },
+  "binding": {
+    "merge21": {
+      "verified_updates": 4500,
+      "modified_negative_relaxation24_steps": {
+        "held_actual": 0,
+        "release_actual": 0
+      }
+    },
+    "relax24": {
+      "verified_updates": 4500,
+      "modified_negative_relaxation24_steps": {
+        "held_actual": 450,
+        "release_actual": 450
+      }
+    },
+    "both": {
+      "verified_updates": 4500,
+      "modified_negative_relaxation24_steps": {
+        "held_actual": 450,
+        "release_actual": 450
+      }
+    }
+  },
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\protocol.json": "1b17b9c7fa364758747f00759f731adfe5b6e297f83c5553c46186c431cc89e6",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\convection84\\pressure24\\details.json": "5c5b1cd67368d735feb9eea1343165fff8fbeceef76101e6571860312c9441da",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\convection84\\pressure24\\assessment.json": "9610096029f8b1232a71df729b5e4f93ea7fa9d664b5883a59be599d82a48a43",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\geometry.json": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\lane84\\ind47_base\\output.json": "33807f6f4054a687f9c672a5ec310ff0d18a9b99505347561d1005f49731d2ec",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\held_actual.json": "8a751e54940cf930dee90a1268b5f6abbe090b3b44301804f7ddbb6be95d235d",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\release_actual.json": "343b6232c7a5b502d61d33f46280c90900e194bfde4dcbd70925f6d8b63e6b63",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\merge21\\ind47\\run_completion.json": "489eefe37c46566af5ebdcfbbdd2d529468e75303ceedb29ea769b88e8ce2635",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\merge21\\ind47\\output.json": "85aed26dcac2f333980dc5bb46abf305aa654ebaa65285e0e8033c3a4c8f310c",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_merge21_ind47\\summary.json": "7791e4bb14e174c09a7cc1dc7ed78aa8ad474a8db1c696dcedcdb791784cedf1",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_merge21_ind47\\held_actual.json": "bec3bdc10d8102885fd3b00af3edb4b4c0d116ffdbf3819497703d6bbd840018",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_merge21_ind47\\release_actual.json": "4b9efc2c4212725b89318ceb2b9b8a7b921227917462dab79a317a744c927c74",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\held_actual_RM_C10484_trace.json.gz": "f66feecd22e85c9472aa0959b7711297b91304e07db67c1711cc70ab2f0b4dc1",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_merge21_ind47\\held_actual_RM_C10484_trace.json.gz": "4c96ddcb5834da893257305bfce050c9760d170ff74c2922f51cb2cab865893f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\release_actual_RM_C10484_trace.json.gz": "e2199497e2b1f62b0b7b638549eef228425ffc4cb35d2801a723bfac98711866",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_merge21_ind47\\release_actual_RM_C10484_trace.json.gz": "c5d0d3b602bf632e30121aa5d297cdc8e1c819dddb0a735549b1ccd062d720bc",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\merge21\\ind47\\speed_terms.json": "17b40234d3c935d6d1a221a9550aa6fe70a85caf6376ff213157272121e8f006",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\merge21\\ind47\\execution_pins.json": "bbb65792110403d3c13270520ba408d826816709e1d6eec8e34ea0be0aec63b2",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\relax24\\ind47\\run_completion.json": "42868a8d5d9aa7580f8cc6d3a6bf5a5fa68fb738e3f56d29e2ccbf4879f523d4",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\relax24\\ind47\\output.json": "473e2cc3e429cd144eb499e87ce9d3b6d0cb015e2a03d072cd84258dba520b17",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_relax24_ind47\\summary.json": "d64a037b6020e5933ddca0c3fa2aee1002af353e42395f34c8d10a690e4bd8a1",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_relax24_ind47\\held_actual.json": "fbb8551c681b4acda11eb833437511f1162648fa6e83ee7ec1ba763a37ba6821",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_relax24_ind47\\release_actual.json": "c278eb50c81999b36f5ae12a2085e13e37b9f213642444e9d72aefb102ed2272",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_relax24_ind47\\held_actual_RM_C10484_trace.json.gz": "3eb8cc70dd58fa9dfd4d2a103964ee2de3a86b2635e42634b229778071ea7edf",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_relax24_ind47\\release_actual_RM_C10484_trace.json.gz": "3c7a4952714797d7ba4b4253922a4dac80826a04a41deb279aa0f1797244caef",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\relax24\\ind47\\speed_terms.json": "5a504a33a4e6590ee5173aeb7c1a11ea67fd0052eb7089556585d48dc3d20f8d",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\relax24\\ind47\\execution_pins.json": "bbb65792110403d3c13270520ba408d826816709e1d6eec8e34ea0be0aec63b2",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\both\\ind47\\run_completion.json": "1e84fd76ecff4dc54b58ae01296b7f20947d827f36c980c018688a223b4b413f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\both\\ind47\\output.json": "71c89e9c1d66b19ca1b9ee81f1aa4a8ffb3de223c94b40c61685c28c691f8c53",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_both_ind47\\summary.json": "0d8f4065010f0f9325368d7215e170d0efffeabe097ec42b920059a41102388e",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_both_ind47\\held_actual.json": "fc7ed75de621e169fcea0c6fe7f7ccac835a1300a9fa3da1a570e01259876a1a",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_both_ind47\\release_actual.json": "0b48f69273ae3ef2de92e6f2db9c29e1e5be18ab58a9eb28533896dc6086422c",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_both_ind47\\held_actual_RM_C10484_trace.json.gz": "1694c2edf34d5e3fc1b3656e940bb8a15729ebae954dcc563ddbe4a3346c098e",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_region21_24_both_ind47\\release_actual_RM_C10484_trace.json.gz": "600907d58b2d29fa13d1ddc552419463116a49f4321c1d3e96b4d224a9ab3a80",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\both\\ind47\\speed_terms.json": "471de0accf7bdf42bf582dcd00f27cf41e59ce0fab8ac832e1a12e7fe3ffeb6f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\both\\ind47\\execution_pins.json": "bbb65792110403d3c13270520ba408d826816709e1d6eec8e34ea0be0aec63b2"
+  },
+  "full_forecasts": 6,
+  "compute_sec": 176.38431330013555,
+  "wall_sec": 249.81364109984133,
+  "fit": 0,
+  "new_native": 0,
+  "new_fzp_reads": 0,
+  "live_poll": 0,
+  "adopted": false,
+  "goal_qualified": false,
+  "limitations": [
+    "Single pair reused to separate physical factors; not an untouched test set or calibration.",
+    "Region metrics are three150s endpoints per arm, not full speed trajectories.",
+    "Model-only sensitivity does not demonstrate a new native control gain.",
+    "VSL response, independent seed and SDMPC AD/selection remain unqualified."
+  ]
+}

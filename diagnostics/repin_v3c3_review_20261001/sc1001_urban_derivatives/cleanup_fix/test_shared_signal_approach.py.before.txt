@@ -1,0 +1,190 @@
+"""Physical pre-head storage/service contracts, separate from full MPC approval."""
+import ast
+import copy
+import inspect
+import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
+from collections import defaultdict, deque
+
+from evaluation.controllers.lane_offramp_runtime import SharedSignalApproach
+
+
+def fixture(initial=(), cls=SharedSignalApproach, delay=2, capacity=10., service=3600.):
+    lanes={
+        '1':dict(capacity_veh=capacity,service_veh_h=service,movements=('E','S')),
+        '2':dict(capacity_veh=capacity,service_veh_h=service,movements=('E',)),
+        '3':dict(capacity_veh=capacity,service_veh_h=service,movements=('N',)),
+    }
+    entries={
+        '10491':[dict(lane='1',movement='E',share=.8,delay_sec=delay),
+                 dict(lane='3',movement='N',share=.2,delay_sec=delay)],
+        '10481':[dict(lane='2',movement='E',share=1.,delay_sec=delay)],
+        'city':[dict(lane='1',movement='E',share=1.,delay_sec=delay)],
+    }
+    return cls(lanes,entries,list(initial),0)
+
+
+def packet(lane,source,movement,n,ready=0):
+    return dict(lane=lane,source=source,movement=movement,vehicles=n,ready_sec=ready)
+
+
+class SharedApproachTests(unittest.TestCase):
+    def test_red_allows_connector_receipt_without_erasing_wait(self):
+        a=fixture(capacity=3.)
+        connector_stock=2.
+        n=min(connector_stock,a.receiving('10491'))
+        connector_stock-=n;a.accept('10491',n,0)
+        for t in range(4):
+            self.assertEqual(a.advance(t,dict.fromkeys(a.lanes,0.),dict(E=10.,S=10.,N=10.)),[])
+            self.assertAlmostEqual(connector_stock+a.stock(),2.)
+        self.assertAlmostEqual(a.residence_veh_h,2.*4/3600.)
+
+    def test_full_approach_prevents_connector_discharge(self):
+        a=fixture([packet('3','initial','N',3.)],capacity=3.)
+        self.assertEqual(a.receiving('10491'),0.)
+        with self.assertRaises(ArithmeticError):a.accept('10491',.01,0)
+        self.assertEqual(a.stock(),3.)
+        # The other inlet has no share directed to the blocked lane.
+        self.assertEqual(a.receiving('10481'),3.)
+
+    def test_travel_must_finish_before_green_can_discharge(self):
+        a=fixture(delay=2)
+        a.accept('10481',1.,0)
+        for t in (0,1):
+            self.assertEqual(a.advance(t,dict.fromkeys(a.lanes,1.),dict(E=10.,S=10.,N=10.)),[])
+        out=a.advance(2,dict.fromkeys(a.lanes,1.),dict(E=10.,S=10.,N=10.))
+        self.assertEqual(sum(x['vehicles'] for x in out),1.)
+        self.assertEqual(a.stock(),0.)
+        self.assertAlmostEqual(a.residence_veh_h,2.5/3600.)
+
+    def test_sources_share_one_lane_service_and_keep_tags(self):
+        a=fixture([packet('1',s,'E',2.) for s in ('city','10491','10481')])
+        counts=defaultdict(float)
+        for t in range(6):
+            out=a.advance(t,dict.fromkeys(a.lanes,1.),dict(E=100.,S=100.,N=100.))
+            self.assertAlmostEqual(sum(x['vehicles'] for x in out),1.)
+            for x in out:counts[x['source']]+=x['vehicles']
+        self.assertEqual(dict(counts),dict(city=2.,**{'10491':2.,'10481':2.}))
+        self.assertEqual(a.stock(),0.)
+
+    def test_blocked_turn_blocks_its_lane_but_not_parallel_lane(self):
+        a=fixture([packet('1','10491','S',1.),packet('1','city','E',1.),packet('2','10481','E',1.)])
+        out=a.advance(0,dict.fromkeys(a.lanes,1.),dict(E=10.,S=0.,N=10.))
+        self.assertEqual([(x['lane'],x['source'],x['vehicles']) for x in out],[('2','10481',1.)])
+        self.assertEqual(a.stock('1'),2.)
+
+    def test_parallel_lanes_do_not_duplicate_downstream_offer(self):
+        a=fixture([packet('1','city','E',2.),packet('2','10481','E',2.)])
+        out=a.advance(0,dict.fromkeys(a.lanes,1.),dict(E=.75,S=0.,N=0.))
+        self.assertAlmostEqual(sum(x['vehicles'] for x in out),.75)
+        self.assertEqual([x['vehicles'] for x in out],[.375,.375])
+        self.assertAlmostEqual(a.stock(),3.25)
+
+    def test_initial_lane_order_does_not_allow_faster_rear_packet_to_pass(self):
+        a=fixture([packet('1','city','E',1.,2),packet('1','10491','E',1.,0)])
+        self.assertEqual(a.advance(0,dict.fromkeys(a.lanes,1.),dict(E=100.,S=100.,N=100.)),[])
+
+    def test_packet_splitting_does_not_change_shared_receiving_priority(self):
+        a=fixture([packet('1','city','E',3.),packet('2','10481','E',2.)])
+        b=fixture([packet('1','city','E',.1),packet('1','10491','E',2.9),packet('2','10481','E',2.)])
+        out=[]
+        for obj in (a,b):
+            row=obj.advance(0,dict.fromkeys(obj.lanes,1.),dict(E=.75,S=0.,N=0.))
+            totals=defaultdict(float)
+            for x in row:totals[x['lane']]+=x['vehicles']
+            out.append(dict(totals))
+        self.assertEqual(out[0],out[1]);self.assertEqual(out[0],{'1':.375,'2':.375})
+
+    def test_candidate_clone_does_not_mutate_common_initial_state(self):
+        a=fixture([packet('1','city','E',2.)]);b=copy.deepcopy(a)
+        b.advance(0,dict.fromkeys(b.lanes,1.),dict(E=10.,S=10.,N=10.))
+        self.assertEqual(a.stock(),2.);self.assertEqual(a.time,0)
+        self.assertEqual(b.stock(),1.);self.assertEqual(b.time,1)
+
+    def test_observed_wrong_lane_vehicle_is_not_deleted_or_teleported(self):
+        a=fixture([packet('3','initial','S',1.)])
+        out=a.advance(0,dict.fromkeys(a.lanes,0.),dict(E=10.,S=10.,N=10.))
+        self.assertEqual(out,[]);self.assertEqual(a.stock(),1.)
+        self.assertEqual(a.stock('2'),1.);self.assertEqual(a.stock('1'),0.)
+        out=a.advance(1,dict.fromkeys(a.lanes,0.),dict(E=10.,S=10.,N=10.))
+        self.assertEqual(out,[]);self.assertEqual(a.stock('1'),1.)
+        self.assertEqual(a.stock(),1.)
+
+    def test_full_lanes_cannot_create_space_by_simultaneous_swap(self):
+        a=fixture([packet('1','initial','N',1.),packet('2','initial','S',1.)],capacity=1.)
+        a.advance(0,dict.fromkeys(a.lanes,0.),dict(E=10.,S=10.,N=10.))
+        self.assertEqual(a.last_lateral,[])
+        self.assertEqual(a.stock('1'),1.);self.assertEqual(a.stock('2'),1.)
+
+    def test_lateral_competitors_share_old_receiving_space(self):
+        a=fixture([packet('1','initial','N',1.),packet('3','initial','S',1.),packet('2','initial','E',.75)],capacity=1.)
+        a.advance(0,dict.fromkeys(a.lanes,0.),dict(E=10.,S=10.,N=10.))
+        self.assertAlmostEqual(sum(x['vehicles'] for x in a.last_lateral),.25)
+        self.assertAlmostEqual(a.stock('2'),1.)
+        self.assertAlmostEqual(a.stock(),2.75)
+
+    def test_invalid_binding_and_time_fail_before_mutation(self):
+        a=fixture();a.entries['city'][0]['share']=.5
+        with self.assertRaises(ValueError):SharedSignalApproach(a.lanes,a.entries,[],0)
+        b=fixture()
+        with self.assertRaises(ValueError):b.advance(1,dict.fromkeys(b.lanes,1.),dict(E=10.,S=10.,N=10.))
+        self.assertEqual(b.time,0);self.assertEqual(b.stock(),0.)
+
+    def test_city_capture_moves_one_canonical_stock_without_new_area_entry(self):
+        from evaluation.controllers.control_area_objective import ModelAreaLedger
+        a=fixture();a.storage='shared';a.city_movements={'E':'city_E','N':'city_N','S':'city_S'}
+        cfg=SimpleNamespace(network=SimpleNamespace(urban_link_storage_veh={'shared':30.}))
+        state=SimpleNamespace(urban_link_storage={'shared':30.},
+            urban_movement_queue={'city_E':2.,'city_N':0.,'city_S':0.})
+        state._control_area_ledger=ModelAreaLedger({'movement:city_E':{'inside':2.,'outside':0.},
+            'storage:shared':{'inside':0.,'outside':0.}})
+        a.capture_ready_city(state,cfg,0)
+        self.assertEqual(a.stock(),2.);self.assertEqual(state.urban_movement_queue['city_E'],0.)
+        self.assertEqual(state.urban_link_storage['shared'],28.)
+        self.assertEqual(state._control_area_ledger.ttd_veh,0.)
+        self.assertEqual(state._control_area_ledger.entered_veh,0.)
+        state._control_area_ledger.assert_stocks({'movement:city_E':0.,'storage:shared':2.})
+
+    def test_offramp_head_exit_is_not_second_perimeter_inflow(self):
+        from evaluation.controllers.control_area_objective import ModelAreaLedger
+        a=fixture([packet('1','10491','E',1.),packet('1','city','E',1.)])
+        a.storage='shared';a.city_movements={'E':'city_E','N':'city_N','S':'city_S'}
+        movements={m:{'receiving_link':target} for target,m in a.city_movements.items()}
+        cfg=SimpleNamespace(network=SimpleNamespace(urban_link_storage_veh={'shared':30.},
+            urban_movements=movements,control_area_routes={prefix+m:{'target_inside':True}
+                for m in movements for prefix in ('movement:','sc1001_internal_head:')}))
+        state=SimpleNamespace(urban_link_storage={'shared':28.,'E':10.,'N':10.,'S':10.})
+        state._control_area_ledger=ModelAreaLedger({'storage:shared':{'inside':2.,'outside':0.}})
+        with patch('src.models.urban_queue_model._phase_green_fraction',return_value=1.), \
+             patch('src.models.urban_queue_model._effective_available_space',return_value=10.), \
+             patch('evaluation.controllers.urban_flow_accounting._receive_corridor',return_value=True):
+            off=a.drain_to_network(state,None,cfg,0,{})
+            city=a.drain_to_network(state,None,cfg,1,{})
+        self.assertEqual(off['head_departed_veh'],1.);self.assertEqual(off['city_inbound_veh'],0.)
+        self.assertEqual(city['head_departed_veh'],1.);self.assertEqual(city['city_inbound_veh'],1.)
+        self.assertEqual(state.urban_link_storage['shared'],30.);self.assertEqual(a.stock(),0.)
+        self.assertEqual(state._control_area_ledger.ttd_veh,0.)
+        state._control_area_ledger.assert_stocks({'storage:shared':0.,'storage:E':2.})
+        self.assertEqual(state._control_area_ledger.flow_counts['movement:city_E'],1.)
+        self.assertEqual(state._control_area_ledger.flow_counts['sc1001_internal_head:city_E'],1.)
+
+    def test_signal_service_and_wait_derivative_match_independent_difference(self):
+        from evaluation.controllers import sdmpc_dual as ad
+        from evaluation.controllers.sdmpc_tangent_runtime import Transform,namespace
+        ns=dict(namespace(),math=ad.MathProxy(),defaultdict=defaultdict,deque=deque)
+        tree=Transform().visit(ast.parse(inspect.getsource(SharedSignalApproach)))
+        exec(compile(ast.fix_missing_locations(tree),'<shared-approach-ad>','exec'),ns)
+        cls=ns['SharedSignalApproach']
+        def run(g,c):
+            obj=fixture([packet('1','city','E',5.)],cls=c,service=1800.)
+            out=obj.advance(0,{'1':g,'2':0.,'3':0.},dict(E=10.,S=10.,N=10.))
+            return sum(x['vehicles'] for x in out),obj.residence_veh_h,obj.stock()
+        trace=ad.Trace([1e-5]);g=ad.Dual(.6,{0:1.},trace)
+        dual=run(g,cls);minus=run(.6-1e-5,SharedSignalApproach);plus=run(.6+1e-5,SharedSignalApproach)
+        for j,x in enumerate(dual):
+            self.assertAlmostEqual(ad.primal(x),run(.6,SharedSignalApproach)[j],places=12)
+            self.assertAlmostEqual(ad.derivative(x).get(0,0.),(plus[j]-minus[j])/2e-5,places=8)
+
+
+if __name__=='__main__':unittest.main()

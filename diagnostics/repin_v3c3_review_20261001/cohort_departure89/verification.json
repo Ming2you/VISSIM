@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "passive_tag_mass_checks": [
+    {
+      "arm": "release",
+      "groups": 31,
+      "frames": 16,
+      "final_tag_mass_error": 4.263256414560601e-14
+    },
+    {
+      "arm": "release_vsl90",
+      "groups": 31,
+      "frames": 16,
+      "final_tag_mass_error": 2.842170943040401e-14
+    }
+  ],
+  "physical_results_all_original_fields_bit_exact_except_timing": [
+    "release_actual",
+    "release_vsl90_actual"
+  ],
+  "stats": {
+    "calls": 2,
+    "steps": 900,
+    "max_tag_balance": 1.5631940186722204e-13,
+    "max_tag_over_class": 4.263256414560601e-14
+  },
+  "original_functions_ast": [
+    {
+      "file": "diagnostics\\repin_v3c3_review_20261001\\vsl_current_cells16_20\\assess.py",
+      "original_functions_unchanged": [
+        "data",
+        "load",
+        "csvrows",
+        "save",
+        "main",
+        "assess_prefix",
+        "assess_population_response",
+        "assess_flux_position",
+        "assess_density_reconstruction",
+        "assess_density_rollout",
+        "assess_current_position_flux",
+        "assess_cohort_residence",
+        "run_fifo_residence_candidate",
+        "run_destination_ratio_diagnostic"
+      ]
+    },
+    {
+      "file": "diagnostics\\repin_v3c3_review_20261001\\s67_policy_response81\\assess_flow82.py",
+      "original_functions_unchanged": [
+        "read",
+        "save",
+        "cell_flux",
+        "main",
+        "assess_boundary_time88",
+        "boundary_cohorts88"
+      ]
+    }
+  ],
+  "production_pins_exact": true,
+  "STOP_exact": true,
+  "native_initial_identity_fates_closed": true,
+  "assessment_failure": "Initial count exact equality rejected4.27e-14 floating roundoff; validated each difference, used predeclared1e-7 mass tolerance; original log/source preserved; no forecast repeated."
+}

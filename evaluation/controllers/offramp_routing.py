@@ -152,6 +152,9 @@ def compile_inventory(document, mapping):
     """
     if document.get('schema') != 'offramp-route-inventory/v1':
         raise ValueError('Unsupported off-ramp inventory schema')
+    route_free_policy = document.get('route_free_policy')
+    if route_free_policy is not None and route_free_policy != 'next_all_connector':
+        raise ValueError('Unsupported route-free continuation policy')
     pinned_mapping = json.loads(_pinned(document['mapping']))
     if any(pinned_mapping.get(k) != mapping.get(k) for k in
            ('freeway_model_links', 'ramp_meters', 'model_topology_overrides')):
@@ -189,6 +192,24 @@ def compile_inventory(document, mapping):
                 'decision': str(spec['decision'])}
     if len(runtime['branches']) != 8 or len(wanted) != 4:
         raise ValueError('Exactly eight reviewed branches and four decisions required')
+    if route_free_policy is not None:
+        # A finished route is not a through destination. VISSIM route-free
+        # vehicles take the next Direction=ALL connector. Derive only the
+        # reviewed off-chain exits; on-chain connectors preserve chain order.
+        exits = {}
+        for connector, link in links.items():
+            start, end = link.find('fromLinkEndPt'), link.find('toLinkEndPt')
+            if start is None or start.get('lane').split()[0] not in runtime['physical']:
+                continue
+            if end is None:
+                raise ValueError('Mainline connector lacks a receiving link')
+            if end.get('lane').split()[0] in runtime['physical']:
+                continue
+            if connector not in runtime['branches']:
+                raise ValueError('Unreviewed mainline exit in route-free continuation')
+            if link.get('direction') == 'ALL':
+                exits[connector] = deepcopy(runtime['branches'][connector])
+        runtime['unrouted_exits'] = exits
     decisions = tree.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic')
     for decision in decisions:
         no = decision.get('no')
@@ -217,7 +238,7 @@ def compile_inventory(document, mapping):
             if route.get('destLink') in runtime['physical']:
                 fw, chain, _ = _position(runtime, route.get('destLink'), route.get('destPos'))
                 end = (fw, chain)
-            runtime['routes'][key] = {'path': path, 'target': hits[0] if hits else None,
+            runtime['routes'][key] = {'route_key': key, 'path': path, 'target': hits[0] if hits else None,
                 'end': end, 'weight': _weight(route), 'decision': no}
             if no in wanted:
                 runtime['decisions'][no]['routes'].append(key)
@@ -238,7 +259,8 @@ def compile_inventory(document, mapping):
             if cell != 0 or fw in runtime['inputs']:
                 raise ValueError('One reviewed upstream native input per freeway required')
             runtime['inputs'][fw] = {'input': node.get('no'), 'physical_source': node.get('link'),
-                'weights': _future_distribution(runtime, fw, chain)}
+                'weights': _future_distribution(runtime, fw, chain),
+                'route_weights': _future_distribution(runtime, fw, chain, retain_route=True)}
     if set(runtime['inputs']) != set(runtime['bounds']):
         raise ValueError('Missing native mainline input origin')
     for meter in mapping['ramp_meters']:
@@ -253,25 +275,35 @@ def compile_inventory(document, mapping):
             raise ValueError('Merge source continuations differ; explicit route stock is required')
         runtime['merges'][meter['id']] = {'freeway': fw, 'cell': cell,
             'weights': distributions[0], 'source_routes': sorted(k for k,r in runtime['routes'].items() if connector in r['path'])}
+        retained = [_route_distribution(runtime, r, fw, chain, retain_route=True) for r in paths]
+        if any(x != retained[0] for x in retained[1:]):
+            raise ValueError('Merge sources have different downstream route continuations')
+        runtime['merges'][meter['id']]['route_weights'] = retained[0]
     return runtime
 
 
-def _route_distribution(runtime, route, fw, position, visited=()):
+def _route_distribution(runtime, route, fw, position, visited=(), *, retain_route=False):
     target = route['target']
     if target:
         branch = runtime['branches'][target]
         if branch['freeway'] != fw or branch['source_chain_m'] < position:
             raise ValueError('Observed route target is behind its freeway position')
-        return {target: 1.0}
+        return {('route:'+route['route_key']+'|' if retain_route else '')+target: 1.0}
     end = route['end']
     if end is None or end[0] != fw:
         raise ValueError('Reviewed mainline route lacks its native continuation end')
-    return _future_distribution(runtime, fw, max(position, end[1]), visited)
+    return _future_distribution(runtime, fw, max(position, end[1]), visited, retain_route=retain_route)
 
 
-def _future_distribution(runtime, fw, after, visited=()):
+def _future_distribution(runtime, fw, after, visited=(), *, retain_route=False):
     choices = [(d['chain_m'], no) for no,d in runtime['decisions'].items()
                if d['freeway'] == fw and d['chain_m'] > after]
+    exits = sorted((r['source_chain_m'], no) for no,r in runtime.get('unrouted_exits', {}).items()
+                   if r['freeway'] == fw and r['source_chain_m'] > after)
+    if exits and (not choices or exits[0][0] < min(choices)[0]):
+        if len(exits) > 1 and abs(exits[0][0]-exits[1][0]) < 1e-8:
+            raise ValueError('Ambiguous route-free connectors require lane-specific review')
+        return {('unrouted|' if retain_route else '')+exits[0][1]: 1.}
     if not choices:
         return {'terminal': 1.0}
     _, no = min(choices)
@@ -284,7 +316,8 @@ def _future_distribution(runtime, fw, after, visited=()):
     result = defaultdict(float)
     for key in decision['routes']:
         route = runtime['routes'][key]
-        for target, share in _route_distribution(runtime, route, fw, decision['chain_m'], (*visited, no)).items():
+        for target, share in _route_distribution(runtime, route, fw, decision['chain_m'], (*visited, no),
+                                                retain_route=retain_route).items():
             result[target] += route['weight'] / total * share
     return dict(sorted(result.items()))
 
@@ -353,7 +386,13 @@ def _update_missed_target_diagnostics(state):
         missed(rows[-1]) for rows in inv['cells'].values())
 
 
-def initialize_inventory(state, cfg, raw):
+def initialize_inventory(state, cfg, raw, *, lane_partition=None):
+    """Partition current vehicles by route, optionally retaining lane groups.
+
+    The caller supplies the physical lane-to-group map for this same snapshot.
+    lane_cells mirrors cells by class; it adds no stock. Its transport remains
+    guarded until the physical lane allocator supplies accepted transfers.
+    """
     if not inventory_enabled(cfg):
         return {}
     from evaluation.controllers.projection_support import complete_records
@@ -362,15 +401,30 @@ def initialize_inventory(state, cfg, raw):
     runtime = cfg.network.offramp_route_inventory
     observed = complete_vehicle_routes(raw, required=True)
     cells = {fw: [{} for _ in bounds[:-1]] for fw,bounds in runtime['bounds'].items()}
+    records = [p for p in complete_records(raw) if str(p['link_no']) in runtime['physical']]
+    lane_cells = None
+    if lane_partition is not None:
+        if raw['sim_sec'] != state.time_sec:
+            raise ValueError('Lane route partition requires the current state snapshot')
+        if not isinstance(lane_partition, dict) or set(lane_partition) != {'groups_per_cell', 'vehicle_group'}:
+            raise ValueError('Explicit complete lane partition required')
+        dimensions = lane_partition['groups_per_cell']
+        assignments = lane_partition['vehicle_group']
+        if (not isinstance(dimensions, dict) or set(dimensions) != set(cells) or not isinstance(assignments, dict)
+                or set(assignments) != {p['veh_no'] for p in records}):
+            raise ValueError('Lane partition must cover all observed freeway vehicles and roads')
+        if any(not isinstance(dimensions[fw], list) or len(dimensions[fw]) != len(rows)
+               or any(type(n) is not int or n < 1 for n in dimensions[fw])
+               for fw,rows in cells.items()):
+            raise ValueError('Invalid lane partition cell dimensions')
+        lane_cells = {fw: [[{} for _ in range(n)] for n in dimensions[fw]] for fw in cells}
     known = null = 0
     missed = []
-    for physical in complete_records(raw):
-        if str(physical['link_no']) not in runtime['physical']:
-            continue
+    for physical in records:
         fw, position, cell = _position(runtime, physical['link_no'], physical['position_m'])
         route = observed[physical['veh_no']]
         if route['route_decision_no'] is None:
-            weights = _future_distribution(runtime, fw, position)
+            weights = _future_distribution(runtime, fw, position, retain_route=True)
             prefix = 'observed_null'
             null += 1
         else:
@@ -396,15 +450,25 @@ def initialize_inventory(state, cfg, raw):
             else:
                 if str(physical['link_no']) not in selected['path']:
                     raise ValueError('Observed freeway route is outside the compiled native paths')
-                weights = _route_distribution(runtime, selected, fw, position)
+                weights = _route_distribution(runtime, selected, fw, position, retain_route=True)
             known += 1
-        _add(cells[fw][cell], _classes(prefix, weights))
-    origins = {fw: _classes('expected_input:' + row['input'], row['weights'])
+        classes = _classes(prefix, weights)
+        _add(cells[fw][cell], classes)
+        if lane_cells is not None:
+            group = assignments[physical['veh_no']]
+            if type(group) is not int or not 0 <= group < len(lane_cells[fw][cell]):
+                raise ValueError('Observed vehicle has invalid physical lane group')
+            _add(lane_cells[fw][cell][group], classes)
+    origins = {fw: _classes('expected_input:' + row['input'], row['route_weights'])
                for fw,row in runtime['inputs'].items()}
     for fw, row in origins.items():
         for key in row:
             row[key] *= float(state.mainline_origin_queue.get(fw, 0.))
     state.offramp_route_inventory_state = {'schema': 'offramp-route-stock/v1', 'cells': cells, 'origins': origins}
+    if lane_cells is not None:
+        # This is a partition of cells, never additional vehicles. Until the
+        # allocator transports both together, advance_inventory fails closed.
+        state.offramp_route_inventory_state['lane_cells'] = lane_cells
     if missed:
         state.offramp_route_inventory_state['missed_target_diagnostics'] = {
             'observed_missed_target_veh': len(missed),
@@ -424,9 +488,21 @@ def initialize_inventory(state, cfg, raw):
 def assert_inventory(state, cfg, counts):
     inv = state.offramp_route_inventory_state
     runtime = cfg.network.offramp_route_inventory
-    if inv.get('schema') != 'offramp-route-stock/v1' or set(inv['cells']) != set(counts):
+    scope_ok = set(inv['cells']) == set(counts)
+    if not scope_ok:
+        scope_ok = (set(inv['cells']) == set(inv['origins']) == set(runtime.get('bounds', {}))
+            and set(counts) == set(getattr(cfg.network, 'freeway_links', ()))
+            and bool(counts) and set(counts) < set(inv['cells']))
+    if inv.get('schema') != 'offramp-route-stock/v1' or not scope_ok:
         raise ValueError('Invalid passive freeway route inventory')
-    for fw, rows in inv['cells'].items():
+    # A coupled candidate owns both roads; its two physical kernels step one
+    # road at a time. Validate the active kernel's complete continuity scope.
+    for fw in counts:
+        rows = inv['cells'][fw]
+        lane_rows = inv.get('lane_cells', {}).get(fw)
+        if 'lane_cells' in inv and (set(inv['lane_cells']) != set(inv['cells'])
+                or lane_rows is None or len(lane_rows) != len(rows)):
+            raise ValueError('Lane route partition scope differs from aggregate inventory')
         if len(rows) != len(counts[fw]):
             raise ValueError('Route inventory cell count differs')
         for i, (row, amount) in enumerate(zip(rows, counts[fw])):
@@ -444,6 +520,17 @@ def assert_inventory(state, cfg, counts):
                     raise ValueError('Route target passed its physical source cell')
             if not math.isclose(math.fsum(row.values()), amount, abs_tol=1e-7, rel_tol=1e-10):
                 raise ValueError(f'Route inventory is not the existing freeway stock partition: {fw}:{i}')
+            if lane_rows is not None:
+                combined = {}
+                if not lane_rows[i]:
+                    raise ValueError('Lane route partition has no groups')
+                for group in lane_rows[i]:
+                    if any(not math.isfinite(n) or n < -1e-9 for n in group.values()):
+                        raise ValueError('Invalid lane route partition mass')
+                    _add(combined, group)
+                if any(not math.isclose(combined.get(k, 0.), row.get(k, 0.), abs_tol=1e-7, rel_tol=1e-10)
+                       for k in set(row) | set(combined)):
+                    raise ValueError('Lane route classes differ from aggregate route inventory')
         if any(not math.isfinite(value) or value < -1e-9 for value in inv['origins'][fw].values()):
             raise ValueError('Negative or nonfinite route origin inventory')
         if not math.isclose(math.fsum(inv['origins'][fw].values()), state.mainline_origin_queue[fw], abs_tol=1e-7, rel_tol=1e-10):
@@ -512,8 +599,11 @@ def advance_inventory(state, cfg, fw, *, mainline, terminal, offramps, entry,
     """Advect the old partition using only flows accepted by the cell allocator."""
     runtime = cfg.network.offramp_route_inventory
     inv = state.offramp_route_inventory_state
+    if 'lane_cells' in inv:
+        raise ValueError('Lane route partition transport is not yet integrated; aggregate transport would discard lane identity')
     old = inv['cells'][fw]
     new = [dict(row) for row in old]
+    receipts = {target: {} for target,branch in runtime['branches'].items() if branch['freeway']==fw}
     for i, row in enumerate(old):
         through = {}
         targets = defaultdict(dict)
@@ -523,9 +613,9 @@ def advance_inventory(state, cfg, fw, *, mainline, terminal, offramps, entry,
                 targets[target][key] = amount
             elif i != len(old)-1 or not target.startswith(_MISSED_TARGET):
                 through[key] = amount
-        movements = [(through, (mainline[i] if i < len(old)-1 else terminal)*duration_h, i+1)]
-        movements.extend((values, offramps.get(target,0.)*duration_h, None) for target,values in targets.items())
-        for composition, amount, receiver in movements:
+        movements = [(through, (mainline[i] if i < len(old)-1 else terminal)*duration_h, i+1, None)]
+        movements.extend((values, offramps.get(target,0.)*duration_h, None, target) for target,values in targets.items())
+        for composition, amount, receiver, off in movements:
             total = math.fsum(composition.values())
             if amount > total + 1e-7 or amount < -1e-9:
                 raise ValueError('Accepted route flow exceeds its class stock')
@@ -534,9 +624,11 @@ def advance_inventory(state, cfg, fw, *, mainline, terminal, offramps, entry,
                 _add(new[i], composition, -fraction)
                 if receiver is not None and receiver < len(old):
                     _add(new[receiver], composition, fraction)
+                if off is not None:
+                    _add(receipts[off], composition, fraction)
     source = runtime['inputs'][fw]
     origin = inv['origins'][fw]
-    _add(origin, _classes('expected_input:' + source['input'], source['weights']), generated*duration_h)
+    _add(origin, _classes('expected_input:' + source['input'], source['route_weights']), generated*duration_h)
     total = math.fsum(origin.values())
     amount = entry*duration_h
     if amount > total + 1e-7:
@@ -548,6 +640,9 @@ def advance_inventory(state, cfg, fw, *, mainline, terminal, offramps, entry,
     for ramp, flow in merges.items():
         source = runtime['merges'][ramp]
         if source['freeway'] == fw:
-            _add(new[source['cell']], _classes('expected_merge:' + ramp, source['weights']), flow*duration_h)
+            _add(new[source['cell']], _classes('expected_merge:' + ramp, source['route_weights']), flow*duration_h)
     inv['cells'][fw] = [{key: max(0., value) for key,value in row.items() if value != 0.} for row in new]
+    # This is a receipt of already-debited stock, not another population.
+    inv.setdefault('last_offramp_receipts', {})[fw] = dict(
+        end_sec=state.time_sec+duration_h*3600., ports=receipts)
     _update_missed_target_diagnostics(state)

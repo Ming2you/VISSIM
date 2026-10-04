@@ -87,6 +87,13 @@ class ParentWorkerParityTests(unittest.TestCase):
             self.assertEqual(step, {road: blocks[road][index] for road in ('FW_E', 'FW_W')})
         self.assertGreater(min(blocks['FW_E']), 0.0)
 
+    def test_physical_merge_heuristic_survives_fresh_worker_install(self):
+        self.assertTrue(self.parent['physical_merge_hook'])
+        self.assertTrue(self.worker['physical_merge_hook'])
+        self.assertGreater(self.parent['physical_merge_capacity'], 0.0)
+        self.assertEqual(self.parent['physical_merge_capacity'], self.worker['physical_merge_capacity'])
+        self.assertEqual(self.parent['legacy_merge_capacity_before'], self.parent['legacy_merge_capacity_after'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,47 @@
+{
+  "status": "complete_partial_comparison_and_runtime_fix",
+  "gain_qualified": false,
+  "native9000_restarted": false,
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "stop_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+  "regression": {
+    "total": 92,
+    "passed": 91,
+    "skipped": 1
+  },
+  "native_parity": {
+    "status": "PASS",
+    "arms": {
+      "baseline": {
+        "rows": 6028,
+        "all_columns_sha256": "cecdbb442ad4eca5133f41e28e04c97484ee3a29d02da45b7ab6240877532d8b",
+        "vehicles": 392,
+        "final_record_sec": 150.1
+      },
+      "barrier": {
+        "rows": 6028,
+        "all_columns_sha256": "cecdbb442ad4eca5133f41e28e04c97484ee3a29d02da45b7ab6240877532d8b",
+        "vehicles": 392,
+        "final_record_sec": 150.1
+      }
+    },
+    "live_err_snapshots": {
+      "1": {
+        "bytes": 16384,
+        "complete_current_marker": true
+      },
+      "150": {
+        "bytes": 32768,
+        "complete_current_marker": true
+      }
+    },
+    "shipping_flush_procedure": true,
+    "sim_clock_unchanged": true,
+    "limitations": "151s diagnostic fixed inputs; not a restarted SDMPC run, deletion-heavy or full9000 validation"
+  },
+  "source_sha256": {
+    "evaluation/controllers/obs150_capture.py": "ada7fb07e102a4d8991de013c51f3503e07fb05184a6d7f39fba48ecf35fa064",
+    "scripts/obs150_capture.py": "065281feaa0489a4f32bda89285a4939cc28ab08a7171b6268441544df21e146",
+    "scripts/run_real_world_stackelberg_controller.vbs": "7a647d5c5239c6d2630aab9194930898e82561fd5b1aa79bfce943f077bb256a"
+  }
+}

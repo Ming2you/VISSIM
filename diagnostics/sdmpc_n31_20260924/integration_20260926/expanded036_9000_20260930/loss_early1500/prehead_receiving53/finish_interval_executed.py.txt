@@ -1,0 +1,32 @@
+def finish_interval(self, request_arrivals_veh: float) -> dict:
+    self._require_phase("admit")
+    requested = _number(request_arrivals_veh, "request_arrivals_veh")
+    available = _sum((self.backlog_veh, requested), "approach available")
+    free = max(0.0, self.capacity_veh-self._stocks()["connector_veh"])
+    free = min(free, _diagnostic_prehead_supply(self))
+    admitted = min(available, free)
+    backlog = available-admitted
+    total_requested = _sum((self.cumulative_requested_veh, requested), "cumulative requests")
+    total_admitted = _sum((self.cumulative_admitted_veh, admitted), "cumulative admissions")
+    end = self._receipt["end_sec"]
+    arrival = self._arrival(end, self.head_position_m)
+    if admitted:
+        from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
+        invalidate_ramp(self)
+        if self.head_position_m == 0:
+            self._head_ready = _sum((self._head_ready, admitted), "head-ready stock")
+        else:
+            self._upstream.append((arrival, admitted))
+    self.backlog_veh = backlog
+    self.cumulative_requested_veh = total_requested
+    self.cumulative_admitted_veh = total_admitted
+    self.time_sec = end
+    self._phase = "idle"
+    after = self.snapshot()
+    self._receipt.update({
+        "requested_arrivals_veh": requested, "admitted_arrivals_veh": admitted,
+        "end": after, "conservation_residual_veh": after["conservation_residual_veh"],
+    })
+    # The receipt's nested snapshots contain only scalars, so callers may keep
+    # them without aliasing any subsequent buffer state.
+    return dict(self._receipt)

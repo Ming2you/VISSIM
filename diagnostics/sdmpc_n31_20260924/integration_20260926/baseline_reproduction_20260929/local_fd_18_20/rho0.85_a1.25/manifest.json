@@ -1,0 +1,64 @@
+{
+  "schema": "coupled-lane-plant/v2",
+  "sources": {
+    "network": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+      "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+    },
+    "geometry": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/geometry.json",
+      "sha256": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2"
+    },
+    "refined_partition": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/segment_resolution_20260921/geometry_200_branch_guard.json",
+      "sha256": "9769b3a4462f5d9c619709ffea7d6b14fc1faeecade0ff4cf73d9e9023906bea"
+    },
+    "reference_config": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/local_fd_18_20/rho0.85_a1.25/reference_config.json",
+      "sha256": "abbef6412fc34417fd68cdcfcfcca514a30ecd58f99e25de00cb709abc5632cd"
+    },
+    "parameters": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/parameters.json",
+      "sha256": "bd7439894b1fcd165f53d51e7896865673efa52b82296d057cd7271bcdb1dad5"
+    },
+    "port_profile": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/port_profile.json",
+      "sha256": "44d0645bcae40d523b1099611a942311cc17a7b15124028ecad42046f140f777"
+    },
+    "reference_protocol": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2/protocol.json",
+      "sha256": "32bb2d6a682323a878f0b90a1d7c8afc8a375420b9534b60221db54b3ed01aea"
+    },
+    "runner_config": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/lane_native_b110.vbs",
+      "sha256": "b74e05b2a1dc910d39989894a30c373c791a7f0dc7f3c52620763995b58a9956"
+    },
+    "sig_manifest": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/sig_manifest.json",
+      "sha256": "f3b660ce2ab996b3face29829bfa145a360d813be33251c505682c3569f19417"
+    }
+  },
+  "membership": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/control_area_membership_213a5d.json",
+    "sha256": "de43df4d8fc66a53f7834dddcacf68f76cb697dff91ab5e912c177c359963823"
+  },
+  "off_groups": "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_route_inventory_v1.json",
+  "observation": {
+    "detectors": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/obs150/obs150_detectors_v2.csv",
+      "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc"
+    },
+    "expected_simres": 10,
+    "vehrec_interval_sec": 5
+  },
+  "source_boundary": {
+    "mode": "calibrated_history_forecast",
+    "history_sec": 150,
+    "model_step_sec": 10
+  },
+  "lane_groups": false,
+  "fw_e_terminal": "component",
+  "vsl_command_space": "parent_21",
+  "future_observations": false,
+  "qualification": "Unqualified local18-20 FD trial; physical equations and control domain unchanged."
+}

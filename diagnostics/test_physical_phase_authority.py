@@ -387,5 +387,97 @@ class HeadFreeTunnelTests(unittest.TestCase):
                 self.assertEqual(pickle.dumps(cfg), before)
 
 
+class SelectedNorthPeeloffTests(unittest.TestCase):
+    """Selected geometry: the 46→10625 turn leaves before SC1004 SG4."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.path = ROOT / 'diagnostics/sdmpc_n31_20260924/integration_20260926/physical_phase_authority_10625.json'
+        cls.document = json.loads(cls.path.read_text(encoding='utf-8'))
+        cls.plan = json.loads((ROOT / cls.document['selected_plan']['path']).read_text(encoding='utf-8'))
+        cls.tree = ET.parse(ROOT / cls.document['network']['path'])
+        cls.name = 'SC1004_N_SC1003_to_W'
+
+    def cfg(self):
+        specs = {name: dict(row['expected_spec'], beta=0.4073777777777778)
+                 for table in ('by_movement', 'unsignalized_movements', 'head_free_movements')
+                 for name, row in self.document[table].items()}
+        for name in self.document['unsignalized_movements']:
+            specs[name]['signal'] = 'SC1004'
+        specs['SC1004_N_SC1003_to_S'] = dict(signal='SC1004', phase='SC1004_p1', kind='boundary_out')
+        return SimpleNamespace(network=SimpleNamespace(urban_movements=specs,
+            movement_capacity_by_movement_veh_h={self.name: 206.53061224489795},
+            urban_link_storage_veh={'SC1004_W_out': 100.0}))
+
+    def configure(self, cfg, document=None):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'proof.json'
+            path.write_text(json.dumps(document or self.document), encoding='utf-8')
+            return physical.configure_phase_authority(cfg,
+                {'urban': {'movements': {'physical_phase_authority': str(path)}}}, self.plan)
+
+    def test_only_north_authority_changes_capacity_beta_receiver_and_phase_are_preserved(self):
+        from src.models import urban_queue_model as uqm
+        baseline, changed = self.cfg(), self.cfg()
+        legacy = copy.deepcopy(self.document)
+        legacy['unsignalized_movements'].pop(self.name)
+        self.configure(baseline, legacy)
+        self.assertFalse(uqm.movement_specs(changed)[self.name].get('unsignalized'))
+        result = self.configure(changed)
+        self.assertTrue(uqm.movement_specs(changed)[self.name]['unsignalized'])
+        baseline.network.urban_movements[self.name]['unsignalized'] = True
+        self.assertEqual(vars(changed.network), vars(baseline.network))
+        self.assertEqual(result['physical_unsignalized_authority_corrected_count'], 5)
+
+    def test_turn_bypasses_red_while_adjacent_through_movement_remains_signal_controlled(self):
+        from evaluation.controllers import signal_actuation_contract as clock
+        cfg = self.cfg()
+        self.configure(cfg)
+        cfg.network.signal_actuation_contract = {'nodes': {'SC1004': {}}}
+        cfg.simulation = SimpleNamespace(T_u_sec=1)
+        control = SimpleNamespace(green_times={})
+        turn = cfg.network.urban_movements[self.name]
+        through = cfg.network.urban_movements['SC1004_N_SC1003_to_S']
+        with patch.object(clock, '_validated_clock', return_value=(150.0, 0.0, [('p1', (30.0, 60.0))])):
+            self.assertEqual(clock.phase_fraction(control, cfg, through, 0), 0.0)
+            self.assertEqual(clock.phase_fraction(control, cfg, through, 30), 1.0)
+            self.assertEqual(clock.phase_fraction(control, cfg, turn, 0), 1.0)
+            self.assertEqual(clock.phase_fraction(control, cfg, turn, 30), 1.0)
+
+    def test_bad_north_evidence_rejected_atomically(self):
+        for field in ('path', 'position', 'route', 'heads', 'receiver', 'missing_legacy'):
+            with self.subTest(field=field):
+                doc = copy.deepcopy(self.document)
+                row = doc['unsignalized_movements'][self.name]
+                if field == 'path': row['path'][1] = '10626'
+                if field == 'position': row['connector']['source_pos'] += 5
+                if field == 'route': row['native_routes'] = ['1125:2']
+                if field == 'heads': row['source_heads'].pop()
+                if field == 'receiver': row['expected_spec']['receiving_link'] = 'SC1004_S_out'
+                if field == 'missing_legacy': doc['unsignalized_movements'].pop('SC1004_offE_to_S')
+                cfg = self.cfg(); before = pickle.dumps(cfg)
+                with self.assertRaises(ValueError): self.configure(cfg, doc)
+                self.assertEqual(pickle.dumps(cfg), before)
+
+    def test_changed_actual_upstream_or_landing_head_cannot_be_blessed(self):
+        for location in ('upstream', '10625', '68'):
+            with self.subTest(location=location):
+                tree = copy.deepcopy(self.tree)
+                doc = copy.deepcopy(self.document)
+                heads = tree.getroot().find('signalHeads')
+                original = next(h for h in heads if h.get('no') == '90030891')
+                if location == 'upstream':
+                    original.set('pos', '948')
+                    next(h for h in doc['unsignalized_movements'][self.name]['source_heads']
+                         if h['head'] == '90030891')['pos_m'] = 948.0
+                else:
+                    head = copy.deepcopy(original); head.set('no', '99999999')
+                    head.set('lane', location + ' 1'); heads.append(head)
+                cfg = self.cfg(); before = pickle.dumps(cfg)
+                with patch.object(physical.ET, 'parse', return_value=tree):
+                    with self.assertRaises(ValueError): self.configure(cfg, doc)
+                self.assertEqual(pickle.dumps(cfg), before)
+
+
 if __name__ == '__main__':
     unittest.main()

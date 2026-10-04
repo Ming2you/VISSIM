@@ -1,0 +1,47 @@
+{
+  "scope": "REVIEW64: bounded cached response decomposition before another physical coefficient change. Current native9000 immutable and untouched.",
+  "budget": {
+    "native": 0,
+    "forecast": 0,
+    "fit": 0,
+    "native_frames": "4 completed caches, 2250.1-2490.1",
+    "cells": [
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "durations_sec": [
+      30,
+      150,
+      240
+    ]
+  },
+  "prior_work": [
+    "Claude bd39205 REVIEW/REVIEW_CHECK, FWW P_PLANT",
+    "Local flux_convection rejected actual-inflow closure",
+    "recovery_transport rejected boundary mean/minmod/variance closures; different late window",
+    "Current REVIEW62 traces and REVIEW63 NC identity"
+  ],
+  "limitations": [
+    "Population identity is not identified METANET force terms; entering/exiting vehicle selection and sampled acceleration are mixed. Do not equate composition with convection or add stay as an acceleration bonus.",
+    "Native mean endpoints use .1s phase; model is integer phase.",
+    "Raw frame disappearance is not certified normal exit/TTD; cell departures are not boundary event counts.",
+    "Current full-model traces exist only seed43; seed29 native response is not a model validation.",
+    "Both seeds already inspected, not held out for this diagnostic. No coefficient fit/adoption.",
+    "Window240 chosen from pre-existing seed43 source divergence cutoff; equality of all ramp/urban histories is not assumed."
+  ],
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_none_frames.json.gz": "5b05cf5366daf96afc6832118f4c3d8e1273e1c8bcdd1a22c905fca7fd2bc713",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_vsl_frames.json.gz": "456db85b5dd98135a4c4cea8309944397709f37478ea731b54d3b71bfdfb0ab1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_none_frames.json.gz": "7646676de2327a018fa7ebebac6439c72962008785c979c3f9ca72701cb18a3d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_vsl_frames.json.gz": "698418a50715149af32cd50eecaa8734d32083482c80748e3729303cbb086e52",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_current_cells16_20\\freeway_0.json.gz": "52a71d3045594b1b9634708814dbd4823f72a48f4520c29d839c0724e23c853d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_current_cells16_20\\freeway_1.json.gz": "2e6dd4ef95b87786d7ed5d0d0b75291b356d256dcfe295fed878c14ad5165ebe",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_current_cells16_20\\assess.py": "d1c2b4dff4a378934d290e862eaccae7242d5e3edf6629332bd4759c7814702b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "question": "Does preventing destination-blind scattering of already aligned off-ramp traffic improve the same-state VSL response?",
+  "change": "keep_aligned_exit only in19/20 approaching10483; all other lane rates, FD, merge and objective unchanged. Receiving107 addition OFF.",
+  "reason": "All136/150 observed10483 departures first seen on119lane1, zero observed net lane changes in approach; all65 ex-ante known exit vehicles also aligned.",
+  "inputs": "Same archived2670.1 seed67 component captures and initial current route inventory as107; no future observations in rollout.",
+  "maximum450_calls": 3,
+  "cases": [
+    "lane baseline disabled exact parity",
+    "aligned exit release",
+    "aligned exit release_vsl90"
+  ],
+  "fits": 0,
+  "new_native": 0,
+  "new_FZP": 0,
+  "continuation_gate": "Mainline meaningful VSL gain sign correct; response error reduces>=20% vs lane-only107; no state RMSE>10% worsening; conservation valid. This is necessary, not wholeOmega sufficiency.",
+  "limits": [
+    "Observed5s net changes can miss change-and-return within5s.",
+    "Locking is a tested approximation, not a universal VISSIM rule.",
+    "Lane-only baseline already rejected; success against it does not suffice for production adoption.",
+    "Seed67 repeatedly inspected; passing requires other states and largeRM validation later."
+  ]
+}

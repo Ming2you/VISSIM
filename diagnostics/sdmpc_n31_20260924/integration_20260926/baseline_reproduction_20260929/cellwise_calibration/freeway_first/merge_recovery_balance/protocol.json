@@ -1,0 +1,38 @@
+{
+  "previous_goal_turn": "NO_PROGRESS: explanatory answer only; resume with a new bounded cache audit.",
+  "target_cells": [
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "window": [
+    2670.1,
+    2970.1
+  ],
+  "seeds": [
+    29,
+    43
+  ],
+  "arms": [
+    "none",
+    "vsl"
+  ],
+  "new_native": 0,
+  "new_full_rollouts": 0,
+  "new_fits": 0,
+  "new_fzp_scans": 0,
+  "checks": [
+    "Recover accepted merge from the actual post-speed term and reconcile30s totals.",
+    "Reconstruct mainline sending vs receiving-after-merge and match saved30s crossings.",
+    "Compare actual boundary counts with integral of contemporaneous spatial N*v/L.",
+    "NC instantaneous current-state factorial: native local, upstream, downstream or all-model; common saved merge."
+  ],
+  "limits": [
+    "Native time integral is a diagnostic using observed future frames, not a prediction input.",
+    "Scalar hybrid states are not autonomous or mass-conserving trajectories; no gain qualification.",
+    "Native next30s mean change is not an individual acceleration measurement.",
+    "No calibration or model change follows automatically from a term magnitude."
+  ]
+}

@@ -217,18 +217,24 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
     unsignalized_changes = {}
     if 'unsignalized_movements' in document:
         peeloffs = document['unsignalized_movements']
-        supported = {'SC1004_W_to_S', 'SC1004_offW_to_S', 'SC1004_offE_to_S'}
-        if not isinstance(peeloffs, dict) or set(peeloffs) != supported:
-            raise ValueError('Unsignalized authority requires exactly the three reviewed SC1004 aliases')
+        legacy = {'SC1004_W_to_S', 'SC1004_offW_to_S', 'SC1004_offE_to_S'}
+        north = 'SC1004_N_SC1003_to_W'
+        ramp_approach = 'SC1001_N_SC2002_to_W_RAMP'
+        if (not isinstance(peeloffs, dict) or not legacy <= set(peeloffs)
+                or not set(peeloffs) <= legacy | {north, ramp_approach}):
+            raise ValueError('Unsignalized authority requires the reviewed SC1004 aliases and optional verified peel-offs')
         for name, row in peeloffs.items():
             spec = specs.get(name)
             expected_spec = row['expected_spec']
+            signal = 'SC1001' if name == ramp_approach else 'SC1004'
             if (not {'phase', 'kind', 'origin', 'receiving_link'} <= expected_spec.keys()
-                    or spec is None or spec.get('signal') != 'SC1004'
+                    or spec is None or spec.get('signal') != signal
                     or any(spec.get(k) != v for k, v in expected_spec.items())
                     or spec.get('unsignalized')):
                 raise ValueError(f'{name}: stale expected unsignalized movement semantics')
-            if row['path'] != ['71', '10642', '67']:
+            expected_path = (['37', '10121', '31'] if name == ramp_approach else
+                             ['46', '10625', '68'] if name == north else ['71', '10642', '67'])
+            if row['path'] != expected_path:
                 raise ValueError(f'{name}: unsupported unsignalized physical path')
             source, connector, target = row['path']
             if any(edge not in edges for edge in zip(row['path'], row['path'][1:])):
@@ -248,9 +254,9 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
             if (not source_heads or len(cited) != len(source_heads)
                     or {h.get('no') for h in source_heads} != {h['head'] for h in cited}):
                 raise ValueError(f'{name}: unsignalized source head set changed')
-            groups = selected_plan['controllers']['1004']['phase_signal_groups']
+            groups = selected_plan['controllers'][signal.removeprefix('SC')]['phase_signal_groups']
             known_sgs = {str(sg) for group in groups.values() for sg in group}
-            if spec['phase'] not in {'SC1004_' + phase for phase in groups}:
+            if spec['phase'] not in {signal + '_' + phase for phase in groups}:
                 raise ValueError(f'{name}: unknown preserved selected phase')
             for evidence in cited:
                 head = heads[evidence['head']]
@@ -348,6 +354,97 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
         result.update(physical_unsignalized_authority_corrected_count=len(unsignalized_changes),
                       physical_unsignalized_authority_changes=unsignalized_changes)
     return result
+
+
+def configure_native_choice_groups(cfg, detectors, tuning, *, state_json):
+    """Use pinned native choices before service estimation and state projection.
+
+    A complete single decision must cover one existing approach. This changes
+    destination proportions, never its total demand or already projected stock.
+    """
+    path = tuning.get('urban', {}).get('movements', {}).get('physical_route_topology')
+    if path is None:
+        return {}
+    document, routes, edges = load_evidence(path)
+    groups = document.get('native_choice_groups', {})
+    if not groups:
+        return {}
+    if snapshot_network_sha256(state_json) != document['network']['sha256']:
+        raise ValueError('Native choice and snapshot networks differ')
+    tree = ET.parse(ROOT / document['network']['path']).getroot()
+    decisions = tree.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic')
+    links = {n.get('no'):n for n in tree.findall('./links/link')}
+    link_origins = detectors.get('link_to_origins', {})
+    specs = dict(cfg.network.urban_movements)
+    changes = {}; owned = set()
+    for group, row in groups.items():
+        chosen = row['route_to_movement']; members = set(chosen.values())
+        current = {m for m,s in specs.items()
+                   if s.get('origin') == row['origin'] and s.get('signal') == row['signal']}
+        available = {k for k in routes if k.split(':')[0] == row['decision']}
+        if (set(chosen) != available or not available or len(members) != len(chosen)
+                or members != current or members != set(row['expected_specs']) or members & owned):
+            raise ValueError('Native choice must partition exactly one complete approach')
+        prefixes = []; weights = {}
+        for rid, name in chosen.items():
+            spec = specs[name]; route = routes[rid]; native_path = route['path']
+            decision = route['decision']
+            if (any(spec.get(k) != v for k,v in row['expected_specs'][name].items())
+                    or decision.get('allVehTypes') != 'true' or decision.get('routeChoiceMeth') != 'STATIC'
+                    or native_path.count(row['stopline']) != 1
+                    or any(edge not in edges for edge in zip(native_path,native_path[1:]))
+                    or link_origins.get(native_path[0]) != [row['origin']]
+                    or link_origins.get(row['stopline']) != [row['origin']]
+                    or link_origins.get(native_path[-1]) != [spec.get('receiving_link')]):
+                raise ValueError('Native choice path does not match the modeled origin/receiver')
+            cut = native_path.index(row['stopline'])
+            prefixes.append(native_path[:cut+1])
+            weight = route['weight']
+            if weight is None or not math.isfinite(weight) or weight <= 0:
+                raise ValueError('Native choice requires finite positive native weights')
+            weights[name] = weight
+        # Channelized lanes can use parallel connectors between the same roads
+        # (e.g. native1043 uses10659/10660). They are still one origin choice;
+        # a genuinely different road path or later inflow remains unsupported.
+        road_paths = [[k for k in p if links[k].find('fromLinkEndPt') is None] for p in prefixes]
+        if any(p != road_paths[0] for p in road_paths):
+            raise ValueError('Native choice has multiple approach paths')
+        first = prefixes[0][0]
+        prefix = {k for p in prefixes for k in p}
+        # No new input/branch may enter after this decision, or another decision
+        # overwrite it before the stopline. Such networks need a separate proof.
+        parallel = set()
+        for a,b in edges:
+            if b not in prefix-{first} or a in prefix:
+                continue
+            start = links[a].find('fromLinkEndPt'); end = links[a].find('toLinkEndPt')
+            if (start is None or end is None or start.get('lane').split()[0] not in prefix
+                    or end.get('lane').split()[0] != b):
+                raise ValueError('Native choice approach admits another input path')
+            parallel.add(a)
+        corridor = prefix | parallel
+        decision_position = float(routes[next(iter(chosen))]['decision']['pos'])
+        if any(n.find('toLinkEndPt') is not None
+               and n.find('toLinkEndPt').get('lane').split()[0] == first
+               and float(n.find('toLinkEndPt').get('pos')) >= decision_position for n in links.values()):
+            raise ValueError('Native choice approach admits an input after the decision')
+        if (any(n.get('link') in corridor-{first} for n in tree.findall('./vehicleInputs/vehicleInput'))
+                or any(d.get('no') != row['decision'] and d.get('link') in corridor
+                       and d.findall('./vehRoutSta/vehicleRouteStatic') for d in decisions)):
+            raise ValueError('Native choice approach admits another input or route decision')
+        total = sum(weights.values())
+        changes[group] = {'native_decision':row['decision'], 'native_weights':weights,
+                          'before':{m:specs[m]['beta'] for m in members},
+                          'after':{m:w/total for m,w in weights.items()}}
+        for name, beta in changes[group]['after'].items():
+            specs[name] = dict(specs[name], beta=beta)
+        owned |= members
+    # Commit only after every group validates. Original physical observations
+    # will be projected later by the normal runtime; no synthetic queues here.
+    cfg.network.urban_movements = specs
+    invalidate_topology_cache(cfg.network)
+    return {'native_choice_groups':changes, 'native_choice_evidence_path':path,
+            'native_choice_evidence_sha256':hashlib.sha256((ROOT/path).read_bytes()).hexdigest()}
 
 
 def configure_topology_repair(cfg, detectors, tuning, *, state_json=None):

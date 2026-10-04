@@ -1,0 +1,34 @@
+{
+  "hypothesis": "Prior nominal-exit ablation overloaded the biased downstream recovery region. With that region FD recalibrated, test the same geometry distinction jointly, without another coefficient grid.",
+  "baseline": "connected_fd/review/candidate_manifest.json: frozen tradeoff candidate,not production qualified",
+  "candidate": "Only cell18 additional speed-loss delta_lanes=max(0,effective loss-1physical exit lane). Physical density,receiving,routing,off storage and excess spillback unchanged.",
+  "geometry": {
+    "link": 2,
+    "physical": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "continuing": [
+      2,
+      3,
+      4
+    ],
+    "off_connected": [
+      1,
+      2
+    ],
+    "nominal_exiting": [
+      1
+    ]
+  },
+  "max_new_forecasts": 7,
+  "fit": false,
+  "new_native": 0,
+  "new_fzp": 0,
+  "cases": "disabled750 parity;29NC/VSL750,43NC/VSL750,61hold/release450",
+  "gate": "NC local15-25 first450 loss<=110%,tail300<=90%,whole-speed RMSE<=baseline+2. All action pairs inspected even if this gate fails, to isolate mechanism; no automatic adoption.",
+  "acceptance": "Conservation/exact disabled arrays; preserve significant RM direction, reduce VSL intermediate-flow overresponse and inspect paired costs,not speed alone.",
+  "limitations": "Previously inspected states. Recalibrated FD itself failed aggregate training response gate; this compound ablation does not waive that failure. No future measurements in forecast."
+}

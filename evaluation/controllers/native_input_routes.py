@@ -223,6 +223,8 @@ def _transit_cohort(no, index, amount, step, state, cfg):
     distance = gate['pre_gate_distance_m'] if gate else None
     result = _cohort(no, index, amount, step+_travel(state,cfg,stage,distance))
     if gate: result['native_gate_passed'] = False
+    from evaluation.controllers.omega_distance import record_native_route
+    record_native_route(state,cfg,no,index,amount,step,result['due'])
     return result
 
 
@@ -288,7 +290,10 @@ def receive_generated(state, cfg, no, vehicles, step):
     local = state.native_input_route_state
     if local['last_step'] != step: raise ValueError('Native route generation requires current urban advance')
     first = inputs[no]['route_stages'][0]
-    local['cohorts'].append(_cohort(no, 0, vehicles, step+_travel(state,cfg,first)))
+    cohort = _cohort(no, 0, vehicles, step+_travel(state,cfg,first))
+    local['cohorts'].append(cohort)
+    from evaluation.controllers.omega_distance import record_native_route
+    record_native_route(state,cfg,no,0,vehicles,step,cohort['due'])
     local['received_veh'] += vehicles
     _check(state, cfg)
     return True
@@ -326,6 +331,9 @@ def advance(state, cfg, step):
             cohort['native_gate_passage_sec'] = green_at
             cohort['due'] = math.ceil(green_at/cfg.simulation.T_u_sec)+_travel(
                 state,cfg,stage,gate['post_gate_distance_m'])
+            from evaluation.controllers.omega_distance import record_native_route
+            record_native_route(state,cfg,cohort['input'],cohort['stage'],cohort['vehicles'],
+                                math.ceil(green_at/cfg.simulation.T_u_sec),cohort['due'],after_gate=True)
             continue
         movement, origin = stage['movement'], stage['origin']
         queue = state.urban_movement_queue.get(movement, 0.)
@@ -387,5 +395,7 @@ def receive_accepted(state, cfg, movement, vehicles, step):
     if ordinary:
         if target in uqm.approach_routing(cfg): uqm._schedule(state.urban_arrival_buffer,target,due,ordinary)
         uqm._schedule(state.urban_storage_release_buffer,target,due,ordinary)
+        from evaluation.controllers.omega_distance import record_ordinary_movement
+        record_ordinary_movement(state,cfg,movement,ordinary,step,due)
     _check(state, cfg)
     return True

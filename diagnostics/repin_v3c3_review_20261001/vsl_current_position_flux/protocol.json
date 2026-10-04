@@ -1,0 +1,47 @@
+{
+  "scope": "REVIEW71 causal5s flux information test from current cached vehicle positions, not an autonomous450s model",
+  "previous_goal_turn": "PROGRESS:6bounded autonomous forecasts rejected density-only closure; hooks restored",
+  "hypothesis": "Missing within-cell position and position-speed composition may explain boundary flux better than neighboring mean-density remapping",
+  "budget": {
+    "transitions_per_arm": 48,
+    "autonomous_rollouts": 0,
+    "new_native": 0,
+    "FZP_reads": 0,
+    "cells": [
+      16,
+      17,
+      19
+    ],
+    "fit": 0,
+    "cache_arms": 4
+  },
+  "predictors": {
+    "uniform": "N*mean(v)*5/(3600*L)",
+    "position_mean": "Count current vehicles whose current position plus cell mean speed*5 crosses boundary",
+    "moment": "z=mean(v)*5/(3600*L); M=sum((x-start)/L); delta=clip(M-N/2,-N/6,N/6); Q=N*z+6*delta*z*(1-z),theoretical linear-density coefficient6",
+    "position_speed": "Count current vehicles whose current position plus their current speed*5 crosses boundary; observational information benchmark, not a deployed microscopic predictor"
+  },
+  "data_selection": "2250.1..2490.1 every5s. Same target rows for all predictors. Exclude zero-stock or z>1 current-state cases; no outcome-based predictor selection. Crossings from consecutive identities must sum exactly to existing certified30s native downstream_crossings; exclude entire mismatched30s window, retain discrepancy details.",
+  "comparison": "Per-arm/per-cell next5s count RMSE,MAE,bias and cumulative conditional counts, not a240s forecast or causal VSL gain. Report all methods and exclusions; no new tuning from these outcomes. Any future physical candidate must preserve stock and show common-initial control response, no qualification here.",
+  "claude_first": [
+    "bd39205 REVIEW and07_fww_sc1001eb/FWW_STRUCT_CHECK/PROPOSAL mention location, routing and exit queues; no applicable current-position moment flux closure found in scoped read/search",
+    "Local recovery_transport minmod SPEED failed andcurrent density autonomous REVIEW70 failed",
+    "REVIEW64 future-position moment identity is diagnostic only; this test uses x(t),v(t) only to predict events(t,t+5]"
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_boundary.py": "f0603b14047adf988d26057c364d79aa45ec8721d0b0a0f439785381503a950f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_ramp_runtime.py": "bc46b1094b2c2bde68e240ea6cfc4e82313e523abea0d1429819f0fc10bcb0e4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\vendor\\NumSim-mine\\src\\models\\metanet.py": "fdc4b88157ae147ef650cf87c316ec75974036eabc5248b37a4ebb735d7857b5",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "limitations": [
+    "5s sampled identity crossing can miss exit/censored trajectories; independent30s flow reconciliation is required",
+    "Already studied seeds29/43, not heldout qualification",
+    "Observed individual current positions/speeds are available inputs for this information diagnostic only; no future observed state is supplied to a predictive plant",
+    "Ω exit/TTD and gain not calculated; these are internal freeway crossings"
+  ],
+  "goal": "ACTIVE / NOT_QUALIFIED"
+}

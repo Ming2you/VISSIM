@@ -1,0 +1,106 @@
+{
+  "created": "2026-10-03T11:07:19.468033+09:00",
+  "previous_goal_turn": "PROGRESS REVIEW91 executed/rejected physical-distance19/20 candidate.",
+  "hypothesis": "Current within-cell spatial/lane heterogeneity may add transferable information for the next30s speed transition beyond mean states and past5s trend; test before adding another physical state.",
+  "not_a_plant_candidate": true,
+  "cells": [
+    19,
+    20
+  ],
+  "horizon_sec": 30,
+  "stride_sec": 5,
+  "train_seed": 29,
+  "evaluation_seeds": [
+    43,
+    67
+  ],
+  "no_seed71": true,
+  "minimum_own_vehicles": 9,
+  "minimum_neighbor_vehicles": 3,
+  "macro_features": [
+    "rho_up",
+    "v_up",
+    "rho_self",
+    "v_self",
+    "rho_down",
+    "v_down",
+    "rho_self_squared",
+    "rho_self_times_v_self",
+    "past5_delta_rho",
+    "past5_delta_v"
+  ],
+  "extra_features": [
+    "speed_sd",
+    "lane_density_sd",
+    "between_lane_speed_sd",
+    "downstream_half_minus_upstream_half_speed",
+    "mean_fractional_position",
+    "speed_below20_fraction",
+    "speed_below5_fraction"
+  ],
+  "fit": "Four closed-form ridge regressions: baseline/augmented for each of2cells; train-standardized covariates, unpenalized intercept, ridge alpha1; no hyperparameter/feature search.",
+  "target": "v(t+30)-v(t), future frame used only as label; features at<=t.",
+  "gate": {
+    "pooled_each_evaluation_seed_rmse_reduction_vs_baseline": 0.1,
+    "pooled_each_evaluation_seed_rmse_reduction_vs_persistence": 0.1,
+    "max_each_evaluation_arm_rmse_worsening_vs_baseline": 0.1
+  },
+  "budget": {
+    "diagnostic_regression_fits": 4,
+    "plant_fits": 0,
+    "autonomous_forecasts": 0,
+    "native": 0,
+    "fzp_reads": 0
+  },
+  "limitations": [
+    "Transfer association is not causal VSL response, rollout validation, or evidence the added quantities can be predicted autonomously.",
+    "Overlapping30s windows are correlated; no independent sample significance claim.",
+    "43/67 have been examined previously; withheld fromthese fits but not novelblindseeds.",
+    "No time,seed,arm,desired future command,or actualfuture inflow infeatures.",
+    "Common-mean nearby observations can still differ in unobserved boundaries; do not call state insufficiency proven."
+  ],
+  "inputs": {
+    "29_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_none_frames.json.gz",
+      "sha256": "5b05cf5366daf96afc6832118f4c3d8e1273e1c8bcdd1a22c905fca7fd2bc713"
+    },
+    "29_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_vsl_frames.json.gz",
+      "sha256": "456db85b5dd98135a4c4cea8309944397709f37478ea731b54d3b71bfdfb0ab1"
+    },
+    "43_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_none_frames.json.gz",
+      "sha256": "7646676de2327a018fa7ebebac6439c72962008785c979c3f9ca72701cb18a3d"
+    },
+    "43_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_vsl_frames.json.gz",
+      "sha256": "698418a50715149af32cd50eecaa8734d32083482c80748e3729303cbb086e52"
+    },
+    "67_release": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz",
+      "sha256": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c"
+    },
+    "67_release_vsl90": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz",
+      "sha256": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93"
+    }
+  },
+  "protected_sha256": {
+    "evaluation\\controllers\\offramp_routing.py": "4ed3243430761f3ac5eaa517dfefee904418b0d8e252d3d369d4cbe5f4dd07a4",
+    "evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "literature": [
+    {
+      "url": "https://onlinelibrary.wiley.com/doi/10.1155/2019/8151582",
+      "use": "Fang2019 proposes microscopic headway/acceleration-informed METANET adjustment; motivation only, not implemented and no future microscopic closure assumed."
+    },
+    {
+      "url": "https://www.sciencedirect.com/science/article/pii/S0968090X18303310",
+      "use": "Frejo2019 field-dependentVSL FD/capacity response; no universal capacity increase assumed."
+    }
+  ]
+}

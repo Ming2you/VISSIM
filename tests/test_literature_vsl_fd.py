@@ -1,5 +1,7 @@
 import math
+import ast
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from evaluation.controllers.freeway_fd import literature_vsl_parameters as law
 from evaluation.controllers.freeway_fd import configure_literature_vsl, literature_desired_speed, VSLExposure
@@ -7,6 +9,42 @@ from evaluation.controllers.physical_lane_groups import PhysicalLaneGroups
 
 
 class LiteratureVSLTests(unittest.TestCase):
+    def tangent_target(self):
+        # Exercise the same source instrumentation used by the isolated AD
+        # worker, while leaving the normal imported module unmodified.
+        from evaluation.controllers import freeway_fd
+        from evaluation.controllers.sdmpc_tangent_runtime import Transform, namespace
+        scope = dict(vars(freeway_fd))
+        scope.update(namespace())
+        tree = Transform().visit(ast.parse(Path(freeway_fd.__file__).read_text(encoding='utf-8')))
+        exec(compile(ast.fix_missing_locations(tree), freeway_fd.__file__, 'exec'), scope)
+        return scope['literature_desired_speed']
+
+    def test_inactive_ad_preserves_target_without_inventing_command_slope(self):
+        from evaluation.controllers.sdmpc_dual import Dual, Trace, derivative
+        spec = dict(law='carlson', A=.5, E=2., alpha=0.)
+        cfg = SimpleNamespace(network=SimpleNamespace(v_free=110., rho_crit=30.,
+            metanet_a_m=2., rho_max=180.), freeway_follower=SimpleNamespace(vsl_set=[90.,100.,110.]))
+        trace = Trace([.01,.01])
+        target = Dual(75., {0:-1.}, trace)
+        command = Dual(110., {1:1.}, trace)
+        actual = self.tangent_target()(spec,cfg,'FW_E',0,24.,target,command,False)
+        self.assertEqual(derivative(actual), {0:-1.})
+        # The scalar predictor is locally flat at the inactive maximum too.
+        for value in (109.99,110.,110.01):
+            self.assertEqual(literature_desired_speed(spec,cfg,'FW_E',0,24.,75.,value,False),75.)
+
+    def test_active_ad_command_slope_matches_scalar_difference(self):
+        from evaluation.controllers.sdmpc_dual import Dual, Trace, derivative, primal
+        spec = dict(law='carlson', A=.5, E=2., alpha=0.)
+        cfg = SimpleNamespace(network=SimpleNamespace(v_free=110., rho_crit=30.,
+            metanet_a_m=2., rho_max=180.), freeway_follower=SimpleNamespace(vsl_set=[90.,100.,110.]))
+        target = self.tangent_target()(spec,cfg,'FW_E',0,24.,75.,Dual(100.,{0:1.},Trace([.001])),True)
+        def value(command):
+            return literature_desired_speed(spec,cfg,'FW_E',0,24.,75.,command,True)
+        self.assertAlmostEqual(primal(target),value(100.),places=12)
+        self.assertAlmostEqual(derivative(target)[0],(value(100.001)-value(99.999))/.002,places=7)
+
     def test_carlson_equation_11(self):
         self.assertEqual(law(dict(law='carlson',A=.8,E=3.,alpha=0.),120.,30.,2.5,60.,120.),(60.,42.,5.))
 

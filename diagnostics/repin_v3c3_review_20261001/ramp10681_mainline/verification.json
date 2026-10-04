@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "completed_forecasts": 2,
+  "full_old_outputs_exact": true,
+  "old_trace_fields_exact": true,
+  "speed_term_rows": 7200,
+  "production_pins_unchanged": {
+    "evaluation/controllers/lane_ramp_runtime.py": true,
+    "evaluation/controllers/area_freeway_accounting.py": true,
+    "evaluation/controllers/physical_ramp_boundary.py": true,
+    "evaluation/controllers/freeway_fd.py": true,
+    "evaluation/parameters.json": true,
+    "diagnostics/repin_v3c3_review_20261001/sc105_supply/candidate_config.json": true
+  },
+  "changed_driver_functions": [
+    "observe_first_interval_speed_terms",
+    "probe_levers",
+    "observe_update"
+  ],
+  "driver_sha256": "b0222f670a955a8b5548a7705aadacaa81afc3a19f1faaa9f98c85c3a79e6261",
+  "forecast_seconds": 51.20113379997201,
+  "session": 47427,
+  "exit_code": 0,
+  "new_native": 0,
+  "new_fit": 0,
+  "new_fzp": 0,
+  "optimizer_iterations": 0,
+  "verification_correction": "First AST scope assertion omitted the nested observe_update function; included it after inspecting the diff. No model/output changes or forecast retry."
+}

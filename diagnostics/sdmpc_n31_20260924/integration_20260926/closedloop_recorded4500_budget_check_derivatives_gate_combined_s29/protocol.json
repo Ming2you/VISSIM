@@ -1,0 +1,209 @@
+{
+  "created_at": "2026-09-28T18:48:41.217861+09:00",
+  "hypothesis": "Check whether the frozen cell23/city candidate transmits RM and VSL sensitivities into the actual SDMPC continuous predictor. No physical coefficients/constraints changes.",
+  "initial": "actual seed29 stopped run4500s, actual4350 action, causal head/VSL history",
+  "anchor": "10484 legal g8/6/4; all other actual prior commands held",
+  "axes": [
+    {
+      "owner": "FW_E",
+      "kind": "meter",
+      "key": "RM_C10484",
+      "scale": 10.0,
+      "fd": 0.2,
+      "allowed": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "reference_value": 10.0,
+      "block": 2,
+      "index": 228,
+      "steps": [
+        0.001,
+        0.0005
+      ],
+      "step_unit": "green_sec",
+      "trials": [
+        {
+          "step_physical": 0.001,
+          "step_z": 0.0001,
+          "indices": [
+            1,
+            2
+          ]
+        },
+        {
+          "step_physical": 0.0005,
+          "step_z": 5e-05,
+          "indices": [
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "owner": "FW_E",
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "scale": 110.0,
+      "fd": 0.09090909090909091,
+      "allowed": [
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0
+      ],
+      "head": 13,
+      "reference_value": 90.0,
+      "block": 0,
+      "index": 78,
+      "steps": [
+        0.01,
+        0.005
+      ],
+      "step_unit": "km_h",
+      "trials": [
+        {
+          "step_physical": 0.01,
+          "step_z": 9.090909090909092e-05,
+          "indices": [
+            5,
+            6
+          ]
+        },
+        {
+          "step_physical": 0.005,
+          "step_z": 4.545454545454546e-05,
+          "indices": [
+            7,
+            8
+          ]
+        }
+      ]
+    }
+  ],
+  "max_ad_rollouts": 1,
+  "max_independent_scalar_rollouts": 9,
+  "finite_difference_scope": "Continuous surrogate diagnostics; infinitesimal perturbations are not quantized/native commands and are not tested as feasible physical candidates.",
+  "primal_abs_tolerance": 1e-07,
+  "cost_gradient_atol": 0.0001,
+  "resource_gradient_atol": 0.001,
+  "gradient_rtol": 0.001,
+  "no_optimization": true,
+  "no_native": true,
+  "no_push": true,
+  "before_source": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py",
+    "sha256": "25ff41e970ed859dd58416aa601f42d6652f20bdd0cdc6b2957614be4ce5b5fb",
+    "archive": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\executed_sources\\probe_selected_arrival_path_25ff41e970ed859dd58416aa601f42d6652f20bdd0cdc6b2957614be4ce5b5fb.py"
+  },
+  "files": {
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_004500.json": "0023ca4c83451893948c02ec053a478ff8e78859f96d0ea8f3703c296d00c272",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\action_004350.json": "be598484093945b349b06a6869e46c0bbce0b0759271d7d22d96a30e5f073711",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\gate_entry_geometry_20260929\\combined_config.json": "cb56b95efeff743c52f2216a90d0c4e648782e3ee430bed2fda4f621525f4541",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_000150.json": "696b299da1ea2bfbf00b7e49f327a051902c6b41523abe603a8b44b282469407",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_000150.json": "44f761a76431b0b58f4f208c5f5b35b78a417f6b3cbc6accb2765c189f4b302b",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_000300.json": "1d82b0a70e1947fc5fdb38f05be6777252f36c8fd131440942fffda5def7a219",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_000300.json": "02a2fa3dc6d546e9922114a661c937e5b8ca6ed2a8d825367cb5024ccf636e68",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_000450.json": "45168a98497b45255d58654c837dfd187a0e83ab7a99a27e39e75894ba1aa1ee",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_000450.json": "1d08dd8cf4c900c85cce21cf1c6499cdf453ff1a9936d2390497ae1f098369a1",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_000600.json": "bef6ffa51de5d0995971f7315f4c473abb7c670ff10e38f86f3448a2319857bb",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_000600.json": "03f7f719a337344c5cd33ac15bed1bd6a471dd014ecb31ec25d973df6ada6b88",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_000750.json": "78ac018f3c19a85dfadafc51cd93ea6a77c280e872f29b2cb3b1a10eff5c39cf",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_000750.json": "01667f9c1fa83e176355ea9f854859aa097702235da012f9767b7136af8d40f1",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_000900.json": "d7f0d08fc4406ef7f5c0c2a828e419851a103427254c0d287fe22f9f17f9538f",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_000900.json": "28d5ad87f19969f80a44dfe485389453d2efd6f26071e510d83171ab8f708a55",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001050.json": "7e90173007d0107ae989b1640e701f4de99bf4d7676231d0f8c6b063a5598773",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_001050.json": "896255aca54df3ecc22b82528c81439fceb776041362e522f7bbeab71f3b7685",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001200.json": "5cd9be8507aae6e44791bc8988d6356985cad2d6da15c9a4f8789698728286c5",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_001200.json": "70076d7148cac60086861309f291a7305cf58d23a05d6890738c1ddab9096f87",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001350.json": "f39c8cdc619a7ac53442ff15bdb388994f88f0d696384356d22554271759bcc8",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_001350.json": "379b96e94d48446429c3acd1e76ad709e35b1cef0b80aa690747efe3e555c989",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001500.json": "5c70117416146ae056c1bed87aeb38e9b4f0a12faf2e310a84526005f7daf659",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_001500.json": "1ea8f1f98ebe8c43bcdc43e4895011cdb213f8dfb4d2921690daa8fb2d730711",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001650.json": "13d5f7a643a863db69279cc6a3111d7f4f4c1f9f30fd0afcfc16bbf12fabffbc",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_001650.json": "814d43aaf1910bcee76ce596cc48229c4f0686b5330b46142142892db0fd1b3c",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001800.json": "fcaf7891c7e153700f51bdffd2805c3d9560ab5c532a5c34d5b65e2914770daf",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_001800.json": "eabfd9c6e6915c9799f63a1d1d900d06154fb384c619ac3c75efc4d7499fa385",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001950.json": "36fac23e07eee84b8126d8529268d7d8a5a2ed3872e58616449d8f9052fb7a3c",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_001950.json": "ffe5c90b937950947503cfb42a1fffa4e9cd79c68c06f37838477a083ea39f2b",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002100.json": "4fc78b6159f2d0e1cbf0b62f4f153ad4f3751c89700c0e5bcbd4aff2f54efd3a",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_002100.json": "f09a735b5bdb4a8c2856e9d1d65c03744ad7ca356e9e70cf3f03dc61f867c6a8",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002250.json": "c067942a9ca17d31d853ec8fa815502bf887425de9f3630d23d698baee4484f9",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_002250.json": "ba8e06dbd7c58a8e04bd24dacd10ed6ac43adaadf7d0ce67cec0821377b018bb",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002400.json": "aa59e30368c74827ff93c98360177136ba286c1d3abde10c6b7e3c0fb591307a",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_002400.json": "4cbce8d986d12fe820fb987e1065d1a093d6a58078b5d0c204ccc2023ae34a96",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002550.json": "de9cef12739e0b5a008af9eea99431e3cdc89da295e38c3e587fc9bf0b29a9a3",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_002550.json": "79d6501ef39654a28b09d5c47f143ea876701c7036f3dd755df7ef20daf2594d",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002700.json": "4d4e761b9e41f9120b71ca658138ef07f9014fe2b236ed532902063cc17f94d6",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_002700.json": "a44d0c99f52b4d91089436685d12d751e3f2c06536bc68553e0dd7c20fd1cccf",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002850.json": "6e86e25892f825b3df079178923f1177bc6288fc075d198e84c53af556be25fa",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_002850.json": "350549827a6e12e629d6520da65e3568c16aa7f409229d4c5a8848690dc1859c",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003000.json": "5d3e3216d1d853dca8de4ab2ecf29d9191af65f8ec69bd166e26e6dce256baef",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_003000.json": "c87c7a670002efc34cba7850b26262a69fbde7f28157f80d6058d76a510c4715",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003150.json": "59681bda77cc1d2c519f086dd65a90c8ca14a2ff6df1b1f856a56456c1bba6ae",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_003150.json": "d5431581595158b71d57bed3009df263f829886423ccea3c851baf03c941b541",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003300.json": "9e73ebf67f9486155110c3ea7f0d417661e5d21af22ed7a8b3fb7b73e46355c6",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_003300.json": "6ec1e161dff51b47a477d204b3d59c9270bbaa5d9ed52e8bcc04aed41d0c4c30",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003450.json": "c95fdbe217af7520fddf85ae4f8be72a2ad1f46078f4559e318eab85f43e3a20",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_003450.json": "7acd6828b68bd0b24b64410d63e64e65f96d51beb9bd777465318ea7dcf6917d",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003600.json": "c85bdd0111db10bc82353a3f7d158d2d102dc43f38cb4368185e9d1015169bf7",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_003600.json": "08929c3be0130de8745d5e29f7f9e67571aa34bcb8d4e32d8d4d0f5deea592b1",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003750.json": "a5d8b1e5b9298962bc53aaadd04bd00f661f0bc8248c4a4994ecddfdb60197c6",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_003750.json": "491fc9c780bf574e80645556d3f587e4dd3978f9c4450d41d3b3a40f0c50a2fe",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003900.json": "22e35fb88de488639e4bdc12d20434eb8bad9f0a4fffde52446302fa62b76330",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_003900.json": "fc553bd5dc1b7519d794eeaec4a63d2eaa39b423dd0ee6c28093a0dfc20aa200",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_004050.json": "f0e135a17e2dd45a65a371b33b0d6fe60d547dfd228695a464b64718eb7f5578",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_004050.json": "28f5732d85c065ab48817683e2334dcb43fe35449bf46afe330f68210fde0b6e",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_004200.json": "10c52b64d5f2ae562f0346591ffc0f9323a560ba16e2f213f6a09c4cba46cca3",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_004200.json": "e17b269ea61d81f2bb4726c7262c86560784be31d1658b0507bd05ac7008c8c9",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_004350.json": "60ebffcfd3ad35a0ffc25cd9aab8bc1d5717eacd9d41cfc6a88e7bf681386e66",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_004350.json": "f4b2f1fea0c8a985e9bfd7267da34813b36eab42caa4c94b2586bfdfe7cd0179",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\controller_derivative_check\\protocol.json": "71a9da217cd3944773d6f20d5e7c786676e68b6fef0d38fb81f8fd44730dd15a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "ed1ab53e40f692c061c5cce7e56f2a40f06dd195e7b7d3ea72bf0751289dd3ae",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\vsl_readback.csv": "266a853c2bad6d8ec9e037b8b1508d1a8bfea6d337d0dc139bf4c276a90b983d",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_000150.json": "7e5e10a92ef9df69dabfb3ea5882279a601729825647903c0f3151c01dc4d7ef",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_000300.json": "98aac4dca3dd77dedcc2988737c5cb43de128a8a856f16f3ceafdea245404c98",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_000450.json": "0ee3f3675c88adf77488db26a233c3579085dee6ff690ea0614f8a15eafde495",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_000600.json": "11a0f870da78595ca36d62c75c9dbdd04a1aa881c58d6e8d84f436bbd87f1a5e",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_000750.json": "9bc0678073db8fe922d86bbf2eab2d699dac0a627510967f7090db82888a043c",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_000900.json": "3051e79dceea2231cb60ce66b58f903ca6aea1bab2af42d1948f5c4a1a57e67d",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_001050.json": "dd4e682ada93866181f9bd75fa75ef0ff078377c1a447cc01306b1bf9fb1a413",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_001200.json": "bb05107283628fe4d59f4c7248eb434cb1653e21627982f771964a107f8ba3f1",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_001350.json": "8cba2b613e678026bc793fd2d07dbe3df7097bf4f5096a5cd8ec6ce686b830d7",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_001500.json": "cf589eb07d6e30b2f8b40696cf54c5e396e8b963cb434426d72b4811ad59c8a7",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_001650.json": "4bb50e6872cf8635a8b2e3032f8a3eeb2df785dfbeee0813a44af6f86a1815bb",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_001800.json": "7325b4e42183c9dc6ed6aa562971f47a54645f92ea906805af6f303e3c981845",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_001950.json": "76ea57fb7a57df7e120f71028b248342d9bdd4030ce764ff39005f026a6e4f85",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_002100.json": "82520646b0f654c25706043b05b866f63cfe066a82f29f74c76a275ac88dcca9",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_002250.json": "3662feef44d845cafac502ab8d81248293fd6b0cb1a4c4d351fdc8b06f7bb008",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_002400.json": "d99be7aea554ab873c9b993caf3dfcda78c3173e1466fe4aab0a20b120b25a18",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_002550.json": "8b53d9e9d0294f80c8b31ca6124c8016c1416c8836cc6564699fe17d5a34e784",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_002700.json": "1a783f3ed428c1fc547ecd1989c5fdb5bce11f8bc309930fc3f1bb4086361c4c",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_002850.json": "fe7e2cf44499fe27b9748497d231a8bf255574c9fbddbd780799da5b3f71ea95",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_003000.json": "7e8ab76f516a8628cfcf5d6d628f6fc92746eb8a47e63e1e15e925657b93f99a",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_003150.json": "914a155221a7e3f246c7526e1ac1563169f01fe6d90fc07c023849f59f3924b9",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_003300.json": "2c5f42dc1624771e736acce612791d995aa4eedea20fb4803de9c41cf481991b",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_003450.json": "9a5add15eb815ec1156b5cdf5bde5d2c4da6f1437971420dd28de8106f9eb7fe",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_003600.json": "a7846a094959492a8b377ec1832ad3587d96576841ac55fec66cc7e7995c963a",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_003750.json": "3be6bddc87bba317c6a40ed3e1464f267d34d6cd14020ad6d7294c30017fb485",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_003900.json": "2403ed91375e5de6b16710934d924bd9b70e443b6affb2d50c721bf650976f4e",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_004050.json": "e18cf1ab9ffb7b673ae30ac6de749c041011a73b8cf8f15f66f31b1f54903667",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_004200.json": "78bca00f6eaa0ce7fd356e8803f7e1000ccb59b137aee9e91dea49adce0a3877",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_004350.json": "f111362296542c97a21f1d9266e623f250eed3f353c521e22c597e52cb7b5da8",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\derived_004500.json": "ab5c41ae5d6a7b49d8b562b2a5cae4aa226bbe7f2b0dcb64e3b5fc7ff6c74c5a",
+    "D:\\VISSIM_runs\\20260927_sd31_closedloop9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\vsl_cohorts_004500.json": "c9fd3b18acf7a4f3bfc436d68b48de68431beb7d127b205bfa949ed1d5131c7c"
+  },
+  "command_scope": "Native-valid anchor only; FD points are continuous diagnostics, never applied",
+  "scalar_workers": 3,
+  "optimizer_iterations": 0,
+  "native_started": false
+}

@@ -1,0 +1,154 @@
+"""Finite joint calibration with wider NC states, using the sole existing plant.
+
+The159 cellwise values remain heterogeneous. Twelve coupled update directions
+from the existing training Jacobian limit this incremental calculation; this is
+not a new complete159-dimensional search or an identifiability claim.
+"""
+from pathlib import Path
+import copy,gzip,json,sys,time
+import numpy as np
+
+CW=Path(__file__).resolve().parent
+ROOT=next(p for p in CW.parents if (p/'evaluation/controllers/lane_plant_runtime.py').is_file())
+sys.path.insert(0,str(ROOT))
+from diagnostics.sdmpc_n31_20260924.integration_20260926 import replay_congested_component as r
+from evaluation.controllers import lane_plant_runtime as lpr
+from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.boundary_factory import ObservationData
+
+
+def read_prediction(p):
+    with gzip.open(p,'rt',encoding='utf-8') as f:return json.load(f)
+
+
+def main():
+    from scipy.optimize import least_squares
+    out=CW/'expanded_joint';out.mkdir(exist_ok=False)
+    selected=r.load(CW/'jacobian_step/selection.json');spec=r.load(CW/'parameter_spec.json')
+    cap=r.load(CW/'expanded_nc_windows/capture.json');catalog=r.load(CW/'data_catalog.json')['checked_records']
+    train=[x for x in catalog if x['role']=='train']+[x for x in cap['records'] if x['seed']==29]
+    checks=[x for x in catalog if x['case']=='s43_early']+[x for x in cap['records'] if x['seed']==43]
+    assert len(train)==13 and len(checks)==6
+    protocol=r.load(CW/'protocol.json');document=r.load(spec['initial_manifest'])
+    context=lpr.load_sources(spec['initial_manifest']);params=context['parameters']
+    original=r.load(ROOT/document['sources']['reference_config']['path'])
+    inputs={(x['case'],x['arm']):r.read_primitive_capture(x['input'],x['sha256']) for x in train+checks}
+    assert all(a[2]==params for a,k in inputs.values())
+    observations={x['truth']:ObservationData(x['truth']) for x in train+checks}
+    truth={(x['case'],x['arm']):observations[x['truth']] for x in train}
+    initial=np.array([x['initial'] for x in spec['variables']]);z0=np.array(selected['relative_values'])
+    lower=np.array([x['lower'] for x in spec['variables']])/initial-1
+    upper=np.array([x['upper'] for x in spec['variables']])/initial-1
+    jacfile=CW/'jacobian_step/jacobian.npz';old=np.load(jacfile,allow_pickle=False)['jacobian']
+    # Exclude the159 prior rows; regularization must not masquerade as data evidence.
+    _,singular,vt=np.linalg.svd(old[:-159],full_matrices=False)
+    raw=vt[:12].T
+    # Every y in[-1,1]^12 respects physical coefficient bounds and +/-15%
+    # of the original per-coefficient scale around the frozen fitted point.
+    radius=np.maximum(0.,np.minimum(.15,.95*np.minimum(z0-lower,upper-z0)))
+    basis=raw*np.minimum(1.,radius/np.maximum(np.sum(abs(raw),axis=1),1e-14))[:,None]
+    assert np.all(z0-np.sum(abs(basis),axis=1)>=lower-1e-12)
+    assert np.all(z0+np.sum(abs(basis),axis=1)<=upper+1e-12)
+    pins={str(ROOT/p):r.sha(ROOT/p) for p in protocol['core_pins']}
+    for p in (Path(__file__),Path(r.__file__),jacfile,CW/'parameter_spec.json',CW/'jacobian_step/selection.json',
+              CW/'expanded_nc_windows/capture.json',CW/'expanded_nc_windows/summary.json'):
+        pins[str(p)]=r.sha(p)
+    for x in train+checks:
+        pins[x['input']]=x['sha256']
+        for name in ('cells_30s.csv','flows_30s.csv','ports_30s.csv','boundaries_30s.csv','geometry.json'):
+            p=Path(x['truth'])/name;pins[str(p)]=r.sha(p)
+    for p,h in pins.items():assert r.sha(p)==h
+    r.save(out/'protocol.json',dict(train=[(x['case'],x['arm']) for x in train],checks=[(x['case'],x['arm']) for x in checks],
+        pins=pins,update_directions=12,physical_coefficients=159,coefficient_changes='Existing percell rho/a/tau/nuGE/nuLT and4merge coefficients only.',
+        direction_source='Jacobian of previous eight seed29 conditions, prior rows removed. Directions frozen before expanded training.',
+        start='Previously frozen trust_0.15',new_states='Five NC seed29 states; old paired response labels retained unchanged.',
+        trust_relative_radius=.15,absolute_difference_step_in_direction_coordinate=.1,
+        optimizer='least_squares trf; explicit absolute-step Jacobian; max_nfev3, at most39unique evaluations including reusedbaseline.',
+        max_new_training_forecasts=494,max_new_baseline_parity=2,max_new_check_forecasts=6,
+        loss='Existing state+2*paired response+0.1*relative-value prior. Controller Omega objective unchanged.',
+        eligibility='Train objective improves; paired loss no worse; meaningful signs preserved; meanN/q<=110% start. Freeze selection before six checks.',
+        limit='Twelve coupled directions, not complete independent159 re-identification. No capacity/reward/control-specific bonus. No future realized boundary.',
+        native=0,production_adopted=False,blind_check=False))
+    np.savez_compressed(out/'basis.npz',basis=basis,start_relative=z0,singular_values=singular)
+    baseline_predictions={};baseline_rows=[]
+    saved={ (x['case'],x['arm']):x for x in r.load(CW/'jacobian_step'/selected['selected']/'result.json')['rows'] }
+    saved.update({(x['case'],x['arm']):x for x in r.load(CW/'expanded_nc_windows/summary.json')['rows']['cellwise']})
+    for x in train:
+        key=(x['case'],x['arm']);name=x['case']+'_'+x['arm']
+        p=(CW/'jacobian_step'/selected['selected']/(name+'_prediction.json.gz') if x in train[:8]
+           else CW/'expanded_nc_windows/cellwise'/(x['case']+'.json.gz'))
+        baseline_predictions[key]=read_prediction(p);baseline_rows.append(saved[key]);pins[str(p)]=r.sha(p)
+    def model_at(z,folder):
+        values=initial*(1+z);config=r._cellwise_config(spec,values,original,params['by_direction']['FW_E']['rho_crit_multiplier'])
+        path=folder/'reference_config.json';r.save(path,config)
+        manifest=copy.deepcopy(document);manifest['sources']['reference_config']=dict(path=path.relative_to(ROOT).as_posix(),sha256=r.sha(path))
+        manifest['qualification']='Expanded joint calibration candidate only; no production/native/SDMPC qualification.'
+        path=folder/'manifest.json';r.save(path,manifest)
+        return lpr.load_sources(path)['component']
+    parity_dir=out/'parity';parity_dir.mkdir();model=model_at(z0,parity_dir);parity={}
+    for key in [('s29_early','none'),('s29_t7200','none')]:
+        a,k=copy.deepcopy(inputs[key]);pred=json.loads(json.dumps(model.rollout(*a,**k),allow_nan=False))
+        parity[str(key)]={f:pred[f]==baseline_predictions[key][f] for f in ('cells','flows','ports','ramps')}
+        assert all(parity[str(key)].values())
+    r.save(out/'parity.json',dict(exact=parity,new_rollouts=2))
+    baseline_loss=r._cellwise_losses(baseline_rows,z0,protocol)
+    baseline_residual=r._cellwise_residuals(train,baseline_predictions,truth,baseline_rows,z0,protocol)
+    begin=time.perf_counter();cache={};results=[];count=0;best_predictions=baseline_predictions;best_objective=baseline_loss['response_objective']
+    def evaluate(y):
+        nonlocal count,best_predictions,best_objective
+        key=tuple(float(x) for x in y)
+        if key in cache:return cache[key]
+        assert len(results)<39, 'Finite evaluation budget reached'
+        z=z0+basis@np.array(y);folder=out/f'eval_{len(results):03d}';folder.mkdir()
+        model=model_at(z,folder);rows=[];predictions={};new=0
+        if not results:
+            assert np.array_equal(y,np.zeros(12));rows=baseline_rows;predictions=baseline_predictions;residual=baseline_residual
+        else:
+            for x in train:
+                case=(x['case'],x['arm']);a,k=copy.deepcopy(inputs[case]);pred=model.rollout(*a,**k)
+                count+=1;new+=1;predictions[case]=pred
+                rows.append(r._cellwise_measure(model,pred,x,truth[case]))
+            residual=r._cellwise_residuals(train,predictions,truth,rows,z,protocol)
+        loss=r._cellwise_losses(rows,z,protocol)
+        record=dict(index=len(results),coordinates=list(y),relative_values=z.tolist(),values=(initial*(1+z)).tolist(),rows=rows,loss=loss,new_rollouts=new)
+        r.save(folder/'result.json',record);np.save(folder/'residual.npy',residual,allow_pickle=False)
+        cache[key]=residual;results.append(record)
+        if loss['response_objective']<best_objective:
+            best_objective=loss['response_objective'];best_predictions=predictions
+        r.save(out/'status.json',dict(stage='calibrating',evaluations=len(results),new_training450=count,
+            best_objective=best_objective,elapsed_sec=time.perf_counter()-begin))
+        print(json.dumps(dict(evaluation=len(results),new_rollouts=count,objective=loss['response_objective'],response=loss['response'])),flush=True)
+        return residual
+    def jacobian(y):
+        base=evaluate(y);columns=[]
+        for j in range(12):
+            h=.1 if y[j]+.1<=1 else -.1;trial=np.array(y,copy=True);trial[j]+=h
+            columns.append((evaluate(trial)-base)/h)
+        return np.column_stack(columns)
+    optimize=least_squares(evaluate,np.zeros(12),jac=jacobian,bounds=(-np.ones(12),np.ones(12)),
+        method='trf',max_nfev=3,ftol=1e-5,xtol=1e-5,gtol=1e-5)
+    chosen=min(results,key=lambda x:x['loss']['response_objective']);loss=chosen['loss']
+    gate=loss['response_objective']<baseline_loss['response_objective'] and loss['response']<=baseline_loss['response'] and loss['meaningful_signs_pass'] and loss['mean_n_rmse']<=1.1*baseline_loss['mean_n_rmse'] and loss['mean_q_rmse']<=1.1*baseline_loss['mean_q_rmse']
+    r.save(out/'selection.json',dict(selected_index=chosen['index'],eligible=gate,selected=chosen,baseline=baseline_loss,
+        frozen_before_checks=True,optimizer=dict(success=bool(optimize.success),nfev=optimize.nfev,njev=optimize.njev,message=str(optimize.message))))
+    folder=out/'selected_predictions';folder.mkdir()
+    for key,pred in best_predictions.items():
+        with gzip.open(folder/('_'.join(key)+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+    check=[]
+    if gate:
+        folder=out/'checks';folder.mkdir();model=lpr.load_sources(out/f"eval_{chosen['index']:03d}/manifest.json")['component']
+        for x in checks:
+            key=(x['case'],x['arm']);a,k=copy.deepcopy(inputs[key]);pred=model.rollout(*a,**k)
+            check.append(r._cellwise_measure(model,pred,x,observations[x['truth']]))
+            with gzip.open(folder/('_'.join(key)+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+            r.save(out/'status.json',dict(stage='checks',completed_checks=len(check),new_training450=count))
+    for p,h in pins.items():assert r.sha(p)==h
+    r.save(out/'final_source_pins.json',pins)
+    r.save(out/'summary.json',dict(selected_index=chosen['index'],baseline=baseline_loss,selected_loss=loss,training_passed=gate,
+        checks=check,check_loss=r._cellwise_losses(check,chosen['relative_values'],protocol) if check else None,
+        new_training450=count,new_parity450=2,new_check450=len(check),wall_sec=time.perf_counter()-begin,
+        optimizer=dict(success=bool(optimize.success),nfev=optimize.nfev,njev=optimize.njev,message=str(optimize.message)),
+        evaluations=len(results),fit=True,production_adopted=False,gain_qualified=False,new_native=0,new_push=0))
+    r.save(out/'status.json',dict(stage='complete',new_training450=count,new_parity450=2,new_check450=len(check),production_adopted=False))
+
+
+if __name__=='__main__':main()

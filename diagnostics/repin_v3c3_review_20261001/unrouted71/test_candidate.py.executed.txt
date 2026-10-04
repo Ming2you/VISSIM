@@ -1,0 +1,101 @@
+import copy
+from collections import Counter
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+import unittest
+from diagnostics.demand_sweep.ramp_dsd_20260916_v2.cohort_dynamics_20260920.urban_route_transport import Contracts
+from evaluation.controllers.physical_urban_transport import FIFO
+
+class Candidate(unittest.TestCase):
+    def toy(self,source=2,dest=None,rate=.12846556222265987,green=False,free=True):
+        queues={lane:[] for lane in range(1,6)}
+        queues[source]=[((dest,1),3.8)]
+        p=Contracts().toy(queues,green=green)
+        p.continuation=free
+        if free:p.unrouted_labels.add((None,1))
+        p.unrouted_71_balance_rate=rate
+        return p
+
+    def lateral(self,p):
+        return {k:n for k,n in p.movements.items() if k[-1]=='lateral'}
+
+    def test_free_labels_move_without_turn_assignment(self):
+        p=self.toy();p.step({})
+        self.assertGreater(p.cells[71,1,0].stock,0)
+        self.assertGreater(p.cells[71,3,0].stock,0)
+        self.assertEqual(set(p.counts()),{(None,1)})
+        p.check()
+
+    def test_reverse_uses_same_receiving_law(self):
+        p=self.toy(source=1);p.step({})
+        self.assertGreater(p.cells[71,2,0].stock,0)
+        self.assertTrue(all(k[0][1]==1 and k[1][1]==2 for k in self.lateral(p)))
+
+    def test_assigned_and_unidentified_labels_unchanged(self):
+        for dest,free in [(10634,True),(10635,True),(None,False)]:
+            p=self.toy(dest=dest,free=free);q=copy.deepcopy(p);q.unrouted_71_balance_rate=0.
+            for _ in range(15):
+                p.step({});q.step({})
+                self.assertEqual(p.last_transfers,q.last_transfers)
+                self.assertEqual(p.counts(),q.counts())
+
+    def test_equal_space_no_exchange(self):
+        p=self.toy()
+        p.cells={k:FIFO([((None,i),3.8)]) for i,k in enumerate(p.cells,1)}
+        p.unrouted_labels={(None,i) for i in range(1,6)};p.initial=p.counts()
+        p.step({});self.assertFalse(self.lateral(p))
+
+    def test_future_label_supported(self):
+        p=self.toy();p.cells[71,2,0]=FIFO([((None,'unrouted'),3.8)]);p.initial=p.counts()
+        p.step({});self.assertGreater(p.cells[71,1,0].stock,0)
+        self.assertEqual(set(p.counts()),{(None,'unrouted')})
+
+    def test_red_blocks_signal_discharge(self):
+        p=self.toy()
+        for _ in range(30):p.step({})
+        self.assertEqual(sum(p.departed.values()),0)
+        self.assertAlmostEqual(sum(p.counts().values()),3.8)
+
+    def test_side_exit_only_at_its_physical_deadline(self):
+        p=self.toy();p.edges[71]=[0.,24.,48.,72.,96.]
+        p.cells={(71,l,c):FIFO() for l in range(1,6) for c in range(4)}
+        p.cells[71,2,0]=FIFO([((None,1),3.8)])
+        p.cap={k:4. for k in p.cells};p.dx={k:24. for k in p.cells};p.initial=p.counts()
+        side=0.
+        for _ in range(60):
+            p.step({})
+            for source,target,packets in p.last_transfers:
+                if target==('exit',10642):
+                    self.assertEqual(source,(71,1,1));side+=sum(n for _,n in packets)
+                    self.assertTrue(all(label==(None,1) for label,n in packets))
+        self.assertGreater(side,0)
+        p.check()
+
+    def test_shared_receiving_sending_and_mass(self):
+        p=self.toy(green=True)
+        for _ in range(60):
+            p.step({});incoming=Counter();outgoing=Counter()
+            for source,target,packets in p.last_transfers:
+                n=sum(n for _,n in packets);incoming[target]+=n;outgoing[source]+=n
+            for k,n in incoming.items():
+                if k[0]!='exit':self.assertLessEqual(n,p.last_receiving_limits[k]+1e-8)
+            for k,n in outgoing.items():self.assertLessEqual(n,p.last_sending_limits[k]+1e-8)
+            p.check()
+
+    def test_disabled_120_steps_exact_old_source(self):
+        ns={'__name__':'saved_physical_urban_transport'}
+        path=Path(__file__).with_name('physical_urban_transport.py.before')
+        exec(compile(path.read_text(encoding='utf8'),str(path),'exec'),ns)
+        p=self.toy(rate=0.,green=True);q=copy.deepcopy(p)
+        for _ in range(120):
+            p.step({});ns['UrbanTransport'].step(q,{})
+            self.assertEqual(p.last_transfers,q.last_transfers)
+            self.assertEqual(p.counts(),q.counts());self.assertEqual(p.departed,q.departed)
+
+    def test_compiled_unimplemented_path_fails_closed(self):
+        p=self.toy()
+        with patch('evaluation.controllers.physical_urban_transport.prediction_cache.active',return_value=SimpleNamespace(urban_pipeline_enabled=True)):
+            with self.assertRaisesRegex(ValueError,'scalar validation'):p.step({})
+
+if __name__=='__main__':unittest.main(verbosity=2)

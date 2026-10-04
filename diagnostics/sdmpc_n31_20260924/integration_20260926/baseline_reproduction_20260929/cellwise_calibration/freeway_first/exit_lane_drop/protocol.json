@@ -1,0 +1,32 @@
+{
+  "hypothesis": "The nominal lane ending at10481 is an exiting lane, not a forced merge into the three continuous mainline lanes. Test subtracting only its1lane from local additional speed-loss delta_lanes.",
+  "geometry": {
+    "link": 2,
+    "physical": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "continuing": [
+      2,
+      3,
+      4
+    ],
+    "off_connected": [
+      1,
+      2
+    ],
+    "nominal_exiting": [
+      1
+    ]
+  },
+  "evidence": "Recovery cache2670..2970:2268 sampled cell18->downstream movements,1 was in lane1 at previous5s frame. Does not exclude earlier upstream lane changes.",
+  "candidate": "cell18 only: speed-penalty lane reduction=max(0,current effective lane reduction-1). Physical lanes,FD,density gradient,off storage/drain/split and all other cells stay unchanged.",
+  "fit": false,
+  "max_new_forecasts": 13,
+  "new_native": 0,
+  "train_gate": "NC750 first450 local15-20 loss<=110%,last300<=90%,whole speed RMSE<=baseline+2. If failed,stop after2rollouts.",
+  "validation": "If NC passes:29early/43early four arms and29late four arms. EarlyNC/VSL750,other450. No refit on action results.",
+  "limitations": "Structural ablation, not proof all geometric lane drops should be removed, not a capacity bonus, not production adoption."
+}

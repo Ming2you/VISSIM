@@ -676,12 +676,9 @@ def generate(ownership, cfg, owner, incumbent, domain, *, requested_admissible,
     if owner not in ('FW_E','FW_W') or owner not in ownership.owners:raise ValueError('Unknown FW owner')
     validate_action_addresses(ownership,incumbent)
     validate_nuf_semantics(incumbent,domain.nuf_semantics)
-    heads=tuple(cfg.network.freeway_vsl_zone_heads[owner])
-    head_of=tuple(cfg.network.freeway_vsl_zone_head_of_cell[owner])
-    if heads!=(0,5,10,15) or head_of!=tuple(5*min(i//5,3) for i in range(21)):
-        raise ValueError('Expected canonical21-cell four-zone expansion')
-    if any(type(h) is not int for h in domain.head_values) or set(domain.head_values)!={0,5,10}:
-        raise ValueError('Only free heads0/5/10 are independent')
+    heads,head_of,free_heads=addresses.installed_vsl_layout(cfg.network,owner)
+    if any(type(h) is not int for h in domain.head_values) or set(domain.head_values)!=set(free_heads):
+        raise ValueError('Only configured free VSL heads are independent')
     if _number(domain.held_horizon_sec)<=0 or _number(domain.budget_tolerance_veh_h)<0:
         raise ValueError('Invalid caller horizon/tolerance')
     if domain.budget_mode not in ('none','cap','equality'):raise ValueError('Unsupported realized budget mode')
@@ -707,7 +704,7 @@ def generate(ownership, cfg, owner, incumbent, domain, *, requested_admissible,
         if type(head) is not int or head not in domain.head_values or _number(value) not in domain.head_values[head] or label not in meter_points:
             raise ValueError('Joint probe is outside supplied effective domains')
     native={ (kind,identity):who for kind,identity,who,key in ownership.writes }
-    fixed={a.key for a in ownership.addresses if a.owner==owner and a.field=='vsl' and a.role=='fixed_recovery'}
+    fixed={a.key for a in ownership.addresses if a.owner==owner and a.field=='vsl' and a.role.startswith('fixed_')}
     frozen_rows={(kind,identity) for kind,identity,who,key in ownership.writes
                  if who!=owner or (kind=='dsd' and key in fixed)}
     if len(native)!=len(ownership.writes):raise ValueError('Duplicate physical identity')
@@ -728,7 +725,7 @@ def generate(ownership, cfg, owner, incumbent, domain, *, requested_admissible,
             raise ValueError('Direction VSL fallback differs from full vector minimum')
     check_aliases(incumbent)
     requested=[('incumbent',None,None)]
-    requested += [(f'vsl:{head}:{i}',(head,value),None) for head in (0,5,10)
+    requested += [(f'vsl:{head}:{i}',(head,value),None) for head in free_heads
                   for i,value in enumerate(domain.head_values[head])]
     requested += [('meter:'+label,None,label) for label in meter_points]
     requested += [(f'joint:{i}',(head,value),label) for i,(head,value,label) in enumerate(domain.joint_pairs)]
@@ -789,7 +786,7 @@ def generate(ownership, cfg, owner, incumbent, domain, *, requested_admissible,
             rejected.append({'alias':alias,'stage':'realized','request':request,'evidence':evidence,
                 'budget_mode':domain.budget_mode,'budget_residual_veh_h':residual});continue
         price_row = [_field(realized, 'vsl')[f'{owner}__seg{h}']-_field(incumbent, 'vsl')[f'{owner}__seg{h}']
-                     for h in (0, 5, 10)] + [_field(realized, 'ramp_metering')[r]-_field(incumbent, 'ramp_metering')[r] for r in ramps]
+                     for h in free_heads] + [_field(realized, 'ramp_metering')[r]-_field(incumbent, 'ramp_metering')[r] for r in ramps]
         if price_basis_dimension is not None and alias != 'incumbent' and not _adds_price_rank(basis_rows, price_row):
             continue
         if command is None and not defer_physical_commands:command=rows(realized)
@@ -1167,13 +1164,10 @@ def build_current_freeway_domain(follower, owner, state, coupling, demand, incum
         raise ValueError('Explicit frozen query context provenance required')
     if type(joint_pairs) is not tuple:
         raise ValueError('Caller must supply explicit ordered joint_pairs')
-    heads = tuple(net.freeway_vsl_zone_heads[owner])
-    head_of = tuple(net.freeway_vsl_zone_head_of_cell[owner])
+    heads, head_of, free_heads = addresses.installed_vsl_layout(net,owner)
     zones = tuple(net.freeway_vsl_zone_of_cell[owner])
-    if (heads != (0, 5, 10, 15) or head_of != tuple(5 * min(i // 5, 3) for i in range(21))
-            or zones != tuple(min(i // 5, 3) for i in range(21))
-            or tuple(net.freeway_vsl_zone_free) != (0, 1, 2)):
-        raise ValueError('Current domain requires three free heads and fixed recovery zone')
+    if zones != tuple(heads.index(h) for h in head_of):
+        raise ValueError('Current domain zone aliases differ from configured heads')
     if not cfg.mpc.relaxed_quantized_controls or not ff.vsl_sequence_search:
         raise ValueError('Current extraction supports installed relaxed temporal VSL source only')
     sequence_method = follower._freeway_vsl_sequence_candidates
@@ -1217,11 +1211,11 @@ def build_current_freeway_domain(follower, owner, state, coupling, demand, incum
     selected = (kept or first) if move_box is None else kept
     current = tuple(float(_field(incumbent, 'vsl')[f'{owner}__seg{i}']) for i in range(21))
     snapshot_heads = {h: float(_number(_field(source_snapshot, 'vsl')[f'{owner}__seg{h}'])) for h in heads}
-    values = {h: [] for h in (0, 5, 10)}
+    values = {h: [] for h in free_heads}
     projected_rejected = []
     for vector in selected:
-        if any(vector[i] != vector[head_of[i]] for i in range(21)) or any(vector[i] != current[i] for i in range(15, 21)):
-            raise ValueError('Installed first-vector source changed zone aliases or fixed recovery')
+        if any(vector[i] != vector[head_of[i]] for i in range(21)) or any(vector[i] != current[i] for i in range(21) if head_of[i] not in free_heads):
+            raise ValueError('Installed first-vector source changed zone aliases or fixed recovery (including fixed entry)')
         for head in values:
             value = vector[head]
             if value not in allowed or abs(value - snapshot_heads[head]) > max_step + 1.0e-9:
@@ -1670,7 +1664,7 @@ def make_joint_neighbor_callbacks(
                     realize=lambda action: prepare(action, ramps),
                     realized_admissible=realized_admissible, physical_rows=physical_rows,
                     deadline_check=deadline_check,
-                    price_basis_dimension=(3 + sum(r not in fixed_rates for r in ramps)) if price_probe else None,
+                    price_basis_dimension=(len(domain.head_values) + sum(r not in fixed_rates for r in ramps)) if price_probe else None,
                     meter_actual_reference=decision_anchor if physical else None,
                     defer_physical_commands=physical and not _all_command_evidence and not price_probe)
                 if not result['incumbent_feasible']:

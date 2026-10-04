@@ -102,7 +102,10 @@ def route_generate(state,cfg,no,vehicles,step):
     local,a,inputs=routes(state,cfg)
     if no not in inputs:return False
     if local['last_step']!=step:raise ValueError('Aggregate generation clock mismatch')
-    a['bins'].add((no,0,0),step+legacy._travel(state,cfg,inputs[no]['route_stages'][0]),vehicles)
+    due=step+legacy._travel(state,cfg,inputs[no]['route_stages'][0])
+    a['bins'].add((no,0,0),due,vehicles)
+    from evaluation.controllers.omega_distance import record_native_route
+    record_native_route(state,cfg,no,0,vehicles,step,due)
     local['received_veh']+=vehicles;route_check(state,cfg);return True
 
 
@@ -127,6 +130,8 @@ def route_advance(state,cfg,step):
                         {'input:'+no+':stage:'+str(k):eligible})
                 if green is not None:
                     due=math.ceil(green/cfg.simulation.T_u_sec)+legacy._travel(state,cfg,stage,gate['post_gate_distance_m'])
+                    from evaluation.controllers.omega_distance import record_native_route
+                    record_native_route(state,cfg,no,k,waiting,math.ceil(green/cfg.simulation.T_u_sec),due,after_gate=True)
                     b.waiting[j]=0.;b.add((no,k,1),due,waiting)
                 continue
             movement,origin=stage['movement'],stage['origin']
@@ -165,6 +170,8 @@ def route_accept(state,cfg,movement,vehicles,step):
     if ordinary:
         if target in uqm.approach_routing(cfg):uqm._schedule(state.urban_arrival_buffer,target,due,ordinary)
         uqm._schedule(state.urban_storage_release_buffer,target,due,ordinary)
+        from evaluation.controllers.omega_distance import record_ordinary_movement
+        record_ordinary_movement(state,cfg,movement,ordinary,step,due)
     route_check(state,cfg);return True
 
 
@@ -206,7 +213,10 @@ def prehead_generate(state,cfg,no,vehicles,step):
     if no not in inputs:return False
     if local['last_step']!=step:raise ValueError('Aggregate pre-head generation clock mismatch')
     spec=inputs[no]['prehead_spec'];distance=sum(s['stop']-s['start'] for s in spec['segments_to_decision'])
-    a['bins'].add((no,None,'decision'),legacy._due(state,cfg,spec['origin'],step,distance),vehicles)
+    due=legacy._due(state,cfg,spec['origin'],step,distance)
+    a['bins'].add((no,None,'decision'),due,vehicles)
+    from evaluation.controllers.omega_distance import record_native_prehead
+    record_native_prehead(state,cfg,no,'decision',vehicles,step,due)
     local['generated_veh']+=vehicles;prehead_check(state,cfg);return True
 
 
@@ -221,7 +231,11 @@ def prehead_advance(state,cfg,step):
     for no,row in inputs.items():
         spec=row['prehead_spec'];j=b.index[no,None,'decision'];n=b.waiting[j];b.waiting[j]=0.
         for tag,branch in spec['branches'].items():
-            b.add((no,tag,'approach'),legacy._due(state,cfg,spec['origin'],step,spec['decision_to_head_m']),n*branch['probability'])
+            due=legacy._due(state,cfg,spec['origin'],step,spec['decision_to_head_m'])
+            amount=n*branch['probability']
+            b.add((no,tag,'approach'),due,amount)
+            from evaluation.controllers.omega_distance import record_native_prehead
+            record_native_prehead(state,cfg,no,'approach',amount,step,due)
             release=b.index[no,tag,'release'];a['queue'][no,tag]+=b.waiting[release];b.waiting[release]=0.
             j=b.index[no,tag,'approach'];waiting=b.waiting[j]
             if waiting<=0:continue
@@ -283,7 +297,10 @@ def prehead_finish(state,control,cfg,step):
         for key in keys:
             n=accepted*a['blocked'][key]/total if total else 0.
             a['blocked'][key]-=n
-            b.add((*key,'release'),legacy._due(state,cfg,spec['origin'],step,spec['interhead_distance_m']),n)
+            due=legacy._due(state,cfg,spec['origin'],step,spec['interhead_distance_m'])
+            b.add((*key,'release'),due,n)
+            from evaluation.controllers.omega_distance import record_native_prehead
+            record_native_prehead(state,cfg,no,'release',n,step,due)
             source='input:'+no+':movement:'+spec['left_movement'];sources[source]=sources.get(source,0.)+n
         served+=accepted
         if capture:ledger.record_resource_allocation('residual_tag_service',spec['origin']+':'+spec['first_phase'],remaining,sources)

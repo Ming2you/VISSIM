@@ -1,0 +1,25 @@
+{
+  "cases": [
+    "seed29 NC",
+    "seed43 NC"
+  ],
+  "timestamps": "cutoff+30..420 every30s",
+  "bases": [
+    "native current N/v",
+    "saved autonomous current N/v"
+  ],
+  "common_inputs": "Same observed current off stocks and preceding30s source/merge rates in both bases; same configured split and110 command.",
+  "purpose": "Does substituting measured mainline state remove large local speed-equation imbalance?",
+  "horizon": "Five consecutive canonical1s steps per conditional snapshot, not a continuous450s prediction",
+  "comparison": "Following5s native cell-mean speed trend. Population changes/transport are included; NOT individual acceleration or exact instantaneous derivative.",
+  "limits": [
+    "Future snapshots are labels only, but later initial states are observed: cause-isolation, never gain qualification.",
+    "Preceding30s mean flows are not exact future fluxes. Current off occupancy/free-space support is held during this conditional probe; off-drain/queue feedback is not forecast here.",
+    "Saved prediction state is re-evaluated under common observed ports/lagged rates, not exact archived autonomous continuation.",
+    "NC only avoids guessing future VSL cohort composition. No new coefficient selection from this audit."
+  ],
+  "new_native": 0,
+  "new_full_rollouts": 0,
+  "new_parameters": 0,
+  "expected_conditional_steps": 280
+}

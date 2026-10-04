@@ -75,6 +75,22 @@ def _address_number(value, label):
     return value
 
 
+def installed_vsl_layout(net, link):
+    """Validate either existing 21-address layout, including fixed entry signs."""
+    free_zones = tuple(net.freeway_vsl_zone_free)
+    layouts = {(0, 1, 2): (0, 5, 10, 15),
+               (1, 2, 3, 4): (0, 2, 5, 10, 13, 15)}
+    if any(type(z) is not int for z in free_zones) or free_zones not in layouts:
+        raise ValueError('Unsupported installed free VSL zone indices')
+    heads = layouts[free_zones]
+    if tuple(net.freeway_vsl_zone_heads[link]) != heads:
+        raise ValueError(f'{link}: unsupported VSL zone heads')
+    expected = tuple(max(h for h in heads if h <= i) for i in range(21))
+    if tuple(net.freeway_vsl_zone_head_of_cell[link]) != expected:
+        raise ValueError(f'{link}: invalid zone expansion')
+    return heads, expected, tuple(heads[z] for z in free_zones)
+
+
 def build_ownership(cfg, mapping, selected_plan, *, segment_dsd_controls):
     """Derive the current 17 urban + 2 FW owner addresses without mutation.
 
@@ -141,19 +157,15 @@ def build_ownership(cfg, mapping, selected_plan, *, segment_dsd_controls):
         for sg in sorted(sgs):
             claim('signal_sg', f'{sc}:{sg}', signal, signal)
 
-    heads_by_link = net.freeway_vsl_zone_heads
     cells_by_link = net.freeway_vsl_zone_head_of_cell
-    if tuple(net.freeway_vsl_zone_free) != (0, 1, 2):
-        raise ValueError('Expected the three existing free zone indices')
+    free_by_link = {}
     for link in freeway:
-        if tuple(heads_by_link[link]) != (0, 5, 10, 15):
-            raise ValueError(f'{link}: unsupported VSL zone heads')
-        expected = tuple(5 * min(i // 5, 3) for i in range(21))
-        if tuple(cells_by_link[link]) != expected:
-            raise ValueError(f'{link}: invalid zone expansion')
+        heads, expected, free_heads = installed_vsl_layout(net, link)
+        free_by_link[link] = free_heads
         addresses.append(Address('vsl', link, link, 'derived'))
         for i, head in enumerate(expected):
-            role = 'fixed_recovery' if head == 15 else ('strategy' if i == head else 'derived')
+            role = ('fixed_recovery' if head == 15 else 'fixed_entry' if head not in free_heads
+                    else 'strategy' if i == head else 'derived')
             addresses.append(Address('vsl', f'{link}__seg{i}', link, role))
     cells, free_sites = set(), set()
     for segment in mapping['segments']:
@@ -165,11 +177,11 @@ def build_ownership(cfg, mapping, selected_plan, *, segment_dsd_controls):
         for dsd in segment_dsd_controls(segment):
             no = _integer(dsd['dsd_no'], 'DSD')
             claim('dsd', str(no), link, f'{link}__seg{head}')
-            if head != 15:
+            if head in free_by_link[link]:
                 free_sites.add((link, head))
     if cells != {(link, i) for link in freeway for i in range(21)}:
         raise ValueError('Mapped segment coverage must be exactly 42 cells')
-    if free_sites != {(link, i) for link in freeway for i in (0, 5, 10)}:
+    if free_sites != {(link, i) for link in freeway for i in free_by_link[link]}:
         raise ValueError('A free VSL strategy has no mapped native write')
 
     ramps = dict(net.ramp_to_freeway)

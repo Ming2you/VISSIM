@@ -1,0 +1,946 @@
+{
+  "status": "complete",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "adopted": false,
+  "cases": {
+    "2250": {
+      "start": 2250,
+      "end": 2700,
+      "flows": {
+        "SC101_east_through": {
+          "actual": 89,
+          "before": 34.31444772416788,
+          "after": 34.7737655815709
+        },
+        "SC101_south_left": {
+          "actual": 80,
+          "before": 44.77253034660164,
+          "after": 45.0397764235577
+        },
+        "road329_through": {
+          "actual": 108,
+          "before": 77.77330788037405,
+          "after": 77.77330788037405
+        },
+        "road29_through": {
+          "actual": 86,
+          "before": 52.25835484718084,
+          "after": 52.605437205851125
+        },
+        "road40_left": {
+          "actual": 39,
+          "before": 35.2,
+          "after": 35.2
+        },
+        "ramp10484_arrival": {
+          "actual": 95,
+          "before": 79.25061559117604,
+          "after": 79.42415677051119
+        },
+        "ramp10484_merge": {
+          "actual": 100,
+          "before": 88.76046297415144,
+          "after": 90.19366352199025
+        }
+      },
+      "initial_upstream_source": {
+        "before": {
+          "storage:SC1_to_SC101": 4.0
+        },
+        "after": {
+          "storage:SC1_to_SC101": 4.0
+        }
+      },
+      "initial_origin": {
+        "before": {
+          "storage": 37.0,
+          "arrival_buffer": {
+            "2265": 32.368421052631575,
+            "2355": 4.631578947368421
+          },
+          "release_buffer": {
+            "2265": 32.368421052631575,
+            "2355": 4.631578947368421
+          }
+        },
+        "after": {
+          "storage": 37.0,
+          "arrival_buffer": {
+            "2265": 37.0
+          },
+          "release_buffer": {
+            "2265": 37.0
+          }
+        }
+      },
+      "cost450_same_command": {
+        "before": 486.7307494427418,
+        "after": 486.51753251136824
+      },
+      "ramp_mass_residual450": {
+        "RM_C10480": 7.105427357601002e-15,
+        "RM_C10482": 4.156675004196586e-13,
+        "RM_C10646": 7.105427357601002e-15,
+        "RM_C10644": -1.6697754290362354e-13,
+        "RM_C10639": 4.529709940470639e-14,
+        "RM_C10681": -1.8829382497642655e-13,
+        "RM_C10490": 5.5067062021407764e-14,
+        "RM_C10484": -1.1013412404281553e-13
+      },
+      "compute_sec": 48.89876180002466,
+      "exact_prediction_parity": false,
+      "buffer_changes": {
+        "SC1001_to_SC1002": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 7.05,
+              "2355": 4.95
+            },
+            "after": {
+              "2265": 12.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 7.05,
+              "2355": 4.95
+            },
+            "after": {
+              "2265": 12.0
+            }
+          }
+        },
+        "SC1001_to_SC1003": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 13.10344827586207,
+              "2355": 12.89655172413793
+            },
+            "after": {
+              "2265": 16.0,
+              "2355": 10.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 13.10344827586207,
+              "2355": 12.89655172413793
+            },
+            "after": {
+              "2265": 16.0,
+              "2355": 10.0
+            }
+          }
+        },
+        "SC1002_to_SC101": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 2.25,
+              "2355": 0.75
+            },
+            "after": {
+              "2265": 3.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 2.25,
+              "2355": 0.75
+            },
+            "after": {
+              "2265": 3.0
+            }
+          }
+        },
+        "SC1002_to_SC105": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 12.75,
+              "2355": 2.75
+            },
+            "after": {
+              "2265": 14.5,
+              "2355": 1.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 12.75,
+              "2355": 2.75
+            },
+            "after": {
+              "2265": 14.5,
+              "2355": 1.0
+            }
+          }
+        },
+        "SC1003_to_SC1001": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 4.604651162790695,
+              "2355": 27.3953488372093
+            },
+            "after": {
+              "2265": 10.999999999999996,
+              "2355": 21.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 4.604651162790695,
+              "2355": 27.3953488372093
+            },
+            "after": {
+              "2265": 10.999999999999996,
+              "2355": 21.0
+            }
+          }
+        },
+        "SC1003_to_SC105": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 5.578947368421052,
+              "2355": 4.421052631578948
+            },
+            "after": {
+              "2265": 10.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 5.578947368421052,
+              "2355": 4.421052631578948
+            },
+            "after": {
+              "2265": 10.0
+            }
+          }
+        },
+        "SC1004_to_SC1003": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 16.96153846153846,
+              "2355": 4.038461538461538
+            },
+            "after": {
+              "2265": 21.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 16.96153846153846,
+              "2355": 4.038461538461538
+            },
+            "after": {
+              "2265": 21.0
+            }
+          }
+        },
+        "SC1005_to_SC1004": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 18.642857142857142,
+              "2355": 2.357142857142857
+            },
+            "after": {
+              "2265": 21.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 18.642857142857142,
+              "2355": 2.357142857142857
+            },
+            "after": {
+              "2265": 21.0
+            }
+          }
+        },
+        "SC101_to_SC1002": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 5.684210526315789,
+              "2355": 6.315789473684211
+            },
+            "after": {
+              "2265": 12.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 5.684210526315789,
+              "2355": 6.315789473684211
+            },
+            "after": {
+              "2265": 12.0
+            }
+          }
+        },
+        "SC101_to_SC5": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 0.16666666666666663,
+              "2355": 0.8333333333333331
+            },
+            "after": {
+              "2265": 0.9999999999999998
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 0.16666666666666663,
+              "2355": 0.8333333333333331
+            },
+            "after": {
+              "2265": 0.9999999999999998
+            }
+          }
+        },
+        "SC105_to_SC1002": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 5.5,
+              "2355": 1.5
+            },
+            "after": {
+              "2265": 7.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 5.5,
+              "2355": 1.5
+            },
+            "after": {
+              "2265": 7.0
+            }
+          }
+        },
+        "SC1_to_SC101": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 32.368421052631575,
+              "2355": 4.631578947368421
+            },
+            "after": {
+              "2265": 37.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 32.368421052631575,
+              "2355": 4.631578947368421
+            },
+            "after": {
+              "2265": 37.0
+            }
+          }
+        },
+        "SC2002_to_SC1001": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 11.529411764705882,
+              "2355": 2.4705882352941178
+            },
+            "after": {
+              "2265": 14.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 11.529411764705882,
+              "2355": 2.4705882352941178
+            },
+            "after": {
+              "2265": 14.0
+            }
+          }
+        },
+        "SC5_to_SC101": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 1.3333333333333335,
+              "2355": 0.6666666666666666
+            },
+            "after": {
+              "2265": 2.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 1.3333333333333335,
+              "2355": 0.6666666666666666
+            },
+            "after": {
+              "2265": 2.0
+            }
+          }
+        },
+        "in_SC1001_W": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 170.84,
+              "2355": 6.160000000000001
+            },
+            "after": {
+              "2265": 177.0,
+              "2355": 1.7763568394002505e-15
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 170.84,
+              "2355": 6.160000000000001
+            },
+            "after": {
+              "2265": 177.0,
+              "2355": 1.7763568394002505e-15
+            }
+          }
+        },
+        "in_SC1004_S": {
+          "arrival_buffer": {
+            "before": {
+              "2265": 85.80246913580248,
+              "2355": 53.197530864197525
+            },
+            "after": {
+              "2265": 100.0,
+              "2355": 39.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "2265": 85.80246913580248,
+              "2355": 53.197530864197525
+            },
+            "after": {
+              "2265": 100.0,
+              "2355": 39.0
+            }
+          }
+        }
+      }
+    },
+    "3600": {
+      "start": 3600,
+      "end": 3750,
+      "flows": {
+        "SC101_east_through": {
+          "actual": 33,
+          "before": 15.640719466347015,
+          "after": 19.92934325317468
+        },
+        "SC101_south_left": {
+          "actual": 11,
+          "before": 16.80009991097318,
+          "after": 17.83091323652946
+        },
+        "road329_through": {
+          "actual": 27,
+          "before": 17.472049689441,
+          "after": 21.57142857142857
+        },
+        "road29_through": {
+          "actual": 8,
+          "before": 4.381944444444444,
+          "after": 4.9375
+        },
+        "road40_left": {
+          "actual": 11,
+          "before": 12.266666666666666,
+          "after": 12.266666666666666
+        },
+        "ramp10484_arrival": {
+          "actual": 23,
+          "before": 17.324853872513675,
+          "after": 17.654196276141793
+        },
+        "ramp10484_merge": {
+          "actual": 23,
+          "before": 17.419815448913756,
+          "after": 17.824350596306044
+        }
+      },
+      "initial_upstream_source": {
+        "before": {
+          "storage:SC1_to_SC101": 15.0
+        },
+        "after": {
+          "storage:SC1_to_SC101": 15.0
+        }
+      },
+      "initial_origin": {
+        "before": {
+          "storage": 70.0,
+          "arrival_buffer": {
+            "3615": 50.581395348837205,
+            "3705": 19.41860465116279
+          },
+          "release_buffer": {
+            "3615": 50.581395348837205,
+            "3705": 19.41860465116279
+          }
+        },
+        "after": {
+          "storage": 70.0,
+          "arrival_buffer": {
+            "3615": 55.0,
+            "3705": 15.0
+          },
+          "release_buffer": {
+            "3615": 55.0,
+            "3705": 15.0
+          }
+        }
+      },
+      "cost450_same_command": {
+        "before": 517.9444337110953,
+        "after": 517.4572340799117
+      },
+      "ramp_mass_residual450": {
+        "RM_C10480": -1.3322676295501878e-15,
+        "RM_C10482": 2.2382096176443156e-13,
+        "RM_C10646": 2.220446049250313e-15,
+        "RM_C10644": 8.526512829121202e-14,
+        "RM_C10639": 4.04121180963557e-14,
+        "RM_C10681": -2.7711166694643907e-13,
+        "RM_C10490": 6.394884621840902e-14,
+        "RM_C10484": -3.2862601528904634e-14
+      },
+      "compute_sec": 31.175036199972965,
+      "exact_prediction_parity": false,
+      "buffer_changes": {
+        "SC1001_to_SC1003": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 13.136363636363637,
+              "3705": 3.8636363636363633
+            },
+            "after": {
+              "3615": 17.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 13.136363636363637,
+              "3705": 3.8636363636363633
+            },
+            "after": {
+              "3615": 17.0
+            }
+          }
+        },
+        "SC1002_to_SC1001": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 0.6111111111111112,
+              "3705": 0.8888888888888893
+            },
+            "after": {
+              "3615": 1.5000000000000004
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 0.6111111111111112,
+              "3705": 0.8888888888888893
+            },
+            "after": {
+              "3615": 1.5000000000000004
+            }
+          }
+        },
+        "SC1002_to_SC101": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 1.6666666666666667,
+              "3705": 1.3333333333333333
+            },
+            "after": {
+              "3615": 3.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 1.6666666666666667,
+              "3705": 1.3333333333333333
+            },
+            "after": {
+              "3615": 3.0
+            }
+          }
+        },
+        "SC1002_to_SC105": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 30.6078431372549,
+              "3705": 14.3921568627451
+            },
+            "after": {
+              "3615": 45.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 30.6078431372549,
+              "3705": 14.3921568627451
+            },
+            "after": {
+              "3615": 45.0
+            }
+          }
+        },
+        "SC1003_to_SC1001": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 47.522613065326624,
+              "3705": 145.47738693467338
+            },
+            "after": {
+              "3615": 49.0,
+              "3705": 144.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 47.522613065326624,
+              "3705": 145.47738693467338
+            },
+            "after": {
+              "3615": 49.0,
+              "3705": 144.0
+            }
+          }
+        },
+        "SC1003_to_SC1004": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 5.142857142857143,
+              "3705": 0.8571428571428571
+            },
+            "after": {
+              "3615": 6.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 5.142857142857143,
+              "3705": 0.8571428571428571
+            },
+            "after": {
+              "3615": 6.0
+            }
+          }
+        },
+        "SC1003_to_SC105": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 4.130434782608695,
+              "3705": 5.869565217391305
+            },
+            "after": {
+              "3615": 9.0,
+              "3705": 1.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 4.130434782608695,
+              "3705": 5.869565217391305
+            },
+            "after": {
+              "3615": 9.0,
+              "3705": 1.0
+            }
+          }
+        },
+        "SC1004_to_SC1003": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 9.481481481481481,
+              "3705": 6.518518518518518
+            },
+            "after": {
+              "3615": 16.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 9.481481481481481,
+              "3705": 6.518518518518518
+            },
+            "after": {
+              "3615": 16.0
+            }
+          }
+        },
+        "SC1005_to_SC1004": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 20.18181818181818,
+              "3705": 11.818181818181818
+            },
+            "after": {
+              "3615": 22.0,
+              "3705": 10.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 20.18181818181818,
+              "3705": 11.818181818181818
+            },
+            "after": {
+              "3615": 22.0,
+              "3705": 10.0
+            }
+          }
+        },
+        "SC101_to_SC1": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 22.5,
+              "3705": 2.5
+            },
+            "after": {
+              "3615": 24.0,
+              "3705": 1.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 22.5,
+              "3705": 2.5
+            },
+            "after": {
+              "3615": 24.0,
+              "3705": 1.0
+            }
+          }
+        },
+        "SC101_to_SC1002": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 13.26086956521739,
+              "3705": 5.739130434782609
+            },
+            "after": {
+              "3615": 19.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 13.26086956521739,
+              "3705": 5.739130434782609
+            },
+            "after": {
+              "3615": 19.0
+            }
+          }
+        },
+        "SC101_to_SC5": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 0.33333333333333337,
+              "3705": 0.6666666666666666
+            },
+            "after": {
+              "3615": 1.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 0.33333333333333337,
+              "3705": 0.6666666666666666
+            },
+            "after": {
+              "3615": 1.0
+            }
+          }
+        },
+        "SC105_to_SC1002": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 16.40909090909091,
+              "3705": 2.590909090909091
+            },
+            "after": {
+              "3615": 19.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 16.40909090909091,
+              "3705": 2.590909090909091
+            },
+            "after": {
+              "3615": 19.0
+            }
+          }
+        },
+        "SC1_to_SC101": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 50.581395348837205,
+              "3705": 19.41860465116279
+            },
+            "after": {
+              "3615": 55.0,
+              "3705": 15.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 50.581395348837205,
+              "3705": 19.41860465116279
+            },
+            "after": {
+              "3615": 55.0,
+              "3705": 15.0
+            }
+          }
+        },
+        "SC2002_to_SC1001": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 7.111111111111111,
+              "3705": 0.8888888888888888
+            },
+            "after": {
+              "3615": 8.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 7.111111111111111,
+              "3705": 0.8888888888888888
+            },
+            "after": {
+              "3615": 8.0
+            }
+          }
+        },
+        "SC2004_to_SC1002": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 14.0625,
+              "3705": 0.9375
+            },
+            "after": {
+              "3615": 15.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 14.0625,
+              "3705": 0.9375
+            },
+            "after": {
+              "3615": 15.0
+            }
+          }
+        },
+        "SC5_to_SC101": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 5.555555555555555,
+              "3705": 4.444444444444445
+            },
+            "after": {
+              "3615": 10.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 5.555555555555555,
+              "3705": 4.444444444444445
+            },
+            "after": {
+              "3615": 10.0
+            }
+          }
+        },
+        "in_SC1001_W": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 159.95348837209303,
+              "3705": 10.046511627906977
+            },
+            "after": {
+              "3615": 170.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 159.95348837209303,
+              "3705": 10.046511627906977
+            },
+            "after": {
+              "3615": 170.0
+            }
+          }
+        },
+        "in_SC1004_S": {
+          "arrival_buffer": {
+            "before": {
+              "3615": 85.74770642201835,
+              "3705": 115.25229357798165
+            },
+            "after": {
+              "3615": 93.0,
+              "3705": 108.0
+            }
+          },
+          "release_buffer": {
+            "before": {
+              "3615": 85.74770642201835,
+              "3705": 115.25229357798165
+            },
+            "after": {
+              "3615": 93.0,
+              "3705": 108.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_upstreamready\\trace.json.gz": "aeb30ca675615eadd66e9092c408d1aefa67a1f0352facf4cf9cd94aa1e5e2b9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_residualclass\\trace.json.gz": "8e633cad285b74ab95e2568aee07fba6381f58c504ee0a4b53aa668a6f949318",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_upstreamready\\initial.json": "ab29d32081d3656d485d8c8e0106241d53bbe1bd38df323b5ab402142224c7dd",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_residualclass\\initial.json": "da526d52295fb8b2dbdba75bd09ec4dace31ccc5ce8776edd3e4ca13495a337d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_upstreamready\\projection.json": "8b47e0a98d5b6643770ca96effc48a368e152cc659c35e6b0fc12bd9fc324c56",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_residualclass\\projection.json": "8b47e0a98d5b6643770ca96effc48a368e152cc659c35e6b0fc12bd9fc324c56",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_upstreamready\\receipt.json": "1ec034121d4b66821c69bd90418ad5e42e0363e965af984e52d433af4ecd9a7d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_residualclass\\receipt.json": "e3dafec84a2d50b7391d623f2a9dbd8b09e2bb5321837341e4ebb053b56099a9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_RM_C10484_city2250_ps_all8_sc101_upstreamready\\held_actual.json": "f5e2dd239c938602123ff5d62f5edef26863c03dad1175298522cf4d2651eb23",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_RM_C10484_city2250_ps_all8_sc101_residualclass\\held_actual.json": "67ee75791db4c9bf955567b41c5d509dcd68a7db43fc4f70ffbf651128ed318c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_upstreamready\\service_projection.json": "e48cf5036a7166c2291fe8a1c3d0b8228dfd30ca9c02204e20f75f1492afc616",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_residualclass\\service_projection.json": "e48cf5036a7166c2291fe8a1c3d0b8228dfd30ca9c02204e20f75f1492afc616",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps_all8_sc101_residualclass\\ramp_initial.json": "47a1392a83adb6a87d61367142bd63120aee3d3aca7d6081f5a276e83b2bde91",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_upstreamready\\trace.json.gz": "c4a059a8e55b06088d17a32ca3349a5037db4f33fe415a63773bfa8f6cf60f7b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_residualclass\\trace.json.gz": "5fba47a5208afca29f0552a53f599dd72822be58715bcce4cfea6a028b7e0edd",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_upstreamready\\initial.json": "5c729c6750bcc1102702c14e830722656c6274feb65c405b815611d7e8283986",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_residualclass\\initial.json": "fc301235be05ae24a41d90c3f8598f95b116e1cb89e22bc2090342a3d0a86af8",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_upstreamready\\projection.json": "8c6171e7118d7990942953989105d7e1bd8570e536915235b8fb0a9eac4de4a2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_residualclass\\projection.json": "8c6171e7118d7990942953989105d7e1bd8570e536915235b8fb0a9eac4de4a2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_upstreamready\\receipt.json": "d92f06adc3772a6fb1a6f7b893385c4b32ded45aac67497bbbe1857af7475dc7",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_residualclass\\receipt.json": "7a05d0c6f290ae9a14e06afca96bf5d69e3d8b806115c22d58a9e1b2008cfc23",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded3600_lever450_RM_C10484_city3600_ps_all8_sc101_upstreamready\\held_actual.json": "d55f73543470fa0798ccc28ccdd65e3933b4d37d56bf1f521d7d542a849f9b58",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded3600_lever450_RM_C10484_city3600_ps_all8_sc101_residualclass\\held_actual.json": "72ccf5164c11405d016c410fa69b566211b3a85964ac99f5062e26ff008e75b0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_upstreamready\\service_projection.json": "7170385293bd37815f0ce9c6f7f28034dc068c43d0f1a408e47c9b7edd9bc92e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_residualclass\\service_projection.json": "7170385293bd37815f0ce9c6f7f28034dc068c43d0f1a408e47c9b7edd9bc92e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps_all8_sc101_residualclass\\ramp_initial.json": "aa12d0d4f107e24445a5f0d351d7bddefd54536ef1ebf9e1da573f9c24afd720"
+  },
+  "forecasts": 2,
+  "fit_evaluations": 0,
+  "new_native_runs": 0,
+  "future_observation_inputs": false,
+  "limits": [
+    "Correction changes readiness only; native intermediate clock/branched travel are not yet part of this aggregate arrival buffer.",
+    "No new control comparison, SDMPC choice or independent-seed validation in these same-command forecasts.",
+    "3600 actual command comparison is restricted to the first150 seconds."
+  ]
+}

@@ -1,0 +1,297 @@
+"""Two-road queue attribution, using pinned geometry and completed records only."""
+import collections
+import gzip
+import hashlib
+import json
+from pathlib import Path
+import sys
+import xml.etree.ElementTree as ET
+
+L = Path(__file__).resolve().parent
+U = L.parents[4]
+OUT = L/'source_sc101'
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load(path):
+    raw = path.read_bytes()
+    return json.loads(gzip.decompress(raw) if path.suffix == '.gz' else raw)
+
+
+def write(name, value):
+    path = OUT/name
+    assert not path.exists(), path
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+
+
+def prepare():
+    assert (U/'evaluation').is_dir(), U
+    authority_path = L/'city_path/2250_init_hp_sc101/initial.json'
+    authority = load(authority_path)['network']
+    lane_path = L/'city_path/head_lane_support.json'
+    lane = load(lane_path)
+    network = U/lane['network']['path']
+    assert digest(network) == lane['network']['sha256']
+    tree = ET.parse(network)
+    links = {x.get('no'):x for x in tree.findall('./links/link')}
+    old_authority = load(U/lane['authority']['path'])['network']
+    for name, row in lane['movements'].items():
+        assert authority['urban_movements'][name] == old_authority['urban_movements'][name]
+        assert authority['control_area_routes']['movement:'+name] == old_authority['control_area_routes']['movement:'+name]
+    lane['authority'] = dict(path=str(authority_path.relative_to(U)), sha256=digest(authority_path))
+    selected = {n:s for n,s in authority['urban_movements'].items()
+                if n.startswith(('SC101_E_SC5_', 'SC101_S_SC1_'))}
+    assert len(selected) == 6
+    for name, spec in selected.items():
+        turns = [t for t in authority['control_area_routes']['movement:'+name]['physical_turns']
+                 if t.get('source_evidence',{}).get('canonical_approach_leg')]
+        assert len(turns) == 1
+        t = turns[0]
+        assert t['from_link'] in ('1220014201','1220011503')
+        connector = links[t['connector']]
+        start = connector.find('fromLinkEndPt')
+        end = connector.find('toLinkEndPt')
+        assert start.get('lane').split()[0] == t['from_link']
+        assert end.get('lane').split()[0] == t['to_link']
+        first = int(start.get('lane').split()[1])
+        lane['movements'][name] = dict(
+            expected_spec={k:spec[k] for k in ('signal','phase','origin','receiving_link','kind')},
+            from_link=t['from_link'], connector=t['connector'], to_link=t['to_link'],
+            lanes=list(range(first, first+len(connector.findall('./lanes/lane')))))
+    lane['scope'] = ('Existing29/329 plus SC101 east/south queue lane support. Shared through/right '
+                     'lane retains existing relative weights; no individual destination inference or fitted rates.')
+    write('head_lane_support.json', lane)
+    base_path = L/'physical_speed/candidate_config.json'
+    config = load(base_path)
+    config['urban']['queue']['head_lane_contract'] = str((OUT/'head_lane_support.json').relative_to(U))
+    write('candidate_config.json', config)
+    protected = list((U/'evaluation/controllers').glob('*.py')) + [network, base_path, lane_path,
+        U/'evaluation/parameters.json', U/'vendor/NumSim-mine/src/models/urban_queue_model.py']
+    stop = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/STOP')
+    if stop.exists(): protected.append(stop)
+    write('protocol.json', dict(previous_goal_turn='no_progress: status clarification only',
+        states=[2250,3600], forecast_budget=2, candidate_count=1, coefficient_fits=0,
+        source_pins={str(p):digest(p) for p in protected},
+        physical_change='Only existing queue attribution contract extends to two physical approach links',
+        tests='Queue mass/geometry, unchanged services and commands; native2250 fixed450 and3600 first150.',
+        interpretation='Better queue attribution does not itself prove control benefit or qualify adoption.',
+        native_runs=0, live_polling=0, future_prediction_inputs=False))
+    print(json.dumps({'prepared':str(OUT),'selected':list(selected)}), flush=True)
+
+
+def report(service=False):
+    protocol = load(OUT/'protocol.json')
+    for p,h in protocol['source_pins'].items():
+        if service and Path(p)==U/'evaluation/controllers/head_service_resources.py':
+            assert digest(Path(p))==load(OUT/'service_protocol.json')['new_core']
+            assert digest(OUT/'head_service_resources.before.py.txt')==h
+            continue
+        assert digest(Path(p)) == h, p
+    movements = {
+        'SC101_east_through':('SC101_E_SC5_to_W_SC1002',(960090,960091,960092,960093)),
+        'SC101_south_left':('SC101_S_SC1_to_W_SC1002',(960084,960085)),
+        'road329_through':('SC1002_E_SC101_to_W_SC1001',(960172,960173)),
+        'road29_through':('SC1001_E_SC1002_to_W_RAMP',(960158,960159)),
+        'road40_left':('SC1001_S_SC1003_to_W_RAMP',(960164,)),
+        'ramp10484_arrival':(None,(960271,))}
+    original = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+    fixed = Path('D:/VISSIM_runs/20261001_onset2250_s29/held_actual/decisions_sdmpc31_g_2250_held_actual_s29')
+    pins = {}
+    def read(p):
+        pins[str(p)] = digest(p)
+        return load(p)
+    cases = {}
+    for at,end,directory in ((2250,2700,fixed),(3600,3750,original)):
+        old_stem=f'{at}_ps_all8_sc101_sc101queue' if service else f'{at}_ps'
+        new_stem=f'{at}_ps_all8_sc101_sc101service' if service else f'{at}_ps_all8_sc101_sc101queue'
+        base = L/'city_path'/old_stem
+        candidate = L/'city_path'/new_stem
+        old,new = read(base/'trace.json.gz'),read(candidate/'trace.json.gz')
+        receipt = read(candidate/'receipt.json')
+        assert receipt['forecast_count'] == 1 and receipt['future_observation_inputs'] is False
+        old_result = read(L.parent.parent/f'closedloop_recorded{at}_lever450_RM_C10484_city{old_stem}/held_actual.json')
+        new_result = read(L.parent.parent/f'closedloop_recorded{at}_lever450_RM_C10484_city{new_stem}/held_actual.json')
+        assert old_result['commands'] == new_result['commands']
+        old_init,new_init = read(base/'initial.json'),read(candidate/'initial.json')
+        assert old_init['forecast_boundary'] == new_init['forecast_boundary']
+        old_service,new_service=read(base/'service_projection.json'),read(candidate/'service_projection.json')
+        if not service:
+            assert old_service==new_service
+        else:
+            changed={k for k,v in old_service['movement_capacity'].items() if v!=new_service['movement_capacity'][k]}
+            assert changed=={'SC101_S_SC1_to_W_SC1002'},changed
+            assert old_init['state']==new_init['state']
+        before,after = read(base/'projection.json'),read(candidate/'projection.json')
+        assignments = [d['diagnostics']['physical_stock_assignment_by_link'] for d in (before,after)]
+        assert assignments[0].keys() == assignments[1].keys()
+        for link in assignments[0]:
+            assert abs(sum(assignments[0][link].values())-sum(assignments[1][link].values())) < 1e-8
+            if service or link not in ('1220014201','1220011503'):
+                assert assignments[0][link] == assignments[1][link], link
+        native = {t:read(directory/f'state_{t:06d}.json') for t in range(at,end+1,150)}
+        events = []
+        for t in range(at+150,end+1,150):
+            meta = native[t]['obs150']['mer']; p = directory/meta['chunk']
+            assert digest(p) == meta['chunk_sha256']; pins[str(p)] = digest(p)
+            events.extend(r for line in p.read_text(encoding='utf-8').splitlines()
+                          if (r:=json.loads(line))[2] is not None and at <= r[2] < end)
+        def forecast_count(trace,name,a,b):
+            return sum(x['vehicles'] for x in trace['transfers'] if a <= x['start_sec'] < b and (
+                x['target']=='ramp:RM_C10484' if name is None else
+                x['source']=='movement:'+name and x['target'].startswith('storage:')))
+        flows = {}
+        for key,(name,ids) in movements.items():
+            ev = [x for x in events if x[1] in ids]
+            assert len(ev) == len({x[4] for x in ev}), key
+            flows[key] = dict(actual=len(ev),baseline=forecast_count(old,name,at,end),
+                              candidate=forecast_count(new,name,at,end),
+                bins=[dict(start=t,actual=sum(t<=x[2]<t+150 for x in ev),
+                           baseline=forecast_count(old,name,t,t+150),
+                           candidate=forecast_count(new,name,t,t+150)) for t in range(at,end,150)])
+        starts = read(candidate/'ramp_initial.json')
+        mass = {}
+        for r,n0 in starts['queue'].items():
+            last = new['ramp_snapshots'][-1]; buf = last['buffers'][r]
+            a = sum(x['vehicles'] for x in new['transfers'] if x['target']=='ramp:'+r)
+            m = sum(x['vehicles'] for x in new['transfers'] if x['source']=='ramp:'+r and x['target']=='merge_pending:'+r)
+            residual = n0+a-m-last['queue'][r]
+            assert abs(residual)<1e-8 and abs(buf['cumulative_admitted_veh']-a)<1e-8
+            assert abs(buf['cumulative_merge_veh']-m)<1e-8
+            mass[r] = residual
+        n0 = sum(v['link_no']==10484 for v in native[at]['vehicle_records']['records'])
+        n1 = sum(v['link_no']==10484 for v in native[end]['vehicle_records']['records'])
+        tiny = [sum(v['link_no']==10484 and v['position_m']<1 for v in native[t]['vehicle_records']['records']) for t in (at,end)]
+        assert tiny == [0,0], tiny
+        merge = n0+flows['ramp10484_arrival']['actual']-n1
+        for label,trace in [('baseline',old),('candidate',new)]:
+            model_merge = sum(x['vehicles'] for x in trace['transfers'] if at<=x['start_sec']<end
+                              and x['source']=='ramp:RM_C10484' and x['target']=='merge_pending:RM_C10484')
+            flows.setdefault('ramp10484_merge',{'actual_balance_reconstructed':merge})[label] = model_merge
+        cases[at] = dict(start=at,end=end,flows=flows,
+            initial_projection={link:{'baseline':assignments[0][link],'candidate':assignments[1][link]}
+                                for link in ('1220014201','1220011503')},
+            ttt450=dict(baseline=old['ttt'],candidate=new['ttt'],meaning='Same-command model difference, NOT control gain'),
+            ramp_mass_residual450=mass,compute_sec=new_result['wall_sec'],
+            left_service_rate=dict(baseline=old_service['movement_capacity']['SC101_S_SC1_to_W_SC1002'],
+                                   candidate=new_service['movement_capacity']['SC101_S_SC1_to_W_SC1002']))
+    for p,h in pins.items(): assert digest(Path(p))==h,p
+    binding = read(L/'city_path/2250_init_hp_sc101_binding/head_binding.json')
+    unit = [r for r in binding if r['estimates'].get("('1220011503', 'p2')")==1.]
+    assert unit and all(r['after'].get('SC101_S_SC1_to_W_SC1002')==1. for r in unit)
+    greens=[]
+    for at in range(1800,2251,150):
+        d=read(original/f'obs150/derived_{at:06d}.json')['head_window']
+        heads=[r for r in d['heads'] if r['link']=='1220011503' and r['sg']=='3']
+        assert len(heads)==2
+        greens.append(dict(end=at,heads=heads))
+    threshold=load(L/'physical_speed/candidate_config.json')['urban']['capacity']['head_observation']['min_green_sec']
+    assert threshold==30 and all(h['green_sec']<threshold for w in greens for h in w['heads'])
+    write('assessment_service.json' if service else 'assessment.json',dict(status='complete',cases=cases,pins=pins,
+        service_diagnosis=dict(movement_membership_present=True,min_green_sec=threshold,
+            past_windows=greens,reason='25-29s greens fail30s per-window exposure; previous service remains413.061veh/h',
+            scoped_past_pool_applied=service),
+        protected_source_checks_pass=True,queue_mass_preserved=True,only_two_roads_projection_changed=not service,
+        initial_projection_unchanged=service,commands_unchanged=True,services_unchanged=not service,
+        forecasts=2,initialization_only=0 if service else 2,fit_evaluations=0,
+        native_runs=0,adopted=False,goal='ACTIVE/NOT_QUALIFIED',
+        limits=['2250 full450 uses completed fixed-command native;3600 onlyfirst150 matches executed commands.',
+                'RM/VSL rankings and independent-seed validation not newly tested.',
+                'Shared through/right lane1 retains uncertainty; do not infer every stopped vehicle destination.',
+                'Do not fit METANET to hide the urban source shortfall.']))
+    print(json.dumps({t:c['flows'] for t,c in cases.items()}),flush=True)
+
+
+def prepare_service():
+    assert load(OUT/'assessment.json')['status']=='complete'
+    cfg=load(OUT/'candidate_config.json')
+    source=U/cfg['urban']['capacity']['head_resource_contract']
+    doc=load(source)
+    assert doc['schema']=='physical-head-resource-join/v7'
+    lane=load(OUT/'head_lane_support.json')
+    tree=ET.parse(U/doc['network']['path'])
+    name='SC101_S_SC1_to_W_SC1002'
+    heads=[]
+    for h in tree.findall('./signalHeads/signalHead'):
+        road,ln=h.get('lane').split();sc,sg=h.get('sg').split()
+        if road=='1220011503' and sg=='3':
+            heads.append(dict(head_id=h.get('no'),link=road,lane=int(ln),position_m=float(h.get('pos')),sc=sc,sg=sg))
+    assert {h['lane'] for h in heads}=={4,5}
+    doc['schema']='physical-head-resource-join/v8'
+    doc['resources']['10539']=dict(group='1220011503|p2',heads=heads,mode='regular_unique',
+        members={name:lane['movements'][name]['expected_spec']},receiver='SC101_to_SC1002',
+        target_link='1220012402',green_exposure_windows=4,
+        proof=dict(path=str((OUT/'head_lane_support.json').relative_to(U)),sha256=digest(OUT/'head_lane_support.json')))
+    doc['scope']='Existing v7 plus proven SC101 south left10539; existing4 past green-window pool, no fitted discharge parameter.'
+    write('head_resources.json',doc)
+    cfg['urban']['capacity']['head_resource_contract']=str((OUT/'head_resources.json').relative_to(U))
+    write('candidate_service_config.json',cfg)
+    write('service_protocol.json',dict(forecast_budget=2,states=[2250,3600],candidate_count=1,
+        base='queue-only candidate from completed two forecasts',
+        change='Existing historical green exposure pooling4 only for verified10539 resource; min_green30/min_crossings5 unchanged',
+        fits=0,new_native=0,future_prediction_inputs=False,adopted=False,
+        old_core=digest(OUT/'head_service_resources.before.py.txt'),new_core=digest(U/'evaluation/controllers/head_service_resources.py'),
+        accepted_if='Improved measured source/arrival chain without changing other parameters; independent response validation still required.'))
+
+
+def report_independent():
+    I=L.parent.parent
+    baseline=I/'closedloop_recorded2700_lever450_trace10484_ps_ind47_20261001'
+    candidate=I/'closedloop_recorded2700_lever450_trace10484_sc101service_ind47'
+    previous=load(L/'physical_speed/independent47/verification.json')
+    native=load(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json')
+    assert native['paired_prefix_exact'] and native['counterfactual_valid']
+    receipt=load(candidate/'fixed_replay_receipt.json')
+    assert receipt['observation_cutoff_sec']==2700 and receipt['future_states_used'] is False
+    for p,h in receipt['files'].items():assert digest(Path(p))==h,p
+    protocol=load(OUT/'independent47_protocol.json')
+    for p,h in protocol['prototype_sources'].items():assert digest(Path(p))==h,p
+    summary=load(candidate/'summary.json')
+    assert set(summary['results'])=={'held_actual','release_actual'}
+    assert summary['native_started'] is False and summary['optimizer_iterations']==0
+    assert summary['future_observation_inputs'] is False
+    models={};pins={}
+    for label,folder in [('before',baseline),('after',candidate)]:
+        arms={}
+        for arm in ['held_actual','release_actual']:
+            p=folder/f'{arm}.json';pins[str(p)]=digest(p);r=load(p);arms[arm]=r
+            assert r['validation']['all_actuator_and_step_constraints_checked']
+            assert max(abs(x['residual']) for x in r['ramps'].values())<1e-8
+            assert abs(sum(r['cost_by_stock'].values())-r['ttt_omega_veh_h'])<1e-8
+            if label=='after':
+                old=load(baseline/f'{arm}.json')
+                assert old['commands']==r['commands']
+                assert old['physical_cell_states'][0]==r['physical_cell_states'][0]
+                t0=load(baseline/f'{arm}_RM_C10484_trace.json.gz')
+                t1=load(candidate/f'{arm}_RM_C10484_trace.json.gz')
+                for k in ['initial_stock','initial_buffer','head_service_by_green']:assert t0[k]==t1[k],k
+        h,r=arms['held_actual'],arms['release_actual']
+        assert h['physical_cell_states'][0]==r['physical_cell_states'][0]
+        delta={k:r['cost_by_stock'].get(k,0)-h['cost_by_stock'].get(k,0)
+               for k in h['cost_by_stock'].keys()|r['cost_by_stock'].keys()}
+        parts={road:delta.get('freeway:'+road,0) for road in ['FW_E','FW_W']}
+        parts['ramps']=sum(v for k,v in delta.items() if k.startswith('ramp:'))
+        parts['other_Omega']=sum(delta.values())-sum(parts.values())
+        models[label]=dict(delta_omega=r['ttt_omega_veh_h']-h['ttt_omega_veh_h'],
+            delta_outside=r['tracked_outside_residence_veh_h']-h['tracked_outside_residence_veh_h'],
+            delta_by_group=parts,ramps={a:arms[a]['ramps'] for a in arms},
+            compute_sec=sum(x['wall_sec'] for x in arms.values()))
+    assert abs(models['before']['delta_omega']-previous['models']['after']['delta_omega'])<1e-8
+    result=dict(status='complete',goal='ACTIVE/NOT_QUALIFIED',adopted=False,
+        native_delta_omega=previous['native_delta_omega'],native_delta_by_group=previous['native_delta_by_group'],
+        native_delta_outside=previous['native_delta_outside'],native_ramps={a:r['ramps'] for a,r in previous['native'].items()},
+        models=models,pins=pins,forecast_count=2,fit=0,new_native=0,future_prediction_inputs=False,
+        commands_and_initial_freeway_ramp_states_match=True,all8_mass_pass=True,
+        sign_preserved=models['after']['delta_omega']*previous['native_delta_omega']>0,
+        scope='Release minus hold, same native initial history and fixed city/VSL. FullOmega costs, outside diagnostic. No SDMPC selection, AD, or new VSL response check.')
+    write('independent47.json',result)
+    print(json.dumps({k:v for k,v in result.items() if k in ['native_delta_omega','native_delta_by_group','models','sign_preserved']}),flush=True)
+
+
+if __name__ == '__main__':
+    actions={'prepare':prepare,'report':report,'prepare-service':prepare_service,
+             'report-service':lambda:report(True),'report-independent':report_independent}
+    assert len(sys.argv)==2 and sys.argv[1] in actions
+    actions[sys.argv[1]]()

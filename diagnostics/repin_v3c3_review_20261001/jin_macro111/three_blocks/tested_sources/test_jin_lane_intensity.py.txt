@@ -1,0 +1,56 @@
+import copy
+import unittest
+from types import SimpleNamespace
+from evaluation.controllers.freeway_fd import jin_lane_intensity
+from evaluation.controllers.sdmpc_dual import Dual, Trace, derivative, primal
+
+
+class JinIntensityTests(unittest.TestCase):
+    def fixture(self, duration=10.):
+        net = SimpleNamespace(freeway_jin_lane_intensity={'E':dict(cells=[0,1],duration_sec=duration)},
+            offramp_route_inventory=dict(branches={'exit':dict(freeway='E',source_cell=1)}))
+        state = SimpleNamespace(offramp_route_inventory_state=dict(cells={'E':[
+            {'route|exit':10.,'route|terminal':10.}, {'route|exit':10.,'route|terminal':10.}]}))
+        return net,state
+
+    def test_equation_and_no_state_mutation(self):
+        net,state=self.fixture(); before=copy.deepcopy(state)
+        # Total traversal60s, target share1/2, duration10s ->epsilon1/12.
+        out=jin_lane_intensity(net,state,'E',[20.,20.],[60.,60.],[.5,.5])
+        self.assertAlmostEqual(out[0],1/12);self.assertEqual(out[0],out[1])
+        self.assertEqual(vars(state),vars(before))
+
+    def test_absent_or_zero_does_not_require_inventory(self):
+        self.assertEqual(jin_lane_intensity(SimpleNamespace(),None,'E',[],[],[]),{})
+        net,_=self.fixture(0.)
+        self.assertEqual(jin_lane_intensity(net,None,'E',[20.,20.],[60.,60.],[.5,.5]),{})
+
+    def test_speed_mediates_proxy_without_command_input(self):
+        net,state=self.fixture()
+        a=jin_lane_intensity(net,state,'E',[20.,20.],[60.,60.],[.5,.5])[0]
+        b=jin_lane_intensity(net,state,'E',[20.,20.],[30.,30.],[.5,.5])[0]
+        self.assertEqual(a,2*b)
+        self.assertEqual(jin_lane_intensity(net,state,'E',[20.,20.],[0.,0.],[.5,.5])[0],0.)
+
+    def test_empty_and_no_exit_intent(self):
+        net,state=self.fixture()
+        self.assertEqual(jin_lane_intensity(net,state,'E',[0.,0.],[60.,60.],[.5,.5]),{})
+        state.offramp_route_inventory_state['cells']['E']=[{'route|terminal':20.}]*2
+        self.assertEqual(jin_lane_intensity(net,state,'E',[20.,20.],[60.,60.],[.5,.5])[0],0.)
+
+    def test_derivative_through_current_speed(self):
+        net,state=self.fixture()
+        speed=Dual(60.,{0:1.},Trace([.01]))
+        x=jin_lane_intensity(net,state,'E',[20.,20.],[speed,speed],[.5,.5])[0]
+        self.assertAlmostEqual(primal(x),1/12)
+        self.assertAlmostEqual(derivative(x)[0],10*.5/3600)
+
+    def test_missing_inventory_fails_and_invalid_duration_fails(self):
+        net,state=self.fixture()
+        with self.assertRaises(ValueError):jin_lane_intensity(net,SimpleNamespace(),'E',[20.,20.],[60.,60.],[.5,.5])
+        for value in (-1.,float('nan'),True):
+            net,state=self.fixture(value)
+            with self.assertRaises(ValueError):jin_lane_intensity(net,state,'E',[20.,20.],[60.,60.],[.5,.5])
+
+
+if __name__=='__main__':unittest.main()

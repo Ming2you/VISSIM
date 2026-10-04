@@ -29,12 +29,12 @@ D10_FRAME_ADVANCE = 1
 PS1_PATH = ROOT / 'scripts' / 'run_real_world_single_watchdog_distributed_core17legs4b.ps1'
 MOCK_PATH = Path(__file__).resolve().parent / 'mock_vissim_runner.vbs'
 CSCRIPT = shutil.which('cscript.exe') or shutil.which('cscript')
-POWERSHELL = shutil.which('powershell.exe') or shutil.which('powershell')
+POWERSHELL = shutil.which('pwsh.exe') or shutil.which('powershell.exe') or shutil.which('powershell')
 
 PROCEDURES = (
     'EnvText', 'ForceStepwiseMode', 'UseSingleDecisionEventMode', 'StateLogMode', 'QueueWindowEnabled',
     'FarMeasurementEnabled', 'ParseB1aPositiveLongText', 'ReadAllText', 'OneLine', 'RunCapture3Timeout',
-    'TerminateExecTree', 'ElapsedSec', 'Q', 'Pad6', 'JsonEscape', 'JsonBoolean', 'JsonDoubleInvariant',
+    'StartFileCapture', 'FinishFileCapture', 'TerminateExecTree', 'ElapsedSec', 'Q', 'Pad6', 'JsonEscape', 'JsonBoolean', 'JsonDoubleInvariant',
     'B1aSignificantDigitCount', 'TryB1aFiniteDouble', 'TryExact2DTableBounds', 'IsB1aEmptyTableResult',
     'ParseB1aLaneId', 'TrimB1aHorizontalWhitespace', 'ComBoolean', 'SafeAtt', 'CachedSignalController',
     'CachedSignalGroup', 'EnsureFolder', 'EnsureParentFolder', 'WriteLanePlantObservation',
@@ -80,7 +80,7 @@ gMockStuck = "" : gMockCurrentK = 1
 Const B1A_ENTRY_TOLERANCE_M = 8.0
 Dim JSON_DECIMAL_SEPARATOR
 JSON_DECIMAL_SEPARATOR = Mid(FormatNumber(1.5, 1, -1, 0, 0), 2, 1)
-Dim obsEnabled, obsSampleInterval, obsBulkReads, obsCacheHits, decisionDir, netPath, workspaceRoot, pythonExe, runId
+Dim obsEnabled, obsSampleInterval, obsBulkReads, obsCacheHits, decisionDir, netPath, workspaceRoot, pythonExe, runId, RW_COMMAND_REPLAY_DIR
 Dim simPeriod, controlInterval, stateLogIntervalSec, auditAnchorsSec, incidentEnabled
 Dim controllerName, controlStartSec, warmupControllerName, RW_SIGNAL_SCS, RW_RAMP_METER_SCS, nativeClockPlans
 Dim signalFailures, observationFailures, comFailures
@@ -119,6 +119,7 @@ netPath = {net_path}
 workspaceRoot = {workspace_root}
 pythonExe = {python_exe}
 runId = "run-wpa-test"
+RW_COMMAND_REPLAY_DIR = ""
 Set gMock = New MockVissimR
 Set Vissim = gMock
 Set signalTraceFile = fso.CreateTextFile({trace_path}, True)
@@ -186,7 +187,8 @@ def run_vbs(script, *, work, env=None, timeout=240):
     (work / 'decisions').mkdir(parents=True, exist_ok=True)
     (work / 'network').mkdir(parents=True, exist_ok=True)
     path = work / 'harness.vbs'
-    path.write_text(script, encoding='utf-8')
+    # WSH reads UTF-8 without a BOM as ANSI, corrupting Korean workspace paths.
+    path.write_text(script, encoding='utf-16')
     return subprocess.run([CSCRIPT, '//nologo', str(path)], cwd=str(work), env=clean_env(env),
                           capture_output=True, text=True, errors='replace', timeout=timeout)
 

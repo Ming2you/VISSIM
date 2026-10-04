@@ -28,6 +28,40 @@ class AreaMeasurementTests(unittest.TestCase):
         self.assertEqual(metrics['appeared_inside_events'],1)
         self.assertEqual(metrics['closure']['max_abs_residual_veh'],0)
 
+    def test_distance_includes_all_inside_links_excludes_stopped_and_outside(self):
+        fs = [Frame(t, {'main':v('1', speed=72), 'urban':v('2', speed=36),
+                        'queued':v('3', speed=0), 'outside':v('4', speed=100)}) for t in (1,6)]
+        old, old_rows = self.measure(fs)
+        result, rows = self.measure(fs, include_distance=True)
+        distance = result.pop('distance')
+        self.assertAlmostEqual(distance['sampled_tvd_omega_veh_km'], 108*5.5/3600)
+        self.assertEqual(distance['physical_link_distance']['3']['veh_km'], 0.)
+        self.assertGreater(distance['physical_link_distance']['4']['veh_km'], 0.)
+        self.assertFalse(distance['physical_link_distance']['4']['inside'])
+        for row in rows: row.pop('sampled_tvd_omega_veh_km_cumulative')
+        self.assertEqual(old, result)
+        self.assertEqual(old_rows, rows)
+
+    def test_distance_boundary_crossing_is_sampled_not_future_route_credit(self):
+        result, _ = self.measure([Frame(1, {'x':v('2')}), Frame(6, {'x':v('4')})], include_distance=True)
+        self.assertAlmostEqual(result['distance']['sampled_tvd_omega_veh_km'], .03)
+        self.assertEqual(result['ttd_observed_exit_events'], 1)
+
+    def test_distance_tail_is_explicitly_censored_and_long_tail_is_unavailable(self):
+        fs = [Frame(1, {'x':v('2')}), Frame(6, {'x':v('2')})]
+        result, _ = self.measure(fs, end=10, include_distance=True)
+        self.assertAlmostEqual(result['distance']['censored_tail_hold_veh_km'], .04)
+        result, _ = self.measure(fs, end=5400, include_distance=True)
+        self.assertIsNone(result['distance']['sampled_tvd_omega_veh_km'])
+        self.assertIsNone(result['distance']['censored_tail_hold_veh_km'])
+
+    def test_distance_invalid_speed_fails_and_missing_membership_stays_strict(self):
+        for bad in (-1., float('inf'), float('nan')):
+            with self.assertRaises(ValueError):
+                self.measure([Frame(1, {'x':v('2', speed=bad)})], include_distance=True)
+        with self.assertRaises(MembershipError):
+            self.measure([Frame(1, {'x':v('999')})], include_distance=True)
+
     def test_exit_reentry_exit_counts_events_and_unique_ids_separately(self):
         fs=[Frame(t,{'10':v(link)})for t,link in [(1,'1'),(2,'4'),(3,'2'),(4,'4')]]
         metrics,_=self.measure(fs,end=4)

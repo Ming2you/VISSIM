@@ -1,0 +1,152 @@
+{
+  "release": {
+    "counts": {
+      "vehicle_samples": 23679,
+      "current_lane_change_samples": 404,
+      "same_link_lane_change_intervals": 746,
+      "stopped_lt1_samples": 1189,
+      "stopped_lt5_samples": 2149,
+      "same_link_stop_onsets": 990,
+      "chain_first_vehicle_at_least5": 2149,
+      "chain_prior10s_lane_change_samples": 75,
+      "chain_prior10s_merge_samples": 143,
+      "chain_any_observed_ramp_origin_samples": 427,
+      "direct_target_prior10s_lane_change_samples": 33,
+      "direct_target_prior10s_merge_samples": 42,
+      "stopped_body_spans10483_branch_samples": 16,
+      "through_stopped_body_spans10483_branch_samples": 13,
+      "unique_vehicles": 1253,
+      "unique_ever_stopped_lt5_vehicles": 587
+    },
+    "mean_stopped_lt5_vehicles": 23.877777777777776,
+    "mean_stopped_lt1_vehicles": 13.21111111111111,
+    "interaction_state_all_samples": {
+      "Brake BX": 4667,
+      "Free": 10205,
+      "Brake AX": 2468,
+      "Close up": 3302,
+      "Pass": 226,
+      "Follow": 2778,
+      "Brake LC": 26,
+      "Brake cooperative": 6,
+      "Brake ZX": 1
+    },
+    "cell_mean_stopped_vehicles": {
+      "16": {
+        "lt5": 2.8222222222222224,
+        "lt1": 1.8888888888888888
+      },
+      "17": {
+        "lt1": 2.5444444444444443,
+        "lt5": 3.3444444444444446
+      },
+      "18": {
+        "lt1": 2.888888888888889,
+        "lt5": 4.5
+      },
+      "19": {
+        "lt5": 3.977777777777778,
+        "lt1": 1.7777777777777777
+      },
+      "20": {
+        "lt5": 3.8777777777777778,
+        "lt1": 1.9222222222222223
+      },
+      "21": {
+        "lt5": 1.3666666666666667,
+        "lt1": 0.5111111111111111
+      },
+      "22": {
+        "lt5": 2.6777777777777776,
+        "lt1": 1.2666666666666666
+      },
+      "23": {
+        "lt5": 1.3111111111111111,
+        "lt1": 0.4111111111111111
+      }
+    }
+  },
+  "release_vsl90": {
+    "counts": {
+      "vehicle_samples": 22765,
+      "current_lane_change_samples": 397,
+      "same_link_lane_change_intervals": 731,
+      "stopped_lt1_samples": 258,
+      "stopped_lt5_samples": 775,
+      "same_link_stop_onsets": 544,
+      "chain_first_vehicle_at_least5": 767,
+      "chain_prior10s_lane_change_samples": 67,
+      "chain_prior10s_merge_samples": 50,
+      "chain_any_observed_ramp_origin_samples": 203,
+      "direct_target_prior10s_lane_change_samples": 35,
+      "direct_target_prior10s_merge_samples": 25,
+      "stopped_body_spans10483_branch_samples": 9,
+      "through_stopped_body_spans10483_branch_samples": 5,
+      "chain_non_vehicle_target": 8,
+      "stopped_outside_next_connector_lanes_samples": 2,
+      "stopped_wrong_lane_within20m_samples": 2,
+      "unique_vehicles": 1268,
+      "unique_ever_stopped_lt5_vehicles": 413
+    },
+    "mean_stopped_lt5_vehicles": 8.61111111111111,
+    "mean_stopped_lt1_vehicles": 2.8666666666666667,
+    "interaction_state_all_samples": {
+      "Brake BX": 5533,
+      "Free": 10246,
+      "Brake AX": 2366,
+      "Close up": 1625,
+      "Pass": 236,
+      "Follow": 2731,
+      "Brake LC": 20,
+      "Brake cooperative": 5,
+      "Brake ZX": 3
+    },
+    "cell_mean_stopped_vehicles": {
+      "16": {
+        "lt5": 0.9888888888888889,
+        "lt1": 0.3888888888888889
+      },
+      "17": {
+        "lt1": 0.3,
+        "lt5": 0.5777777777777777
+      },
+      "18": {
+        "lt1": 0.4777777777777778,
+        "lt5": 1.488888888888889
+      },
+      "19": {
+        "lt1": 0.16666666666666666,
+        "lt5": 0.7111111111111111
+      },
+      "20": {
+        "lt5": 1.8,
+        "lt1": 0.7777777777777778
+      },
+      "21": {
+        "lt5": 0.6111111111111112,
+        "lt1": 0.13333333333333333
+      },
+      "22": {
+        "lt5": 1.4222222222222223,
+        "lt1": 0.4111111111111111
+      },
+      "23": {
+        "lt5": 1.011111111111111,
+        "lt1": 0.2111111111111111
+      }
+    }
+  },
+  "initial_focus_snapshot_equal": true,
+  "initial_focus_vehicle_counts": {
+    "release": 261,
+    "release_vsl90": 261
+  },
+  "limitations": [
+    "5s sampled means, not exact stopped durations or lane-change event totals.",
+    "No DRIVSTATE/WAITING_FOR_LANE_CHANGE native attribute was recorded; LNCHG=None does not rule out an unfulfilled intention.",
+    "A recent lane change or ramp-origin leader in an interaction chain is not proof it caused the queue.",
+    "Chains stop at the first >=5km/h vehicle; they describe the stopped platoon front, not the ultimate downstream cause.",
+    "Same-link changes miss intermediate changes and all within5s events that return to the original lane.",
+    "One paired seed67 window with fixed RM release; cannot rank universal causal importance or validate gain prediction."
+  ]
+}

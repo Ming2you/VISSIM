@@ -1,0 +1,54 @@
+{
+  "schema": "recorded-controller-derivatives/v1",
+  "start_sec": 2700,
+  "seed": 47,
+  "horizon_sec": 450,
+  "purpose": "One same-anchor AD after conserving accepted merge packet and Omega provenance across urban/freeway interfaces",
+  "anchor_meter_green": {},
+  "axes": [
+    {
+      "kind": "meter",
+      "key": "RM_C10490",
+      "block": 0,
+      "steps": []
+    }
+  ],
+  "max_ad_rollouts": 1,
+  "max_independent_scalar_rollouts": 0,
+  "primal_abs_tolerance": 1e-07,
+  "cost_gradient_atol": 0.0001,
+  "resource_gradient_atol": 0.001,
+  "gradient_rtol": 0.001,
+  "no_optimization": true,
+  "no_native": true,
+  "no_push": true,
+  "future_observation_inputs": false,
+  "fit": 0,
+  "tuning_sha256": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+  "scope": "Continuous infinitesimal probes may lie outside native quantization/bounds. Never applied or accepted as feasible controls.",
+  "previous_turn_classification": "PROGRESS: zero active ramp cohort fix verified; current boundary repair follows actual missed ledger transfer",
+  "optimizer_iterations": 0,
+  "native_started": false,
+  "source_pins": {
+    "evaluation\\controllers\\sdmpc_tangent_audit.py": "48fb8f6f0e59cda08cd416ce7c4055a1d46f9fdfef3c0bb1a297b30ddf1b79ba",
+    "evaluation\\controllers\\sdmpc_tangent_worker.py": "d09d9d856339b4f205e213fc27a8c051dd4d1f6c03a773d2e47390f080b8f8e0",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "1ff44ec095167994403e275c218e3fe72d0b1eef9103d56e5638d763b7a08307",
+    "evaluation/controllers/physical_ramp_boundary.py": "f0603b14047adf988d26057c364d79aa45ec8721d0b0a0f439785381503a950f",
+    "evaluation/controllers/control_area_objective.py": "f56ef322ffb6cc2c3288d05d988c8ba57b932e37a733a5aac4fa1c4ddcd43e53",
+    "evaluation/controllers/area_freeway_accounting.py": "f7ba3d52b3669fdc13e83504bc1550efbc7ac8e80a44c63d946a85eab3867cde",
+    "evaluation/controllers/urban_flow_accounting.py": "82cad23e0b814226b4618452dc2b5b6342d84889c365341307cf6d655de347a7",
+    "evaluation/controllers/physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "diagnostics/test_sdmpc_tangent.py": "f0b472feeece325e108bacd43fc3aa7cd966b6996cdf21a72d94812099314582",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/probe_selected_arrival_path.py": "1ff44ec095167994403e275c218e3fe72d0b1eef9103d56e5638d763b7a08307",
+    "evaluation/controllers/sdmpc_tangent_state.py": "f723c10fdd1ba4de65f9fb828c21e4ccd16bcb03f9cea0b441bf913e18e16ea9"
+  },
+  "known_nonsmooth_axis": "RM_C10490 green5 has prior one-sided kink; report left/right slopes rather than treating central mismatch alone as bug.",
+  "branch_probe": {
+    "key": "RM_C10490",
+    "kind": "meter",
+    "block": 0,
+    "max_records": 200000
+  },
+  "reference_ad_columns": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_budget_check_derivatives_sc1001_zero47\\ad_columns.json",
+  "expected_gradient_change": "zero_active_ramp_transfer"
+}

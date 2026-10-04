@@ -1,0 +1,6 @@
+def current_admission_space(self) -> float:
+    """Space for accepted coupled arrivals at this interval's completed end."""
+    self._require_phase('idle')
+    if self.backlog_veh:
+        raise ValueError('Coupled admission cannot own an upstream backlog')
+    return min(max(0., self.capacity_veh-self._stocks()['connector_veh']), _diagnostic_prehead_supply(self))

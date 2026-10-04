@@ -1,0 +1,1231 @@
+{
+  "status": "offline_selection_and_canonical_replay_complete_not_qualified",
+  "seed": 47,
+  "start_sec": 2700,
+  "horizon_sec": 450,
+  "metrics": {
+    "held_actual": {
+      "omega_veh_h": 484.94331287701243,
+      "east_veh_h": 120.58557352921044,
+      "west_veh_h": 84.66127874017528,
+      "ramps_veh_h": 22.786716997658974,
+      "other_omega_veh_h": 256.90974360996773,
+      "tracked_outside_veh_h": 231.7032940817008,
+      "omega_plus_tracked_outside_veh_h": 716.6466069587132,
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 501.3974898320314,
+        "target": 577.4427125089544,
+        "residual": -76.045222676923,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "cap",
+        "unit": "veh/h",
+        "actual": 5891.59302488152,
+        "target": 6023.902732168961,
+        "residual": -132.3097072874407,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "max_ramp_mass_residual_veh": 4.476419235288631e-13,
+      "max_resource_exceedance_veh": 8.881784197001252e-16,
+      "saved_state_stock_witness": {
+        "states": 4,
+        "passed": true
+      },
+      "merge_by_ramp": {
+        "RM_C10480": 26.891143892932725,
+        "RM_C10482": 277.7111960663355,
+        "RM_C10646": 48.173352881471786,
+        "RM_C10644": 56.97999999999997,
+        "RM_C10639": 45.621456451448964,
+        "RM_C10681": 145.22405657629653,
+        "RM_C10490": 90.51886618500411,
+        "RM_C10484": 45.32905605670041
+      },
+      "replay_wall_sec": 24.201025099959224
+    },
+    "selected": {
+      "omega_veh_h": 476.46623318858974,
+      "east_veh_h": 120.64826653063521,
+      "west_veh_h": 84.86208919822023,
+      "ramps_veh_h": 23.368871970868184,
+      "other_omega_veh_h": 247.58700548886608,
+      "tracked_outside_veh_h": 238.58057453361096,
+      "omega_plus_tracked_outside_veh_h": 715.0468077222007,
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 491.0569821540424,
+        "target": 577.4427125089544,
+        "residual": -86.38573035491203,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "cap",
+        "unit": "veh/h",
+        "actual": 5897.613998803921,
+        "target": 6023.902732168961,
+        "residual": -126.28873336503966,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "max_ramp_mass_residual_veh": 5.186961971048731e-13,
+      "max_resource_exceedance_veh": 8.326672684688674e-16,
+      "saved_state_stock_witness": {
+        "states": 4,
+        "passed": true
+      },
+      "merge_by_ramp": {
+        "RM_C10480": 27.596940994381995,
+        "RM_C10482": 277.7111960663355,
+        "RM_C10646": 48.31917363459662,
+        "RM_C10644": 56.97999999999997,
+        "RM_C10639": 45.63736877195611,
+        "RM_C10681": 145.1083437741516,
+        "RM_C10490": 90.51886618500411,
+        "RM_C10484": 45.329860424064194
+      },
+      "replay_wall_sec": 24.86258779990021
+    }
+  },
+  "deltas_selected_minus_held": {
+    "omega_veh_h": -8.477079688422691,
+    "east_veh_h": 0.06269300142477618,
+    "west_veh_h": 0.20081045804495545,
+    "ramps_veh_h": 0.5821549732092102,
+    "other_omega_veh_h": -9.32273812110165,
+    "tracked_outside_veh_h": 6.877280451910167,
+    "omega_plus_tracked_outside_veh_h": -1.5997992365124674
+  },
+  "omega_improvement_percent": 1.748055796074578,
+  "surrogate": {
+    "held_ttt": 484.90357868700164,
+    "selected_ttt": 476.27788122645234,
+    "delta_ttt": -8.625697460549304
+  },
+  "surrogate_vs_canonical_delta_error_veh_h": 0.1486177721266131,
+  "outside_scope": "Only outside cohorts in sampled model stocks; not a native uninserted-vehicle audit",
+  "command_changes": [
+    {
+      "block": 0,
+      "changes": {
+        "vsl": {},
+        "meters": {},
+        "green_times": {
+          "SC1_p1": {
+            "held": 54.0,
+            "selected": 58.121
+          },
+          "SC1_p2": {
+            "held": 21.0,
+            "selected": 21.031
+          },
+          "SC1_p3": {
+            "held": 32.0,
+            "selected": 33.286
+          },
+          "SC1_p4": {
+            "held": 31.0,
+            "selected": 25.562
+          },
+          "SC5_p1": {
+            "held": 43.0,
+            "selected": 38.295
+          },
+          "SC5_p2": {
+            "held": 23.0,
+            "selected": 22.577
+          },
+          "SC5_p3": {
+            "held": 47.0,
+            "selected": 46.711
+          },
+          "SC5_p4": {
+            "held": 25.0,
+            "selected": 30.417
+          },
+          "SC6_p1": {
+            "held": 43.0,
+            "selected": 48.438
+          },
+          "SC6_p2": {
+            "held": 21.0,
+            "selected": 22.812
+          },
+          "SC6_p3": {
+            "held": 52.0,
+            "selected": 46.563
+          },
+          "SC6_p4": {
+            "held": 22.0,
+            "selected": 20.187
+          },
+          "SC7_p1": {
+            "held": 67.0,
+            "selected": 71.444
+          },
+          "SC7_p2": {
+            "held": 90.0,
+            "selected": 85.326
+          },
+          "SC7_p4": {
+            "held": 24.0,
+            "selected": 28.674
+          },
+          "SC11_p1": {
+            "held": 36.0,
+            "selected": 38.301
+          },
+          "SC11_p2": {
+            "held": 35.0,
+            "selected": 29.667
+          },
+          "SC11_p3": {
+            "held": 34.0,
+            "selected": 39.437
+          },
+          "SC11_p4": {
+            "held": 33.0,
+            "selected": 30.595
+          },
+          "SC12_p1": {
+            "held": 50.0,
+            "selected": 52.872
+          },
+          "SC12_p2": {
+            "held": 24.0,
+            "selected": 26.312
+          },
+          "SC12_p3": {
+            "held": 32.0,
+            "selected": 32.253
+          },
+          "SC12_p4": {
+            "held": 32.0,
+            "selected": 26.563
+          },
+          "SC16_p1": {
+            "held": 63.0,
+            "selected": 64.84
+          },
+          "SC16_p2": {
+            "held": 17.0,
+            "selected": 17.505
+          },
+          "SC16_p3": {
+            "held": 27.0,
+            "selected": 24.655
+          },
+          "SC101_p1": {
+            "held": 48.0,
+            "selected": 51.02
+          },
+          "SC101_p2": {
+            "held": 27.0,
+            "selected": 30.869
+          },
+          "SC101_p3": {
+            "held": 39.0,
+            "selected": 34.877
+          },
+          "SC101_p4": {
+            "held": 24.0,
+            "selected": 21.234
+          },
+          "SC105_p1": {
+            "held": 48.0,
+            "selected": 45.408
+          },
+          "SC105_p2": {
+            "held": 21.0,
+            "selected": 23.592
+          },
+          "SC105_p3": {
+            "held": 35.0,
+            "selected": 40.438
+          },
+          "SC105_p4": {
+            "held": 34.0,
+            "selected": 28.562
+          },
+          "SC107_p2": {
+            "held": 25.0,
+            "selected": 20.938
+          },
+          "SC107_p3": {
+            "held": 78.0,
+            "selected": 83.437
+          },
+          "SC107_p4": {
+            "held": 38.0,
+            "selected": 36.625
+          },
+          "SC108_p1": {
+            "held": 31.0,
+            "selected": 30.216
+          },
+          "SC108_p3": {
+            "held": 88.0,
+            "selected": 86.347
+          },
+          "SC108_p4": {
+            "held": 22.0,
+            "selected": 24.437
+          },
+          "SC109_p2": {
+            "held": 20.0,
+            "selected": 25.437
+          },
+          "SC109_p3": {
+            "held": 90.0,
+            "selected": 86.063
+          },
+          "SC109_p4": {
+            "held": 31.0,
+            "selected": 29.5
+          },
+          "SC1001_p1": {
+            "held": 46.0,
+            "selected": 42.619
+          },
+          "SC1001_p2": {
+            "held": 23.0,
+            "selected": 25.277
+          },
+          "SC1001_p3": {
+            "held": 45.0,
+            "selected": 43.478
+          },
+          "SC1001_p4": {
+            "held": 24.0,
+            "selected": 26.626
+          },
+          "SC1002_p1": {
+            "held": 46.0,
+            "selected": 45.787
+          },
+          "SC1002_p2": {
+            "held": 23.0,
+            "selected": 20.281
+          },
+          "SC1002_p3": {
+            "held": 45.0,
+            "selected": 49.307
+          },
+          "SC1002_p4": {
+            "held": 24.0,
+            "selected": 22.625
+          },
+          "SC1003_p1": {
+            "held": 46.0,
+            "selected": 50.489
+          },
+          "SC1003_p2": {
+            "held": 23.0,
+            "selected": 20.562
+          },
+          "SC1003_p3": {
+            "held": 45.0,
+            "selected": 39.562
+          },
+          "SC1003_p4": {
+            "held": 24.0,
+            "selected": 27.387
+          },
+          "SC1004_p1": {
+            "held": 46.0,
+            "selected": 40.643
+          },
+          "SC1004_p2": {
+            "held": 23.0,
+            "selected": 21.887
+          },
+          "SC1004_p3": {
+            "held": 45.0,
+            "selected": 46.312
+          },
+          "SC1004_p4": {
+            "held": 24.0,
+            "selected": 29.158
+          },
+          "SC1005_p1": {
+            "held": 46.0,
+            "selected": 44.002
+          },
+          "SC1005_p2": {
+            "held": 23.0,
+            "selected": 28.325
+          },
+          "SC1005_p3": {
+            "held": 45.0,
+            "selected": 43.131
+          },
+          "SC1005_p4": {
+            "held": 24.0,
+            "selected": 22.542
+          }
+        },
+        "offsets": {
+          "SC1": {
+            "held": 19.0,
+            "selected": 57.196
+          },
+          "SC5": {
+            "held": 114.0,
+            "selected": 148.452
+          },
+          "SC6": {
+            "held": 13.0,
+            "selected": 57.749
+          },
+          "SC7": {
+            "held": 119.0,
+            "selected": 115.284
+          },
+          "SC11": {
+            "held": 55.0,
+            "selected": 78.113
+          },
+          "SC12": {
+            "held": 145.0,
+            "selected": 140.968
+          },
+          "SC16": {
+            "held": 1.0,
+            "selected": 2.91
+          },
+          "SC101": {
+            "held": 25.0,
+            "selected": 72.195
+          },
+          "SC105": {
+            "held": 115.0,
+            "selected": 133.817
+          },
+          "SC107": {
+            "held": 12.0,
+            "selected": 15.758
+          },
+          "SC108": {
+            "held": 38.0,
+            "selected": 26.458
+          },
+          "SC109": {
+            "held": 39.0,
+            "selected": 31.401
+          },
+          "SC1001": {
+            "held": 75.0,
+            "selected": 99.272
+          },
+          "SC1002": {
+            "held": 75.0,
+            "selected": 89.581
+          },
+          "SC1003": {
+            "held": 75.0,
+            "selected": 70.495
+          },
+          "SC1004": {
+            "held": 75.0,
+            "selected": 142.969
+          },
+          "SC1005": {
+            "held": 75.0,
+            "selected": 76.641
+          }
+        }
+      }
+    },
+    {
+      "block": 1,
+      "changes": {
+        "vsl": {},
+        "meters": {},
+        "green_times": {
+          "SC1_p1": {
+            "held": 54.0,
+            "selected": 53.731
+          },
+          "SC1_p2": {
+            "held": 21.0,
+            "selected": 24.99
+          },
+          "SC1_p3": {
+            "held": 32.0,
+            "selected": 38.247
+          },
+          "SC1_p4": {
+            "held": 31.0,
+            "selected": 21.032
+          },
+          "SC5_p1": {
+            "held": 43.0,
+            "selected": 35.181
+          },
+          "SC5_p2": {
+            "held": 23.0,
+            "selected": 22.099
+          },
+          "SC5_p3": {
+            "held": 47.0,
+            "selected": 45.193
+          },
+          "SC5_p4": {
+            "held": 25.0,
+            "selected": 35.527
+          },
+          "SC6_p1": {
+            "held": 43.0,
+            "selected": 53.875
+          },
+          "SC6_p2": {
+            "held": 21.0,
+            "selected": 20.938
+          },
+          "SC6_p3": {
+            "held": 52.0,
+            "selected": 42.25
+          },
+          "SC6_p4": {
+            "held": 22.0,
+            "selected": 20.937
+          },
+          "SC7_p1": {
+            "held": 67.0,
+            "selected": 68.012
+          },
+          "SC7_p2": {
+            "held": 90.0,
+            "selected": 83.693
+          },
+          "SC7_p4": {
+            "held": 24.0,
+            "selected": 30.307
+          },
+          "SC11_p1": {
+            "held": 36.0,
+            "selected": 33.756
+          },
+          "SC11_p2": {
+            "held": 35.0,
+            "selected": 26.409
+          },
+          "SC11_p3": {
+            "held": 34.0,
+            "selected": 43.946
+          },
+          "SC11_p4": {
+            "held": 33.0,
+            "selected": 33.889
+          },
+          "SC12_p1": {
+            "held": 50.0,
+            "selected": 55.695
+          },
+          "SC12_p2": {
+            "held": 24.0,
+            "selected": 23.489
+          },
+          "SC12_p3": {
+            "held": 32.0,
+            "selected": 37.691
+          },
+          "SC12_p4": {
+            "held": 32.0,
+            "selected": 21.125
+          },
+          "SC16_p1": {
+            "held": 63.0,
+            "selected": 67.293
+          },
+          "SC16_p2": {
+            "held": 17.0,
+            "selected": 17.236
+          },
+          "SC16_p3": {
+            "held": 27.0,
+            "selected": 22.471
+          },
+          "SC101_p1": {
+            "held": 48.0,
+            "selected": 52.636
+          },
+          "SC101_p2": {
+            "held": 27.0,
+            "selected": 34.864
+          },
+          "SC101_p3": {
+            "held": 39.0,
+            "selected": 30.125
+          },
+          "SC101_p4": {
+            "held": 24.0,
+            "selected": 20.375
+          },
+          "SC105_p1": {
+            "held": 48.0,
+            "selected": 49.591
+          },
+          "SC105_p2": {
+            "held": 21.0,
+            "selected": 27.775
+          },
+          "SC105_p3": {
+            "held": 35.0,
+            "selected": 36.383
+          },
+          "SC105_p4": {
+            "held": 34.0,
+            "selected": 24.251
+          },
+          "SC107_p2": {
+            "held": 25.0,
+            "selected": 21.835
+          },
+          "SC107_p3": {
+            "held": 78.0,
+            "selected": 83.583
+          },
+          "SC107_p4": {
+            "held": 38.0,
+            "selected": 35.582
+          },
+          "SC108_p1": {
+            "held": 31.0,
+            "selected": 24.778
+          },
+          "SC108_p3": {
+            "held": 88.0,
+            "selected": 89.812
+          },
+          "SC108_p4": {
+            "held": 22.0,
+            "selected": 26.41
+          },
+          "SC109_p2": {
+            "held": 20.0,
+            "selected": 30.875
+          },
+          "SC109_p3": {
+            "held": 90.0,
+            "selected": 82.219
+          },
+          "SC109_p4": {
+            "held": 31.0,
+            "selected": 27.906
+          },
+          "SC1001_p1": {
+            "held": 46.0,
+            "selected": 38.258
+          },
+          "SC1001_p2": {
+            "held": 23.0,
+            "selected": 25.93
+          },
+          "SC1001_p3": {
+            "held": 45.0,
+            "selected": 43.437
+          },
+          "SC1001_p4": {
+            "held": 24.0,
+            "selected": 30.375
+          },
+          "SC1002_p1": {
+            "held": 46.0,
+            "selected": 45.297
+          },
+          "SC1002_p2": {
+            "held": 23.0,
+            "selected": 22.531
+          },
+          "SC1002_p3": {
+            "held": 45.0,
+            "selected": 48.634
+          },
+          "SC1002_p4": {
+            "held": 24.0,
+            "selected": 21.538
+          },
+          "SC1003_p1": {
+            "held": 46.0,
+            "selected": 55.007
+          },
+          "SC1003_p2": {
+            "held": 23.0,
+            "selected": 21.007
+          },
+          "SC1003_p3": {
+            "held": 45.0,
+            "selected": 35.976
+          },
+          "SC1003_p4": {
+            "held": 24.0,
+            "selected": 26.01
+          },
+          "SC1004_p1": {
+            "held": 46.0,
+            "selected": 35.724
+          },
+          "SC1004_p2": {
+            "held": 23.0,
+            "selected": 20.807
+          },
+          "SC1004_p3": {
+            "held": 45.0,
+            "selected": 46.875
+          },
+          "SC1004_p4": {
+            "held": 24.0,
+            "selected": 34.594
+          },
+          "SC1005_p1": {
+            "held": 46.0,
+            "selected": 42.785
+          },
+          "SC1005_p2": {
+            "held": 23.0,
+            "selected": 32.262
+          },
+          "SC1005_p3": {
+            "held": 45.0,
+            "selected": 41.785
+          },
+          "SC1005_p4": {
+            "held": 24.0,
+            "selected": 21.168
+          }
+        },
+        "offsets": {
+          "SC1": {
+            "held": 19.0,
+            "selected": 17.117
+          },
+          "SC5": {
+            "held": 114.0,
+            "selected": 101.08
+          },
+          "SC6": {
+            "held": 13.0,
+            "selected": 38.644
+          },
+          "SC7": {
+            "held": 119.0,
+            "selected": 118.651
+          },
+          "SC11": {
+            "held": 55.0,
+            "selected": 78.713
+          },
+          "SC12": {
+            "held": 145.0,
+            "selected": 138.76
+          },
+          "SC16": {
+            "held": 1.0,
+            "selected": 17.901
+          },
+          "SC101": {
+            "held": 25.0,
+            "selected": 52.549
+          },
+          "SC105": {
+            "held": 115.0,
+            "selected": 130.231
+          },
+          "SC107": {
+            "held": 12.0,
+            "selected": 8.52
+          },
+          "SC108": {
+            "held": 38.0,
+            "selected": 9.569
+          },
+          "SC109": {
+            "held": 39.0,
+            "selected": 66.547
+          },
+          "SC1001": {
+            "held": 75.0,
+            "selected": 90.236
+          },
+          "SC1002": {
+            "held": 75.0,
+            "selected": 107.546
+          },
+          "SC1003": {
+            "held": 75.0,
+            "selected": 66.794
+          },
+          "SC1004": {
+            "held": 75.0,
+            "selected": 115.979
+          },
+          "SC1005": {
+            "held": 75.0,
+            "selected": 77.226
+          }
+        }
+      }
+    },
+    {
+      "block": 2,
+      "changes": {
+        "vsl": {},
+        "meters": {},
+        "green_times": {
+          "SC1_p1": {
+            "held": 54.0,
+            "selected": 53.003
+          },
+          "SC1_p2": {
+            "held": 21.0,
+            "selected": 23.343
+          },
+          "SC1_p3": {
+            "held": 32.0,
+            "selected": 38.904
+          },
+          "SC1_p4": {
+            "held": 31.0,
+            "selected": 22.75
+          },
+          "SC5_p1": {
+            "held": 43.0,
+            "selected": 40.362
+          },
+          "SC5_p2": {
+            "held": 23.0,
+            "selected": 22.159
+          },
+          "SC5_p3": {
+            "held": 47.0,
+            "selected": 42.419
+          },
+          "SC5_p4": {
+            "held": 25.0,
+            "selected": 33.06
+          },
+          "SC6_p1": {
+            "held": 43.0,
+            "selected": 59.193
+          },
+          "SC6_p2": {
+            "held": 21.0,
+            "selected": 20.844
+          },
+          "SC6_p3": {
+            "held": 52.0,
+            "selected": 37.776
+          },
+          "SC6_p4": {
+            "held": 22.0,
+            "selected": 20.187
+          },
+          "SC7_p1": {
+            "held": 67.0,
+            "selected": 69.075
+          },
+          "SC7_p2": {
+            "held": 90.0,
+            "selected": 88.194
+          },
+          "SC7_p4": {
+            "held": 24.0,
+            "selected": 25.806
+          },
+          "SC11_p1": {
+            "held": 36.0,
+            "selected": 33.644
+          },
+          "SC11_p2": {
+            "held": 35.0,
+            "selected": 23.691
+          },
+          "SC11_p3": {
+            "held": 34.0,
+            "selected": 41.339
+          },
+          "SC11_p4": {
+            "held": 33.0,
+            "selected": 39.326
+          },
+          "SC12_p1": {
+            "held": 50.0,
+            "selected": 51.849
+          },
+          "SC12_p2": {
+            "held": 24.0,
+            "selected": 23.421
+          },
+          "SC12_p3": {
+            "held": 32.0,
+            "selected": 41.604
+          },
+          "SC12_p4": {
+            "held": 32.0,
+            "selected": 21.126
+          },
+          "SC16_p1": {
+            "held": 63.0,
+            "selected": 68.946
+          },
+          "SC16_p2": {
+            "held": 17.0,
+            "selected": 17.098
+          },
+          "SC16_p3": {
+            "held": 27.0,
+            "selected": 20.956
+          },
+          "SC101_p1": {
+            "held": 48.0,
+            "selected": 52.205
+          },
+          "SC101_p2": {
+            "held": 27.0,
+            "selected": 35.06
+          },
+          "SC101_p3": {
+            "held": 39.0,
+            "selected": 30.36
+          },
+          "SC101_p4": {
+            "held": 24.0,
+            "selected": 20.375
+          },
+          "SC105_p1": {
+            "held": 48.0,
+            "selected": 53.552
+          },
+          "SC105_p2": {
+            "held": 21.0,
+            "selected": 30.22
+          },
+          "SC105_p3": {
+            "held": 35.0,
+            "selected": 31.603
+          },
+          "SC105_p4": {
+            "held": 34.0,
+            "selected": 22.625
+          },
+          "SC107_p2": {
+            "held": 25.0,
+            "selected": 22.379
+          },
+          "SC107_p3": {
+            "held": 78.0,
+            "selected": 84.634
+          },
+          "SC107_p4": {
+            "held": 38.0,
+            "selected": 33.987
+          },
+          "SC108_p1": {
+            "held": 31.0,
+            "selected": 27.74
+          },
+          "SC108_p3": {
+            "held": 88.0,
+            "selected": 88.564
+          },
+          "SC108_p4": {
+            "held": 22.0,
+            "selected": 24.696
+          },
+          "SC109_p2": {
+            "held": 20.0,
+            "selected": 35.625
+          },
+          "SC109_p3": {
+            "held": 90.0,
+            "selected": 77.468
+          },
+          "SC109_p4": {
+            "held": 31.0,
+            "selected": 27.907
+          },
+          "SC1001_p1": {
+            "held": 46.0,
+            "selected": 36.295
+          },
+          "SC1001_p2": {
+            "held": 23.0,
+            "selected": 29.554
+          },
+          "SC1001_p3": {
+            "held": 45.0,
+            "selected": 38.025
+          },
+          "SC1001_p4": {
+            "held": 24.0,
+            "selected": 34.126
+          },
+          "SC1002_p1": {
+            "held": 46.0,
+            "selected": 48.264
+          },
+          "SC1002_p2": {
+            "held": 23.0,
+            "selected": 21.71
+          },
+          "SC1002_p3": {
+            "held": 45.0,
+            "selected": 47.651
+          },
+          "SC1002_p4": {
+            "held": 24.0,
+            "selected": 20.375
+          },
+          "SC1003_p1": {
+            "held": 46.0,
+            "selected": 53.264
+          },
+          "SC1003_p2": {
+            "held": 23.0,
+            "selected": 20.884
+          },
+          "SC1003_p3": {
+            "held": 45.0,
+            "selected": 40.041
+          },
+          "SC1003_p4": {
+            "held": 24.0,
+            "selected": 23.811
+          },
+          "SC1004_p1": {
+            "held": 46.0,
+            "selected": 40.796
+          },
+          "SC1004_p2": {
+            "held": 23.0,
+            "selected": 21.237
+          },
+          "SC1004_p3": {
+            "held": 45.0,
+            "selected": 41.438
+          },
+          "SC1004_p4": {
+            "held": 24.0,
+            "selected": 34.529
+          },
+          "SC1005_p1": {
+            "held": 46.0,
+            "selected": 44.527
+          },
+          "SC1005_p2": {
+            "held": 23.0,
+            "selected": 28.946
+          },
+          "SC1005_p3": {
+            "held": 45.0,
+            "selected": 43.527
+          },
+          "SC1005_p4": {
+            "held": 24.0,
+            "selected": 21.0
+          }
+        },
+        "offsets": {
+          "SC1": {
+            "held": 19.0,
+            "selected": 19.228
+          },
+          "SC5": {
+            "held": 114.0,
+            "selected": 119.739
+          },
+          "SC6": {
+            "held": 13.0,
+            "selected": 20.697
+          },
+          "SC7": {
+            "held": 119.0,
+            "selected": 119.451
+          },
+          "SC11": {
+            "held": 55.0,
+            "selected": 52.879
+          },
+          "SC12": {
+            "held": 145.0,
+            "selected": 148.084
+          },
+          "SC16": {
+            "held": 1.0,
+            "selected": 16.826
+          },
+          "SC101": {
+            "held": 25.0,
+            "selected": 46.808
+          },
+          "SC105": {
+            "held": 115.0,
+            "selected": 126.88
+          },
+          "SC107": {
+            "held": 12.0,
+            "selected": 4.599
+          },
+          "SC108": {
+            "held": 38.0,
+            "selected": 23.278
+          },
+          "SC109": {
+            "held": 39.0,
+            "selected": 73.212
+          },
+          "SC1001": {
+            "held": 75.0,
+            "selected": 88.946
+          },
+          "SC1002": {
+            "held": 75.0,
+            "selected": 88.931
+          },
+          "SC1003": {
+            "held": 75.0,
+            "selected": 61.373
+          },
+          "SC1004": {
+            "held": 75.0,
+            "selected": 119.292
+          },
+          "SC1005": {
+            "held": 75.0,
+            "selected": 76.76
+          }
+        }
+      }
+    }
+  ],
+  "held_meter_commands": {
+    "RM_C10480": 10.0,
+    "RM_C10482": 10.0,
+    "RM_C10646": 10.0,
+    "RM_C10644": 10.0,
+    "RM_C10639": 2.0,
+    "RM_C10681": 9.0,
+    "RM_C10490": 5.0,
+    "RM_C10484": 2.0
+  },
+  "controller_wall_sec": 486.8011163000483,
+  "decision_budget": {
+    "budget_sec": null,
+    "finalization_reserve_sec": null,
+    "wall_sec": 484.29153940000106,
+    "cpu_sec": 30.125,
+    "overrun_sec": null,
+    "expired_stage": null,
+    "inclusive_scopes": {
+      "load_and_model_prepare": {
+        "calls": 1,
+        "wall_sec": 19.741943100001663,
+        "cpu_sec": 19.0625
+      }
+    },
+    "scope_rule": "Wall limits explicitly disabled; elapsed wall/CPU still measured; finite work limits and all validation remain active.",
+    "unlimited_time": true,
+    "configured_inactive_budget_sec": 120.0
+  },
+  "work_counts": {
+    "requests": 59,
+    "cache_hits": 2,
+    "scalar_rollouts": 50,
+    "tangent_rollouts": 7,
+    "total_rollouts": 57,
+    "closed": true
+  },
+  "pfo": {
+    "executed_iterations": 2,
+    "accepted_iterations": 2,
+    "converged": false,
+    "status": "iteration_limit"
+  },
+  "sdmpc_candidates": [
+    {
+      "np_cap": 577.4427125089544,
+      "nuf_target": 6023.902732168961,
+      "status": "iteration_limit",
+      "accepted_steps": 2,
+      "feasible": true,
+      "objective": 476.27788122645234,
+      "executed_iterations": 2,
+      "max_iterations": 2,
+      "converged": false
+    }
+  ],
+  "fresh_budget_initialization": {
+    "schema": "decision-pfo-budget-initialization/v2",
+    "start_sec": 2700.0,
+    "end_sec": 3150.0,
+    "np_cap_veh": 577.4427125089544,
+    "nuf_cap_veh_h": 6023.902732168961,
+    "achieved_np_veh": 477.44271250895446,
+    "achieved_nuf_veh_h": 5923.902732168961,
+    "np_cap_margin_veh": 100.0,
+    "nuf_cap_margin_veh_h": 100.0,
+    "cap_rule": "cap = PFO-achieved + configured nonnegative margin",
+    "accepted_rate_veh_h_by_ramp": {
+      "RM_C10480": 239.6285542247355,
+      "RM_C10482": 2221.689568530684,
+      "RM_C10646": 394.31600684688317,
+      "RM_C10644": 455.83999999999975,
+      "RM_C10639": 361.6,
+      "RM_C10681": 1165.8776730866257,
+      "RM_C10490": 724.1509294800329,
+      "RM_C10484": 360.8
+    },
+    "reference_action_token": "45d9437899d48771bfa00b044d960a4a6057f83ccbdf9989c256a19d46e5843f",
+    "reference_response_token": "af924584cc5b109c1dfde2c85d9cec33e22d71489ed4df887293bb78dff99d16",
+    "frozen_context_token": "4af0343888c8b054991c8cd73105f32a453562cea3f9ff3d3bfcc2de311d2e66",
+    "budget_policy": "upper_caps",
+    "source": "current_interval_PFO_prediction",
+    "previous_budget_reused": false,
+    "physical_commands_unchanged": true,
+    "scope": "PFO-achieved quantities in the current prediction plus the configured margin; not future VISSIM observations"
+  },
+  "converged": false,
+  "selection_status": "best_observed_feasible_sdmpc",
+  "known_offset_gradient_failure": true,
+  "native_gain_qualified": false,
+  "all_derivatives_qualified": false,
+  "new_native_runs": 0,
+  "push": false,
+  "verification": {
+    "unchanged_sources": {
+      "diagnostics/repin_v3c3_review_20261001/sc1001_connection/candidate_config.json": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+      "evaluation/parameters.json": "68a9cc0304453cc9493bbe45ca08dad118704175c8eeafbcb3996d0056e43da4",
+      "evaluation/controllers/area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+      "evaluation/controllers/control_area_objective.py": "f56ef322ffb6cc2c3288d05d988c8ba57b932e37a733a5aac4fa1c4ddcd43e53",
+      "evaluation/controllers/physical_ramp_boundary.py": "f0603b14047adf988d26057c364d79aa45ec8721d0b0a0f439785381503a950f",
+      "evaluation/controllers/lane_offramp_runtime.py": "abb6aa11781750ebf2513abb21b44f1ba07133d5bd8e830e378de71a9d637f76",
+      "evaluation/controllers/sdmpc.py": "33efa14e3d228bc73ee3b6b66613794fb83c025df0844e7aabf8b16466f0f3c4",
+      "evaluation/controllers/sdmpc_pfo.py": "9d5fceb46971efeb7a8a145fe170f4ada6418c067d394b19fdf8106189bfc624"
+    },
+    "replay_harness_changed_functions": [
+      "probe_levers"
+    ],
+    "replay_harness_sha256": "3b82c59fda52252f5fbbf22e3b84898e61bb7b5127750a1c121145c7049c8313",
+    "result_sha256": {
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_sc1001_corrected47\\summary.json": "91feb03ec4a48588c6c9f51294caa492c719b62b31898a55734ba1a76df5227f",
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_sc1001_corrected47\\unused_action.joint.json": "7ddc178928e838787d9ea6c4dfd014d82f99d917b6c1b2927455721c62eeeb76",
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_sc1001_corrected47\\unused_action.joint_written.json": "b44a6af4483fd9d30747395cd55e7ae0a83348525c8a6abe1c365825aa28d5d2",
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_sc1001_corrected47\\summary.json": "aabbca1324f32125c5f91a050f28f526390580df2e120ca74f960baf09ff25cd"
+    }
+  }
+}

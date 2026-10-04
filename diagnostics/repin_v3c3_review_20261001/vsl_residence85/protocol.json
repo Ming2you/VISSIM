@@ -1,0 +1,54 @@
+{
+  "created_at": "2026-10-03T08:33:04.841478+09:00",
+  "previous_goal_turn": "PROGRESS: common-initial cohort boundary diagnosis completed; independent71 failed gain/rank remains preserved",
+  "hypothesis": "Well-mixed cell transport may spread tagged-cohort departure times even with correct aggregate traffic; distinguish this representation effect from erroneous autonomous stock/speed.",
+  "budget": {
+    "native": 0,
+    "forecast": 0,
+    "fit": 0,
+    "fzp_scan": 0
+  },
+  "cells": [
+    16,
+    17,
+    19
+  ],
+  "horizon_sec": 60,
+  "cohort_start_stride_sec": 30,
+  "early_window": [
+    2250,
+    2490
+  ],
+  "late_window": [
+    2670,
+    3120
+  ],
+  "seeds": [
+    29,
+    43,
+    67
+  ],
+  "heldout71_not_used": true,
+  "methods": [
+    "empirical initial-cohort survival",
+    "conditional uniform mixing using observed departure of current occupants",
+    "conditional FIFO older-before-new priority with the same aggregate departures",
+    "autonomous model passive mixing for the common seed43 initial2250 state only"
+  ],
+  "limits": [
+    "Native snapshots are5s. Report interval-censored departure curves and trapezoid60s restricted residence; no exact crossing times or TTT.",
+    "Conditional uniform/FIFO use observed future aggregate occupancies and departures to separate representation; not autonomous forecasts and not production candidates.",
+    "Native sampled occupant departures omit within-bin entrants that also leave; do not equate them with complete detector flux.",
+    "Adjacent cohort starts overlap; no independent-sample significance claim.",
+    "Never equate passive cohort residence mismatch with proof of lost capacity or total-cost causality.",
+    "No compensation to force VSL gains, no fit, no changes to physical source/actuation/observation."
+  ],
+  "prior_checked": [
+    "Claude REVIEW_CHECK K4/K5 and FWW discussion",
+    "recovery_transport, current_position_flux, vsl_population_response and current_cells16_20",
+    "center_distance and vsl_density_rollout failed; do not repeat",
+    "No matching residence-distribution or numerical-diffusion analysis found in Claude/local searched reports"
+  ],
+  "stop": "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP",
+  "stop_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+}

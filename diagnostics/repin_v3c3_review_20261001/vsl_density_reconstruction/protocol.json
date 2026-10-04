@@ -1,0 +1,42 @@
+{
+  "scope": "REVIEW68: current-state density spatial reconstruction screen; no autonomous forecast yet",
+  "previous_goal_turn": "Latest user status response was no progress; REVIEW67 runtime fix was progress. Revalidated authoritative state, now evaluating a distinct hypothesis.",
+  "hypothesis": "Downstream whole-cell density can obscure proximal density that sets anticipation; test whether adjacent current means can recover that spatial information.",
+  "candidate": "Nonuniform-grid minmod slope of per-lane mean density; upstream-half mean rho_j - slope_j * L_j / 4. No fitted coefficients, future input, time/seed/control bonus.",
+  "budget": {
+    "forecasts": 0,
+    "fit": 0,
+    "FZP_reads": 0,
+    "native": 0,
+    "frames_per_arm": 49,
+    "arms": 4
+  },
+  "cells_receiving_pressure": [
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "times": "2250.1 through 2490.1 every5s",
+  "gate": "At least10percent pooled RMSE reduction in EACH of4 arms relative to current actual proximal-half density; no individual target cell worsens over10percent. This only screens representation, NOT gain qualification. On failure do not forecast or tune slopes.",
+  "prior_work": [
+    "Claude bd39205 03_codex_review/REVIEW and07_fww_sc1001eb/fww-struct/P_PLANT; no density reconstruction implementation in scoped07 search",
+    "Local recovery_transport boundary SPEED minmod failed; density candidate is distinct",
+    "Local center_distance and through_pressure autonomous candidates failed; do not repeat"
+  ],
+  "limitations": [
+    "Inputs use current observed averages for this conditional representation screen; future autonomous states not validated",
+    "Actual proximal half is an observational target, not exact driver anticipation or microscopic shock location",
+    "Seeds29/43 already examined; do not call heldout validation",
+    "Common initial NC/VSL frames verified; later trajectories differ",
+    "Existing 9000 failed1650 and remains preserved; no restart"
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\vendor\\NumSim-mine\\src\\models\\metanet.py": "fdc4b88157ae147ef650cf87c316ec75974036eabc5248b37a4ebb735d7857b5",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  }
+}

@@ -1,0 +1,107 @@
+"""Execute the actual head/VSL observers twice; prohibit traffic forecasts."""
+import copy
+import ctypes
+import hashlib
+import importlib.util
+import json
+import re
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+I = HERE.parent
+OUT = HERE/'observer_replay'
+OLD = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+NEW = Path('D:/VISSIM_runs/20261001_onset2250_s29/held_actual/decisions_sdmpc31_g_2250_held_actual_s29')
+
+
+def main():
+    OUT.mkdir(exist_ok=False)
+    (OUT/'head_new').mkdir()
+    (OUT/'vsl_new').mkdir()
+    ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x4000)
+    from evaluation.controllers import obs150_contract as oc, obs150_observation as observer
+    from evaluation.controllers import head_service_resources as heads, vsl_exposure_history as vsl
+    pins = {}
+    def read(p):
+        data = p.read_bytes(); pins[str(p)] = hashlib.sha256(data).hexdigest()
+        return json.loads(data)
+    def readonly(raw, derived):
+        path = oc.resolve(raw[oc.RAW_STATE_KEY],oc.derived_path(raw['sim_sec']))
+        assert path.read_bytes() == oc.derived_bytes(derived)
+        return path
+    oc.write_derived = readonly
+    def new_input(sec):
+        raw = read(NEW/f'state_{sec:06d}.json')
+        derived = read(HERE/'history_inputs'/f'new_{sec:06d}.json')
+        # Keep each run's real config hash and provenance. Do not relabel it.
+        assert derived['inputs']['raw_sha256'] == oc.canonical_sha256(raw['obs150'])
+        return observer.merge_into_state(raw,derived)
+    def numeric_namespace(meta):
+        out = {}
+        for key,value in meta.items():
+            mapped = re.sub(r'_[0-9a-f]{16,64}(?=_|$)','_IDENTITY',key)
+            assert mapped not in out, ('Namespace collision',key)
+            out[mapped] = value
+        return out
+    head_checks, vsl_checks = [], []
+    observe, initialize = heads.observe, vsl.initialize
+    def paired_head(original,cfg,raw,previous,caps,plan,distribute,options):
+        sec = int(raw['sim_sec'])
+        trial_cfg = copy.deepcopy(cfg)
+        second = new_input(sec)
+        prior = OUT/'head_new'/f'head_prior_{sec-150:06d}.json' if sec>150 else None
+        first_meta = observe(original,cfg,raw,previous,caps,plan,distribute,options)
+        next_meta = observe(original,trial_cfg,second,prior,caps,plan,distribute,options)
+        next_meta['sim_sec'] = sec
+        (OUT/'head_new'/f'head_prior_{sec:06d}.json').write_text(json.dumps(dict(
+            run_provenance=second['run_provenance'],metadata=next_meta,diagnostic_observation_only=True)),encoding='utf-8')
+        compare = dict(next_meta); compare.pop('sim_sec')
+        assert numeric_namespace(first_meta) == numeric_namespace(compare), ('Head history differs',sec)
+        assert cfg.network.movement_capacity_by_movement_veh_h == trial_cfg.network.movement_capacity_by_movement_veh_h
+        a,b = [copy.deepcopy(c.network.head_service_resources) for c in (cfg,trial_cfg)]
+        for doc in (a,b):
+            for row in doc['observations'].values():
+                row.pop('metadata_key',None)
+        assert a == b, ('Physical head resource differs',sec)
+        head_checks.append(dict(end_sec=sec,numeric_metadata_exact=True,capacity_exact=True,physical_resources_exact=True))
+        return first_meta
+    def paired_vsl(context,raw,state,cfg,*,history_directory=None):
+        sec = int(raw['sim_sec'])
+        trial_state = copy.deepcopy(state)
+        result = initialize(context,raw,state,cfg,history_directory=history_directory)
+        initialize(context,new_input(sec),trial_state,cfg,history_directory=OUT/'vsl_new')
+        a = read(Path(history_directory)/f'vsl_cohorts_{sec:06d}.json')
+        b = read(OUT/'vsl_new'/f'vsl_cohorts_{sec:06d}.json')
+        for key in ('cutoff','applied_readbacks_sha256','cohorts','audit'):
+            assert a[key] == b[key], ('VSL history differs',sec,key)
+        vsl_checks.append(dict(end_sec=sec,readbacks_exact=True,cohorts_exact=True,audit_exact=True))
+        return result
+    heads.observe = paired_head
+    vsl.initialize = paired_vsl
+    script = I/'probe_selected_arrival_path.py'
+    spec = importlib.util.spec_from_file_location('history_probe',script)
+    module = importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    from src.controllers import rollout_endpoint
+    def forbidden(*args,**kwargs):
+        raise AssertionError('Traffic forecasting is forbidden in this history audit')
+    rollout_endpoint.evaluate_price_point = forbidden
+    sys.argv = [str(script),'--closedloop-recorded','--at=2250','--initialize-only','--lever-probe450',
+        '--meter-ramp=RM_C10484','--warm-head-history','--replay-vsl-history',
+        '--recording-dir='+str(OLD),
+        '--tuning-json='+str(I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_config.json'),
+        '--probe-label=history_equiv2250']
+    module.main()
+    assert [r['end_sec'] for r in head_checks] == list(range(150,2251,150))
+    assert [r['end_sec'] for r in vsl_checks] == list(range(150,2251,150))
+    assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+    report = dict(stage='consumed_head_and_vsl_history_exact',head_checks=head_checks,vsl_checks=vsl_checks,
+        head_identity_handling='Only provenance-derived hash namespaces normalized for comparison; real source identities verified independently; collision check enforced.',
+        new_forecasts=0,new_native_runs=0,original_raw_prefix_reproduction_passed=False,
+        input_sha256=pins)
+    (OUT/'summary.json').write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+    print(json.dumps(dict(stage=report['stage'],head_windows=len(head_checks),vsl_windows=len(vsl_checks))),flush=True)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,32 @@
+{
+  "train_window": [
+    2520.1,
+    2670.1
+  ],
+  "calibration": "Past endpoint-change Poisson likelihood; three shared exchange parameters only",
+  "beta_domain": [
+    0.0,
+    20.0
+  ],
+  "coefficient_grid": 0,
+  "max_new_rollouts": 10,
+  "max_wall_sec": 180,
+  "active_cells": [
+    22,
+    23
+  ],
+  "unchanged": "Canonical31 cells elsewhere, FD/merge/recovery coefficients, physical jam storage, off dynamics, commands, demand, objective; VSL cohort fractions preserved and shared by local groups.",
+  "assumptions": "Uniform lane shares at aggregate neighbours; lane1/lanes2-3 share within-cell VSL command fractions. Same-cell and cross-cell endpoint changes pooled; unresolved5s paths are not exact hazards.",
+  "qualification": "Candidate only. Full v2/SDMPC and independent seed not qualified. No new native or push.",
+  "physical_gate": "All mass and source/receiving constraints; no speed above200km/h; no negative/projected inventory. No grid if it fails.",
+  "comparison": "Existing cell23 model vs sparse constant/speed-responsive exchange, four executed-command arms.",
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "074c0bab2500707156cdca753b572e73fa41b03e71af098bc30227d706ebf256",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\recovery_flow_audit\\native10484\\local_state\\initial_state.json": "76009fb493fb728d4ed421d6b3d7122e070514e62cb751e4004db14fea5a9829",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\recovery_flow_audit\\native10484\\local_state\\past_frames.json.gz": "2f89500ea86e8a5b954f78f7c5ada42cad51e4166ceb108abe055ec5bd6ffc19",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\recovery_flow_audit\\native10484\\local_state\\exchange_5s.csv": "9494fdead1af04c7dc23162c2355ea93c323ef18bf48c21ab1219a44ba9e8e28",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "dadde81985289ff109d3627f1a5397a1b407b7cbb00c8f7a5da448ee34d09760",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "e263c12cc97661c3e5dd00a26d6ab4a914f0fc543f888e66dc68d23e91a91535",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\canonical_harness.py": "d0e271864f7435c670101a59183f9fcda2558ac1ab3c0e685a986df36a32508f"
+  }
+}

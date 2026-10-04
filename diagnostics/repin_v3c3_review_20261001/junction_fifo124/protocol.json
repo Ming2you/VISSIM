@@ -1,0 +1,64 @@
+{
+  "previous_goal_turn": "NO_PROGRESS: user interpretation acknowledged without a new experiment; no blocker. Revalidated saved123/107 and current source; proceed with bounded autonomous shared-lane node test.",
+  "question": "Can cell21 lane receiving and reciprocal same-lane divergence allocation reproduce the shared10483 exit/10490 merge response without future blockage inputs?",
+  "evidence": "123 conditional shared blockage affects gain; current RouteLaneRegion independently allocates off flow before downstream through receiving. Old107 cell21 lane1 maximumN12.78 below physicalstorage16.71 leaves multi-vehicle one-second headroom; physical space alone is weak receiving.",
+  "scope": "Rebase existing107 harness and conserved19..25 lane region. Cell21 nominal FD-derived lane receiving, ramp supply uses same rate before mainline; then compare adding10483-only same-lane reciprocalFIFO. No new production adapter.",
+  "formula": "R21g=min(Q21,w21*(jam-rho21g),physicalspace/dt); Q21=rhoc*vf*exp(-1/a), w21=Q21/(jam-rhoc). Ramp accepted first using same R. For cell20 lane1 exit/through, f=min(1,offR/offD,remainingR21/throughD); both destination requests multiplied byf. Otherlanes independent.",
+  "approximation": "Complete FIFO within one lane at two branchpoints2.814m apart is a structural hypothesis; lateral transport retains previous29-calibrated hazards, inlet lane shares frozen; not known exact VISSIM queue order or lane-change model.",
+  "candidate_cells": [
+    21
+  ],
+  "shared_off": "10483",
+  "lane_region": [
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "manifest": "diagnostics\\repin_v3c3_review_20261001\\retained10638\\candidate_manifest.json",
+  "protected_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP": {
+    "path": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "no_future_truth_inputs": true,
+  "training": "No fitting. Coefficients fixed expanded036; test is NOT ceiling after dynamics-consistent recalibration.",
+  "comparison": "seed67 current2670.1 same release110/90; archived107 current lane-only pair reused only after equality of freshly repeated lane-only pair. ComponentFW_E+8connectors, not OmegaTTT orOmegaTTD.",
+  "budget": {
+    "autonomous450": 8,
+    "fits": 0,
+    "native": 0,
+    "FZP": 0,
+    "push": 0
+  },
+  "decision": "Require conservation/default-off parity and actual activation. Inspect both150s flux timing and deltaTTT. Meaningful wrongsign precludes adoption. Weak fixed-coefficient effect does not rule out joint recalibration; do not extend blind grids.",
+  "helper_before_sha256": "c1113a3e07208baaa135b8cd77b402ee8c423c5d48eff92bea8b810d6364dd8c",
+  "helper_functions_before": {
+    "read": "33b66a28dfd0df775bc603e95071e6fe149bc0e7a4a85f57be312c46d25639f6",
+    "main": "c0a7250700478142b484d4235ee7b671f92de1e304b9609e76e1c82fff9316f9",
+    "assess_destination_speed": "25f4a08b84f35e8ea68af9df881b5fa6efd471f0a8bc6b5df5b6177a37520421",
+    "assess_current_destination_snapshots": "5805e42104e668fcacee8e96ae5437ffe60b825fe3546a69fcc3fc72596d9e7a",
+    "assess_approach10483_90": "e7de0d4239d4e25d6d4cdf8b9062ef910e63533e09b3da485d42d41b12a5628d",
+    "assess_state_information92": "572240b374872d65270cf9633accd75805fa4d3a070ad92f944fdd3f88171d7c",
+    "assess_lane_aggregation99": "6ada7850a5d1cff6ccb7f5486efba90ea16bae0963f29a52a012b2a1280b36d1",
+    "assess_joint_lane_transport100": "804c9e2d240babb1b5d1126469ac5a16fd7a08b3b95614b47d8717ba48431527",
+    "assess_downstream_density101": "b85429e026cc78fda621db7051bb5c0b2f350142e4e332b5c289aef88d8bc755",
+    "assess_stopped_lane106": "7b9c4e680c5c19f07dfbbfb429cb150204d2849b04c8a93b3942d57b84ff64e6",
+    "assess_lane_receiving107": "a2b1e0903776408edadf6c9450272c01c1758ac9910c56a0b1ce946b71519c7e",
+    "run_lane_receiving107": "5fbf9de7acb1ae710224d9859b7c39f25ec021a3a091d469a6ad891b0c2fc142",
+    "assess_lane_access108": "34aadc3f0f4323e7718fa10dfac2650f5eaa0cf1e6a7d6e9257119b5429eed75"
+  }
+}

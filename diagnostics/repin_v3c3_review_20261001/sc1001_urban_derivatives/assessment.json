@@ -1,0 +1,95 @@
+{
+  "status": "green_pass_offset_fail",
+  "primal_outputs_match": true,
+  "new_ad_rollouts": 1,
+  "new_scalar_rollouts": 9,
+  "wall_sec": 130.55523069994524,
+  "rows": [
+    {
+      "kind": "green",
+      "step": 0.001,
+      "all_central_match": true,
+      "omega_ad_per_sec": 0.04124523301663915,
+      "omega_fd_per_sec": 0.041245233057818353,
+      "sides": {
+        "left": {
+          "max_cost_error_per_z": 0.0003957714691900094,
+          "max_resource_error_per_z": 4.524258287119665e-06
+        },
+        "right": {
+          "max_cost_error_per_z": 0.0003957681646475919,
+          "max_resource_error_per_z": 4.565004388723537e-06
+        },
+        "central": {
+          "max_cost_error_per_z": 3.6732763497582255e-09,
+          "max_resource_error_per_z": 6.593521106879052e-08
+        }
+      }
+    },
+    {
+      "kind": "green",
+      "step": 0.0005,
+      "all_central_match": true,
+      "omega_ad_per_sec": 0.04124523301663915,
+      "omega_fd_per_sec": 0.04124523304227523,
+      "sides": {
+        "left": {
+          "max_cost_error_per_z": 0.00019788815945176452,
+          "max_resource_error_per_z": 2.2732589002316672e-06
+        },
+        "right": {
+          "max_cost_error_per_z": 0.00019788485490934704,
+          "max_resource_error_per_z": 2.3140050018355396e-06
+        },
+        "central": {
+          "max_cost_error_per_z": 7.936532764318827e-09,
+          "max_resource_error_per_z": 2.0373050801936188e-08
+        }
+      }
+    },
+    {
+      "kind": "offset",
+      "step": 0.001,
+      "all_central_match": false,
+      "omega_ad_per_sec": -0.003315259595388757,
+      "omega_fd_per_sec": -0.0033244462271930786,
+      "sides": {
+        "left": {
+          "max_cost_error_per_z": 3.5800434612380925,
+          "max_resource_error_per_z": 45.67569021061475
+        },
+        "right": {
+          "max_cost_error_per_z": 3.571906516253621,
+          "max_resource_error_per_z": 45.67569034703896
+        },
+        "central": {
+          "max_cost_error_per_z": 3.5759749887458567,
+          "max_resource_error_per_z": 45.675690278826856
+        }
+      }
+    },
+    {
+      "kind": "offset",
+      "step": 0.0005,
+      "all_central_match": false,
+      "omega_ad_per_sec": -0.003315259595388757,
+      "omega_fd_per_sec": -0.003324446359087574,
+      "sides": {
+        "left": {
+          "max_cost_error_per_z": 3.5800600879381093,
+          "max_resource_error_per_z": 45.67569021061475
+        },
+        "right": {
+          "max_cost_error_per_z": 3.5718898725005785,
+          "max_resource_error_per_z": 45.675690483463164
+        },
+        "central": {
+          "max_cost_error_per_z": 3.575974980219344,
+          "max_resource_error_per_z": 45.67569034703896
+        }
+      }
+    }
+  ],
+  "selection_not_started": true,
+  "scope": "Neither one-sided offset column matches; near aggregate Omega agreement hides owner/resource discrepancies."
+}

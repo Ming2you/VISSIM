@@ -1,0 +1,62 @@
+{
+  "stage": "complete_rejected_candidate_core_restored",
+  "verified": {
+    "joint_lane_region": {
+      "pins": 51,
+      "forecasts": 9,
+      "parity": {
+        "cells": true,
+        "flows": true,
+        "ports": true,
+        "ramps": true
+      }
+    },
+    "joint_lane_fifo": {
+      "pins": 51,
+      "forecasts": 9,
+      "parity": {
+        "cells": true,
+        "flows": true,
+        "ports": true,
+        "ramps": true
+      }
+    }
+  },
+  "old_helper_functions_unchanged": 88,
+  "new_helper_functions": [
+    "check_joint_route_lane_region"
+  ],
+  "tests": 5,
+  "aggregate_N_Nv_checks": 360,
+  "core_restored": {
+    "files": {
+      "evaluation/controllers/physical_lane_groups.py": {
+        "before": "0b7476f74ac99ec8ae2e89292e1ca0ba18d9bbdd52ca64ef6dc980196c123b87",
+        "candidate": "39a5a22add05e30369a858bee208eedf236486acf1194cab09821ea8134e2739",
+        "restored": "0b7476f74ac99ec8ae2e89292e1ca0ba18d9bbdd52ca64ef6dc980196c123b87"
+      },
+      "evaluation/controllers/offramp_routing.py": {
+        "before": "e9eef95455df833c7ab2c332d7096597165f712a30eccf3d61165dac869b1b03",
+        "candidate": "fe15bd9716517b9c13d6206edd93a37a159946f92cbee566d3336553c6a3d4d2",
+        "restored": "e9eef95455df833c7ab2c332d7096597165f712a30eccf3d61165dac869b1b03"
+      },
+      "evaluation/controllers/area_freeway_accounting.py": {
+        "before": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+        "candidate": "9973c50df3f674dbafcd9e2cb3c82a081dd2d5de9d1da363dc4f211d4c8933f6",
+        "restored": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482"
+      },
+      "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": {
+        "before": "41e4cc279b080c78d818a04de51df448c0b7223b3a2f2b1597424cdeef6cf8bd",
+        "candidate": "cf3e2e2a26857ef78848e56290fb8e6532f67dbcc8b99fa78c4388d1debed03d",
+        "restored": "41e4cc279b080c78d818a04de51df448c0b7223b3a2f2b1597424cdeef6cf8bd"
+      }
+    },
+    "tests_archived": "test_candidate.txt",
+    "candidate_adopted": false
+  },
+  "stop_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+  "new_native": 0,
+  "new_fzp": 0,
+  "push": false,
+  "goal_qualified": false
+}

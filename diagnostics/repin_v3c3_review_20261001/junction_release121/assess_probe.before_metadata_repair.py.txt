@@ -1,0 +1,75 @@
+"""Assess the two short conditional probes against fresh unchanged controls."""
+from pathlib import Path
+import json
+import hashlib
+
+HERE=Path(__file__).resolve().parent
+R=HERE.parent
+ROOT=HERE.parents[2]
+I=ROOT/'diagnostics/sdmpc_n31_20260924/integration_20260926'
+
+
+def load(p):return json.loads(p.read_text(encoding='utf-8'))
+
+
+def main():
+    assert not (HERE/'probe_assessment.json').exists()
+    for prefix in ('baseline2_','conditional2_'):
+        assert load(HERE/(prefix+'probe_status.json'))['phase']=='complete_pending_assessment'
+        assert load(HERE/(prefix+'restoration.json'))['core_inputs_STOP_unchanged']
+    old=load(I/'closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent_trace81_path/summary.json')['results']
+    native=load(R/'s67_full_observation/analysis/summary.json')['arms']
+    controls=load(I/'closedloop_recorded2700_lever450_baseline2_junction121/summary.json')['results']
+    modified=load(I/'closedloop_recorded2700_lever450_conditional2_junction121/summary.json')['results']
+    queries={prefix:load(HERE/(prefix+'probe_witness.json'))['queries'] for prefix in ('baseline2_','conditional2_')}
+    arms=('release_actual','release_vsl90_actual')
+    parity_keys=('ttt_omega_veh_h','cost_by_stock','tracked_outside_residence_veh_h','control_area','ramps','commands','physical_cell_states')
+    for arm in arms:
+        for k in parity_keys:assert controls[arm][k]==old[arm][k],(arm,k)
+        assert controls[arm]['commands']==modified[arm]['commands']
+        assert modified[arm]['future_observation_inputs'] is True
+        assert modified[arm]['conditional_diagnostic']['autonomous'] is False
+    actual_delta=native['release_vsl90']['TTT_2700p1_3150_veh_h']-native['release']['TTT_2700p1_3150_veh_h']
+    gains={name:rows[arms[1]]['ttt_omega_veh_h']-rows[arms[0]]['ttt_omega_veh_h'] for name,rows in [('unchanged',controls),('conditional',modified)]}
+    block_rows=[]
+    events=load(R/'boundary_time88/events.json')
+    for arm in ('release','release_vsl90'):
+        for start in (2700,2850,3000):
+            item=dict(arm=arm,start_sec=start,end_sec=start+150,
+                native_exact10483_entries=sum(e['case']==f'67_release/{arm}' and e['ref']=='off_entry:10483'
+                    and start+.1<e['time_sec']<=start+150+.1 for e in events))
+            for name,rs in queries.items():
+                selected=[r for r in rs if r['arm']==arm and start<=r['time_sec']<start+150]
+                assert len(selected)==150
+                item[name+'accepted10483']=sum(r['accepted10483_veh'] for r in selected)
+                item[name+'blocked_sec']=sum(r['blocked'] for r in selected)
+            block_rows.append(item)
+    # This is a sensitivity gate, never a qualified autonomous correction.
+    before=abs(gains['unchanged']-actual_delta)
+    after=abs(gains['conditional']-actual_delta)
+    cost_response={}
+    keys=set(controls[arms[0]]['cost_by_stock'])
+    for k in sorted(keys):
+        a=controls[arms[1]]['cost_by_stock'][k]-controls[arms[0]]['cost_by_stock'][k]
+        b=modified[arms[1]]['cost_by_stock'][k]-modified[arms[0]]['cost_by_stock'][k]
+        if abs(a)>1e-9 or abs(b)>1e-9:cost_response[k]=dict(unchanged=a,conditional=b)
+    assert abs(sum(x['conditional'] for x in cost_response.values())-gains['conditional'])<1e-7
+    output=dict(status='COMPLETE_CONDITIONAL_DIAGNOSTIC_NOT_CALIBRATED',
+        actual_omega_delta_ttt_veh_h=actual_delta,forecast_delta_ttt_veh_h=gains,
+        response_absolute_error_reduction_percent=100*(before-after)/before,
+        baseline_original_physics_bit_exact_fields=parity_keys,commands_unchanged=True,
+        blocks=block_rows,cost_response=cost_response,
+        per_arm_omega={label:{arm:rows[arm]['ttt_omega_veh_h'] for arm in arms} for label,rows in [('unchanged',controls),('conditional',modified)]},
+        adopted=False,autonomous_validation=False,
+        limitations=['Exact future branch body-block label held5s and full off-entry closure is a strong conditional diagnostic, not exact physical closure nor fitted capacity law.',
+            'Actual short TTT starts2700.1 and ends3150 with tail hold; forecast starts2700. No9000 data analyzed.',
+            'The same seed67 was previously inspected; not blind testing. Current sampled blockade could itself be a consequence of downstream traffic.',
+            'No modification of through-lane receiving or lateral movement. No bound on every possible junction interaction mechanism.'])
+    for prefix in ('baseline2_','conditional2_'):
+        protocol=load(HERE/(prefix+'probe_protocol.json'))
+        for p,h in protocol['core_and_input_pins'].items():assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h
+    (HERE/'probe_assessment.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps({k:v for k,v in output.items() if k not in ('cost_response','baseline_original_physics_bit_exact_fields','limitations')},ensure_ascii=False,indent=2))
+
+
+if __name__=='__main__':main()

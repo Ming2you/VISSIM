@@ -1,0 +1,44 @@
+{
+  "previous_goal_turn": "PROGRESS:600conditional checks and18forecasts; recovery candidate improves state but worsens calibration response loss.",
+  "rationale": "User prioritizes large physical directions and decisions over perfect trajectories. Quantify finite-menu choice regret separately, without waiving failed calibration or declaring full qualification.",
+  "cases": {
+    "s67_late": [
+      "hold",
+      "release",
+      "hold_vsl90",
+      "release_vsl90"
+    ]
+  },
+  "horizon_sec": 450,
+  "models": {
+    "route036": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\manifest.json",
+    "connected_fd": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\connected_fd\\review\\candidate_manifest.json",
+    "recovery_pair": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\recovery_pair\\review\\candidate_manifest.json"
+  },
+  "new_forecast_budget": 12,
+  "new_fits": 0,
+  "new_native": 0,
+  "reuse": "New seed67; all three models were pinned before native execution.12predictions,no refit.",
+  "areas": [
+    "FW_E31mainline",
+    "FW_E31mainline+4on+4offconnector"
+  ],
+  "metrics": [
+    "Chosen action actual cost minus actual finite-menu minimum",
+    "Regret relative to actual baseline TTT",
+    "Chosen actual gain versus baseline",
+    "Predicted versus actual command order"
+  ],
+  "no_acceptance_threshold": false,
+  "fresh_seed_thresholds": {
+    "mainline_delta_veh_h": 0.5,
+    "choice_regret_veh_h": 0.5,
+    "flow_delta_veh": 10
+  },
+  "limitations": [
+    "Finite historical menu, not an optimizer, feasible-set certificate, or global optimum.",
+    "No full Omega/urban costs, SDMPC prices/caps/proximal costs or actuator trust-region qualification.",
+    "Seed67 coefficients frozen before native traffic; no fitting or candidate revision from its results.",
+    "Failed state/response/calibration criteria remain reported separately."
+  ]
+}

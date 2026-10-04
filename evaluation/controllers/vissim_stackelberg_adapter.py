@@ -4113,9 +4113,10 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
     모델 자신의 회전 분율 `beta` 로 나눈다 — 총량이 보존된다.
     """
     section = _mapping(_mapping(tuning.get("urban")).get("capacity"))
-    if "head_observation" in section:
-        from evaluation.controllers.signal_head_observation import settings
-        head_options = settings(section["head_observation"])
+    if "head_observation" in section or "head_green_exposure_windows" in section:
+        from evaluation.controllers.signal_head_observation import settings, configure_green_exposure_pool
+        head_options = settings(section.get("head_observation",{}))
+        configure_green_exposure_pool(cfg, section)
         if head_options["enabled"] and section.get("measured") is not True:
             raise ValueError("Head observation requires urban.capacity.measured=true")
     if not _is_enabled_value(section.get("measured")):
@@ -4733,7 +4734,10 @@ def validate_native_signal_runtime_source(cfg, state_json):
         if current is None or current.get('active') != 'true' or current.get('type') != 'FIXEDTIME':
             raise ValueError(signal + ': loaded network does not use the declared active fixed-time source')
         program = _signal_program_path(network_path, current.get('supplyFile2', ''))
-        source_sha = _file_sha256(Path(basis['source_path']))
+        source = cfg.network.signal_actuation_contract.get('source_programs', {}).get(signal)
+        source_sha = _file_sha256(Path(source['path'] if source else basis['source_path']))
+        if source is not None and source_sha != source['sha256']:
+            raise ValueError(signal + ': configured native source program changed')
         if (_file_sha256(program) != source_sha
                 or int(current.get('progNo', '1')) != int(basis['active_prog_no'])
                 or float(current.get('offset', '0') or 0.) != float(basis['controller_offset_sec'])):
@@ -4971,6 +4975,7 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
         ("dead_phase_beta_zero", _mapping(urban.get("movements")).get("dead_phase_beta_zero")),
         ("movement_phase_correction", _mapping(urban.get("movements")).get("phase_correction")),
         ("queue_origin_binding", _mapping(urban.get("queue")).get("origin_binding")),
+        ("queue_origin_filter", _mapping(urban.get("queue")).get("origin_filter")),
         ("queue_contiguous", _mapping(urban.get("queue")).get("contiguous")),
         ("arrival_seed", _mapping(urban.get("arrival")).get("seed_from_residual")),
         ("storage_lanes_fzp", _mapping(urban.get("tau")).get("storage_lanes_fzp")),
@@ -5048,7 +5053,7 @@ _ARRIVAL_TAU_STOPPED_SEC = 105.0
 _ARRIVAL_MAX_HORIZON_SEC = 450.0
 
 
-def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float]:
+def _contiguous_stopline_queue(state_json: Mapping[str, Any], *, per_lane=False, zero_links=()) -> dict[Any, float]:
     """`queue_bins` 에서 링크별 **정지선 연속 대기행렬**[veh] 을 낸다.
 
     ## 왜 이 양인가 (2026-09-04)
@@ -5106,6 +5111,11 @@ def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float
         occupied_idx = [i for i, (t, _s) in bins.items() if t > 0.0]
         if not occupied_idx:
             continue
+        # A complete observed walk can find zero ready cars. Kinematic origins
+        # must retain that zero instead of falling back to all stopped cars.
+        # The legacy unconfigured projection keeps its existing missing policy.
+        if link in zero_links:
+            out.setdefault((link, _lane) if per_lane else link, 0.0)
         # head window: 행렬 선두가 정지선(링크 하류 끝)에서 멀면 정지선 큐가 아니다.
         # 이 조건이 없으면 링크 중간에 따로 선 정지 무리도 큐로 세어 과대해진다 —
         # arm_qsplit 실측 walk/정지 0.820 대 .fzp 참조 0.569 의 격차가 이것이었다.
@@ -5124,7 +5134,8 @@ def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float
                 break             # 움직이는 차가 섞였다 = 행렬의 끝
             queued += stopped
         if queued > 0.0:
-            out[link] = out.get(link, 0.0) + queued
+            key = (link, _lane) if per_lane else link
+            out[key] = out.get(key, 0.0) + queued
     return out
 
 
@@ -5923,7 +5934,17 @@ def build_local_observation_summary(
     # 3단 폴백 재료 (2026-09-04). 러너가 `queue_bins` 를 안 실으면 contiguous_queue 가
     # 빈 dict 라 아래 루프가 그대로 stopped 층으로 떨어진다 = 비트 동일.
     queue_definition_mode = "contiguous" if _contiguous_queue_enabled() else "stopped"
-    contiguous_queue = _contiguous_stopline_queue(state_json) if queue_definition_mode == "contiguous" else {}
+    contiguous_queue = (_contiguous_stopline_queue(state_json,
+        zero_links=getattr(cfg.network, 'kinematic_queue_zero_links', ()))
+        if queue_definition_mode == "contiguous" else {})
+    head_phase_attribution = _CFG_STRINGS.get('queue_attribution') == 'head_phase'
+    head_phase_diagnostics = {}
+    if head_phase_attribution:
+        if queue_definition_mode != 'contiguous':
+            raise observation_projection.ProjectionError('Head-phase queue attribution requires contiguous lane queues')
+        from evaluation.controllers.signal_head_observation import physical_groups
+        lane_queues = _contiguous_stopline_queue(state_json, per_lane=True)
+        queue_heads = physical_groups(state_json['network_path'], load_signal_group_actuation_plan())
     queue_source_by_link: dict[str, str] = {}
     queue_count_by_link: dict[str, float] = {}
     storage_count_by_link: dict[str, float] = {}
@@ -5931,8 +5952,13 @@ def build_local_observation_summary(
     storage_assigned_by_link: dict[str, float] = {}
     dedicated_branch_links = set(_mapping(detector_mapping.get("physical_storage_projection")).get("link_to_storage", {}))
     transit_storage_links = set(_mapping(detector_mapping.get("transit_storage_projection")))
+    upstream_queue_storage = _mapping(getattr(cfg.network, 'head_queue_upstream_storage', {}))
+    for link, target in upstream_queue_storage.items():
+        if (link in freeway_links | ramp_links | exit_links | dedicated_branch_links | transit_storage_links
+                or detector_mapping.get('link_to_origins', {}).get(link) != [target]):
+            raise observation_projection.ProjectionError(f'{link}: upstream queue origin or projection changed')
     record_partitions = _mapping(detector_mapping.get('physical_record_storage_projection'))
-    exact_stock_projection = bool(dedicated_branch_links or record_partitions)
+    exact_stock_projection = bool(dedicated_branch_links or record_partitions or upstream_queue_storage)
     if set(record_partitions) & (freeway_links | ramp_links | exit_links | dedicated_branch_links):
         raise observation_projection.ProjectionError('Physical record partition overlaps a reserved projection')
     raw_record_speeds = _link_metric_from_local_observation(state_json, 'link_speeds_kph')
@@ -6011,7 +6037,10 @@ def build_local_observation_summary(
         # 1,415 대의 queue 분이 사라졌다(도시부 포착률이 50.7% 에서 안 올라간 원인).
         # 그 882개는 신호두 링크가 아니라 링크 본체다 — 정지선 대기행렬이 아니라
         # 링크 저류가 물리적으로 맞으므로 전량 저류로 보낸다.
-        if str(link) in dedicated_branch_links or str(link) in transit_storage_links:
+        if str(link) in upstream_queue_storage:
+            storage_fraction = 1.0
+            queue_source_by_link[str(link)] = 'upstream_native_signal'
+        elif str(link) in dedicated_branch_links or str(link) in transit_storage_links:
             storage_fraction = 1.0
             queue_source_by_link[str(link)] = "physical_branch"
         elif not (detector_mapping.get("link_to_movements", {}) or {}).get(str(link)):
@@ -6039,6 +6068,15 @@ def build_local_observation_summary(
         storage_fraction_by_link[str(link)] = float(storage_fraction)
         storage_count = max(0.0, count * storage_fraction)
         queue_count = max(0.0, count - storage_count)
+        observed_stopped = min(float(count), max(0.0, float(link_stopped_counts.get(str(link), 0.0))))
+        residual_stopped_fraction = observed_stopped / count if count > 0.0 else 0.0
+        if (queue_source_by_link[str(link)] in ('contiguous', 'stopped_instant')
+                and str(link) in link_stopped_counts):
+            if queue_count > observed_stopped + 1e-8:
+                raise observation_projection.ProjectionError(f'{link}: ready queue exceeds observed stopped stock')
+            # The ready queue already contains these stopped vehicles. Only
+            # the disconnected stopped remainder belongs to delayed storage.
+            residual_stopped_fraction = max(0.0, observed_stopped - queue_count) / storage_count if storage_count > 0.0 else 0.0
         storage_count_by_link[str(link)] = float(storage_count)
         queue_count_by_link[str(link)] = float(queue_count)
         storage_links: list[str] = []
@@ -6052,13 +6090,24 @@ def build_local_observation_summary(
         # "관측 없음" 이다. count=0 이거나 속도 키 자체가 없으면 건너뛴다.
         if count > 0.0 and str(link) in link_speeds_kph and storage_links:
             observed_kph = float(link_speeds_kph[str(link)])
+            speed_weight = float(count)
+            if _moving_speed_enabled():
+                # These speeds already exclude stopped vehicles. Aggregate
+                # using the same moving population; an all-stopped link has
+                # no moving-speed sample, rather than a zero-speed sample.
+                instant = _mapping(state_json.get("local_observation"))
+                instant_count = _as_float(_mapping(instant.get("link_counts")).get(str(link)), 0.0)
+                instant_stopped = _as_float(_mapping(instant.get("link_stopped_counts")).get(str(link)), 0.0)
+                speed_weight = max(0.0, instant_count - instant_stopped)
+                if speed_weight < 0.5:
+                    speed_weight = 0.0
             for storage_link in storage_links:
                 speed_weight_by_storage[storage_link] = (
-                    speed_weight_by_storage.get(storage_link, 0.0) + float(count)
+                    speed_weight_by_storage.get(storage_link, 0.0) + speed_weight
                 )
                 speed_moment_by_storage[storage_link] = (
                     speed_moment_by_storage.get(storage_link, 0.0)
-                    + float(count) * observed_kph
+                    + speed_weight * observed_kph
                 )
         storage_requested_veh += storage_count
         storage_assigned_by_link[str(link)] = 0.0
@@ -6068,17 +6117,18 @@ def build_local_observation_summary(
                 capacity = float(cfg.network.urban_link_storage_veh.get(storage_link, 0.0))
                 current = urban_link_storage_occupancy.get(storage_link, 0.0)
                 assigned = max(0.0, min(share, capacity - current))
+                if str(link) in upstream_queue_storage and assigned < share - 1e-8:
+                    raise observation_projection.ProjectionError(f'{link}: upstream queue would lose storage mass')
                 urban_link_storage_occupancy[storage_link] = current + assigned
                 storage_assigned_by_link[str(link)] += assigned
                 storage_assigned_veh += assigned
                 if exact_stock_projection:
                     observation_projection.record_projection_assignment(physical_stock_assignment, link, "storage:" + storage_link, assigned)
                 storage_capacity_clipped_veh += max(0.0, share - assigned)
-                # 배정된 몫 중 정지 비율만큼을 정지 대수로 같이 옮긴다.
+                # Exclude observed stopped stock already assigned to the queue.
                 if count > 0.0 and assigned > 0.0:
-                    stopped_share = min(1.0, max(0.0, float(link_stopped_counts.get(str(link), 0.0)) / count))
                     urban_link_storage_stopped[storage_link] = (
-                        urban_link_storage_stopped.get(storage_link, 0.0) + assigned * stopped_share
+                        urban_link_storage_stopped.get(storage_link, 0.0) + assigned * residual_stopped_fraction
                     )
 
     movement_queue = {movement: 0.0 for movement in cfg.network.urban_movements}
@@ -6139,9 +6189,18 @@ def build_local_observation_summary(
         weight_sum = sum(_weight_of(item) for item in usable)
         if weight_sum <= 1.0e-9:
             weight_sum = float(len(usable)) if usable else 1.0
-        for item in usable:
+        phase_weights = None
+        head_lane_support = getattr(cfg.network, 'head_queue_movement_lanes', None)
+        if (head_phase_attribution and queue_source_by_link.get(str(link)) == 'contiguous' and usable
+                and (head_lane_support is None or str(link) in head_lane_support)):
+            phase_weights, head_phase_diagnostics[str(link)] = observation_projection.head_phase_queue_weights(
+                link, count, [(str(item['movement']), _weight_of(item)) for item in usable],
+                cfg.network.urban_movements, lane_queues, queue_heads,
+                movement_lanes=None if head_lane_support is None else head_lane_support[str(link)])
+            weight_sum = sum(phase_weights)
+        for index, item in enumerate(usable):
             movement = str(item.get("movement", ""))
-            weight = _weight_of(item)
+            weight = _weight_of(item) if phase_weights is None else phase_weights[index]
             assigned = count * weight / weight_sum
             movement_queue[movement] += assigned
             movement_assigned_by_link[str(link)] += assigned
@@ -6391,6 +6450,10 @@ def build_local_observation_summary(
             "ramp_spillback_observed_only": 1.0,
             "ramp_spillback_duplicate_avoided_veh": float(sum(ramp_spillback.values())),
         })
+    if head_phase_attribution:
+        projection_diagnostics['head_phase_queue_attribution'] = head_phase_diagnostics
+    if upstream_queue_storage:
+        projection_diagnostics['upstream_signal_queue_links'] = sorted(set(upstream_queue_storage) & set(link_counts))
     projection_diagnostics.update(observation_projection.audit_physical_branch_projection(
         detector_mapping, link_counts, urban_link_storage_occupancy))
 
@@ -9010,7 +9073,8 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
                     if not _arr:
                         _arr = _mapping(getattr(cfg_.network, "freeway_segment_lanes", None) or {}).get(str(link))
                     if isinstance(_arr, (list, tuple)) and 0 <= int(index) + 1 < len(_arr):
-                        _dl = max(0.0, float(_arr[int(index)]) - float(_arr[int(index) + 1]))
+                        from evaluation.controllers.freeway_fd import positive_lane_reduction
+                        _dl = positive_lane_reduction(_arr[int(index)], _arr[int(index) + 1])
                 _FW_SEG_CTX["phi"] = _phi
                 _FW_SEG_CTX["dlam"] = _dl
                 _FW_SEG_CTX["lanes"] = float(_arr[int(index)]) if (_phi > 0.0 and _dl > 0.0) else 0.0

@@ -1,0 +1,149 @@
+"""One bounded cell19 recovery-pressure fit; no VSL outcomes in fitting."""
+import collections
+import copy
+import math
+from pathlib import Path
+from diagnostics.repin_v3c3_review_20261001.junction_calibration125 import run as h
+
+HERE=Path(__file__).resolve().parent
+
+
+def main():
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    from evaluation.controllers import lane_plant_runtime as lpr,area_freeway_accounting as area
+    from evaluation.controllers.freeway_fd import cell_state_response,state_response_coefficients
+    from src.models.state import ControlAction
+    assert not (HERE/'protocol.json').exists()
+    context,_,_=common.setup();parent=h.R/'lane_state132/eval_01'
+    cfg=lpr.load_sources(parent/'manifest.json')['component']._config('FW_E',context['parameters']['by_direction']['FW_E'])
+    net=cfg.network;mn=area._mn;p=net.freeway_segment_params['FW_E'][19]
+    original_spec=copy.deepcopy(cell_state_response(net,'FW_E',19));original_spec.pop('cell_overrides',None)
+    before=original_spec['anticipation']['downstream_lt_local']
+    protected=h.read(h.R/'transition150/replay/protocol.json');pins={}
+    def read(path):pins[str(path)]=h.sha(path);return h.read(path)
+    mapping=read(h.F/'route_inventory/mapping31.json')['freeway_model_links']['FW_E']['segment_bounds_m']
+    midpoint=sum(mapping[19:21])/2;length=(mapping[20]-mapping[19])/2000.
+    assert abs(length*2-p['segment_length_km'])<1e-9
+    h.save(HERE/'protocol.json',dict(previous_goal_turn='PROGRESS:150 verified same initial states then19-front overacceleration and excess20-lane1 arrivals. Native-state19back Nv/L predicts11.085vs12actual, autonomous17.628.',
+        parameter='Physical19 anticipation.downstream_lt_local multiplier,shared by both100m parts and all3lanes.',bounds=[.1,1.],before=before,
+        training='seed67 release110,all90five-second windows x two19parts x three lanes with nonempty current/final populations; aggregate residuals in30s blocks with>=4samples.',
+        validation='seed29 hold110 local reaction; bothseeds all4autonomous450 arms after parameter frozen. Previously inspected states,not pristine heldout.',
+        local_operator='Five canonical1s speed updates; current rho,upstream speed,downstream rho fixed within5s. No future boundary or flow injected. Following observed mean is a scoring label.',
+        limitations='Local conditional speed probe omits evolving populations/receiving/exit-feedback/occupancy-dependent lane-drop. It is not a conservation rollout. Full148 autonomous test retains those mechanisms. Never infer gain from local loss alone.',
+        fitting='One bounded scalar minimization,max16objective calls,x tolerance.01; regularization.01*(z-1)^2. No bound expansion or second proposal after autonomous results.',
+        fixed='All other cells,FD,tau,negative-gradient branch,merge coefficients,off dynamics,lateral rates,costs,VSL/RM commands and original autonomous source forecasts.',
+        budget=dict(scalar_fit=1,max_fit_evaluations=16,baseline450=1,autonomous450=8,independent450=0,new_native=0,new_FZP=0),
+        gate='Existing meaningful pairedTTT signs,response>=10%improvement,absolute<=110%,choice regret<=.5; local150discharge and mass/class/storage. Independent/fullOmega still required.',
+        protected_sha256=protected['protected_sha256'],STOP=protected['STOP']))
+    rows=[]
+    cases=[('s67_late',h.F/'flow67/release_frames.json.gz'),('s29_late',h.F/'vsl_native_exposure/s29_late_hold_frames.json.gz')]
+    for case,path in cases:
+        doc=read(path);fields=doc['fields'];raw=doc['frames'];frames={}
+        for time,frame in raw.items():
+            values=frame.values() if isinstance(frame,dict) else frame
+            frames[round(float(time),6)]=[dict(zip(fields,v)) for v in values]
+        times=sorted(frames);assert times[0]==2670.1 and times[-1]==3120.1 and len(times)==91
+        for lo,hi in zip(times,times[1:]):
+            a,b=frames[lo],frames[hi]
+            def group(frame,cell,lane=None,part=None):
+                return [v for v in frame if v['cell']==cell and (lane is None or v['lane']==lane) and (part is None or int(v['x_m']>=midpoint)==part)]
+            for part in (0,1):
+                for lane in (1,2,3):
+                    current=group(a,19,lane,part);future=group(b,19,lane,part)
+                    upstream=group(a,18) if part==0 else group(a,19,lane,0)
+                    downstream=group(a,19,lane,1) if part==0 else group(a,20,lane)
+                    if not current or not future or not upstream:continue
+                    down_length=length if part==0 else (mapping[21]-mapping[20])/1000.
+                    rho=len(current)/length;down=len(downstream)/down_length
+                    rows.append(dict(case=case,time_s=lo,part=part,lane=lane,n=len(current),rho=rho,down=down,
+                        v0=sum(v['speed_kmh'] for v in current)/len(current),v1=sum(v['speed_kmh'] for v in future)/len(future),
+                        up=sum(v['speed_kmh'] for v in upstream)/len(upstream),active=down<rho))
+    def trajectory(row,z):
+        spec=copy.deepcopy(original_spec);spec['anticipation']['downstream_lt_local']=before*z
+        rho=row['rho'];target=p['v_free']*math.exp(-(rho/p['rho_crit'])**p['metanet_a_m']/p['metanet_a_m'])
+        values=[row['v0']]
+        for _ in range(5):
+            v=values[-1];tau,nu=state_response_coefficients(spec,v,target,rho,row['down'],p['rho_crit'],p['metanet_tau_h'],p['metanet_nu_km2_h'])
+            values.append(max(net.v_min,v+(target-v)/(tau*3600)+v*(row['up']-v)/(length*3600)
+                -nu*(row['down']-rho)/(tau*length*3600*(rho+p['metanet_kappa_veh_km_lane']))))
+        return values
+    # Verify the local formula against the real wrapper on current states,
+    # including both gradient signs, with physical equal-lane geometry.
+    saved_ctx=copy.deepcopy(mn.metanet_speed_update_kmh.__globals__['_FW_SEG_CTX'])
+    state_ctx=mn.metanet_speed_update_kmh.__globals__['_FW_SEG_CTX_STATE'];saved_state=copy.deepcopy(state_ctx)
+    error=0.;calls=0;control=ControlAction(vsl={'FW_E':110})
+    selected=[next(r for r in rows if r['case']=='s67_late' and r['part']==part and r['lane']==lane and r['active']==active)
+              for part in (0,1) for lane in (1,2,3) for active in (False,True)]
+    try:
+        state_ctx['profile']=None
+        for row in selected:
+            values=trajectory(row,1.);v=row['v0']
+            for j in range(5):
+                command=mn.segment_vsl(control,'FW_E',19,cfg,physical_length_km=length,segment_end=row['part']==1)
+                target=mn.effective_desired_speed_kmh(row['rho'],net.v_free,net.rho_crit,command,net.alpha_vsl,False,net.metanet_a_m,False,net.rho_max,0.)
+                v=mn.metanet_speed_update_kmh(v,row['up'],row['rho'],row['down'],target,1/3600,length,p['metanet_tau_h'],mn.select_anticipation_nu(row['rho'],net,command),p['metanet_kappa_veh_km_lane'],net.v_min)
+                error=max(error,abs(v-values[j+1]));calls+=1
+        assert error<1e-8
+    finally:
+        ctx=mn.metanet_speed_update_kmh.__globals__['_FW_SEG_CTX'];ctx.clear();ctx.update(saved_ctx)
+        state_ctx.clear();state_ctx.update(saved_state)
+    train=[r for r in rows if r['case']=='s67_late'];blocks=collections.defaultdict(list)
+    for row in train:blocks[row['part'],row['lane'],int(round((row['time_s']-2670.1)/5))//6].append(row)
+    blocks={k:v for k,v in blocks.items() if len(v)>=4};assert len(blocks)>=60
+    evaluations=[]
+    def loss(z):
+        residuals=[sum((trajectory(r,z)[-1]-r['v1'])/5 for r in rr)/len(rr) for rr in blocks.values()]
+        value=sum(x*x for x in residuals)/len(residuals)+.01*(z-1)**2
+        evaluations.append(dict(z=float(z),objective=value));return value
+    # The existing environment has no scipy.optimize. Golden-section search
+    # needs only this scalar loss and the predeclared fixed evaluation budget.
+    left,right=.1,1.;ratio=(math.sqrt(5.)-1.)/2
+    a=right-ratio*(right-left);b=left+ratio*(right-left);fa,fb=loss(a),loss(b)
+    while right-left>.01 and len(evaluations)<16:
+        if fa<fb:
+            right,b,fb=b,a,fa;a=right-ratio*(right-left);fa=loss(a)
+        else:
+            left,a,fa=a,b,fb;b=left+ratio*(right-left);fb=loss(b)
+    assert right-left<=.01 and len(evaluations)<=16
+    z=min(evaluations,key=lambda x:x['objective'])['z']
+    predictions=[dict(r,baseline=trajectory(r,1.),candidate=trajectory(r,z)) for r in rows]
+    summaries=[]
+    for case in ('s67_late','s29_late'):
+        for part in ('all',0,1):
+            for seconds in (30,150,450):
+                rr=[r for r in predictions if r['case']==case and (part=='all' or r['part']==part) and r['time_s']<2670.1+seconds-1e-6]
+                summaries.append(dict(case=case,part=part,seconds=seconds,samples=len(rr),active=sum(r['active'] for r in rr),
+                    baseline_rmse=math.sqrt(sum((r['baseline'][-1]-r['v1'])**2 for r in rr)/len(rr)),
+                    candidate_rmse=math.sqrt(sum((r['candidate'][-1]-r['v1'])**2 for r in rr)/len(rr))))
+    config=read(parent/'reference_config.json');original=copy.deepcopy(config)
+    overrides=config['freeway']['state_response']['FW_E']['cell_overrides'];had='19' in overrides
+    overrides.setdefault('19',{})['anticipation']=copy.deepcopy(original_spec['anticipation'])
+    overrides['19']['anticipation']['downstream_lt_local']=before*z
+    dest=HERE/'candidate';dest.mkdir();h.save(dest/'reference_config.json',config)
+    manifest=read(parent/'manifest.json');manifest['sources']['reference_config']=dict(path=(dest/'reference_config.json').relative_to(h.ROOT).as_posix(),sha256=h.sha(dest/'reference_config.json'))
+    manifest['qualification']='Unqualified151 physical19 recovery-pressure proposal,requires corrected148 source. No gain qualification.'
+    h.save(dest/'manifest.json',manifest)
+    ccfg=lpr.load_sources(dest/'manifest.json')['component']._config('FW_E',context['parameters']['by_direction']['FW_E'])
+    assert ccfg.network.freeway_segment_params==cfg.network.freeway_segment_params
+    for i in range(31):
+        old=copy.deepcopy(cell_state_response(cfg.network,'FW_E',i));new=copy.deepcopy(cell_state_response(ccfg.network,'FW_E',i))
+        old.pop('cell_overrides',None);new.pop('cell_overrides',None)
+        if i==19:old['anticipation']['downstream_lt_local']=before*z
+        assert old==new,i
+    restored=copy.deepcopy(config)
+    if had:restored['freeway']['state_response']['FW_E']['cell_overrides']['19']=original['freeway']['state_response']['FW_E']['cell_overrides']['19']
+    else:del restored['freeway']['state_response']['FW_E']['cell_overrides']['19']
+    assert restored==original
+    for path,digest in {**protected['protected_sha256'],**pins}.items():assert h.sha(path)==digest,path
+    assert h.sha(protected['STOP']['path'])==protected['STOP']['sha256']
+    pins[str(Path(__file__))]=h.sha(__file__)
+    h.save(HERE/'conditional_rows.json',predictions);h.save(HERE/'summary.json',summaries)
+    h.save(HERE/'proposal.json',dict(z=z,before=before,after=before*z,optimizer='Bounded golden section',final_bracket=[left,right],evaluations=evaluations,
+        training_blocks=len(blocks),training_rows=sum(map(len,blocks.values())),canonical_calls=calls,canonical_error=error,
+        one_parameter_only=True,input_sha256=pins,core=True,STOP=True,hooks_restored=True))
+    print('nu19_lt',before,'->',before*z,'z',z,'evaluations',len(evaluations),'calls',calls,'error',error)
+    for row in summaries:
+        if row['part']=='all':print(row)
+
+
+if __name__=='__main__':main()

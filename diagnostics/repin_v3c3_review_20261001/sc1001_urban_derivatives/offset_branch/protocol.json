@@ -1,0 +1,38 @@
+{
+  "schema": "recorded-controller-derivatives/v1",
+  "start_sec": 2700,
+  "seed": 47,
+  "horizon_sec": 450,
+  "purpose": "One read-only exact-branch observer for SC1001 offset at the recorded2700 anchor; no optimizer or new FD.",
+  "anchor_meter_green": {},
+  "axes": [
+    {
+      "kind": "offset",
+      "key": "SC1001",
+      "block": 0,
+      "steps": []
+    }
+  ],
+  "max_ad_rollouts": 1,
+  "max_independent_scalar_rollouts": 0,
+  "primal_abs_tolerance": 1e-07,
+  "cost_gradient_atol": 0.0001,
+  "resource_gradient_atol": 0.001,
+  "gradient_rtol": 0.001,
+  "no_optimization": true,
+  "no_native": true,
+  "no_push": true,
+  "future_observation_inputs": false,
+  "fit": 0,
+  "tuning_sha256": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+  "scope": "Continuous infinitesimal probes may lie outside native quantization/bounds. Never applied or accepted as feasible controls.",
+  "optimizer_iterations": 0,
+  "native_started": false,
+  "branch_probe": {
+    "kind": "offset",
+    "key": "SC1001",
+    "block": 0,
+    "max_records": 200000
+  },
+  "reference_ad_columns": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_budget_check_derivatives_sc1001_urban47\\ad_columns.json"
+}

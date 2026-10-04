@@ -105,6 +105,57 @@ class Workspace:
         self.temporary.cleanup()
 
 
+class LiveErrBarrier(unittest.TestCase):
+    def setUp(self):
+        self.ws = Workspace()
+        self.addCleanup(self.ws.close)
+        self.token = 'OBS150_ERR_BARRIER_run-test_150'
+        self.marker = b'                     Note\t'+self.token.encode('ascii')+b'\r\n'
+        self.ws.capture(1, header(table()), b'')
+
+    def require(self):
+        cap.require_err_barrier(self.ws.err, self.ws.root/'decisions', 150, self.token)
+
+    def test_buffered_removal_requires_complete_barrier_then_is_captured(self):
+        before = self.ws.files()
+        self.ws.err.write_bytes(removal(149.8, 42, 71, 78.)+self.marker[:-1])
+        with self.assertRaisesRegex(oc.ObsContractError, 'not flushed'):
+            self.require()
+        self.assertEqual(self.ws.files(), before)
+        self.ws.err.write_bytes(removal(149.8, 42, 71, 78.)+self.marker+b'Note\tpadding')
+        self.require()
+        meta = self.ws.capture(150)
+        self.assertEqual(meta['err']['removals'], 1)
+        self.assertEqual([r['vehicle_id'] for r in self.ws.err_chunk(meta) if r['kind']=='lane_change_removal'], [42])
+
+    def test_empty_error_file_does_not_prove_zero_removals(self):
+        with self.assertRaisesRegex(oc.ObsContractError, 'not flushed'):
+            self.require()
+
+    def test_another_run_or_time_is_not_a_barrier(self):
+        for marker in [self.marker.replace(b'run-test', b'other'), self.marker.replace(b'_150', b'_149')]:
+            self.ws.err.write_bytes(marker)
+            with self.assertRaisesRegex(oc.ObsContractError, 'not flushed'):
+                self.require()
+
+    def test_previously_captured_marker_does_not_satisfy_new_increment(self):
+        self.ws.err.write_bytes(self.marker)
+        # The prior cursor is authoritative; simulate a marker already committed there.
+        with mock.patch.object(cap, '_previous_err', return_value=(len(self.marker),None,{},str(self.ws.err))):
+            with self.assertRaisesRegex(oc.ObsContractError, 'not flushed'):
+                self.require()
+
+    def test_duplicate_or_padding_only_barrier_fails(self):
+        for data in [self.marker*2, b'Note\tOBS150_ERR_FLUSH_PADDING '+b'x'*16384+b'\n']:
+            self.ws.err.write_bytes(data)
+            with self.assertRaisesRegex(oc.ObsContractError, 'not flushed'):
+                self.require()
+
+    def test_invalid_token_is_rejected(self):
+        with self.assertRaisesRegex(oc.ObsContractError, 'Invalid'):
+            cap.require_err_barrier(self.ws.err,self.ws.root/'decisions',150,self.token+'\n')
+
+
 class CaptureCursor(unittest.TestCase):
     def setUp(self):
         self.ws = Workspace()

@@ -1,0 +1,311 @@
+"""Four bounded fixed-city predictions; no native execution or fitting."""
+import copy
+import ctypes
+import hashlib
+import importlib.util
+import json
+import pickle
+import sys
+import time
+from pathlib import Path
+
+O = Path(__file__).resolve().parent
+I = O.parents[2]
+U = I.parents[2]
+early = '--early1500' in sys.argv[1:]
+receiving_trace = '--receiving-trace1500' in sys.argv[1:]
+posthead_case = next((a.split('=',1)[1] for a in sys.argv[1:] if a.startswith('--posthead84=')),None)
+shared_case = next((a.split('=',1)[1] for a in sys.argv[1:] if a.startswith('--shared84=')),None)
+lane_case = next((a.split('=',1)[1] for a in sys.argv[1:] if a.startswith('--lane84=')),None)
+clearance_case = next((a.split('=',1)[1] for a in sys.argv[1:] if a.startswith('--clearance84=')),None)
+assert sum((early,receiving_trace,posthead_case is not None,shared_case is not None,lane_case is not None,clearance_case is not None))<=1
+if clearance_case is not None:
+    assert clearance_case in ('onset','low_queue','ind47')
+if lane_case is not None:
+    assert lane_case in ('onset','low_queue','ind47_base','ind47')
+if posthead_case is not None:
+    assert posthead_case in ('onset','recovery_base','recovery')
+if shared_case is not None:
+    assert shared_case in ('onset','recovery_base','recovery')
+paired = lane_case in ('ind47_base','ind47') or clearance_case=='ind47'
+single = (receiving_trace or posthead_case is not None or shared_case is not None or lane_case is not None or clearance_case is not None) and not paired
+forecast_limit = 2 if paired else 1 if single else 4
+scoped_case = clearance_case or lane_case or shared_case or posthead_case
+at = 2700 if paired else (1500 if scoped_case=='onset' else 3600) if scoped_case else 1500 if early or receiving_trace else 2250
+if early:
+    O = I/'expanded036_9000_20260930/loss_early1500'
+if receiving_trace:
+    O = I/'expanded036_9000_20260930/loss_early1500/receiving_context1500'
+    assert not (O/'run_completion.json').exists(), 'Preserve completed trace'
+if posthead_case:
+    O = I/'expanded036_9000_20260930/loss_early1500/posthead84'/posthead_case
+    assert not (O/'run_completion.json').exists(), 'Preserve completed forecast'
+if shared_case:
+    O = I/'expanded036_9000_20260930/loss_early1500/shared84'/shared_case
+    assert not (O/'run_completion.json').exists(), 'Preserve completed forecast'
+if lane_case:
+    O = I/'expanded036_9000_20260930/loss_early1500/lane84'/lane_case
+    assert not (O/'run_completion.json').exists(), 'Preserve completed forecast'
+if clearance_case:
+    O = I/'expanded036_9000_20260930/loss_early1500/clearance84'/clearance_case
+    assert not (O/'run_completion.json').exists(), 'Preserve completed forecast'
+script = I / 'probe_selected_arrival_path.py'
+protocol = json.loads((O/'protocol.json').read_bytes())
+ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x4000)
+from evaluation.controllers import obs150_contract as oc
+
+
+def readonly(raw, derived):
+    obs = raw[oc.RAW_STATE_KEY]
+    path = oc.resolve(obs, oc.derived_path(obs['sim_sec']))
+    assert path.read_bytes() == oc.derived_bytes(derived)
+    return path
+
+
+oc.write_derived = readonly
+spec = importlib.util.spec_from_file_location('onset_probe', script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+original = module.probe_levers
+D = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+if paired:
+    D=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3/hold/decisions_sdmpc31_g_2700_hold_s47')
+caps = None if paired else json.loads((D/f'action_{at:06d}.json').read_bytes())['metadata']['sdmpc_constraints']
+old_dir = I/'closedloop_recorded2250_lever450_RM_C10484_city2250_after'
+old = None if early or single or paired else json.loads((old_dir/'held_actual.json').read_bytes())
+rows = []
+
+
+def audited(captured, reference, output, **kwargs):
+    from evaluation.controllers import area_leader_objective as constraints
+    from src.controllers import rollout_endpoint as endpoint
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower
+    cfg = captured['cfg']
+    cfg_bytes = pickle.dumps(cfg, protocol=5)
+    quantity_cfg = copy.deepcopy(cfg)
+    follower = LinkAgentWuFollower(quantity_cfg)
+    assert pickle.dumps(cfg, protocol=5) == cfg_bytes
+    assert len(follower.cfg.network.signals) == 17
+    evaluate = endpoint.evaluate_price_point
+    from evaluation.controllers import lane_ramp_runtime as ramp_runtime
+    gap_original = ramp_runtime.gap_acceptance_supply_vph
+    speed_original = ramp_runtime.ramp_posthead_speed_kmh
+    speed_rows=[]
+    lane_enabled=lane_case is not None and lane_case!='ind47_base'
+    clearance_enabled=clearance_case is not None
+    if lane_enabled or clearance_enabled:
+        geometry=json.loads((I/'selected/port_gain/geometry.json').read_bytes())
+        cell=next(c for c in geometry['cells'] if c['road']=='FW_E' and c['cell']==23)
+        observed=captured['raw']['vehicle_records'];assert observed['complete'] and observed['unobservable_count']==0
+        current=[]
+        for vehicle in observed['records']:
+            address=geometry['addresses'].get(str(vehicle['link_no']))
+            if address and address[0]=='FW_E' and cell['start_m']<=address[1]+vehicle['position_m']<cell['end_m']:
+                current.append(vehicle)
+        lane=[v for v in current if v['lane_no']==1]
+        assert len(lane)>=3 and len(current)>len(lane)
+        whole_speed=sum(v['speed_kph'] for v in current)/len(current)
+        lane_speed=sum(v['speed_kph'] for v in lane)/len(lane)
+        assert whole_speed>0 and lane_speed>0
+        assert abs(whole_speed-captured['state'].freeway_speed['FW_E'][23])<1e-8
+        ratio=lane_speed/whole_speed
+        runtime=captured['state'].lane_ramp_runtime
+        nodes=runtime.receiving_nodes
+        assert 'posthead_speed' not in nodes['RM_C10484']
+        if lane_enabled:
+            nodes['RM_C10484']['posthead_speed']='merge_cell_cap'
+        if clearance_enabled:
+            ramp_geometry=runtime.buffers['RM_C10484'].metadata()
+            clearing_distance=ramp_geometry['spacing_m']
+            clearing_speed=ramp_geometry['posthead_travel_speed_kmh']
+            assert clearing_distance==6. and clearing_speed==67.97
+            (O/'clearance_parameters.json').write_text(json.dumps(dict(
+                spacing_m=clearing_distance,nominal_posthead_speed_kmh=clearing_speed,
+                critical_gap_sec=nodes['RM_C10484']['critical_gap_sec'],
+                followup_sec=nodes['RM_C10484']['followup_sec'],
+                hypothesis='Add the extra existing-spacing clearance time below nominal speed to both critical and followup gaps; no coefficient fit.',
+                posthead_travel_rule_changed=False),indent=2)+'\n',encoding='utf8')
+        def lane_speed_cap(state,config,name,nominal):
+            if name!='RM_C10484':return speed_original(state,config,name,nominal)
+            predicted=state.freeway_speed['FW_E'][23]
+            value=min(nominal,ratio*predicted)
+            local=sys._getframe(1).f_locals
+            speed_rows.append(dict(case=list(protocol['conditions'])[len(rows)],time_sec=local['freeway'].time_sec,cell_speed_kmh=predicted,
+                observed_ratio=ratio,posthead_speed_kmh=value,nominal_speed_kmh=nominal))
+            return value
+        if lane_enabled:
+            ramp_runtime.ramp_posthead_speed_kmh=lane_speed_cap
+        (O/'native_speed_ratio.json').write_text(json.dumps(dict(at_sec=at,whole_speed_kmh=whole_speed,
+            lane_speed_kmh=lane_speed,ratio=ratio,cell_vehicles=len(current),lane_vehicles=len(lane),
+            vehicle_ids=[v['veh_no'] for v in current],future_observation_inputs=False),indent=2)+'\n',encoding='utf8')
+    gap_rows = []
+    shared_enabled = shared_case is not None and shared_case!='recovery_base'
+    if shared_enabled:
+        from evaluation.controllers import area_freeway_accounting as accounting
+        from evaluation.controllers.physical_lane_groups import hadi_receiving_vph
+        kernel=captured['state'].lane_freeway_runtime.configs['FW_E']
+        net=kernel.network
+        assert not getattr(net,'freeway_hadiuzzaman',None)
+        assert net.rho_max==180 and net.rho_crit==37.8 and net.freeway_capacity_veh_h==6937
+        assert not getattr(net,'vsl_fd_two_branch',False)
+        lengths=accounting.cell_lengths_km(kernel,'FW_E',31)
+        cells=[]
+        for i,length in enumerate(lengths):
+            width=net.freeway_segment_lanes['FW_E'][i]
+            # Other cells reproduce the existing storage/one-step receiving.
+            q=net.freeway_capacity_veh_h/width if i==23 else net.rho_max*length/kernel.simulation.T_f_h
+            wave=q/(net.rho_max-net.rho_crit) if i==23 else length/kernel.simulation.T_f_h
+            spec=dict(capacity_vphpl=q,wave_kmh=wave,rho_critical=net.rho_crit,theta=0.)
+            for rho in (0.,net.rho_crit,60.,179.,180.):
+                target=(q*min(1.,max(0.,(net.rho_max-rho)/(net.rho_max-net.rho_crit)))
+                        if i==23 else (net.rho_max-rho)*length/kernel.simulation.T_f_h)
+                assert abs(hadi_receiving_vph(rho,net.rho_max,net.rho_crit,q,wave,0.)-target)<1e-7
+            cells.append(spec)
+        # Use only the existing shared receiving allocator. An empty relaxation
+        # scope preserves all METANET speed/merge/drop coefficients and targets.
+        net.freeway_hadiuzzaman={'FW_E':dict(ctm=True,relaxation='fd_cap',relaxation_cells=[],
+            congested_branch='fixed_wave',cells=cells)}
+        (O/'runtime_receiving_config.json').write_text(json.dumps(net.freeway_hadiuzzaman,indent=2)+'\n',encoding='utf8')
+    def gap_observer(conflict, critical, followup):
+        local = sys._getframe(1).f_locals
+        result = gap_original(conflict, critical, followup)
+        if local['name']=='RM_C10484':
+            state, net = local['state'],local['cfg'].network
+            road = local['road']
+            cell = net.ramp_merge_segment_index[local['name']]
+            assert local['mapping'] is None and local['plant'] is None
+            assert local['i']==cell-1 and local['split']==0
+            assert cell==23 and critical==2 and followup==1.5
+            clearance_info={}
+            if clearance_enabled:
+                lane_speed=max(0.,ratio*state.freeway_speed[road][cell])
+                extra=(max(0.,clearing_distance*3.6*(1./lane_speed-1./clearing_speed))
+                       if lane_speed>0 else None)
+                result=gap_original(conflict,critical+extra,followup+extra) if extra is not None else 0.
+                clearance_info=dict(case=list(protocol['conditions'])[len(rows)],
+                    lane_speed_kmh=lane_speed,current_observed_ratio=ratio,
+                    extra_clearance_sec=extra,old_gap_vph=gap_original(conflict,critical,followup))
+                assert 0.<=result<=clearance_info['old_gap_vph']+1e-8
+            if shared_enabled:
+                assert local['demand'].incident_capacity_factor==1
+                width=state.freeway_effective_lanes[road][cell-1]
+                assert abs(width-3)<1e-12 and abs(state.freeway_effective_lanes[road][cell]-3)<1e-12
+                supply=net.freeway_capacity_veh_h*min(1.,max(0.,
+                    (net.rho_max-state.freeway_density[road][cell])/(net.rho_max-net.rho_crit)))
+                mainline=conflict*width
+                result=min(result,max(0.,supply-mainline))
+            gap_rows.append(dict(time_sec=local['freeway'].time_sec,
+                q_conflict_vph=conflict,gap_supply_vph=result,
+                canonical_supply_vph=local['canonical_rate'],
+                upstream_cell=cell-1,upstream_density=state.freeway_density[road][cell-1],
+                upstream_speed=state.freeway_speed[road][cell-1],
+                merge_cell=cell,merge_density=state.freeway_density[road][cell],
+                merge_speed=state.freeway_speed[road][cell],
+                jam_density=net.rho_max,
+                ramp_stock_veh=state.ramp_queue[local['name']],
+                lane_resolved_mainline=False,
+                **clearance_info,
+                **(dict(shared_supply_vph=supply,mainline_request_vph=mainline,
+                         old_gap_vph=gap_original(conflict,critical,followup)) if shared_enabled else {})))
+        return result
+    if receiving_trace or shared_enabled or clearance_enabled:
+        ramp_runtime.gap_acceptance_supply_vph=gap_observer
+
+    def checked(state, action, *args, **kw):
+        assert len(rows) < forecast_limit
+        point = evaluate(state, action, *args, **kw)
+        if shared_enabled:
+            resources=point.control_area_response['resource_allocations']
+            def select(kind,resource):
+                selected=[r for r in resources if r['kind']==kind and r['resource']==resource]
+                assert len(selected)==450,(kind,len(selected))
+                return selected
+            sends=select('freeway_mainline_sending','FW_E:cell:22')
+            accepts=select('freeway_mainline_receiving_after_ramps','FW_E:cell:23')
+            ramps=select('physical_ramp_merge_physical_receiving','RM_C10484')
+            ledger=[]
+            for g,s,m,r in zip(gap_rows,sends,accepts,ramps):
+                assert g['time_sec']==s['start_sec']==m['start_sec']==r['start_sec']
+                supply=g['shared_supply_vph']/3600
+                demand=g['mainline_request_vph']/3600
+                main=m['accepted_total_veh'];ramp=r['accepted_total_veh']
+                ledger.append(dict(time_sec=g['time_sec'],supply_veh=supply,
+                    mainline_request_veh=demand,mainline_veh=main,ramp_veh=ramp,
+                    actual_sending_veh=s['available_veh'],actual_receiving_veh=m['available_veh']))
+            (O/'joint_receiving_ledger.json').write_text(json.dumps(ledger,indent=2)+'\n',encoding='utf8')
+            for r in ledger:
+                supply,demand=r['supply_veh'],r['mainline_request_veh']
+                main,ramp=r['mainline_veh'],r['ramp_veh']
+                assert abs(r['actual_sending_veh']-demand)<1e-7,r
+                assert abs(r['actual_receiving_veh']-max(0.,supply-ramp))<1e-7,r
+                assert main+ramp<=supply+1e-7 and ramp<=max(0.,supply-demand)+1e-7,r
+                assert abs(main-min(demand,max(0.,supply-ramp)))<1e-7,r
+        if not rows and old is not None:
+            assert abs(point.ttt-old['ttt_omega_veh_h']) < 1e-9, (point.ttt, old['ttt_omega_veh_h'])
+        q = constraints.shared_urban_quantities(follower, point.control_area_response,
+            start_sec=state.time_sec, horizon_steps=3)
+        budget = dict(checked=False,reason='Fixed native response pair without a leader target') if caps is None else constraints.shared_quantity_constraints(follower, action, q,
+            start_sec=state.time_sec, horizon_steps=3,
+            np_mode=caps['np']['mode'], target_np_veh=caps['np']['target'],
+            np_tolerance_veh=caps['np']['tolerance'], nuf_mode=caps['nuf']['mode'],
+            target_nuf_veh_h=caps['nuf']['target'], nuf_tolerance_veh_h=caps['nuf']['tolerance'])
+        name = list(protocol['conditions'])[len(rows)]
+        rows.append(dict(case=name, ttt=point.ttt, resource=budget, quantities=q))
+        (O/'quantities.json').write_text(json.dumps(rows,indent=2)+'\n',encoding='utf8')
+        return point
+
+    endpoint.evaluate_price_point = checked
+    try:
+        original(captured, reference, output, **dict(kwargs,
+            onset_factorial=not early and not single and not paired,
+            early_ramp_factorial=early, first_interval_audit=True,
+            only_reference=True if single else kwargs.get('only_reference',False)))
+    finally:
+        endpoint.evaluate_price_point = evaluate
+        ramp_runtime.gap_acceptance_supply_vph=gap_original
+        ramp_runtime.ramp_posthead_speed_kmh=speed_original
+    assert len(rows) == forecast_limit
+    if lane_enabled:
+        assert len(speed_rows)==450*forecast_limit and [r['time_sec'] for r in speed_rows]==list(range(at,at+450))*forecast_limit
+        (O/'speed_trace.json').write_text(json.dumps(speed_rows,indent=2)+'\n',encoding='utf8')
+    if receiving_trace:
+        assert len(gap_rows)==450 and [r['time_sec'] for r in gap_rows]==list(range(1500,1950))
+        (O/'receiving_trace.json').write_text(json.dumps(gap_rows,indent=2)+'\n',encoding='utf8')
+        saved=json.loads((I/'closedloop_recorded1500_lever450_RM_C10484_trace10484_early1500/held_actual.json').read_bytes())
+        current=json.loads((output/'held_actual.json').read_bytes())
+        saved.pop('wall_sec');current.pop('wall_sec')
+        assert saved==current, 'Instrumentation must preserve all saved forecast values'
+    if shared_enabled:
+        assert len(gap_rows)==450 and [r['time_sec'] for r in gap_rows]==list(range(at,at+450))
+        (O/'receiving_trace.json').write_text(json.dumps(gap_rows,indent=2)+'\n',encoding='utf8')
+    if clearance_enabled:
+        assert len(gap_rows)==450*forecast_limit and [r['time_sec'] for r in gap_rows]==list(range(at,at+450))*forecast_limit
+        (O/'receiving_trace.json').write_text(json.dumps(gap_rows,indent=2)+'\n',encoding='utf8')
+    (O/'output.json').write_text(json.dumps(dict(output=str(output)),indent=2),encoding='utf8')
+
+
+module.probe_levers = audited
+tuning = I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_config.json'
+if posthead_case and posthead_case!='recovery_base':
+    tuning=O.parent/'candidate.json'
+sys.argv = [str(script),'--closedloop-recorded',f'--at={at}','--lever-probe450',
+    '--meter-ramp=RM_C10484','--trace-ramp=RM_C10484','--warm-head-history','--replay-vsl-history',
+    '--recording-dir='+str(D),
+    '--tuning-json='+str(tuning),
+    '--probe-label=clearance84_'+clearance_case if clearance_case else '--probe-label=lane84_'+lane_case if lane_case else '--probe-label=shared84_'+shared_case+('_r1' if shared_case=='onset' else '') if shared_case else '--probe-label=posthead84_'+posthead_case if posthead_case else '--probe-label=receiving1500' if receiving_trace else '--probe-label=early1500' if early else '--probe-label=of2']
+if at==1500:
+    sys.argv.append('--early-ramp-factorial')
+if paired:
+    sys.argv.remove('--meter-ramp=RM_C10484')
+    sys.argv.append('--fixed-replay-summary='+str(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json'))
+pins = {p:h for p,h in protocol['pins_before'].items()
+        if Path(p).resolve() not in {script.resolve(),Path(__file__).resolve()}}
+pins[str(script)] = hashlib.sha256(script.read_bytes()).hexdigest()
+pins[str(Path(__file__))] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+(O/'execution_pins.json').write_text(json.dumps(pins,indent=2),encoding='utf8')
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+started = time.perf_counter()
+module.main()
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+(O/'run_completion.json').write_text(json.dumps(dict(status='complete',forecasts=len(rows),
+    wall_sec=time.perf_counter()-started,optimizer=0,fit=0,new_native=0,pins_unchanged=True),indent=2),encoding='utf8')

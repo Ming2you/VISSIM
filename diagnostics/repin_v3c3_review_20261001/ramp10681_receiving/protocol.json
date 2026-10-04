@@ -1,0 +1,27 @@
+{
+  "status": "complete_conditional_diagnosis_not_gain_qualified",
+  "previous_goal_turn": "no_progress_remote_review_restatement",
+  "max_full_forecasts": 2,
+  "max_local_diagnostic_cases_per_arm": 3,
+  "fit": 0,
+  "new_vissim": 0,
+  "production_pins": {
+    "evaluation\\controllers\\lane_ramp_runtime.py": "959ed4c521d04219df76e0583691191bce01aeabd45bd0acbfcb51ccd6b19c77",
+    "evaluation\\controllers\\physical_ramp_boundary.py": "f0603b14047adf988d26057c364d79aa45ec8721d0b0a0f439785381503a950f",
+    "evaluation\\parameters.json": "68a9cc0304453cc9493bbe45ca08dad118704175c8eeafbcb3996d0056e43da4",
+    "diagnostics\\repin_v3c3_review_20261001\\sc105_supply\\candidate_config.json": "48d33e17b6f6a997702a3929a9bc12c6dbcd6f9659d69e04406a51e173ceab3a"
+  },
+  "purpose": "Record actual lane receiving budgets; exact local replay before conditional arrival diagnosis; no pooling or capacity increase",
+  "conditional_future_inputs": "Permitted only in labeled local diagnostic; never autonomous forecast or selection",
+  "driver_before_sha256": "84f0faa849642e82d2af27ec186a81db02db5916b78983cad1f9493c224b8978",
+  "additional_posthead_component_checks_per_arm": 2,
+  "additional_check_reason": "Successful native-arrival conditional test still overpredicts head and merge; one exact posthead parity check and one native-head substitution isolates that remaining component. No parameter candidates or forecast additions.",
+  "full_forecasts_completed": 2,
+  "forecast_wall_sec": 49.81962049996946,
+  "owned_session": {
+    "16059": "exit0"
+  },
+  "initial_failure": "Separate label missing; rejected before forecasts, log preserved",
+  "production_physics_changed": false,
+  "production_adopted": false
+}

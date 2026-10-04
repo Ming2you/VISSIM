@@ -1,0 +1,52 @@
+{
+  "reason": "Training overall/state loss improved and significant signs remained correct, but aggregate response gate failed. Inspect a fixed tradeoff candidate on unfit states, without changing that failure or refitting.",
+  "factors": [
+    0.9890223697665919,
+    1.2999479983043045,
+    1.0186595107999883
+  ],
+  "keys": [
+    [
+      "s29_early",
+      "none",
+      750
+    ],
+    [
+      "s43_early",
+      "none",
+      750
+    ],
+    [
+      "s43_early",
+      "vsl",
+      750
+    ],
+    [
+      "s61_late",
+      "hold",
+      450
+    ],
+    [
+      "s61_late",
+      "release",
+      450
+    ],
+    [
+      "s61_late",
+      "hold_vsl90",
+      450
+    ],
+    [
+      "s61_late",
+      "release_vsl90",
+      450
+    ]
+  ],
+  "max_new_forecasts": 7,
+  "coefficient_fits": 0,
+  "new_native": 0,
+  "old_training_gate_still_failed": true,
+  "serialized_changes": "10existing FD scalars across cells21-25; all other settings identical",
+  "scope": "Seed61 was previously inspected but never fitted; seed43 previously inspected. No blind qualification or generalization guarantee.",
+  "interpretation": "Same current-only prediction inputs. Source realization differences remain diagnostic uncertainty, not fitted control bonuses."
+}

@@ -1,0 +1,45 @@
+{
+  "training": [
+    {
+      "candidate": "phi15",
+      "phi": 1.5,
+      "local_losses": {
+        "first450": 0.731473612315757,
+        "tail300": 4.879164743431266
+      },
+      "guards": {
+        "tail": false,
+        "early": true,
+        "whole_speed": true
+      },
+      "train_pass": false
+    },
+    {
+      "candidate": "phi10",
+      "phi": 1.0,
+      "local_losses": {
+        "first450": 0.7491668483947345,
+        "tail300": 4.974867369545237
+      },
+      "guards": {
+        "tail": false,
+        "early": true,
+        "whole_speed": true
+      },
+      "train_pass": false
+    }
+  ],
+  "selected": null,
+  "baseline": {
+    "first450": 0.7249786549408639,
+    "tail300": 4.48642196581475
+  },
+  "parity": {
+    "cells": true,
+    "flows": true,
+    "ports": true,
+    "ramps": true
+  },
+  "selection_before_action_validation": true,
+  "adopted": false
+}

@@ -1,0 +1,32 @@
+{
+  "previous_goal_turn": "PROGRESS: REVIEW87 completed conditional test; split-only candidate rejected.",
+  "hypothesis": "Determine how much of the observed paired East mainline+four on-ramp residence difference is accounted by time-weighted source/arrival/off/terminal events before fitting a missing capacity response.",
+  "scope": "Eight completed native arms:67 release+/-VSL,67 selected joint policy+/-VSL,71 NC/RM/VSL/both; no outcome fitting.",
+  "method": "Event first moments sum s*(window_end-entry_time)/3600. Compare paired differences with existing physical-link TTT. Keep detector-offset and5s quadrature residual explicit; do not call this fixed-source causal response.",
+  "budget": {
+    "native": 0,
+    "forecasts": 0,
+    "fit": 0,
+    "fzp_scans": 0,
+    "arms": 8
+  },
+  "materiality_veh_h": 0.5,
+  "accounting_residual_limit_veh_h": 0.1,
+  "decision": "If non-source observed accounting terms remain material, source variation cannot alone explain the gain; otherwise prioritize boundary/arrival uncertainty before more capacity fitting. This is diagnostic, never a gain gate.",
+  "priors": [
+    "Claude REVIEW_CHECK K5: source and route noise confound small-response labels",
+    "REVIEW76/80/84 native source/off/terminal stock ledgers",
+    "REVIEW87 rejects destination-speed split as sufficient correction"
+  ],
+  "production_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\offramp_routing.py": "4ed3243430761f3ac5eaa517dfefee904418b0d8e252d3d369d4cbe5f4dd07a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec"
+  },
+  "old_STOP": {
+    "path": "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  }
+}

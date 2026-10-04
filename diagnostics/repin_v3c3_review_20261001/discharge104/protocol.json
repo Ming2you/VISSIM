@@ -1,0 +1,48 @@
+{
+  "budget": {
+    "new_forecast": 0,
+    "fit": 0,
+    "native": 0,
+    "fzp": 0
+  },
+  "scope": "Current aggregate service66; cached 67/73 release110 and release90, 2700-3150. No adoption.",
+  "question": "Is accepted internal through-flow limited below rho*v*lanes; where does the VSL discharge response change sign?",
+  "helper_ast_sha256": {
+    "read": "63ad1d4fe41099c0c400903cade788439dcfcae96aa4efcb9a22aaf3b83e75d5",
+    "save": "49555aac1dcb2d7d30f34f45a0ff4e1e5c95dd06052e33ab4df1497bab83a776",
+    "cell_flux": "e5d3a0bcb3cde93a6210ee79419b9cf261ffa84f581503fe656c8d8d44506a0e",
+    "main": "935314cb72ef85aab09da77a194f6ea9bf670690b48d8737104b49a3e1402632",
+    "assess_boundary_time88": "b90d97abd85b6114167623c9e55f630a7f6b9de67b77b306d8969782c475eeb1",
+    "boundary_cohorts88": "1646fa0d94924905ef5e12ae82cf2c57bb4defebe3f45639116f52d8566f2230",
+    "assess_cohort_departure89": "4d5545c031eabf30249a0f7335cd5f99684918ef7e57c38bd65445a3ceee1166",
+    "native_pair_choices89": "3f334f7932e46bc130600184a47a084dd0c87f66f287adf5610ea48497c2ce1d",
+    "assess_local_transport91": "d16fb594213216834a6f46f6dd087c806bc0ec54b3763e818c8d40f596d30b78",
+    "assess_state_residual93": "c10d57a5f0d9c4c5527dc580487218781cae5831ebc767c3ca72e074cfed812d",
+    "assess_response_horizon98": "505587baa94c4cd0343e2d531d2c170eb0e9f62b0357ae0039781ecfc7632859",
+    "assess_recovery_band102": "a485912989f47b64a40673d952260071d75f8348073ca8bd7efa32e468806d1d",
+    "prepare_ramp_timing103": "bb1c26235e32fe1b8c0d6e1cc1a2c82a41f96330dd46dec5df431a634bb7a1a3",
+    "assess_ramp_timing103": "3e6eadfba0a8a7c98964382a3397dcc542f34982e5342b380bbf71683db3dc9d",
+    "finish_ramp_timing103": "8e4cf451bc442685ef46b9f3d8004ba920d59dfaf6e26a5d82f606bdb670e83a"
+  },
+  "protected_sha256": {
+    "evaluation/controllers/obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "evaluation/controllers/obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "evaluation/controllers/lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "evaluation/controllers/lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "evaluation/controllers/area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "evaluation/controllers/physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "evaluation/controllers/freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP": {
+    "path": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "limits": [
+    "Native face counts are conservation reconstructions, not independent detectors.",
+    "Density/speed and equation term differences are model bookkeeping, not causal shares.",
+    "No whole-network capacity or all-state claim."
+  ],
+  "next_action_gate": "If discharge equals rho*v*lanes, do not raise a receiving capacity that is inactive. If response error originates before recovery24/25, do not fit only those recovery cells."
+}

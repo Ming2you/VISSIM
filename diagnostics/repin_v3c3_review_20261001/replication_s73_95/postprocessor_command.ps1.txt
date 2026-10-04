@@ -1,0 +1,60 @@
+$ErrorActionPreference='Stop'
+$taskRoot=(Get-Location).Path
+$reviewRoot=Join-Path $taskRoot 'diagnostics/repin_v3c3_review_20261001/replication_s73_95'
+$plan=Get-Content -LiteralPath (Join-Path $reviewRoot 'postprocess_plan.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$taskStatus=Join-Path $reviewRoot 'postprocess_status.json'
+if(Test-Path -LiteralPath $taskStatus){throw 'Postprocessor exists; preserve it without duplicate execution'}
+$created=(Get-Process -Id $PID).StartTime
+$python='C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe'
+function Save-Post([string]$phase,[string]$detail){
+ [ordered]@{phase=$phase;detail=$detail;pid=$PID;creation_time=$created.ToString('o');time=[DateTimeOffset]::Now.ToString('o');native_owner=$plan.native_owner} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskStatus -Encoding utf8
+}
+function Check-Inputs{
+ foreach($folder in @($plan.runs_root,$reviewRoot,(Split-Path -Parent $plan.protocol))){
+  if(Test-Path -LiteralPath (Join-Path $folder 'STOP')){throw ('STOP exists: '+$folder)}
+ }
+ foreach($pin in $plan.source_pins.PSObject.Properties){
+  if((Get-FileHash -LiteralPath $pin.Name -Algorithm SHA256).Hash.ToLowerInvariant() -cne $pin.Value){throw ('Pinned source changed: '+$pin.Name)}
+ }
+}
+try{
+ Check-Inputs
+ $owner=Get-Process -Id ([int]$plan.native_owner.pid) -ErrorAction Stop
+ $expected=[DateTimeOffset]$plan.native_owner.creation_time
+ if([Math]::Abs(($owner.StartTime.ToUniversalTime()-$expected.UtcDateTime).TotalMilliseconds) -gt 1){throw 'Native owner PID creation changed'}
+ $null=$owner.Handle
+ Save-Post 'waiting_native' 'Wait on exact live queue handle; no analysis or fitting during simulation'
+ $owner.WaitForExit()
+ if($owner.ExitCode -ne 0){throw ('Native queue exited unsuccessfully: '+$owner.ExitCode)}
+ Check-Inputs
+ $chain=Get-Content -LiteralPath (Join-Path $plan.runs_root 'chain_status.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+ if($chain.phase -ne 'complete_unanalyzed'){throw 'Native queue did not complete normally'}
+ $nativeStatus=Get-Content -LiteralPath (Join-Path (Split-Path -Parent $plan.protocol) 'status.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+ if($nativeStatus.stage -ne 'both_native_complete_unanalyzed'){throw 'Two native arms are not complete'}
+ New-Item -ItemType Directory -Path $plan.analysis -ErrorAction Stop | Out-Null
+ [ordered]@{all_owned_processes_closed=$true;owner_exit_code=$owner.ExitCode;owner_pid=$plan.native_owner.pid;owner_creation=$plan.native_owner.creation_time;runs_root=$plan.runs_root;verified_at=[DateTimeOffset]::Now.ToString('o');evidence='Held process handle exited0; canonical runner waits for each owned VISSIM exit before queue completion'} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $plan.analysis 'runtime_closure.json') -Encoding utf8
+ $env:PYTHONUTF8='1';$env:PYTHONDONTWRITEBYTECODE='1'
+ $env:PYTHONPATH='C:/Users/alsrj/Desktop/학술/찐찐막/Codex/VISSIM/.review-deps/sdmpc;'+$taskRoot+';'+(Join-Path $taskRoot 'vendor/NumSim-mine')
+ $env:NUMSIM_REPO_ROOT=Join-Path $taskRoot 'vendor/NumSim-mine'
+ $env:OMP_NUM_THREADS='1';$env:OPENBLAS_NUM_THREADS='1';$env:MKL_NUM_THREADS='1'
+ foreach($step in @('analysis','forecast','ramps')){
+  Check-Inputs
+  Save-Post ('running_'+$step) 'Exactly one planned call; no automatic retries'
+  $arguments=@('-B')+@($plan.commands.$step)
+  & $python @arguments *> (Join-Path $reviewRoot ($step+'_95.log'))
+  if($LASTEXITCODE -ne 0){throw ('Postprocess failed: '+$step+'; preserve log and outputs')}
+ }
+ $native=Get-Content -LiteralPath (Join-Path $plan.analysis 'summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+ $prediction=Get-Content -LiteralPath (Join-Path $plan.prediction 'summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+ if(-not $native.counterfactual_valid -or $native.replication_seed -ne 73){throw 'Unverified seed73 native comparison'}
+ if($prediction.replay_pair.seed -ne 73 -or $prediction.replay_pair.observation_cutoff_sec -ne 2700 -or $prediction.replay_pair.future_states_used){throw 'Wrong forecast observation contract'}
+ if(@($prediction.results.PSObject.Properties).Count -ne 2){throw 'Unexpected forecast budget'}
+ if($null -eq $prediction.results.release_vsl90_actual.delta_ttt_omega_veh_h){throw 'Missing VSL forecast difference'}
+ [ordered]@{status='COMPLETE_PENDING_ASSESSMENT';actual_delta_omega_veh_h=$native.delta_TTT_veh_h;predicted_delta_omega_veh_h=$prediction.results.release_vsl90_actual.delta_ttt_omega_veh_h;native_counterfactual_valid=$native.counterfactual_valid;future_observation_inputs=$false;forecast_count=2;fit_count=0;model_adopted=$false;goal_complete=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $reviewRoot 'comparison_preview.json') -Encoding utf8
+ Check-Inputs
+ Save-Post 'complete_pending_assessment' 'Native validation, two autonomous450 predictions and eight-ramp audit completed; no calibration or qualification claim'
+}catch{
+ Save-Post 'failed' $_.Exception.Message
+ throw
+}
+

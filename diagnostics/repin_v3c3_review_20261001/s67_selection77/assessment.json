@@ -1,0 +1,1556 @@
+{
+  "status": "OFFLINE_SELECTION_AND_FINITE_VSL_CHECK_COMPLETE_PHYSICAL_GAIN_NOT_QUALIFIED",
+  "previous_goal_turn": "NO_PROGRESS: explanation only; current PROGRESS: actual selection, exact execution and finite candidates",
+  "seed": 67,
+  "start_sec": 2700,
+  "duration_sec": 450,
+  "blind_holdout": false,
+  "controller_calls": 1,
+  "selection_converged": false,
+  "selection_status": "best_observed_feasible_sdmpc",
+  "controller_wall_sec": 478.7500655000331,
+  "solver_elapsed_sec": 446.5651422999799,
+  "selection_prediction_counts": {
+    "scalar_rollouts": 49,
+    "tangent_rollouts": 5,
+    "total_rollouts": 54,
+    "failed_batches": 0
+  },
+  "exact_check_forecasts": 2,
+  "neighbor_surrogate_forecasts": 3,
+  "neighbor_exact_forecasts": 3,
+  "exact_check_compute_sec": 50.53581919998396,
+  "fresh_caps": {
+    "schema": "decision-pfo-budget-initialization/v2",
+    "start_sec": 2700.0,
+    "end_sec": 3150.0,
+    "np_cap_veh": 676.9852229711283,
+    "nuf_cap_veh_h": 6019.608020684494,
+    "achieved_np_veh": 576.9852229711283,
+    "achieved_nuf_veh_h": 5919.608020684494,
+    "np_cap_margin_veh": 100.0,
+    "nuf_cap_margin_veh_h": 100.0,
+    "cap_rule": "cap = PFO-achieved + configured nonnegative margin",
+    "accepted_rate_veh_h_by_ramp": {
+      "RM_C10480": 268.21760527962795,
+      "RM_C10482": 2163.4308231596674,
+      "RM_C10646": 400.8605764871635,
+      "RM_C10644": 502.7999999999998,
+      "RM_C10639": 361.6,
+      "RM_C10681": 1088.8135345485032,
+      "RM_C10490": 773.085481209532,
+      "RM_C10484": 360.8
+    },
+    "reference_action_token": "5986b2b97b4bdfca7fdf3a7ebe59126317bf94150890bd7614534bea4be415fc",
+    "reference_response_token": "fbd94a9c0d985ed6db034263ad15f4f532938906b5844a5cc9c1504c5b20c5ad",
+    "frozen_context_token": "5577db40fd6612a44d2d12a7e3b319af1725b8db5589d3642cfd3630e5ad3588",
+    "budget_policy": "upper_caps",
+    "source": "current_interval_PFO_prediction",
+    "previous_budget_reused": false,
+    "physical_commands_unchanged": true,
+    "scope": "PFO-achieved quantities in the current prediction plus the configured margin; not future VISSIM observations"
+  },
+  "commands": [
+    {
+      "block": 0,
+      "changes": {
+        "vsl": {},
+        "meters": {
+          "RM_C10490": [
+            5.0,
+            6.0
+          ]
+        },
+        "green_times": {
+          "SC1_p1": [
+            54.0,
+            58.123
+          ],
+          "SC1_p2": [
+            21.0,
+            20.0
+          ],
+          "SC1_p3": [
+            32.0,
+            34.877
+          ],
+          "SC1_p4": [
+            31.0,
+            25.0
+          ],
+          "SC5_p1": [
+            43.0,
+            37.0
+          ],
+          "SC5_p2": [
+            23.0,
+            20.0
+          ],
+          "SC5_p3": [
+            47.0,
+            53.0
+          ],
+          "SC5_p4": [
+            25.0,
+            28.0
+          ],
+          "SC6_p1": [
+            43.0,
+            49.0
+          ],
+          "SC6_p2": [
+            21.0,
+            23.0
+          ],
+          "SC6_p3": [
+            52.0,
+            46.0
+          ],
+          "SC6_p4": [
+            22.0,
+            20.0
+          ],
+          "SC7_p1": [
+            67.0,
+            70.096
+          ],
+          "SC7_p2": [
+            90.0,
+            85.15
+          ],
+          "SC7_p4": [
+            24.0,
+            28.85
+          ],
+          "SC11_p1": [
+            36.0,
+            42.0
+          ],
+          "SC11_p2": [
+            35.0,
+            29.0
+          ],
+          "SC11_p3": [
+            34.0,
+            40.0
+          ],
+          "SC11_p4": [
+            33.0,
+            27.0
+          ],
+          "SC12_p1": [
+            50.0,
+            54.0
+          ],
+          "SC12_p2": [
+            24.0,
+            20.0
+          ],
+          "SC12_p3": [
+            32.0,
+            38.0
+          ],
+          "SC12_p4": [
+            32.0,
+            26.0
+          ],
+          "SC16_p1": [
+            63.0,
+            69.0
+          ],
+          "SC16_p3": [
+            27.0,
+            21.0
+          ],
+          "SC101_p1": [
+            48.0,
+            54.0
+          ],
+          "SC101_p2": [
+            27.0,
+            31.0
+          ],
+          "SC101_p3": [
+            39.0,
+            33.0
+          ],
+          "SC101_p4": [
+            24.0,
+            20.0
+          ],
+          "SC105_p1": [
+            48.0,
+            47.404
+          ],
+          "SC105_p2": [
+            21.0,
+            21.596
+          ],
+          "SC105_p3": [
+            35.0,
+            41.0
+          ],
+          "SC105_p4": [
+            34.0,
+            28.0
+          ],
+          "SC107_p2": [
+            25.0,
+            20.0
+          ],
+          "SC107_p3": [
+            78.0,
+            84.0
+          ],
+          "SC107_p4": [
+            38.0,
+            37.0
+          ],
+          "SC108_p1": [
+            31.0,
+            25.0
+          ],
+          "SC108_p4": [
+            22.0,
+            28.0
+          ],
+          "SC109_p2": [
+            20.0,
+            26.0
+          ],
+          "SC109_p3": [
+            90.0,
+            84.0
+          ],
+          "SC1001_p1": [
+            46.0,
+            40.973
+          ],
+          "SC1001_p2": [
+            23.0,
+            21.499
+          ],
+          "SC1001_p3": [
+            45.0,
+            45.528
+          ],
+          "SC1001_p4": [
+            24.0,
+            30.0
+          ],
+          "SC1002_p1": [
+            46.0,
+            52.0
+          ],
+          "SC1002_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1002_p3": [
+            45.0,
+            46.0
+          ],
+          "SC1002_p4": [
+            24.0,
+            20.0
+          ],
+          "SC1003_p1": [
+            46.0,
+            49.0
+          ],
+          "SC1003_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1003_p3": [
+            45.0,
+            39.0
+          ],
+          "SC1003_p4": [
+            24.0,
+            30.0
+          ],
+          "SC1004_p1": [
+            46.0,
+            40.0
+          ],
+          "SC1004_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1004_p3": [
+            45.0,
+            48.0
+          ],
+          "SC1004_p4": [
+            24.0,
+            30.0
+          ],
+          "SC1005_p1": [
+            46.0,
+            41.108
+          ],
+          "SC1005_p2": [
+            23.0,
+            27.442
+          ],
+          "SC1005_p3": [
+            45.0,
+            40.128
+          ],
+          "SC1005_p4": [
+            24.0,
+            29.322
+          ]
+        },
+        "offsets": {
+          "SC1": [
+            19.0,
+            55.224
+          ],
+          "SC5": [
+            114.0,
+            147.519
+          ],
+          "SC6": [
+            13.0,
+            88.0
+          ],
+          "SC7": [
+            119.0,
+            116.916
+          ],
+          "SC11": [
+            55.0,
+            52.708
+          ],
+          "SC12": [
+            145.0,
+            109.094
+          ],
+          "SC16": [
+            1.0,
+            41.408
+          ],
+          "SC101": [
+            25.0,
+            34.898
+          ],
+          "SC105": [
+            115.0,
+            143.823
+          ],
+          "SC107": [
+            12.0,
+            17.738
+          ],
+          "SC108": [
+            38.0,
+            113.0
+          ],
+          "SC109": [
+            39.0,
+            16.452
+          ],
+          "SC1001": [
+            75.0,
+            112.592
+          ],
+          "SC1002": [
+            75.0,
+            143.932
+          ],
+          "SC1003": [
+            75.0,
+            72.078
+          ],
+          "SC1004": [
+            75.0,
+            0.0
+          ],
+          "SC1005": [
+            75.0,
+            76.629
+          ]
+        }
+      }
+    },
+    {
+      "block": 1,
+      "changes": {
+        "vsl": {},
+        "meters": {},
+        "green_times": {
+          "SC1_p1": [
+            54.0,
+            57.123
+          ],
+          "SC1_p2": [
+            21.0,
+            20.0
+          ],
+          "SC1_p3": [
+            32.0,
+            40.877
+          ],
+          "SC1_p4": [
+            31.0,
+            20.0
+          ],
+          "SC5_p1": [
+            43.0,
+            38.753
+          ],
+          "SC5_p2": [
+            23.0,
+            20.0
+          ],
+          "SC5_p4": [
+            25.0,
+            32.247
+          ],
+          "SC6_p1": [
+            43.0,
+            55.0
+          ],
+          "SC6_p2": [
+            21.0,
+            23.0
+          ],
+          "SC6_p3": [
+            52.0,
+            40.0
+          ],
+          "SC6_p4": [
+            22.0,
+            20.0
+          ],
+          "SC7_p1": [
+            67.0,
+            68.636
+          ],
+          "SC7_p2": [
+            90.0,
+            81.211
+          ],
+          "SC7_p4": [
+            24.0,
+            32.789
+          ],
+          "SC11_p1": [
+            36.0,
+            40.166
+          ],
+          "SC11_p2": [
+            35.0,
+            26.417
+          ],
+          "SC11_p3": [
+            34.0,
+            46.0
+          ],
+          "SC11_p4": [
+            33.0,
+            25.417
+          ],
+          "SC12_p1": [
+            50.0,
+            58.225
+          ],
+          "SC12_p2": [
+            24.0,
+            26.0
+          ],
+          "SC12_p3": [
+            32.0,
+            33.775
+          ],
+          "SC12_p4": [
+            32.0,
+            20.0
+          ],
+          "SC16_p1": [
+            63.0,
+            70.0
+          ],
+          "SC16_p3": [
+            27.0,
+            20.0
+          ],
+          "SC101_p1": [
+            48.0,
+            60.0
+          ],
+          "SC101_p2": [
+            27.0,
+            31.0
+          ],
+          "SC101_p3": [
+            39.0,
+            27.0
+          ],
+          "SC101_p4": [
+            24.0,
+            20.0
+          ],
+          "SC105_p1": [
+            48.0,
+            50.625
+          ],
+          "SC105_p2": [
+            21.0,
+            27.596
+          ],
+          "SC105_p3": [
+            35.0,
+            37.779
+          ],
+          "SC105_p4": [
+            34.0,
+            22.0
+          ],
+          "SC107_p2": [
+            25.0,
+            20.0
+          ],
+          "SC107_p3": [
+            78.0,
+            90.0
+          ],
+          "SC107_p4": [
+            38.0,
+            31.0
+          ],
+          "SC108_p1": [
+            31.0,
+            20.0
+          ],
+          "SC108_p3": [
+            88.0,
+            90.0
+          ],
+          "SC108_p4": [
+            22.0,
+            31.0
+          ],
+          "SC109_p2": [
+            20.0,
+            26.0
+          ],
+          "SC109_p4": [
+            31.0,
+            25.0
+          ],
+          "SC1001_p1": [
+            46.0,
+            34.973
+          ],
+          "SC1001_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1001_p3": [
+            45.0,
+            47.027
+          ],
+          "SC1001_p4": [
+            24.0,
+            36.0
+          ],
+          "SC1002_p1": [
+            46.0,
+            56.141
+          ],
+          "SC1002_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1002_p3": [
+            45.0,
+            41.859
+          ],
+          "SC1002_p4": [
+            24.0,
+            20.0
+          ],
+          "SC1003_p1": [
+            46.0,
+            55.0
+          ],
+          "SC1003_p2": [
+            23.0,
+            21.134
+          ],
+          "SC1003_p3": [
+            45.0,
+            33.058
+          ],
+          "SC1003_p4": [
+            24.0,
+            28.808
+          ],
+          "SC1004_p1": [
+            46.0,
+            34.0
+          ],
+          "SC1004_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1004_p3": [
+            45.0,
+            48.0
+          ],
+          "SC1004_p4": [
+            24.0,
+            36.0
+          ],
+          "SC1005_p1": [
+            46.0,
+            41.106
+          ],
+          "SC1005_p2": [
+            23.0,
+            33.372
+          ],
+          "SC1005_p3": [
+            45.0,
+            40.115
+          ],
+          "SC1005_p4": [
+            24.0,
+            23.407
+          ]
+        },
+        "offsets": {
+          "SC1": [
+            19.0,
+            130.224
+          ],
+          "SC5": [
+            114.0,
+            112.973
+          ],
+          "SC6": [
+            13.0,
+            63.272
+          ],
+          "SC7": [
+            119.0,
+            2.947
+          ],
+          "SC11": [
+            55.0,
+            71.144
+          ],
+          "SC12": [
+            145.0,
+            125.767
+          ],
+          "SC16": [
+            1.0,
+            13.662
+          ],
+          "SC101": [
+            25.0,
+            31.275
+          ],
+          "SC105": [
+            115.0,
+            126.632
+          ],
+          "SC107": [
+            12.0,
+            2.329
+          ],
+          "SC108": [
+            38.0,
+            3.167
+          ],
+          "SC109": [
+            39.0,
+            91.452
+          ],
+          "SC1001": [
+            75.0,
+            52.138
+          ],
+          "SC1002": [
+            75.0,
+            70.404
+          ],
+          "SC1003": [
+            75.0,
+            73.499
+          ],
+          "SC1004": [
+            75.0,
+            35.601
+          ],
+          "SC1005": [
+            75.0,
+            76.641
+          ]
+        }
+      }
+    },
+    {
+      "block": 2,
+      "changes": {
+        "vsl": {},
+        "meters": {},
+        "green_times": {
+          "SC1_p1": [
+            54.0,
+            54.041
+          ],
+          "SC1_p2": [
+            21.0,
+            24.16
+          ],
+          "SC1_p3": [
+            32.0,
+            39.799
+          ],
+          "SC1_p4": [
+            31.0,
+            20.0
+          ],
+          "SC5_p1": [
+            43.0,
+            44.753
+          ],
+          "SC5_p2": [
+            23.0,
+            20.0
+          ],
+          "SC5_p3": [
+            47.0,
+            42.936
+          ],
+          "SC5_p4": [
+            25.0,
+            30.311
+          ],
+          "SC6_p1": [
+            43.0,
+            61.0
+          ],
+          "SC6_p2": [
+            21.0,
+            21.84
+          ],
+          "SC6_p3": [
+            52.0,
+            34.0
+          ],
+          "SC6_p4": [
+            22.0,
+            21.16
+          ],
+          "SC7_p1": [
+            67.0,
+            68.92
+          ],
+          "SC7_p2": [
+            90.0,
+            87.211
+          ],
+          "SC7_p4": [
+            24.0,
+            26.789
+          ],
+          "SC11_p1": [
+            36.0,
+            37.809
+          ],
+          "SC11_p2": [
+            35.0,
+            24.775
+          ],
+          "SC11_p3": [
+            34.0,
+            43.999
+          ],
+          "SC11_p4": [
+            33.0,
+            31.417
+          ],
+          "SC12_p1": [
+            50.0,
+            55.026
+          ],
+          "SC12_p2": [
+            24.0,
+            25.099
+          ],
+          "SC12_p3": [
+            32.0,
+            37.875
+          ],
+          "SC12_p4": [
+            32.0,
+            20.0
+          ],
+          "SC16_p1": [
+            63.0,
+            70.0
+          ],
+          "SC16_p3": [
+            27.0,
+            20.0
+          ],
+          "SC101_p1": [
+            48.0,
+            54.0
+          ],
+          "SC101_p2": [
+            27.0,
+            30.661
+          ],
+          "SC101_p3": [
+            39.0,
+            31.954
+          ],
+          "SC101_p4": [
+            24.0,
+            21.385
+          ],
+          "SC105_p1": [
+            48.0,
+            52.625
+          ],
+          "SC105_p2": [
+            21.0,
+            33.596
+          ],
+          "SC105_p3": [
+            35.0,
+            31.779
+          ],
+          "SC105_p4": [
+            34.0,
+            20.0
+          ],
+          "SC107_p2": [
+            25.0,
+            20.0
+          ],
+          "SC107_p3": [
+            78.0,
+            89.041
+          ],
+          "SC107_p4": [
+            38.0,
+            31.959
+          ],
+          "SC108_p1": [
+            31.0,
+            20.0
+          ],
+          "SC108_p3": [
+            88.0,
+            87.344
+          ],
+          "SC108_p4": [
+            22.0,
+            33.656
+          ],
+          "SC109_p2": [
+            20.0,
+            31.0
+          ],
+          "SC109_p4": [
+            31.0,
+            20.0
+          ],
+          "SC1001_p1": [
+            46.0,
+            28.973
+          ],
+          "SC1001_p2": [
+            23.0,
+            26.0
+          ],
+          "SC1001_p3": [
+            45.0,
+            41.027
+          ],
+          "SC1001_p4": [
+            24.0,
+            42.0
+          ],
+          "SC1002_p1": [
+            46.0,
+            51.19
+          ],
+          "SC1002_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1002_p3": [
+            45.0,
+            46.799
+          ],
+          "SC1002_p4": [
+            24.0,
+            20.011
+          ],
+          "SC1003_p1": [
+            46.0,
+            59.713
+          ],
+          "SC1003_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1003_p3": [
+            45.0,
+            35.479
+          ],
+          "SC1003_p4": [
+            24.0,
+            22.808
+          ],
+          "SC1004_p1": [
+            46.0,
+            28.0
+          ],
+          "SC1004_p2": [
+            23.0,
+            20.0
+          ],
+          "SC1004_p3": [
+            45.0,
+            48.0
+          ],
+          "SC1004_p4": [
+            24.0,
+            42.0
+          ],
+          "SC1005_p1": [
+            46.0,
+            44.907
+          ],
+          "SC1005_p2": [
+            23.0,
+            29.186
+          ],
+          "SC1005_p3": [
+            45.0,
+            43.907
+          ],
+          "SC1005_p4": [
+            24.0,
+            20.0
+          ]
+        },
+        "offsets": {
+          "SC1": [
+            19.0,
+            18.591
+          ],
+          "SC5": [
+            114.0,
+            87.056
+          ],
+          "SC6": [
+            13.0,
+            64.566
+          ],
+          "SC7": [
+            119.0,
+            1.517
+          ],
+          "SC11": [
+            55.0,
+            56.665
+          ],
+          "SC12": [
+            145.0,
+            14.035
+          ],
+          "SC16": [
+            1.0,
+            22.336
+          ],
+          "SC101": [
+            25.0,
+            58.018
+          ],
+          "SC105": [
+            115.0,
+            136.17
+          ],
+          "SC107": [
+            12.0,
+            1.207
+          ],
+          "SC108": [
+            38.0,
+            25.773
+          ],
+          "SC109": [
+            39.0,
+            39.485
+          ],
+          "SC1001": [
+            75.0,
+            127.138
+          ],
+          "SC1002": [
+            75.0,
+            76.586
+          ],
+          "SC1003": [
+            75.0,
+            72.906
+          ],
+          "SC1004": [
+            75.0,
+            135.915
+          ],
+          "SC1005": [
+            75.0,
+            76.649
+          ]
+        }
+      }
+    }
+  ],
+  "exact_delta_veh_h": {
+    "omega": -8.703008399754935,
+    "tracked_outside": 7.906007507227258,
+    "FW_E": 0.12764324585734244,
+    "FW_W": 0.022609586250283087,
+    "ramps": 0.11754970562312295,
+    "other_omega": -8.97081093748568,
+    "tracked_total": -0.7970008925276773
+  },
+  "exact_quantity_checks": {
+    "held_actual": {
+      "schema": "shared-quantity-constraints/v1",
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 607.227299638916,
+        "target": 676.9852229711283,
+        "residual": -69.75792333221239,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "cap",
+        "unit": "veh/h",
+        "actual": 5882.539868091803,
+        "target": 6019.608020684494,
+        "residual": -137.06815259269024,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "feasible": true,
+      "net_inflow_veh_by_owner": {
+        "SC1": 71.46891936507934,
+        "SC5": 0.0,
+        "SC6": 0.0,
+        "SC7": 0.0,
+        "SC11": 4.500000000000001,
+        "SC12": 17.69662131519273,
+        "SC16": 7.006897926406532,
+        "SC101": 0.0,
+        "SC105": 0.25,
+        "SC107": -45.59436340902431,
+        "SC108": 28.73757466457693,
+        "SC109": -93.49111979597195,
+        "SC1001": 498.0790562113645,
+        "SC1002": 0.0,
+        "SC1003": 0.0,
+        "SC1004": 118.57371336129219,
+        "SC1005": 0.0
+      },
+      "meter_rate_veh_h_by_owner": {
+        "FW_E": 2583.9848413612076,
+        "FW_W": 3298.5550267305957
+      },
+      "nuf_definition": "predicted_accepted_mainline_merge",
+      "physical_ramp_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 2700.0,
+        "end_sec": 3150.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 29.052300176861745,
+          "RM_C10482": 270.4288528949584,
+          "RM_C10646": 49.98822526950434,
+          "RM_C10644": 62.84999999999997,
+          "RM_C10639": 45.5547851729287,
+          "RM_C10681": 135.60823094177405,
+          "RM_C10490": 96.53946313945947,
+          "RM_C10484": 45.2956259159887
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 232.41840141489396,
+          "RM_C10482": 2163.4308231596674,
+          "RM_C10646": 399.9058021560348,
+          "RM_C10644": 502.7999999999998,
+          "RM_C10639": 364.4382813834296,
+          "RM_C10681": 1084.8658475341924,
+          "RM_C10490": 772.3157051156758,
+          "RM_C10484": 362.3650073279096
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 2583.9848413612076,
+          "FW_W": 3298.5550267305957
+        },
+        "total_rate_veh_h": 5882.539868091803,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "window": {
+        "start_sec": 2700.0,
+        "end_sec": 3150.0,
+        "horizon_steps": 3,
+        "urban_samples": 450
+      },
+      "nonowner_service_included_in_np": false,
+      "individual_np_quotas_created": false,
+      "directional_nuf_constraints_checked": false,
+      "quantity_constraints_only": true,
+      "physical_feasibility_certified": false,
+      "leader_target_changed": false
+    },
+    "selected": {
+      "schema": "shared-quantity-constraints/v1",
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 602.8758054398857,
+        "target": 676.9852229711283,
+        "residual": -74.10941753124268,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "cap",
+        "unit": "veh/h",
+        "actual": 5886.729981351666,
+        "target": 6019.608020684494,
+        "residual": -132.87803933282794,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "feasible": true,
+      "net_inflow_veh_by_owner": {
+        "SC1": 78.75174185941042,
+        "SC5": 0.0,
+        "SC6": 0.0,
+        "SC7": 0.0,
+        "SC11": 4.500000000000001,
+        "SC12": 22.02232199546483,
+        "SC16": 3.2052317194705564,
+        "SC101": 0.0,
+        "SC105": 0.25,
+        "SC107": -58.11855904645664,
+        "SC108": 27.66304369232224,
+        "SC109": -104.13951747786214,
+        "SC1001": 510.8020157925392,
+        "SC1002": 0.0,
+        "SC1003": 0.0,
+        "SC1004": 117.93952690499725,
+        "SC1005": 0.0
+      },
+      "meter_rate_veh_h_by_owner": {
+        "FW_E": 2568.9116515103938,
+        "FW_W": 3317.8183298412723
+      },
+      "nuf_definition": "predicted_accepted_mainline_merge",
+      "physical_ramp_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 2700.0,
+        "end_sec": 3150.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 33.97275106253003,
+          "RM_C10482": 270.4288528949584,
+          "RM_C10646": 47.475687272670605,
+          "RM_C10644": 62.84999999999997,
+          "RM_C10639": 45.555621553617414,
+          "RM_C10681": 133.72205905406724,
+          "RM_C10490": 96.54033459977285,
+          "RM_C10484": 45.29594123134172
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 271.78200850024024,
+          "RM_C10482": 2163.4308231596674,
+          "RM_C10646": 379.80549818136484,
+          "RM_C10644": 502.7999999999998,
+          "RM_C10639": 364.4449724289393,
+          "RM_C10681": 1069.776472432538,
+          "RM_C10490": 772.3226767981827,
+          "RM_C10484": 362.3675298507338
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 2568.9116515103938,
+          "FW_W": 3317.8183298412723
+        },
+        "total_rate_veh_h": 5886.729981351666,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "window": {
+        "start_sec": 2700.0,
+        "end_sec": 3150.0,
+        "horizon_steps": 3,
+        "urban_samples": 450
+      },
+      "nonowner_service_included_in_np": false,
+      "individual_np_quotas_created": false,
+      "directional_nuf_constraints_checked": false,
+      "quantity_constraints_only": true,
+      "physical_feasibility_certified": false,
+      "leader_target_changed": false
+    }
+  },
+  "finite_vsl_neighbors": {
+    "selected": {
+      "surrogate_ttt": 486.5750767466856,
+      "execution_ttt": 486.7118931333053,
+      "delta_execution": 0.0,
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 602.8758054398857,
+        "target": 676.9852229711283,
+        "residual": -74.10941753124268,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "cap",
+        "unit": "veh/h",
+        "actual": 5886.729981351666,
+        "target": 6019.608020684494,
+        "residual": -132.87803933282794,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      }
+    },
+    "vsl100": {
+      "surrogate_ttt": 486.6891077890951,
+      "execution_ttt": 486.8263686175442,
+      "delta_execution": 0.11447548423888065,
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 602.6817916170959,
+        "target": 676.9852229711283,
+        "residual": -74.30343135403245,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "cap",
+        "unit": "veh/h",
+        "actual": 5886.871253260671,
+        "target": 6019.608020684494,
+        "residual": -132.73676742382213,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      }
+    },
+    "vsl90": {
+      "surrogate_ttt": 487.13236085966616,
+      "execution_ttt": 487.26945412508394,
+      "delta_execution": 0.5575609917786437,
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 602.1338981066638,
+        "target": 676.9852229711283,
+        "residual": -74.85132486446457,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "cap",
+        "unit": "veh/h",
+        "actual": 5887.337395130052,
+        "target": 6019.608020684494,
+        "residual": -132.27062555444172,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      }
+    }
+  },
+  "activation_secants": [
+    {
+      "owner": "FW_E",
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "scale": 110.0,
+      "fd": 0.09090909090909091,
+      "allowed": [
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0
+      ],
+      "head": 13,
+      "reference_value": 110.0,
+      "block": 0,
+      "anchor_z": 0.0,
+      "stencil": [
+        -0.09090909090909091,
+        0.0
+      ],
+      "derivative_method": "executable_secant_fallback",
+      "fallback_reason": "inactive_vsl_legal_step",
+      "resolved": true,
+      "own": -0.9584721889417835,
+      "external": 0.10567123046465277,
+      "total": -0.8528009584771308,
+      "resource_derivatives_scaled": [
+        0.004282003828100187,
+        -0.0003460774618843061
+      ]
+    },
+    {
+      "owner": "FW_E",
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "scale": 110.0,
+      "fd": 0.09090909090909091,
+      "allowed": [
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0
+      ],
+      "head": 13,
+      "reference_value": 110.0,
+      "block": 1,
+      "anchor_z": 0.0,
+      "stencil": [
+        -0.09090909090909091,
+        0.0
+      ],
+      "derivative_method": "executable_secant_fallback",
+      "fallback_reason": "inactive_vsl_legal_step",
+      "resolved": true,
+      "own": -0.5220684663482302,
+      "external": 0.09924282727893008,
+      "total": -0.42282563906930015,
+      "resource_derivatives_scaled": [
+        0.009139426656731757,
+        -0.0004738855057485125
+      ]
+    },
+    {
+      "owner": "FW_E",
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "scale": 110.0,
+      "fd": 0.09090909090909091,
+      "allowed": [
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0
+      ],
+      "head": 13,
+      "reference_value": 110.0,
+      "block": 2,
+      "anchor_z": 0.0,
+      "stencil": [
+        -0.09090909090909091,
+        0.0
+      ],
+      "derivative_method": "executable_secant_fallback",
+      "fallback_reason": "inactive_vsl_legal_step",
+      "resolved": true,
+      "own": -0.09074062617705181,
+      "external": 0.04200556495049135,
+      "total": -0.04873506122656046,
+      "resource_derivatives_scaled": [
+        0.00985791219370526,
+        -6.48677993349338e-05
+      ]
+    },
+    {
+      "owner": "FW_E",
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "scale": 110.0,
+      "fd": 0.09090909090909091,
+      "allowed": [
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0
+      ],
+      "head": 13,
+      "reference_value": 110.0,
+      "block": 0,
+      "anchor_z": 0.0,
+      "stencil": [
+        -0.09090909090909091,
+        0.0
+      ],
+      "derivative_method": "executable_secant_fallback",
+      "fallback_reason": "inactive_vsl_legal_step",
+      "resolved": true,
+      "own": -0.8751232031701761,
+      "external": 0.08692624799751325,
+      "total": -0.7881969551726629,
+      "resource_derivatives_scaled": [
+        0.003895631296452393,
+        -0.0002820153912025489
+      ]
+    },
+    {
+      "owner": "FW_E",
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "scale": 110.0,
+      "fd": 0.09090909090909091,
+      "allowed": [
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0
+      ],
+      "head": 13,
+      "reference_value": 110.0,
+      "block": 1,
+      "anchor_z": 0.0,
+      "stencil": [
+        -0.09090909090909091,
+        0.0
+      ],
+      "derivative_method": "executable_secant_fallback",
+      "fallback_reason": "inactive_vsl_legal_step",
+      "resolved": true,
+      "own": -0.5365866267617321,
+      "external": 0.0873436850140421,
+      "total": -0.44924294174768997,
+      "resource_derivatives_scaled": [
+        0.008958047837566027,
+        -0.0004165986011093992
+      ]
+    },
+    {
+      "owner": "FW_E",
+      "kind": "vsl",
+      "key": "FW_E__seg13",
+      "scale": 110.0,
+      "fd": 0.09090909090909091,
+      "allowed": [
+        50.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0
+      ],
+      "head": 13,
+      "reference_value": 110.0,
+      "block": 2,
+      "anchor_z": 0.0,
+      "stencil": [
+        -0.09090909090909091,
+        0.0
+      ],
+      "derivative_method": "executable_secant_fallback",
+      "fallback_reason": "inactive_vsl_legal_step",
+      "resolved": true,
+      "own": -0.08952767503268433,
+      "external": 0.044624219772221085,
+      "total": -0.04490345526046324,
+      "resource_derivatives_scaled": [
+        0.009822578943571898,
+        -5.8006979103993214e-05
+      ]
+    }
+  ],
+  "prior_fixed_release_under_current_cap": {
+    "release_actual": {
+      "nuf": 6585.952274261617,
+      "cap": 6019.608020684494,
+      "excess_veh_h": 566.3442535771237,
+      "excess_vehicles450": 70.79303169714046,
+      "passes_this_decision_nuf_cap": false,
+      "scope": "Constraint-only comparison against this decision cap; no change to experiment or claim that physical commands are illegal"
+    },
+    "release_vsl90_actual": {
+      "nuf": 6586.247294575257,
+      "cap": 6019.608020684494,
+      "excess_veh_h": 566.6392738907634,
+      "excess_vehicles450": 70.82990923634543,
+      "passes_this_decision_nuf_cap": false,
+      "scope": "Constraint-only comparison against this decision cap; no change to experiment or claim that physical commands are illegal"
+    }
+  },
+  "native_runs": 0,
+  "fzp_scans": 0,
+  "coefficient_fit": 0,
+  "production_source_changes": 0,
+  "source_pins_verified": 103,
+  "old_STOP_unchanged": true,
+  "concurrent_DATA9000_untouched": true,
+  "limitations": [
+    "No actual native outcome for this selected command or its VSL neighbors; not a native gain validation.",
+    "The earlier measured VSL gain is conditional on stronger RM release with native city signals; selected city/RM is another control.",
+    "Infeasible strong RM release does not prove VSL alone is constrained. Both tested VSL neighbors are feasible but costlier in the model.",
+    "Two VSL neighbors and local secants do not prove global optimality, all combinations or all states.",
+    "Other-Omega cost reduction is not an RM causal attribution. No city-only/RM-only factorial rerun here.",
+    "Tracked outside residence omits unobserved native uninserted delay; do not call it complete total-system cost.",
+    "Execution summary generic quantity_constraints text is stale; per-result canonical_quantity_constraints contain the actual checked fixed caps.",
+    "First attempt failed at scipy import under sandbox before prediction; preserved separately. No optimizer or native automatic retry loop.",
+    "Production off-entry/recovery/gain errors from REVIEW76 remain; no physical calibration adoption."
+  ],
+  "input_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_selection77\\exit_access.json": "f0052a228840773a5ceac6475ddd5b14a6f6746cf949c0f4c09b9898f111763f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_selection77\\execution_exit.json": "605e53e4c6348e4f4c462abe8d1893db52ffb51844e96eb327a28e1aebd43809",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_selection77\\vsl_exit.json": "8eccfbc419b69049653f6ca98dd711ecc19af0a2b0e30947401712ccf826e1d5",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_selection77\\protocol.json": "1dbeae5a9955164086a04360fbb1ed64d3e4a0517fe5486ad27a54bd1e00988a",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_s67_service66_selection77_access\\summary.json": "50ea02c4531460a53de99bf193da13e19f5db8eb8b714d9917e9898d8ebb3e0f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_s67_service66_selection77_access\\unused_action.joint.json": "78c4f52a472a2057e9a7825d63c4ed224f7ecd60e0cab5ec41d852176aad7b65",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_s67_service66_selection77_access\\unused_action.joint_written.json": "7b5a0c594eb289756744fccc3312f1a0623c5096869198cbc4f2bd0eca08948f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_s67_service66_selection77_access\\summary.json": "3be9057ffc4b0f1f85aa05eb66df013ba70a5ef2a62e67cb8a23f7e65c59af86",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_budget_check_selected_vsl13_s67_service66_selection77_access\\summary.json": "22ea2f5a3fa5f2612435e6210c550f66a025ffff3ddacbeea14f05eed63e1ccb",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent\\summary.json": "75deb9438a06423a74f56f2eaddb1397165570c154199f77579d898b560de020"
+  },
+  "goal": "ACTIVE / NOT_QUALIFIED"
+}

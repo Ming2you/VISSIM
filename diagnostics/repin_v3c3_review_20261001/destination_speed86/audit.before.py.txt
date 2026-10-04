@@ -1,0 +1,190 @@
+"""Bounded saved-result/obs150 cohort audit; no rollout, fit, COM, or FZP read."""
+import gzip
+import hashlib
+import json
+from collections import Counter
+from pathlib import Path
+
+from evaluation.controllers import obs150_contract as oc, offramp_routing as routing
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[2]
+REVIEW = HERE.parent
+I = ROOT / 'diagnostics/sdmpc_n31_20260924/integration_20260926'
+PINS = {}
+
+
+def read(path):
+    data = path.read_bytes()
+    PINS[str(path)] = hashlib.sha256(data).hexdigest()
+    return json.loads(gzip.decompress(data) if path.suffix == '.gz' else data)
+
+
+def main():
+    assert not (HERE / 'assessment.json').exists(), 'Preserve prior audit'
+    evidence = read(REVIEW / 'compatible71/assessment.json')
+    runtime = read(REVIEW / 'entry10643/native_cohorts.json')['route_runtime']
+    detectors, digest = oc.read_detector_csv(I / 'selected/obs150/obs150_detectors_v2.csv')
+    PINS[str(I / 'selected/obs150/obs150_detectors_v2.csv')] = digest
+    groups = oc.group_boundaries(detectors)
+    specs = {
+        '43_nc': (43, 'nc', 2250,
+            'D:/VISSIM_runs/20260929_seed43_observation2700/nc/decisions_sdmpc31_nc2700_s43',
+            'closedloop_recorded2250_lever450_trace10681_compatible71_43',
+            'archived rejected compatible71 candidate, not current production'),
+        '47_hold': (47, 'hold', 2700,
+            'D:/VISSIM_runs/20260928_rm_observation2700_s47_v3/hold/decisions_sdmpc31_g_2700_hold_s47',
+            'closedloop_recorded2700_select_check_trace10681_entry10643',
+            'current retained10638 baseline with observation-only route export'),
+    }
+    cases = {}
+    for case, (seed, arm, start, folder, prediction_dir, model_scope) in specs.items():
+        times = list(range(start, start + 451, 150))
+        raws = {t: read(Path(folder) / f'state_{t:06d}.json') for t in times}
+        frames = {t: read(Path(raw['lane_plant_observation']['directory']) / f'frame_{t:06d}.json')
+                  for t, raw in raws.items()}
+        trace = read(I / prediction_dir / 'held_actual_RM_C10681_trace.json.gz')['offramp_network_diagnostics']
+        result = read(I / prediction_dir / 'summary.json')['results']['held_actual']
+        assert trace['route_runtime'] == runtime
+        initial_all = {v[0]: v for v in frames[start]['vehicles']}
+        physical = {vid: v for vid, v in initial_all.items() if str(v[1]) in runtime['physical']}
+        known, uncertain = {}, {}
+        target_chain = runtime['branches']['10682']['source_chain_m']
+        for vid, v in physical.items():
+            road, pos, cell = routing._position(runtime, v[1], v[3])
+            if road != 'FW_E' or pos > target_chain:
+                continue
+            if v[6] is None:
+                weights = routing._future_distribution(runtime, road, pos)
+            else:
+                weights = routing._route_distribution(runtime, runtime['routes'][f'{int(v[6])}:{int(v[7])}'], road, pos)
+            weight = weights.get('10682', 0.)
+            detail = dict(vehicle=vid, cell=cell, chain_m=pos, link=v[1], lane=v[2], route=v[6:9])
+            if v[6] is not None and weight == 1.:
+                known[vid] = detail
+            elif weight > 0:
+                uncertain[vid] = dict(detail, weight=weight)
+        events = {ref: [] for ref in ('off_entry:10682', 'source:FW_E', 'ramp_arrival:RM_C10639')}
+        tails = []
+        for t in times[1:]:
+            bundle = oc.load_bundle(raws[t])  # existing implementation verifies chunk and frame SHA
+            window = oc.assign_window(bundle.obs, bundle.mer_rows)
+            for ref, rows in events.items():
+                for det in groups[ref]:
+                    if window.tails[det.dcp_no]:
+                        tails.append(dict(end_sec=t, ref=ref, dcp=det.dcp_no, count=window.tails[det.dcp_no]))
+                    rows.extend(dict(vehicle=e.veh, time_sec=e.t_entry, lane=det.lane, window_end=t)
+                                for e in window.entries[det.dcp_no])
+        exits = events['off_entry:10682']
+        assert len({e['vehicle'] for e in exits}) == len(exits)
+        assert not any(t['ref'] == 'off_entry:10682' for t in tails)
+        native = evidence['cases'][str(seed)][arm]['ports']['10682']['native']
+        assert len(exits) == native['entry'], 'Missing boundary correction must be investigated'
+        source_ids = {e['vehicle'] for e in events['source:FW_E']}
+        ramp_ids = {e['vehicle'] for e in events['ramp_arrival:RM_C10639']}
+        witnesses = []
+        for event in exits:
+            vid = event['vehicle']
+            group = ('initial_assigned' if vid in known else 'initial_future_choice' if vid in uncertain
+                     else 'initial_other_mainline' if vid in physical else 'not_initial_mainline')
+            witnesses.append(dict(event, group=group, source_witness=vid in source_ids,
+                                  ramp_arrival_witness=vid in ramp_ids, initial=initial_all.get(vid)))
+        snapshots = []
+        for t, snap, port in zip(times, trace['route_states'], trace['states']):
+            assert abs(snap['time_sec'] - t) < 1e-8
+            lookup = {v[0]: v for v in frames[t]['vehicles']}
+            exited_ids = {e['vehicle'] for e in exits if e['window_end'] <= t}
+            remaining, unaccounted = [], []
+            for vid in known:
+                if vid in exited_ids:
+                    continue
+                row = lookup.get(vid)
+                if row is not None and str(row[1]) in runtime['physical']:
+                    road, pos, cell = routing._position(runtime, row[1], row[3])
+                    remaining.append(dict(vehicle=vid, road=road, cell=cell, chain_m=pos))
+                else:
+                    unaccounted.append(dict(vehicle=vid, current=row))
+            stock = Counter()
+            for row in snap['inventory']['cells']['FW_E']:
+                for label, n in row.items():
+                    if label.endswith('|10682'):
+                        stock[label] += n
+            known_stock = sum(n for label, n in stock.items() if label.startswith('observed_route:'))
+            null_stock = sum(n for label, n in stock.items() if label.startswith('observed_null|'))
+            future_stock = sum(n for label, n in stock.items() if label.startswith('expected_input:'))
+            other_stock = {k: v for k, v in stock.items()
+                           if not k.startswith(('observed_route:', 'observed_null|', 'expected_input:')) and v > 1e-9}
+            assert not other_stock, other_stock
+            known_exit = len(known) - known_stock
+            uncertain_expected = sum(r['weight'] for r in uncertain.values())
+            uncertain_exit = uncertain_expected - null_stock
+            admitted = port['ports']['10682']['admitted']
+            snapshots.append(dict(time_sec=t, native_known_exited=len(set(known) & exited_ids),
+                native_known_retained=remaining, native_known_unaccounted=unaccounted,
+                model_known_exited=known_exit, model_uncertain_exited=uncertain_exit,
+                model_future_exited=admitted-known_exit-uncertain_exit,
+                model_future_retained=future_stock, model_target_stock_by_label=dict(stock),
+                model_origin_stock=snap['inventory']['origins']['FW_E']))
+        retained, unknown = [], []
+        for v in frames[times[-1]]['vehicles']:
+            if v[0] in physical or str(v[1]) not in runtime['physical']:
+                continue
+            road, pos, cell = routing._position(runtime, v[1], v[3])
+            if road != 'FW_E' or pos > target_chain:
+                continue
+            if v[6] is None:
+                unknown.append(dict(vehicle=v[0], cell=cell, chain_m=pos, source_witness=v[0] in source_ids))
+            else:
+                route = runtime['routes'][f'{int(v[6])}:{int(v[7])}']
+                if route['target'] == '10682':
+                    retained.append(dict(vehicle=v[0], cell=cell, chain_m=pos,
+                                         source_witness=v[0] in source_ids, initial=initial_all.get(v[0])))
+        new_exit = [e for e in witnesses if e['group'] == 'not_initial_mainline']
+        new_target_observed = len(new_exit) + len(retained)
+        final = snapshots[-1]
+        model_source = result['control_area']['flow_counts']['origin:FW_E->freeway:FW_E']
+        probability = runtime['inputs']['FW_E']['weights']['10682']
+        model_target_generated = final['model_future_exited'] + final['model_future_retained']
+        assert abs(model_target_generated-model_source*probability) < 1e-7
+        population_delta = new_target_observed-model_target_generated
+        stock_delta = len(retained)-final['model_future_retained']
+        exit_delta = len(new_exit)-final['model_future_exited']
+        assert abs(exit_delta-(population_delta-stock_delta)) < 1e-7
+        new_source_ids = source_ids-set(physical)
+        before_station = {v[0] for v in frames[times[-1]]['vehicles']
+                          if v[0] not in physical and v[1] == 74 and v[3] < 40.}
+        cases[case] = dict(seed=seed, start_sec=start, end_sec=times[-1], model_scope=model_scope,
+            native_port=native, current_baseline_port=evidence['cases'][str(seed)][arm]['ports']['10682']['before'],
+            audited_model_port=trace['states'][-1]['ports']['10682'],
+            initial_assigned=list(known.values()), initial_uncertain=list(uncertain.values()),
+            entry_cohorts=dict(Counter(e['group'] for e in witnesses)), witnesses=witnesses,
+            native_future_exited=len(new_exit), native_future_retained=retained, native_unknown_retained=unknown,
+            native_future_target_observed=new_target_observed,
+            new_exits_without_source_witness=[e for e in new_exit if not e['source_witness']],
+            new_retained_without_source_witness=[e for e in retained if not e['source_witness']],
+            native_new_source_generation_lower_bound=len(new_source_ids | before_station),
+            model_source_generated=model_source, configured_target_probability=probability,
+            model_future_target_generated=model_target_generated,
+            decomposition_actual_minus_model=dict(future_target_population=population_delta,
+                future_target_retained=stock_delta, future_target_exited=exit_delta),
+            station_tails=tails, snapshots=snapshots,
+            windows=[dict(start_sec=t-150,end_sec=t,entries=sum(e['window_end']==t for e in exits)) for t in times[1:]])
+        print(case, json.dumps({k: cases[case][k] for k in ('entry_cohorts','native_future_exited',
+            'native_future_target_observed','model_source_generated','model_future_target_generated',
+            'decomposition_actual_minus_model','station_tails')}))
+        print('native_retained',len(retained),'unknown',len(unknown),'no_source',len(cases[case]['new_exits_without_source_witness']))
+        print('initial_snapshots',[(s['time_sec'],s['native_known_exited'],len(s['native_known_retained']),
+            len(s['native_known_unaccounted']),s['model_known_exited']) for s in snapshots])
+    output = dict(status='completed_readonly_10682_cohort_decomposition', cases=cases, source_pins=PINS,
+        new_native_runs=0, new_fzp_scans=0, new_forecasts=0, fitted_parameters=0, adopted_changes=0,
+        limitations=[
+            'Seed43 route-class snapshots come from a rejected compatible71 candidate. Current baseline totals are shown separately.',
+            'Future observations are diagnostic only; no future boundary is supplied to an autonomous forecast.',
+            'New-target population counts exclude unresolved future choices and possible unobserved losses; they are not an unbiased routing-probability estimator.',
+            'Remaining-stock algebra does not independently prove a speed-dynamics error.',
+            'Different seeds also use different initial times and conditions; no paired seed causal effect is asserted.'])
+    (HERE/'assessment.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+
+if __name__ == '__main__':
+    main()

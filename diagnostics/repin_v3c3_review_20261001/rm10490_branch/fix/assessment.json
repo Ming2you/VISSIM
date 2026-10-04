@@ -1,0 +1,45 @@
+{
+  "previous_goal_turn": "NO_PROGRESS: repeated upstream review; current goal turn PROGRESS: reproducible derivative-conservation defect repaired",
+  "status": "ramp_transfer_fix_verified_full_jacobian_not_qualified",
+  "new_ad_rollouts": 1,
+  "new_scalar_rollouts": 0,
+  "new_native_runs": 0,
+  "optimizer_iterations": 0,
+  "wall_sec_one_ad_not_optimizer": 62.91685560008045,
+  "cost_resource_primal_max_error": 0.0,
+  "omega_derivative_per_green_sec": {
+    "before": -0.055083632986948496,
+    "after": -0.05349594270175505,
+    "prior_independent_fd": [
+      {
+        "step_physical": 0.001,
+        "left": -0.03556994862119467,
+        "right": -0.03784182546073822,
+        "central": -0.036705887040966445
+      },
+      {
+        "step_physical": 0.0005,
+        "left": -0.035541345898337795,
+        "right": -0.03787099446306286,
+        "central": -0.036706170180700326
+      }
+    ]
+  },
+  "ramp_mirror_exact_zero_nonzero_tangent_sites": {
+    "before": 35,
+    "after": 0
+  },
+  "remaining_area_ledger_mismatch_events": 441,
+  "recorded_comparisons_dropped": 0,
+  "tests": {
+    "tangent_suite_passed": 20,
+    "legacy_ramp_tests_passed": 7,
+    "legacy_ramp_fixture_missing": 1,
+    "missing_fixture": "diagnostics/demand_sweep/user_native_20260914/metanet_terms_implementation_v2/port_profile.json",
+    "new_before_failures_subcases": 10,
+    "witness_before_errors_subcases": 2
+  },
+  "scalar_full_ramp_state_comparisons_exact": 300,
+  "next_target": "Accepted zero merge derivative is discarded by ModelAreaLedger.transfer; repeated max(0, accepted_flow) also selects zero tangent. Need preserve existing accepted-flow provenance through the same boundary, without redefining empty mixed-cohort membership or globally changing tie policy.",
+  "scope": "No physical coefficients, objective, network, native conditions or candidate set changed. Finite RM/VSL gain and full SDMPC derivative/native/9000 gates remain incomplete."
+}

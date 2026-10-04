@@ -1,0 +1,56 @@
+{
+  "previous_goal_turn": "PROGRESS10 branch-mixture diagnostic forecasts",
+  "current_goal_turn": "PROGRESS10 numerical forecasts (2 exact parity+8 autonomous current-route forecasts); route stock connected to existing component",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "session5067": "terminal exit0",
+  "native": 0,
+  "fit": 0,
+  "push": 0,
+  "adopted": false,
+  "sdmpc_connection": false,
+  "source_pins_unchanged": true,
+  "helper_executed_sha256": "ccdccf2dc7d0d8f3100ccfc75a7286cd8d7bc5d845e5d5aa0d653a6187748588",
+  "harness_executed_sha256": "905e0f1b0babeca6a1b0567d363e17d4fa30aaf1ce3a0c6827dc0309efd628f1",
+  "routing_core_unchanged": true,
+  "only_existing_method_changed": [
+    [
+      "CanonicalFreewayModel",
+      "rollout"
+    ]
+  ],
+  "parity": {
+    "storage_and_proxy": {
+      "cells": true,
+      "flows": true,
+      "ports": true,
+      "ramps": true
+    },
+    "storage": {
+      "cells": true,
+      "flows": true,
+      "ports": true,
+      "ramps": true
+    }
+  },
+  "initial_N_exact": true,
+  "initial_v_maxerror": 2.842170943040401e-14,
+  "mainline_mass_max": 2.842170943040401e-14,
+  "destination_partition_max": 2.5011104298755527e-12,
+  "connector_mass_max": 8.242295734817162e-13,
+  "future_inputs": false,
+  "current_snapshot_rows": 5247,
+  "mainline_current_routes": 756,
+  "mainline_current_null": 279,
+  "unit_tests": "Five pass in unit.log; sixth old fixture absent in U, same OLD fixture reused read-only and passed in unit_fixture_reused.log.",
+  "input_rejections": {
+    "wrong_network": "Component route inventory belongs to another native network",
+    "wrong_time": "Route inventory requires aggregate cells and the same initial snapshot time",
+    "incomplete_routes": "Current-route capture is incomplete",
+    "wrong_initial_count": "Route inventory is not the existing freeway stock partition: FW_E:0"
+  },
+  "postcheck_failures": [
+    "Zero speed_projection_count was incorrectly required for proxy mode: metric includes receiving-boundary speed caps, not only numerical floor clipping. Report counts; retain zero density/jam/negative checks. No model/run change.",
+    "Whole-native-snapshot position check mistakenly included unused FW_W outside modeled chain support. Corrected to explicit predicted FW_E scope. West routing is not validated by these tests."
+  ],
+  "next": "Existing early29 NC/RM/VSL/both and another state with frozen parameters and current-only route snapshot. No automatic fullOmega/9000 until response validation."
+}

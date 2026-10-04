@@ -119,5 +119,92 @@ class PhysicalRoutesTests(unittest.TestCase):
             snapshot_network_sha256(bad)
 
 
+class NativeChoiceGroupTests(unittest.TestCase):
+    """Pinned selected-network demand choices, without historical run fixtures."""
+    def setUp(self):
+        from types import SimpleNamespace
+        from evaluation.controllers import physical_movement_routes as physical
+        self.physical = physical
+        self.folder = ROOT/'diagnostics/sdmpc_n31_20260924/integration_20260926/sc1002_route_choice_20260929'
+        self.tuning = json.loads((self.folder/'candidate_config.json').read_bytes())
+        self.document = json.loads((self.folder/'physical_routes.json').read_bytes())
+        self.detectors = json.loads((ROOT/self.tuning['detector_mapping_json']).read_bytes())
+        specs = copy.deepcopy(self.tuning['config_overrides']['network']['urban_movements'])
+        old = json.loads((ROOT/'outputs/movement_beta_routing_20260824.json').read_bytes())['beta']
+        for name in self.document['native_choice_groups']['SC1002_E_SC101']['expected_specs']:
+            specs[name]['beta'] = old[name]
+        self.cfg = SimpleNamespace(network=SimpleNamespace(urban_movements=specs))
+
+    def apply(self, document=None, detectors=None):
+        from unittest.mock import patch
+        tuning = copy.deepcopy(self.tuning)
+        with tempfile.TemporaryDirectory() as temp:
+            if document is not None:
+                path = Path(temp)/'proof.json'
+                path.write_text(json.dumps(document),encoding='utf-8')
+                tuning['urban']['movements']['physical_route_topology'] = str(path)
+            with patch.object(self.physical,'snapshot_network_sha256',return_value=self.document['network']['sha256']):
+                return self.physical.configure_native_choice_groups(self.cfg, detectors or self.detectors, tuning, state_json={})
+
+    def test_selected_native_weights_replace_obsolete_destination_split_only(self):
+        before = copy.deepcopy(self.cfg.network.urban_movements)
+        meta = self.apply()
+        after = self.cfg.network.urban_movements
+        changes = meta['native_choice_groups']['SC1002_E_SC101']['after']
+        self.assertEqual(set(changes),set(self.document['native_choice_groups']['SC1002_E_SC101']['expected_specs']))
+        self.assertAlmostEqual(changes['SC1002_E_SC101_to_W_SC1001'],5/7)
+        self.assertAlmostEqual(sum(changes.values()),1.)
+        self.assertLess(before['SC1002_E_SC101_to_W_SC1001']['beta'],.15)
+        for name,beta in changes.items():before[name]['beta']=beta
+        self.assertEqual(after,before)
+
+    def test_absent_choice_contract_preserves_all_specs(self):
+        before = copy.deepcopy(self.cfg.network)
+        self.document.pop('native_choice_groups')
+        self.assertEqual(self.apply(self.document),{})
+        self.assertEqual(vars(self.cfg.network),vars(before))
+
+    def test_missing_native_route_and_uncovered_model_consumer_fail_before_mutation(self):
+        before = copy.deepcopy(self.cfg.network.urban_movements)
+        bad = copy.deepcopy(self.document)
+        bad['native_choice_groups']['SC1002_E_SC101']['route_to_movement'].pop('1113:3')
+        with self.assertRaisesRegex(ValueError,'complete approach'):self.apply(bad)
+        self.assertEqual(self.cfg.network.urban_movements,before)
+        self.cfg.network.urban_movements['unexpected'] = copy.deepcopy(before['SC1002_E_SC101_to_W_SC1001'])
+        with self.assertRaisesRegex(ValueError,'complete approach'):self.apply()
+
+    def test_destination_mapping_and_model_semantics_are_required(self):
+        detectors = copy.deepcopy(self.detectors)
+        detectors['link_to_origins']['29'] = ['wrong_receiver']
+        with self.assertRaisesRegex(ValueError,'origin/receiver'):self.apply(detectors=detectors)
+        self.cfg.network.urban_movements['SC1002_E_SC101_to_W_SC1001']['phase']='SC1002_p4'
+        with self.assertRaisesRegex(ValueError,'origin/receiver'):self.apply()
+
+    def test_wrong_network_pin_is_rejected(self):
+        self.document['network']['sha256']='0'*64
+        with self.assertRaisesRegex(ValueError,'network hash'):self.apply(self.document)
+
+    def test_midcorridor_input_or_reselection_is_rejected(self):
+        import hashlib
+        import xml.etree.ElementTree as ET
+        original = copy.deepcopy(self.document)
+        for kind in ('input','decision'):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as temp:
+                self.document = copy.deepcopy(original)
+                tree = ET.parse(ROOT/original['network']['path'])
+                if kind == 'input':
+                    ET.SubElement(tree.find('./vehicleInputs'),'vehicleInput',no='99999',link='329')
+                else:
+                    new = ET.SubElement(tree.find('./vehicleRoutingDecisionsStatic'),
+                        'vehicleRoutingDecisionStatic',no='99999',link='329')
+                    routes = ET.SubElement(new,'vehRoutSta')
+                    route = ET.SubElement(routes,'vehicleRouteStatic',no='1',destLink='29')
+                    ET.SubElement(ET.SubElement(route,'linkSeq'),'intObjectRef',key='10691')
+                path = Path(temp)/'modified.inpx';tree.write(path,encoding='utf-8')
+                self.document['network']={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+                with self.assertRaisesRegex(ValueError,'another input or route decision'):
+                    self.apply(self.document)
+
+
 if __name__ == '__main__':
     unittest.main()

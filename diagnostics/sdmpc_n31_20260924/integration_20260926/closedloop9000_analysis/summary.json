@@ -1,0 +1,80 @@
+{
+  "scope": "matched no-control and actual receding-horizon SDMPC9000; execution alone does not establish gain",
+  "start_sec": 900,
+  "end_sec": 9000,
+  "arms": {
+    "nc": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_9000_veh_h": 7263.26719444443,
+      "TTT_900p1_9000_veh_h": 6807.719499999986,
+      "Omega_TTD_events": 58364,
+      "Omega_end_vehicles": 1998,
+      "native_removals": 243,
+      "uninserted_at_end": 10857,
+      "unresolved_Omega_disappearances": 751,
+      "outside_Omega_residence_veh_h": 2391.475222222229,
+      "last_fzp_sec": 8995.1,
+      "tail_hold_veh_h": 2.719499999999798,
+      "native_physical_network_time_veh_h": 9654.761395501111,
+      "native_uninserted_delay_veh_h": 19290.008694443888,
+      "native_total_time_including_uninserted_veh_h": 28944.770089945,
+      "native_uninserted_at_end": 10857.0,
+      "native_network_end_vehicles": 2619.0,
+      "native_arrived_vehicles": 65068.0
+    },
+    "sdmpc": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_9000_veh_h": 7528.621138888896,
+      "TTT_900p1_9000_veh_h": 7073.0734444444515,
+      "Omega_TTD_events": 58076,
+      "Omega_end_vehicles": 2181,
+      "native_removals": 386,
+      "uninserted_at_end": 10792,
+      "unresolved_Omega_disappearances": 834,
+      "outside_Omega_residence_veh_h": 2686.7423333333386,
+      "last_fzp_sec": 8995.1,
+      "tail_hold_veh_h": 2.968583333333113,
+      "native_physical_network_time_veh_h": 10215.514903856943,
+      "native_uninserted_delay_veh_h": 19265.275472222223,
+      "native_total_time_including_uninserted_veh_h": 29480.790376079167,
+      "native_uninserted_at_end": 10793.0,
+      "native_network_end_vehicles": 2913.0,
+      "native_arrived_vehicles": 64838.0
+    }
+  },
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "prefixes": {
+    "nc": {
+      "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+      "rows": 431233,
+      "last_time_s": 895.1
+    },
+    "sdmpc": {
+      "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+      "rows": 431233,
+      "last_time_s": 895.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+    "rows": 431233,
+    "last_time_s": 895.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_definition": "sdmpc minus nc",
+  "delta_TTT_veh_h": 265.3539444444659,
+  "delta_outside_Omega_residence_veh_h": 295.26711111110944,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Urban signals and freeway commands are jointly controlled; not VSL-only attribution.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": 536.0202861341677,
+  "delta_native_uninserted_delay_veh_h": -24.73322222166462
+}

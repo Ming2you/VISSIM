@@ -1,0 +1,36 @@
+{
+  "variants": {
+    "flow_weighted_merge": null
+  },
+  "affected_cells": [
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25"
+  ],
+  "reason": "METANET virtual inlet uses actual accepted mainline/ramp flows and causal calibrated ramp travel speed; no new capacity or reward.",
+  "unchanged": "All other coefficients, physical controls, arrivals, geometry, waiting costs and initial states.",
+  "cutoff_and_seed": "29early2220.1+late2670.1 development;43early+47late checking, previously inspected, not pristine holdout",
+  "evaluation": "Signed component DeltaTTT and candidate regret; no speed RMSE objective",
+  "cost_scope": "East31 plus4 on/4 off connectors, NOT whole Omega or external input waiting",
+  "max_rollouts": 18,
+  "production_adopted": false,
+  "native_runs": 0,
+  "sources": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "42c39180f7c1adf1b6ce4364dd6459e2b6c557e7bec87bddbf553bdca0166c8d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\plant_n31_v2.json": "e096989d7996ad846be9e83c36688fc3087832481026a7d1c3342a7399a1a806",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\decision_response\\capture.json": "54e931d563b2d48375a9ae11a3e312df6fd5f8a0bfac84e97fddb4efa73f2c40",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\decision_response\\screen.json": "fc7a0074530886602f51aeb4400400a2979893868c3d4956acca960acf90de3a"
+  }
+}

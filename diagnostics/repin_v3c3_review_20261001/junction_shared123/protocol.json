@@ -1,0 +1,42 @@
+{
+  "previous_turn": "PROGRESS122: corrected fixed-parameter inference; no assertion of a calibrated performance ceiling.",
+  "hypothesis": "A body blocking the shared lane constrains through sending as well as exit entry; test its physical gain path with fixed cell parameters before deciding a calibration design.",
+  "exact_geometry": {
+    "link": 119,
+    "exit10483_m": 392.29117323271294,
+    "cell20_21_face_m": 393.6983000332384,
+    "merge10490_m": 395.10542683376474
+  },
+  "equations": [
+    "S_through_new20=(1-blocked*observed_current_lane1_through_share)*S_through_old20",
+    "S_exit10483=min(original_sending,original_storage_supply) when open;0 when blocked",
+    "Original accepted flows, class conservation, speed update and urban/ramp waiting remain active."
+  ],
+  "profile_holding_sec": 5,
+  "phase_offset_sec": 0.1,
+  "autonomous": false,
+  "future_observation_inputs": [
+    "body-block binary",
+    "current cell20 through-population share in lane1"
+  ],
+  "fitted_parameters": 0,
+  "budget": {
+    "new450": 2,
+    "reused_baseline450": 2,
+    "reused_branch_only450": 2,
+    "native": 0,
+    "fzp": 0
+  },
+  "inference_limits": [
+    "Conditional fixed-parameter test only. Not a calibrated structure or ceiling on dynamics-plus-cell recalibration.",
+    "Population share approximates within-cell shared-lane service share; not a calibrated capacity or exact flow share.",
+    "A5s snapshot of blocked body does not prove continuous closure for5s; no future MER flow is forced.",
+    "Mainline point crossings are observed adjacent-frame lower bounds, including lane changes between snapshots.",
+    "Old121 field after_merge_face actually lies1.407m BEFORE the merge and1.407m AFTER the exit. Values preserved; name corrected here."
+  ],
+  "source_sha": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\lane_interaction110\\frames.json.gz": "a2e50e661e39fd58b511afbc1ab33d57216b81ef0ca6c0131b611f141a8a6ffa",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\junction_release121\\probe.py": "32203c0521f7c2473e43f1e31875e72e5b252938ed50011d0acdb4ce80a56fcb"
+  }
+}

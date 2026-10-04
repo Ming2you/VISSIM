@@ -1,0 +1,62 @@
+{
+  "status": "accepted_packet_conservation_verified_full_derivative_NOT_QUALIFIED",
+  "new_ad_rollouts": 1,
+  "new_scalar_rollouts": 0,
+  "new_native_runs": 0,
+  "optimizer_iterations": 0,
+  "fit": 0,
+  "push": false,
+  "wall_sec_one_ad_not_optimizer": 62.31892410002183,
+  "prior_primal_max_error": 0.0,
+  "derivative_per_green_sec": {
+    "tie47": -0.05508363298694742,
+    "zero47": -0.053495942701753896,
+    "packet47": -0.012775746497506738
+  },
+  "prior_independent_fd": [
+    {
+      "step_physical": 0.001,
+      "left": -0.03556994862119467,
+      "right": -0.03784182546073822,
+      "central": -0.036705887040966445
+    },
+    {
+      "step_physical": 0.0005,
+      "left": -0.035541345898337795,
+      "right": -0.03787099446306286,
+      "central": -0.036706170180700326
+    }
+  ],
+  "comparison_diagnostics": {
+    "tie47": {
+      "ramp_mirror_mismatch_comparisons": 35,
+      "area_stock_mismatch_comparisons": 0,
+      "all_different_tangent_comparisons": 73,
+      "recorded": 156244,
+      "dropped": 0
+    },
+    "zero47": {
+      "ramp_mirror_mismatch_comparisons": 0,
+      "area_stock_mismatch_comparisons": 441,
+      "all_different_tangent_comparisons": 491,
+      "recorded": 156280,
+      "dropped": 0
+    },
+    "packet47": {
+      "ramp_mirror_mismatch_comparisons": 0,
+      "area_stock_mismatch_comparisons": 0,
+      "all_different_tangent_comparisons": 56,
+      "recorded": 157161,
+      "dropped": 0
+    }
+  },
+  "tests_passed": 74,
+  "ordinary_scalar_full_ledger_pairs_exact": 30,
+  "full_scalar_ad_trajectory_witness": false,
+  "interpretation": "The accepted-packet derivative and Omega provenance no longer disagree with physical stocks in the captured comparisons. Overall RM sensitivity remains inconsistent with the prior independent one-sided slopes and is numerically farther away. This is not a gain or optimizer qualification.",
+  "remaining_evidence": "Exact min/max ties remain in head service and a redundant accepted-merge floor in receiving_for_mainline at area_freeway_accounting.py:258. Compiled comparison emissions do not identify every physical caller; no global tie policy change or new epsilon grid is justified by this diagnostic alone.",
+  "next_scope": "Inspect the remaining accepted-flow clipping and branch-consistent sensitivity before claiming independent SDMPC gradient correctness. Preserve finite-response RM/VSL and selection failures; do not calibrate coefficients to derivative artifacts.",
+  "configuration_sha256": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+  "session": 82374,
+  "session_exit_code": 0
+}

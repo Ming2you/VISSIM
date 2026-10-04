@@ -1,0 +1,36 @@
+{
+  "previous_goal_turn": "PROGRESS: six autonomous450 full-plant frozen-coefficient tests",
+  "scope_cells": [
+    17,
+    18,
+    19,
+    20
+  ],
+  "hypothesis": "Observed spatial Nv/L reflects most discharge-response signs, while autonomous state response is weak. Jointly recalibrate existing anticipation and lane-drop damping, previously not jointly free.",
+  "exploratory_screen_already_seen": true,
+  "training": "seed29 NC14 observed states percell, one-step model terms vs following5s cell-mean trend; labels only, not future forecast input",
+  "variables": [
+    "shared downstream-ge nu multiplier",
+    "shared downstream-lt nu multiplier",
+    "shared local lane-drop phi multiplier"
+  ],
+  "bounds": [
+    0,
+    2
+  ],
+  "tau_fd_and_merge_unchanged": true,
+  "freeway_phi_elsewhere_unchanged": true,
+  "max_candidate_rollouts": 12,
+  "first_training_rollouts": 4,
+  "default_parity_rollouts": 1,
+  "continue_rule": "Training control-response squared-error score improves>=20% and global N/q RMSE worsen<=10%; otherwise stop and restore sources.",
+  "response_score": "Mean squared delta-component-TTT/0.5vehh, delta(exit+terminal)/50veh, delta(merge)/50veh errors acrossVSL/RM/both.",
+  "check_if_pass": "Frozen candidate seed43 early4 and seed29 late4; no further coefficient search.",
+  "sampling_limit": "Following5s cell mean includes changing cohort and is not an individual acceleration; current30s average flow is not exact next1s flow.",
+  "new_native": 0,
+  "production_adopted": false,
+  "source_before": {
+    "evaluation/controllers/freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4"
+  }
+}

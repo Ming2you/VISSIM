@@ -1,0 +1,48 @@
+{
+  "fit_seed": 29,
+  "fit_policy": "none",
+  "fit_window": [
+    2220.1,
+    2970.1
+  ],
+  "physical_cell": 11,
+  "parameters": [
+    "rho_crit",
+    "nu_downstream_ge_local",
+    "nu_downstream_lt_local"
+  ],
+  "initial": [
+    44.90776067443657,
+    15.518806334716341,
+    21.5504639156248
+  ],
+  "lower": [
+    22.75,
+    7.759403167358171,
+    10.7752319578124
+  ],
+  "upper": [
+    56.0,
+    31.037612669432683,
+    43.1009278312496
+  ],
+  "max_solver_nfev": 20,
+  "max_residual_calls": 100,
+  "autonomous_candidates": 1,
+  "max_autonomous_forecasts": 6,
+  "structure": "REVIEW50 destination-conditioned conserved lanes9-12",
+  "fixed": [
+    "all other cells",
+    "FD shape/free speed",
+    "relaxation time",
+    "merge and receiving",
+    "urban/off drainage",
+    "objective",
+    "commands"
+  ],
+  "limitations": [
+    "Conditional Eulerian lane mean derivatives include cohort replacement and lane changes.",
+    "Physical lane density in the fitting observations; native effective-width/spillback history not inferred.",
+    "No future observations in autonomous validation; no gain fitting."
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "scope": "One proposed3150s fixed-command validation against the already completed hold; not a new closed-loop policy, cooperation test or9000 restart",
+  "start_sec": 2700,
+  "end_sec": 3150,
+  "arms": {
+    "hold": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2632.7514861111104,
+      "TTT_2700p1_3150_veh_h": 465.5368888888893,
+      "Omega_TTD_events": 21340,
+      "Omega_end_vehicles": 3672,
+      "native_removals": 83,
+      "uninserted_at_end": 8152,
+      "unresolved_Omega_disappearances": 277,
+      "outside_Omega_residence_veh_h": 985.938611111113,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 4.998000000000093,
+      "native_physical_network_time_veh_h": 3618.775547180833,
+      "native_uninserted_delay_veh_h": 2869.173388888889,
+      "native_total_time_including_uninserted_veh_h": 6487.948936069722,
+      "native_uninserted_at_end": 8152.0,
+      "native_network_end_vehicles": 5040.0,
+      "native_arrived_vehicles": 23937.0
+    },
+    "selected": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2627.7827083333323,
+      "TTT_2700p1_3150_veh_h": 460.5681111111112,
+      "Omega_TTD_events": 21403,
+      "Omega_end_vehicles": 3648,
+      "native_removals": 76,
+      "uninserted_at_end": 8109,
+      "unresolved_Omega_disappearances": 277,
+      "outside_Omega_residence_veh_h": 991.769111111113,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 4.965333333333425,
+      "native_physical_network_time_veh_h": 3619.6656027330555,
+      "native_uninserted_delay_veh_h": 2868.188611111111,
+      "native_total_time_including_uninserted_veh_h": 6487.854213844167,
+      "native_uninserted_at_end": 8109.0,
+      "native_network_end_vehicles": 5093.0,
+      "native_arrived_vehicles": 23927.0
+    }
+  },
+  "reused_nc_run": null,
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "common_start_vehicle_records_exact": true,
+  "prefixes": {
+    "hold": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    },
+    "selected": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+    "rows": 2141219,
+    "last_time_s": 2695.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_definition": "selected minus hold",
+  "delta_TTT_veh_h": -4.968777777778087,
+  "delta_outside_Omega_residence_veh_h": 5.830500000000029,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Selected city/RM commands after native urban prefix; baseline metrics reused from the pinned completed hold.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": -0.09472222555450571,
+  "delta_native_uninserted_delay_veh_h": -0.9847777777777083,
+  "protocol_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_native_selected_rm_pair_s47_cell23_v2\\protocol.json",
+  "protocol_sha256": "ba705dd559fc6f1b7fc98221d9d0578fe2e427ade3878e70e6ff628437bc7f15",
+  "prediction_source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_rm_pair_s47_cell23_v2\\summary.json",
+  "predicted_delta_omega_veh_h": -8.082931963595911,
+  "predicted_delta_tracked_total_veh_h": -0.9279382522226456,
+  "counterfactual_valid": true
+}

@@ -1,0 +1,90 @@
+{
+  "previous_goal_turn": "PROGRESS: REVIEW106 quantified queue placement and conservative native boundary flow.",
+  "question": "Does a lane-resolved congested receiving limit improve the cell19-to20 discharge estimate before undertaking a new autonomous model?",
+  "scope": "One fixed zero-drop receiving curve from current cell20 nominal FD; no fitted VSL reward/capacity factor. Aggregate receiving is an averaging ablation only.",
+  "formula": "Q=rho_crit*v_free*exp(-1/a); w=Q/(rho_jam-rho_crit); R(rho)=max(0,min(Q,w*(rho_jam-rho))); q_g=min(N19_g*v19_g/L19,R(rho20_g),physical_space20_g/dt)",
+  "manifest": "diagnostics\\repin_v3c3_review_20261001\\retained10638\\candidate_manifest.json",
+  "inputs": {
+    "29_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_none_frames.json.gz",
+      "sha256": "5b05cf5366daf96afc6832118f4c3d8e1273e1c8bcdd1a22c905fca7fd2bc713"
+    },
+    "29_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_vsl_frames.json.gz",
+      "sha256": "456db85b5dd98135a4c4cea8309944397709f37478ea731b54d3b71bfdfb0ab1"
+    },
+    "43_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_none_frames.json.gz",
+      "sha256": "7646676de2327a018fa7ebebac6439c72962008785c979c3f9ca72701cb18a3d"
+    },
+    "43_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_vsl_frames.json.gz",
+      "sha256": "698418a50715149af32cd50eecaa8734d32083482c80748e3729303cbb086e52"
+    },
+    "67_release": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz",
+      "sha256": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c"
+    },
+    "67_release_vsl90": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz",
+      "sha256": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93"
+    }
+  },
+  "protected_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP": {
+    "path": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "old_helper_ast_sha256": {
+    "read": "33b66a28dfd0df775bc603e95071e6fe149bc0e7a4a85f57be312c46d25639f6",
+    "main": "c0a7250700478142b484d4235ee7b671f92de1e304b9609e76e1c82fff9316f9",
+    "assess_destination_speed": "25f4a08b84f35e8ea68af9df881b5fa6efd471f0a8bc6b5df5b6177a37520421",
+    "assess_current_destination_snapshots": "5805e42104e668fcacee8e96ae5437ffe60b825fe3546a69fcc3fc72596d9e7a",
+    "assess_approach10483_90": "e7de0d4239d4e25d6d4cdf8b9062ef910e63533e09b3da485d42d41b12a5628d",
+    "assess_state_information92": "572240b374872d65270cf9633accd75805fa4d3a070ad92f944fdd3f88171d7c",
+    "assess_lane_aggregation99": "6ada7850a5d1cff6ccb7f5486efba90ea16bae0963f29a52a012b2a1280b36d1",
+    "assess_joint_lane_transport100": "804c9e2d240babb1b5d1126469ac5a16fd7a08b3b95614b47d8717ba48431527",
+    "assess_downstream_density101": "b85429e026cc78fda621db7051bb5c0b2f350142e4e332b5c289aef88d8bc755",
+    "assess_stopped_lane106": "7b9c4e680c5c19f07dfbbfb429cb150204d2849b04c8a93b3942d57b84ff64e6"
+  },
+  "comparison": "Use completed native current states every5s; following5s/30s crossing counts are evaluation labels only. Not an autonomous prediction or closed-loop gain test. Same nominal receiving coefficients in every control arm; VSL cohort/model speed equation unmodified.",
+  "gate": {
+    "primary": "Aggregate30s count RMSE improves at least5% for each of previously inspected seeds43 and67; all-seed RMSE does not worsen.",
+    "secondary": "Queued lane5s RMSE does not worsen by more than5% in either43 or67. Record activation and all paired150s responses."
+  },
+  "budget": {
+    "fits": 0,
+    "new_native": 0,
+    "fzp_scans": 0,
+    "conditional_laws": 1,
+    "autonomous_forecasts_before_gate": 0,
+    "autonomous_forecasts_after_pass_max": 4
+  },
+  "prior_reviews": [
+    "joint_lane_fifo",
+    "joint_lane_25",
+    "lane_fit29",
+    "lane_terms25",
+    "lane_fd67",
+    "local_lane_candidate",
+    "upstream_worklog/03_codex_review/REVIEW_CHECK.md",
+    "upstream_worklog/08_repin_v3c3/k1k6/K1K6_IMPLEMENT.md"
+  ],
+  "limitations": [
+    "FD-derived nominal Q/w are a hypothesis, not observed capacity estimates.",
+    "5s point sampling and cell-average speeds do not equal instantaneous boundary flow.",
+    "Using correct current states does not test whether a model predicts those states.",
+    "No seed is a pristine holdout after the preceding diagnostics.",
+    "This screen does not qualify adding a new receiving cap to production."
+  ]
+}

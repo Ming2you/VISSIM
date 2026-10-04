@@ -1,0 +1,65 @@
+{
+  "scope": "one frozen SDMPC 450s decision replay; not closed-loop performance",
+  "start_sec": 1200,
+  "end_sec": 1650,
+  "arms": {
+    "hold": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_1650_veh_h": 1081.3519722222231,
+      "TTT_1200p1_1650_veh_h": 395.883444444445,
+      "Omega_TTD_events": 9039,
+      "Omega_end_vehicles": 3296,
+      "native_removals": 14,
+      "uninserted_at_end": 3253,
+      "unresolved_Omega_disappearances": 112,
+      "outside_Omega_residence_veh_h": 384.0560000000003,
+      "last_fzp_sec": 1645.1,
+      "tail_hold_veh_h": 4.486222222222305
+    },
+    "selected": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_1650_veh_h": 1081.3093055555566,
+      "TTT_1200p1_1650_veh_h": 395.8407777777785,
+      "Omega_TTD_events": 8964,
+      "Omega_end_vehicles": 3307,
+      "native_removals": 14,
+      "uninserted_at_end": 3287,
+      "unresolved_Omega_disappearances": 113,
+      "outside_Omega_residence_veh_h": 384.25588888888916,
+      "last_fzp_sec": 1645.1,
+      "tail_hold_veh_h": 4.501194444444528
+    }
+  },
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "prefixes": {
+    "hold": {
+      "sha256": "4a8487e42af6b29858c1629a9923f764bd2131231fc4046839c0b7ac16a66ebf",
+      "rows": 658679,
+      "last_time_s": 1195.1
+    },
+    "selected": {
+      "sha256": "4a8487e42af6b29858c1629a9923f764bd2131231fc4046839c0b7ac16a66ebf",
+      "rows": 658679,
+      "last_time_s": 1195.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "4a8487e42af6b29858c1629a9923f764bd2131231fc4046839c0b7ac16a66ebf",
+    "rows": 658679,
+    "last_time_s": 1195.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_TTT_selected_minus_hold_veh_h": -0.04266666666649144,
+  "delta_outside_Omega_residence_veh_h": 0.19988888888883594,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Uninserted terminal count is not the external input-queue time integral.",
+    "Selected urban signals and VSL change together; not VSL-only attribution.",
+    "A small single-state difference is not a robust gain qualification.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ]
+}

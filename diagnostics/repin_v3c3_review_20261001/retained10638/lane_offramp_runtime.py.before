@@ -1,0 +1,675 @@
+"""Eight finite physical off-ramps between the freeway and urban owners.
+
+Connector travel is part of its existing stock, never an additional queue.
+The10643 outlet is advanced by LaneUrbanRuntime; the other seven retain the
+reference DelayedPort law and drain only into available downstream storage.
+"""
+from __future__ import annotations
+import math
+from collections import defaultdict, deque
+from evaluation.controllers.lane_urban_runtime import _debit_stock
+
+
+def update_shared_observation(previous,frame,window,options,city_join_position):
+    """Causal lane service support and bounded source ancestry, not saturation.
+
+    Two disjoint 300s blocks meet the existing exposure/count requirements.
+    Green-qualified counts exclude amber; source tags use only current/past
+    150s observations. A missing vehicle/visit or observation gap drops ancestry.
+    """
+    from evaluation.controllers.signal_head_observation import pooled_green_support
+    now=frame['time_s']
+    if window is not None and window['end_sec']!=now:
+        raise ValueError('Shared head observation must end at the current frame')
+    prior=previous if previous and previous['end_sec']==now-150 else {}
+    # A committed exit route is often observed on the mainline before the car
+    # crosses its short off-ramp between two snapshots. Retain that evidence.
+    current={str(r[0]):r for r in frame['vehicles']
+             if int(r[1]) in (32,10778,129,10777,127,10491,10481)
+             or int(r[6] or 0) in (1131,1132,1136)}
+    sources={k:v for k,v in prior.get('sources',{}).items() if k in current}
+    if any(v not in ('initial_city','initial_off') for v in sources.values()):
+        raise ValueError('Invalid retained shared approach source')
+    for key,r in current.items():
+        link=int(r[1]);decision=int(r[6] or 0)
+        if link in (32,10778) or (link==129 and r[3]<city_join_position):
+            sources[key]='initial_city'
+        elif link in (10491,10481):sources[key]='initial_off'
+        elif decision in (1131,1132):sources[key]='initial_off'
+        elif decision==1136:sources[key]='initial_city'
+    service={}
+    heads=[h for h in (window or {}).get('heads',[]) if h['link']=='127']
+    valid=(window is not None and window['clock_complete'] is True
+           and window['start_sec']==now-150 and not window.get('unknown_links',{}).get('127',0))
+    if valid:
+        if {h['lane'] for h in heads}!={1,2,3} or len(heads)!=3:
+            raise ValueError('Shared approach needs exactly three physical heads')
+        for h in heads:
+            lane=str(h['lane'])
+            if h['sc']!='1001' or h['sg']!=('5' if lane=='3' else '2'):
+                raise ValueError('Shared approach head authority changed')
+            old=prior.get('service',{}).get(lane,{})
+            if old and old['head_id']!=h['head_id']:raise ValueError('Shared head identity changed')
+            history,support=pooled_green_support(old.get('history',[]),
+                dict(start=window['start_sec'],end=now,green=[h['green_sec']],
+                     qualified=[h['qualified_crossings']]),4,options)
+            service[lane]=dict(head_id=h['head_id'],history=history,support_veh_h=support,
+                floor_veh_h=max(support,old.get('floor_veh_h',0.)))
+    # Unverified head windows break service evidence; no previous floor is
+    # silently installed through a gap. Source frame tracking stays causal.
+    return dict(end_sec=now,sources=sources,service=service,head_window_valid=valid,
+                source_unknown_current=sum(k not in sources for k,r in current.items() if int(r[1]) in (127,10777)))
+
+
+def observe_shared_approach(cfg,raw,prior,options):
+    """Called only after the canonical head observer validates run/window pins."""
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.lane_plant_runtime import _physical_geometry
+    obs=raw['obs150'];ref=obs['frames']['current']
+    frame=oc.load_frame(oc.resolve(obs,ref['path']),ref['sha256'],raw['sim_sec'])
+    _,links,_=_physical_geometry(raw['network_path'])
+    join=links[10491].find('toLinkEndPt')
+    if join.get('lane').split()[0]!='129':raise ValueError('SC1001 source ancestry geometry changed')
+    result=update_shared_observation(prior.get('head_sc1001_shared'),frame,
+        raw['local_observation']['signal_observation_window'],options,float(join.get('pos')))
+    cfg.network.sc1001_shared_observation=result
+    return {'head_sc1001_shared':result}
+
+
+class SharedSignalApproach:
+    """Finite pre-head lanes shared by city and off-ramp arrivals.
+
+    Packet source/destination labels survive travel and signal service. These
+    packets are the sole physical stock; a caller's storage ledger is a mirror,
+    never another population. Delays and lane shares are explicit binding data,
+    not inferred from a downstream signal or changed to fit a candidate cost.
+    """
+    def __init__(self, lanes, entries, initial, start):
+        self.lanes={str(k):dict(v) for k,v in lanes.items()}
+        self.entries={str(k):[dict(x) for x in v] for k,v in entries.items()}
+        self.time=int(start)
+        if self.time!=start or not self.lanes or not self.entries:
+            raise ValueError('Shared approach requires declared lanes, entries and integer time')
+        self.lane_order=sorted(self.lanes,key=int)
+        if list(map(int,self.lane_order))!=list(range(1,len(self.lanes)+1)):
+            raise ValueError('Shared approach lanes must be contiguous physical lane numbers')
+        movements={m for row in self.lanes.values() for m in row['movements']}
+        for row in self.lanes.values():
+            if any(not math.isfinite(row[k]) or row[k]<=0 for k in ('capacity_veh','service_veh_h')):
+                raise ValueError('Invalid finite approach storage/service')
+            if not row['movements'] or len(set(row['movements']))!=len(row['movements']):
+                raise ValueError('Approach lane needs unique physical exits')
+        for rows in self.entries.values():
+            if not rows or abs(sum(x['share'] for x in rows)-1.)>1e-9:
+                raise ValueError('Approach entry shares must conserve the entire receipt')
+            for row in rows:
+                if (row['lane'] not in self.lanes or row['movement'] not in movements
+                        or not math.isfinite(row['share']) or row['share']<=0
+                        or type(row['delay_sec']) is not int or row['delay_sec']<1):
+                    raise ValueError('Invalid approach entry route, lane or travel delay')
+        self.queues={lane:deque() for lane in self.lanes}
+        for row in initial:
+            lane=row['lane'];amount=row['vehicles'];due=row['ready_sec']
+            if (lane not in self.lanes or row['movement'] not in movements
+                    or not math.isfinite(amount) or amount<0 or type(due) is not int):
+                raise ValueError('Invalid initial approach packet')
+            if amount:self.queues[lane].append([due,row['source'],row['movement'],amount])
+        # Initial physical order must be supplied front to back. A later packet
+        # being nominally faster never lets it pass a stopped packet in its lane.
+        self.initial=sum(self.stock(lane) for lane in self.lanes)
+        self.admitted=0.;self.departed=0.;self.residence_veh_h=0.
+        self.assert_conserved()
+
+    @staticmethod
+    def _active(amount):
+        """A numerically empty cohort can still carry a control derivative."""
+        return bool(getattr(amount,'node',0) or getattr(amount,'tangent',None))
+
+    def stock(self,lane=None):
+        return sum(row[3] for key,q in self.queues.items() if lane is None or key==lane for row in q)
+
+    def receiving(self,source):
+        """A full destination lane blocks its share of an unsplit inlet stream."""
+        weights=defaultdict(float)
+        for row in self.entries[source]:weights[row['lane']]+=row['share']
+        return max(0.,min((self.lanes[g]['capacity_veh']-self.stock(g))/w for g,w in weights.items()))
+
+    def accept(self,source,vehicles,step):
+        if step!=self.time or not math.isfinite(vehicles) or vehicles<0:
+            raise ValueError('Approach receipt requires its current time and nonnegative mass')
+        if vehicles>self.receiving(source)+1e-7:
+            raise ArithmeticError('Approach receipt exceeds finite shared receiving space')
+        allocated=0.
+        rows=self.entries[source]
+        for i,row in enumerate(rows):
+            amount=vehicles-allocated if i==len(rows)-1 else vehicles*row['share']
+            allocated+=amount
+            if amount<=0 and not self._active(amount):continue
+            packet=[step+row['delay_sec'],source,row['movement'],amount]
+            q=self.queues[row['lane']]
+            if q and q[-1][:3]==packet[:3]:q[-1][3]+=amount
+            else:q.append(packet)
+        self.admitted+=vehicles
+        self.assert_conserved()
+
+    def advance(self,step,green,receiving):
+        """Serve one second of common lane capacity, with per-exit acceptance.
+
+        A blocked head packet blocks that lane; independent lanes can continue.
+        Simultaneous requests for the same downstream storage share its budget
+        proportionally rather than receiving that budget once per source/lane.
+        """
+        if step!=self.time or set(green)!=set(self.lanes):
+            raise ValueError('Noncontiguous or incomplete shared approach signal state')
+        movements={m for row in self.lanes.values() for m in row['movements']}
+        if set(receiving)!=movements or any(not math.isfinite(v) or v<0 for v in receiving.values()):
+            raise ValueError('Shared approach needs every finite downstream offer')
+        if any(not math.isfinite(g) or not 0<=g<=1 for g in green.values()):
+            raise ValueError('Invalid signal green fraction')
+        before=self.stock()
+        lateral=self._mandatory_lane_changes()
+        budget={g:row['service_veh_h']/3600.*green[g] for g,row in self.lanes.items()}
+        left=dict(receiving);departures=[]
+        while True:
+            request={}
+            by_target=defaultdict(float)
+            for lane,q in self.queues.items():
+                # A zero-mass derivative must wait for its own valid exit, but
+                # cannot physically block real cars behind it on another turn.
+                head=next((j for j,p in enumerate(q) if p[3]>1e-12 or
+                    (self._active(p[3]) and p[0]<=step and p[2] in self.lanes[lane]['movements']
+                     and budget[lane]>1e-12 and left[p[2]]>1e-12)),None)
+                if head is None or q[head][0]>step or q[head][2] not in self.lanes[lane]['movements']:continue
+                target=q[head][2];prefix=0.
+                for due,source,movement,amount in list(q)[head:]:
+                    if due>step or movement!=target:break
+                    prefix+=amount
+                    if prefix>=budget[lane]:break
+                # Packet size/source tags must not change a lane's priority
+                # when several lanes request the same downstream space.
+                n=min(prefix,budget[lane],left[target])
+                if n>1e-12 or (self._active(n) and budget[lane]>1e-12 and left[target]>1e-12):
+                    request[lane]=(n,head,target);by_target[target]+=n
+            if not request:break
+            accepted={g:n*(min(1.,left[target]/by_target[target]) if by_target[target]>0 else 1.)
+                      for g,(n,head,target) in request.items()}
+            for lane,n in accepted.items():
+                q=self.queues[lane];_,head,movement=request[lane];remaining=n
+                while remaining>1e-12 or (self._active(remaining) and head<len(q) and q[head][3]<=1e-12):
+                    due,source,target,amount=q[head]
+                    if target!=movement or due>step:
+                        if remaining>1e-12:
+                            raise ArithmeticError('Shared approach exceeded its ready FIFO prefix')
+                        break
+                    # With positive receiving/service slack, an empty cohort
+                    # transfers in full and is removed exactly once. This also
+                    # avoids an endless loop over cancelled zero tape nodes.
+                    whole=(amount<remaining or (amount<=1e-12 and remaining<=1e-12))
+                    served=amount if whole else remaining
+                    departures.append(dict(lane=lane,source=source,movement=target,vehicles=served))
+                    if whole:
+                        del q[head];remaining-=served
+                    else:
+                        q[head][3]=amount-served
+                        if q[head][3]<=1e-12 and not self._active(q[head][3]):del q[head]
+                        remaining=0.
+                budget[lane]=max(0.,budget[lane]-n)
+                left[movement]=max(0.,left[movement]-n)
+        served=sum(x['vehicles'] for x in departures)
+        self.departed+=served
+        self.residence_veh_h+=(before-served/2.)/3600.
+        self.time+=1
+        self.last_lateral=lateral
+        self.assert_conserved()
+        return departures
+
+    def _mandatory_lane_changes(self):
+        """Coarse adjacent-lane transfers using the same OLD finite space.
+
+        This resolves a known destination's accessibility, not discretionary
+        weaving. It has no fitted VSL/RM bonus or extra population. The accepted
+        rate is bounded by the declared lane flow rate; a spatial gap model is
+        still an approximation at this approach aggregation level.
+        """
+        room={lane:max(0.,min(row['capacity_veh']-self.stock(lane),row['service_veh_h']/3600.))
+              for lane,row in self.lanes.items()}
+        requests=defaultdict(list)
+        for lane in self.lane_order:
+            budget=self.lanes[lane]['service_veh_h']/3600.
+            for packet in self.queues[lane]:
+                if packet[2] in self.lanes[lane]['movements']:continue
+                targets=[g for g in self.lane_order if packet[2] in self.lanes[g]['movements']]
+                nearest=min(targets,key=lambda g:abs(int(g)-int(lane)))
+                target=str(int(lane)+(1 if int(nearest)>int(lane) else -1))
+                n=min(packet[3],budget)
+                if n>0 or (self._active(n) and budget>1e-12):
+                    requests[target].append((lane,packet,n));budget-=n
+                if budget<=1e-12:break
+        additions=defaultdict(list);transfers=[]
+        for target,rows in requests.items():
+            total=sum(n for lane,packet,n in rows)
+            factor=min(1.,room[target]/total) if total>0 else (1. if room[target]>0 else 0.)
+            for lane,packet,n in rows:
+                moved=n*factor
+                if moved<=0 and not self._active(moved):continue
+                additions[target].append([*packet[:3],moved])
+                packet[3]-=moved
+                transfers.append(dict(source_lane=lane,target_lane=target,source=packet[1],
+                                      movement=packet[2],vehicles=moved))
+        for lane in self.lane_order:
+            self.queues[lane]=deque(p for p in self.queues[lane] if p[3]>1e-12 or self._active(p[3]))
+            for packet in additions[lane]:
+                # Due time is a travel readiness estimate, not an observed
+                # spatial gap. Preserve the order of already-ready target cars.
+                where=next((j for j,p in enumerate(self.queues[lane])
+                            if p[0]>max(self.time,packet[0])),len(self.queues[lane]))
+                self.queues[lane].insert(where,packet)
+        self.assert_conserved()
+        return transfers
+
+    def assert_conserved(self):
+        for lane,row in self.lanes.items():
+            if not -1e-7<=self.stock(lane)<=row['capacity_veh']+1e-7:
+                raise ArithmeticError('Shared approach exceeded physical lane storage')
+        if abs(self.initial+self.admitted-self.departed-self.stock())>1e-7:
+            raise ArithmeticError('Shared approach lost or duplicated vehicles')
+
+    def assert_network_mirror(self,state,cfg):
+        used=cfg.network.urban_link_storage_veh[self.storage]-state.urban_link_storage[self.storage]
+        if abs(used-self.stock())>1e-7:
+            raise ArithmeticError('Shared approach differs from canonical storage owner')
+
+    def capture_ready_city(self,state,cfg,step):
+        """Take already-arrived city queues; their existing travel is not repeated.
+
+        This first boundary-correction experiment retains the upstream urban
+        travel law and turn proportions. Free receiving lanes share a ready
+        movement; rejected mass remains in its original counted queue.
+        """
+        from evaluation.controllers.control_area_objective import emit_transfer
+        self.assert_network_mirror(state,cfg)
+        if step!=self.time:raise ValueError('City capture is not at approach time')
+        for target,movement in self.city_movements.items():
+            queue=state.urban_movement_queue[movement]
+            rooms={g:max(0.,row['capacity_veh']-self.stock(g)) for g,row in self.lanes.items()
+                   if target in row['movements']}
+            room=sum(rooms.values());accepted=min(queue,room)
+            if accepted<=0:continue
+            allocated=0.
+            for i,(lane,space) in enumerate(rooms.items()):
+                n=accepted-allocated if i==len(rooms)-1 else accepted*space/room
+                allocated+=n
+                if n<=0:continue
+                q=self.queues[lane]
+                where=next((j for j,p in enumerate(q) if p[0]>step),len(q))
+                q.insert(where,[step,'city',target,n])
+            self.admitted+=accepted
+            state.urban_movement_queue[movement]=_debit_stock(queue,accepted)
+            state.urban_link_storage[self.storage]=_debit_stock(state.urban_link_storage[self.storage],accepted)
+            emit_transfer(state,cfg,'movement:'+movement,'storage:'+self.storage,accepted,preserve_area=True,
+                          route_key='sc1001_city_capture:'+movement)
+        self.assert_conserved();self.assert_network_mirror(state,cfg)
+
+    def drain_to_network(self,state,control,cfg,step,routing):
+        from src.models import urban_queue_model as uqm
+        from evaluation.controllers.control_area_objective import emit_transfer,get_ledger
+        from evaluation.controllers.urban_flow_accounting import _receive_corridor
+        self.assert_network_mirror(state,cfg)
+        specs=cfg.network.urban_movements
+        green={g:uqm._phase_green_fraction(control,cfg,specs[self.city_movements[row['movements'][0]]],
+                                          urban_step_index=step) for g,row in self.lanes.items()}
+        room={target:uqm._effective_available_space(state,cfg,specs[m]['receiving_link'])
+              for target,m in self.city_movements.items()}
+        out=self.advance(step,green,room)
+        result=dict(head_departed_veh=0.,city_inbound_veh=0.,initial_unresolved_inbound_veh=0.)
+        ledger=get_ledger(state)
+        for row in out:
+            n=row['vehicles'];m=self.city_movements[row['movement']];target=specs[m]['receiving_link']
+            state.urban_link_storage[self.storage]+=n
+            state.urban_link_storage[target]=_debit_stock(state.urban_link_storage[target],n)
+            route=('movement:'+m if row['source'] in ('city','initial_city','initial_unresolved')
+                   else 'sc1001_internal_head:'+m)
+            emit_transfer(state,cfg,'storage:'+self.storage,'storage:'+target,n,route_key=route)
+            if not _receive_corridor(state,cfg,m,n,step):
+                due=step+uqm._link_delay_steps(state,cfg,target)
+                if target in routing:uqm._schedule(state.urban_arrival_buffer,target,due,n)
+                uqm._schedule(state.urban_storage_release_buffer,target,due,n)
+                from evaluation.controllers.omega_distance import record_ordinary_movement
+                record_ordinary_movement(state,cfg,m,n,step,due)
+            result['head_departed_veh']+=n
+            # A future off-ramp receipt already contributed N_P at its port
+            # exit. Passing the city head must not count it a second time.
+            if row['source'] in ('city','initial_city','initial_unresolved'):
+                result['city_inbound_veh']+=n
+            if row['source']=='initial_unresolved':result['initial_unresolved_inbound_veh']+=n
+        self.assert_network_mirror(state,cfg)
+        if ledger is not None and ledger.captures_response:
+            ledger.record_resource_allocation('sc1001_shared_head','three_physical_lanes',
+                sum(self.lanes[g]['service_veh_h']/3600.*green[g] for g in self.lanes),
+                {str(i)+':'+r['source']+':'+r['movement']:r['vehicles'] for i,r in enumerate(out)})
+        return result
+
+
+def initialize_shared_approach(context,observation,cfg,state,detectors):
+    """Bind the reviewed SC1001 boundary experiment before area-ledger seeding.
+
+    Retain existing future city travel and origin-specific turn proportions for
+    this physical-boundary ablation. Source priors are not silently calibrated.
+    A port receipt reserves finite downstream pre-head space during travel.
+    """
+    from collections import Counter
+    from evaluation.controllers.lane_plant_runtime import _physical_geometry
+    from evaluation.controllers.control_area_objective import get_ledger
+    from src.models import urban_queue_model as uqm
+    if get_ledger(state) is not None or hasattr(state,'sc1001_approach'):
+        raise ValueError('Shared approach must initialize exactly once before area seeding')
+    net=cfg.network;start=int(state.time_sec);origin='in_SC1001_W'
+    if not getattr(net,'physical_gate_travel',None) or net.physical_gate_travel['source']!=origin:
+        raise ValueError('Shared SC1001 requires the existing causal city gate transport')
+    if any('remaining_travel_sec' in r for r in state.gate_initial_route_evidence):
+        raise ValueError('Retimed initial gate requires explicit per-vehicle reservation migration')
+    tree,links,dimensions=_physical_geometry(context['paths']['network'])
+    frames=observation['frames'];frame=next(f for f in frames if f['time_s']==start)
+    rows=defaultdict(list)
+    for r in frame['vehicles']:rows[int(r[1])].append(r)
+    heads={h.get('lane').split()[1]:float(h.get('pos')) for h in tree.findall('./signalHeads/signalHead')
+           if h.get('lane').split()[0]=='127' and h.get('sg').split()[0]=='1001'}
+    if set(heads)!={'1','2','3'}:raise ValueError('SC1001 physical heads changed')
+    spacing=net.urban_avg_vehicle_length_m;speed=net.urban_avg_speed_km_h
+    if speed<=0 or spacing<=0:raise ValueError('Invalid nominal approach travel/spacing')
+    lanes={g:dict(capacity_veh=(pos+dimensions[10777][0])/spacing,
+                   service_veh_h=net.movement_capacity_veh_h,
+                   movements=('E','S') if g=='1' else ('E',) if g=='2' else ('N',)) for g,pos in heads.items()}
+    observed=getattr(net,'sc1001_shared_observation',{})
+    if observed and observed['end_sec']!=start:raise ValueError('Stale shared approach observation')
+    for g,row in lanes.items():
+        row['service_veh_h']=max(row['service_veh_h'],observed.get('service',{}).get(g,{}).get('floor_veh_h',0.))
+    city={target:'SC1001_W_to_'+suffix for target,suffix in
+          (('E','E_SC1002'),('N','N_SC2002'),('S','S_SC1003'))}
+    for target,m in city.items():
+        s=net.urban_movements[m]
+        if s['origin']!=origin or s.get('ramp') or s['phase']!=('SC1001_p4' if target=='N' else 'SC1001_p3'):
+            raise ValueError('Shared head movement/phase ownership changed')
+    entries={}
+    for off,group in (('10491','OR_D_W'),('10481','OR_D_E')):
+        node=links[int(off)];dest=node.find('toLinkEndPt')
+        road,pos=dest.get('lane').split()[0],float(dest.get('pos'))
+        if (off=='10491' and road!='129') or (off=='10481' and road!='127'):
+            raise ValueError('Shared approach port geometry changed')
+        before127=(float(links[10777].find('fromLinkEndPt').get('pos'))-pos+dimensions[10777][0]
+                   if road=='129' else -pos)
+        choices={t:float(net.urban_movements['SC1001_off'+('W' if off=='10491' else 'E')+'_to_'+
+                   net.urban_movements[m]['exit']]['beta']) for t,m in city.items()}
+        if abs(sum(choices.values())-1.)>1e-8:raise ValueError('Port destinations no longer end at reviewed head')
+        entries[off]=[]
+        for target,share in choices.items():
+            compatible=[g for g,r in lanes.items() if target in r['movements']]
+            for g in compatible:
+                if share:entries[off].append(dict(lane=g,movement=target,share=share/len(compatible),
+                    delay_sec=max(1,math.ceil((before127+heads[g])/(speed/3.6)))))
+    # Identify source only from current/past records. Unresolved initial source
+    # keeps the legacy city-inflow upper interpretation, exposed separately.
+    source_by_id={int(k):v for k,v in observed.get('sources',{}).items()}
+    for f in frames:
+        if f['time_s']>start:raise ValueError('Future observations cannot initialize shared head')
+        for r in f['vehicles']:
+            link=int(r[1])
+            if link==32:source_by_id[r[0]]='initial_city'
+            elif link in (10491,10481):source_by_id[r[0]]='initial_off'
+    initial=[];counts=Counter()
+    route_exit={1:'S',2:'N',3:'E'}
+    for road in (127,10777):
+        for r in sorted(rows[road],key=lambda x:-x[3]):
+            g=str(r[2]);pos=r[3]
+            if g not in lanes or (road==127 and pos>heads[g]):
+                raise ValueError('Post-head or unbound lane vehicle must have a downstream owner')
+            if r[6]==1117 and r[8]=='STATIC':target=route_exit[int(r[7])]
+            else:target='N' if g=='3' else 'E'
+            source=source_by_id.get(r[0],'initial_unresolved')
+            if r[6] in (1132,1131):source='initial_off'
+            elif r[6]==1136:source='initial_city'
+            distance=heads[g]-pos if road==127 else dimensions[10777][0]-pos+heads[g]
+            initial.append(dict(lane=g,source=source,movement=target,vehicles=1.,
+                                ready_sec=start+max(0,math.ceil(distance/(speed/3.6)))))
+            counts[source]+=1
+    approach=SharedSignalApproach(lanes,entries,initial,start)
+    approach.storage='lane_shared_SC1001';approach.origin=origin;approach.city_movements=city
+    cap=sum(r['capacity_veh'] for r in lanes.values())
+    provenance=state.local_observation_summary['projection_diagnostics']['physical_stock_assignment_by_link']
+    prior_cap=net.urban_link_storage_veh[origin]
+    prior_stock=prior_cap-state.urban_link_storage[origin]
+    arrivals=dict(state.urban_arrival_buffer.get(origin,{}))
+    if arrivals!=state.urban_storage_release_buffer.get(origin,{}) or abs(sum(arrivals.values())-prior_stock)>1e-7:
+        raise ValueError('Initial city travel is not a paired counted reservation')
+    city_weights={m:float(net.urban_movements[m]['beta']) for m in city.values()}
+    total=sum(city_weights.values());city_weights={m:v/total for m,v in city_weights.items()}
+    removed_source=0.
+    net.urban_link_storage_veh[approach.storage]=cap
+    state.urban_link_storage[approach.storage]=cap
+    for road in (127,10777,10695):
+        assigned=provenance.get(str(road),{})
+        target=net.urban_movements[city['N']]['receiving_link'] if road==10695 else approach.storage
+        already_target=assigned.get('storage:'+target,0.)
+        if abs(sum(assigned.values())-len(rows[road]))>1e-7:
+            raise ValueError('Shared approach physical projection differs on '+str(road))
+        for stock,n in assigned.items():
+            kind,key=stock.split(':',1)
+            if kind=='storage' and key==origin:
+                state.urban_link_storage[key]+=n;removed_source+=n
+            elif road==10695 and kind=='storage' and key==target:
+                state.urban_link_storage[key]+=n
+            elif kind=='movement' and key in city.values():
+                state.urban_movement_queue[key]=_debit_stock(state.urban_movement_queue[key],n)
+            else:raise ValueError('Shared approach migration found an unreviewed stock owner: '+stock)
+        n=float(len(rows[road]))
+        state.urban_link_storage[target]=_debit_stock(state.urban_link_storage[target],n)
+        provenance[str(road)]={'storage:'+target:n} if n else {}
+        detectors.setdefault('physical_storage_projection',{}).setdefault('link_to_storage',{})[str(road)]=target
+        detectors.setdefault('link_to_origins',{})[str(road)]=[target]
+        detectors.get('link_to_movements',{}).pop(str(road),None)
+        relocated=n-already_target
+        if road==10695 and relocated:
+            due=start+uqm._link_delay_steps(state,cfg,target)
+            if target in uqm.approach_routing(cfg):uqm._schedule(state.urban_arrival_buffer,target,due,relocated)
+            uqm._schedule(state.urban_storage_release_buffer,target,due,relocated)
+    # The old known-city share occupied these links. Remove its paired travel
+    # and tags, retaining every upstream 32/129 vehicle and its old timing.
+    tags=state.gate_initial_route_tags[origin]
+    for t,n in arrivals.items():
+        removed=n*removed_source/prior_stock if prior_stock else 0.
+        state.urban_arrival_buffer[origin][t]=n-removed
+        state.urban_storage_release_buffer[origin][t]=n-removed
+        for m,weight in city_weights.items():
+            if removed:
+                tags[t][m]=_debit_stock(tags[t].get(m,0.),removed*weight)
+    removed_capacity=sum(dimensions[r][0]*dimensions[r][1]/spacing for r in (127,10777,10695))
+    remaining=prior_stock-removed_source
+    new_cap=prior_cap-removed_capacity
+    if new_cap<remaining-1e-7 or new_cap<=0:
+        raise ValueError('Remaining city source does not fit after relocating shared approach')
+    net.urban_link_storage_veh[origin]=new_cap
+    state.urban_link_storage[origin]=new_cap-remaining
+    state.sc1001_approach=approach
+    net.sc1001_shared_movements=tuple(city.values())
+    approach.assert_network_mirror(state,cfg)
+    return dict(sc1001_shared_approach=dict(status='BOUNDARY_ABLATION_NOT_GAIN_QUALIFIED',
+        initial_veh=approach.stock(),initial_sources=dict(counts),migrated_source_storage_veh=removed_source,
+        source_remaining_veh=remaining,source_remaining_capacity_veh=new_cap,
+        approach_capacity_veh=cap,entries=entries,
+        head_service_veh_h={g:r['service_veh_h'] for g,r in lanes.items()},
+        head_support_cutoff_sec=observed.get('end_sec'),
+        limitations=['Existing city upstream travel and future turn proportions retained.',
+                    'Port travel reserves head-approach space; not a spatial129/127 gap model.',
+                    'Unknown initial source uses legacy city-inflow upper interpretation.']))
+
+
+class LaneOfframpRuntime:
+    def __init__(self, ports, descriptions, local_port, membership):
+        if set(ports) != set(descriptions)-{'10643'}:
+            raise ValueError('Exactly seven ordinary physical off-ramps required')
+        self.ports=ports
+        self.descriptions=descriptions
+        self.local_port=local_port
+        self.membership=membership
+        self.last_drain=None
+
+    def stock(self, off):
+        return (math.fsum(p.stock for p in self.local_port.lanes) if off=='10643'
+                else self.ports[off].stock)
+
+    def assert_mirrors(self,state,cfg):
+        for off,row in self.descriptions.items():
+            key=row['storage']
+            n=cfg.network.urban_link_storage_veh[key]-state.urban_link_storage[key]
+            if abs(n-self.stock(off))>1e-7:
+                raise ArithmeticError('Physical off-ramp differs from its sole stock owner: '+off)
+
+    def drain(self,state,control,cfg,step,routing):
+        from src.models import urban_queue_model as uqm
+        from evaluation.controllers.control_area_objective import get_ledger,emit_transfer
+        from evaluation.controllers.urban_flow_accounting import _receive_corridor
+        from evaluation.controllers.route_choice_corridor import known_legsplit_receive, direct_exit_receive
+        if self.last_drain is not None and step!=self.last_drain+1:
+            raise ValueError('Noncontiguous physical off-ramp drainage')
+        self.assert_mirrors(state,cfg)
+        ledger=get_ledger(state)
+        departures=defaultdict(float)
+        for off,port in self.ports.items():
+            row=self.descriptions[off]
+            key=row['storage']
+            stock=port.stock
+            shared=getattr(state,'sc1001_approach',None)
+            if shared is not None and off in shared.entries:
+                shared.assert_network_mirror(state,cfg)
+                service=cfg.network.movement_capacity_veh_h*row['lanes']/3600.
+                limit=min(service,shared.receiving(off))
+                actual=port.release(step,1.,limit*3600.)
+                shared.accept(off,actual,step)
+                state.urban_link_storage[key]+=actual
+                state.urban_link_storage[shared.storage]=_debit_stock(state.urban_link_storage[shared.storage],actual)
+                choices=defaultdict(float)
+                for entry in shared.entries[off]:choices[entry['movement']]+=entry['share']
+                for target,share in choices.items():
+                    m='SC1001_off'+('W' if off=='10491' else 'E')+'_to_'+cfg.network.urban_movements[shared.city_movements[target]]['exit']
+                    emit_transfer(state,cfg,'storage:'+key,'storage:'+shared.storage,actual*share,
+                                  preserve_area=True,route_key='movement:'+m)
+                if ledger.captures_response:
+                    ledger.record_resource_allocation('physical_offramp_shared_receiving',off,limit,{off:actual})
+                shared.assert_network_mirror(state,cfg)
+                departures[row['group']]+=actual
+                continue
+            requests=[]
+            if row.get('local_upstream'):
+                target=state.lane_urban_runtime.origin
+                service=cfg.network.movement_capacity_veh_h*row['lanes']/3600.
+                room=uqm._effective_available_space(state,cfg,target)
+                requests.append((None,target,min(service,room),service,room))
+            elif row['direct']:
+                target=row['target']
+                service=row['drain_service_veh_h']/3600.
+                room=uqm._effective_available_space(state,cfg,target)
+                requests.append((None,target,min(service,room),service,room))
+            else:
+                # Distinct movements retain the existing conditional weights;
+                # their downstream room is consumed by actual accepted packets.
+                reserved=defaultdict(float)
+                for m in cfg.network.off_ramp_to_movement[row['group']]:
+                    spec=cfg.network.urban_movements[m]
+                    target=spec['receiving_link']
+                    service=(uqm._movement_capacity_flow(control,cfg,m,spec)*
+                             uqm._phase_green_fraction(control,cfg,spec,urban_step_index=step)/3600.)
+                    room=max(0.,uqm._effective_available_space(state,cfg,target)-reserved[target])
+                    amount=min(float(spec['beta'])*stock,service,room)
+                    requests.append((m,target,amount,service,room))
+                    reserved[target]+=amount
+            limit=math.fsum(x[2] for x in requests)
+            actual=port.release(step,1.,limit*3600.)
+            if actual>limit+1e-7 or actual>stock+1e-7:
+                raise ArithmeticError('Physical off-ramp exceeded available sending/service')
+            if ledger.captures_response:
+                ledger.record_resource_allocation('physical_offramp_stock',off,stock,{off:actual})
+                ledger.record_resource_allocation('physical_offramp_service',off,limit,{off:actual})
+            for movement,target,amount,service,room in requests:
+                n=amount*actual/limit if limit else 0.
+                if ledger.captures_response:
+                    evidence={off+':'+str(movement):n}
+                    ledger.record_resource_allocation('physical_offramp_target_room',off+':'+target,room,evidence)
+                    ledger.record_resource_allocation('physical_offramp_target_service',off+':'+str(movement),service,evidence)
+                if n<=0:continue
+                state.urban_link_storage[key]+=n
+                state.urban_link_storage[target]=_debit_stock(state.urban_link_storage[target],n)
+                if row.get('local_upstream'):
+                    emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,preserve_area=True)
+                    state.lane_urban_runtime.schedule_upstream(state,cfg,step,n,entry='off10638')
+                elif movement is None:
+                    emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,
+                        source_inside=self.membership[str(row['connector'])],
+                        target_inside=self.membership[str(row['to_link'])])
+                    due=step+uqm._link_delay_steps(state,cfg,target)
+                    owned=False
+                    if getattr(cfg.network,'known_legsplit_routes',None):
+                        owned=known_legsplit_receive(state,cfg,n,due,off_ramp=row['group'],entry_step=step)
+                    physical_direct=getattr(cfg.network,'direct_exit_legsplit',{}).get('travel')
+                    if physical_direct:
+                        owned=direct_exit_receive(state,cfg,off,target,n,due,entry_step=step) or owned
+                    if not owned:
+                        if target in routing:uqm._schedule(state.urban_arrival_buffer,target,due,n)
+                        uqm._schedule(state.urban_storage_release_buffer,target,due,n)
+                    if not physical_direct:direct_exit_receive(state,cfg,off,target,n,due)
+                else:
+                    emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,route_key='movement:'+movement)
+                    if not _receive_corridor(state,cfg,movement,n,step):
+                        due=step+uqm._link_delay_steps(state,cfg,target)
+                        if target in routing:uqm._schedule(state.urban_arrival_buffer,target,due,n)
+                        uqm._schedule(state.urban_storage_release_buffer,target,due,n)
+                        from evaluation.controllers.omega_distance import record_ordinary_movement
+                        record_ordinary_movement(state,cfg,movement,n,step,due)
+                departures[row['group']]+=n
+        self.last_drain=step
+        self.assert_mirrors(state,cfg)
+        if ledger.captures_response:ledger.complete_constraint_coverage('physical_offramp_drain')
+        return dict(departures)
+
+    def capacities(self,state,cfg):
+        self.assert_mirrors(state,cfg)
+        caps={off:max(0.,state.urban_link_storage[row['storage']])*3600.
+              for off,row in self.descriptions.items()}
+        lanes=[min(p.capacity-p.stock,p.receiving(1.))*3600. for p in self.local_port.lanes]
+        caps['10643']=min(caps['10643'],math.fsum(lanes))
+        # The mainline has lane1,lane2,lanes3+ groups;10643 admits only the
+        # first two physical lanes. The inaccessible group has zero room.
+        return caps,{'10643':lanes+[0.]}
+
+    def land(self,state,cfg,end,flows,group_flows):
+        from evaluation.controllers.control_area_objective import get_ledger,emit_transfer
+        ledger=get_ledger(state)
+        if set(flows)!=set(self.descriptions):raise ValueError('Incomplete physical off-ramp landing')
+        total=0.
+        for off,row in self.descriptions.items():
+            amount=flows[off]/3600.
+            key=row['storage']
+            room=state.urban_link_storage[key]
+            if not math.isfinite(amount) or amount<0 or amount>room+1e-7:
+                raise ArithmeticError('Freeway sent beyond finite connector storage')
+            if off=='10643':
+                by_lane=group_flows[off]
+                if len(by_lane)!=2 or abs(math.fsum(by_lane)-amount)>1e-7:
+                    raise ArithmeticError('Off-ramp lane admission disagrees with aggregate')
+                for g,n in enumerate(by_lane):
+                    p=self.local_port.lanes[g]
+                    receiving=p.receiving(1.)
+                    p.accept(end,n)
+                    self.local_port.admit(g,n)
+                    if ledger.captures_response:
+                        ledger.record_resource_allocation('physical_offramp_lane_receiving',off+':'+str(g),receiving,{off:n})
+            else:self.ports[off].accept(end,amount)
+            state.urban_link_storage[key]=_debit_stock(room,amount)
+            emit_transfer(state,cfg,'freeway:'+row['road'],'storage:'+key,amount,
+                source_inside=True,target_inside=self.membership[str(row['connector'])])
+            total+=amount
+            if ledger.captures_response:
+                ledger.record_resource_allocation('physical_offramp_landing_storage',off,room,{off:amount})
+                ledger.complete_constraint_coverage('offramp_landing:'+off)
+        self.assert_mirrors(state,cfg)
+        ledger.complete_constraint_coverage('offramp_landing')
+        return total

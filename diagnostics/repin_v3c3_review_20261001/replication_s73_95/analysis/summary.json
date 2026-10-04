@@ -1,0 +1,92 @@
+{
+  "scope": "Prospective seed73 replication of the fixed VSL pair; no fitting or9000 restart. Match initial states within seed73 only.",
+  "start_sec": 2700,
+  "end_sec": 3150,
+  "arms": {
+    "release": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2579.06248611111,
+      "TTT_2700p1_3150_veh_h": 474.400666666666,
+      "Omega_TTD_events": 20963,
+      "Omega_end_vehicles": 3776,
+      "native_removals": 67,
+      "uninserted_at_end": 8285,
+      "unresolved_Omega_disappearances": 274,
+      "outside_Omega_residence_veh_h": 967.4236666666686,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 5.139555555555651,
+      "sampled_TVD_Omega_veh_km": 129795.30187388886,
+      "sampled_TVD_censored_tail_veh_km": 224.3247494444513,
+      "distance_definition": "Integral of sum of observed vehicle speeds inside Omega; trapezoid at actual timestamps.",
+      "native_physical_network_time_veh_h": 3546.5608807830554,
+      "native_uninserted_delay_veh_h": 2953.044388888889,
+      "native_total_time_including_uninserted_veh_h": 6499.605269671944,
+      "native_uninserted_at_end": 8286.0,
+      "native_network_end_vehicles": 5231.0,
+      "native_arrived_vehicles": 23453.0
+    },
+    "release_vsl90": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2578.5030972222235,
+      "TTT_2700p1_3150_veh_h": 473.8412777777794,
+      "Omega_TTD_events": 20974,
+      "Omega_end_vehicles": 3764,
+      "native_removals": 67,
+      "uninserted_at_end": 8283,
+      "unresolved_Omega_disappearances": 273,
+      "outside_Omega_residence_veh_h": 967.4401666666687,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 5.123222222222317,
+      "sampled_TVD_Omega_veh_km": 129828.6519566666,
+      "sampled_TVD_censored_tail_veh_km": 224.61809611110948,
+      "distance_definition": "Integral of sum of observed vehicle speeds inside Omega; trapezoid at actual timestamps.",
+      "native_physical_network_time_veh_h": 3546.042019673889,
+      "native_uninserted_delay_veh_h": 2953.0280000000002,
+      "native_total_time_including_uninserted_veh_h": 6499.070019673889,
+      "native_uninserted_at_end": 8284.0,
+      "native_network_end_vehicles": 5232.0,
+      "native_arrived_vehicles": 23454.0
+    }
+  },
+  "reused_nc_run": null,
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "common_start_vehicle_records_exact": true,
+  "prefixes": {
+    "release": {
+      "sha256": "428f7f1e4075a17502388432a666f2ee53a9b27326ff608dbaf6c8b18a722dd4",
+      "rows": 2082868,
+      "last_time_s": 2695.1
+    },
+    "release_vsl90": {
+      "sha256": "428f7f1e4075a17502388432a666f2ee53a9b27326ff608dbaf6c8b18a722dd4",
+      "rows": 2082868,
+      "last_time_s": 2695.1
+    }
+  },
+  "original_prefix": null,
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": null,
+  "delta_definition": "release_vsl90 minus release",
+  "delta_TTT_veh_h": -0.5593888888865877,
+  "delta_outside_Omega_residence_veh_h": 0.016500000000064574,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Seed73 VSL110/90 at DSD63..66 after2700 with identical RM release schedules and native city signals. Common initial state is within seed73; no seed67 trajectory identity claim.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence.",
+    "One fresh seed is not a statistical robustness result; future source admissions and composition may differ after intervention."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": -0.5352499980554057,
+  "delta_native_uninserted_delay_veh_h": -0.01638888888874135,
+  "protocol_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\native_vsl73_observation2700_replication95v2\\protocol.json",
+  "protocol_sha256": "9d05db4b86bcb090453883c241c31355fcef2ad068c3fe6e456870eca4bf75ea",
+  "prediction_source": null,
+  "matched_prior_run_claimed": false,
+  "counterfactual_valid": true,
+  "native_urban_ownership_readback_scope": "Initialization and termination; no per-decision ownership readback claimed. Every actual CSV is checked against the pinned plan without urban rows; native LDP covers the intervening states.",
+  "replication_seed": 73
+}

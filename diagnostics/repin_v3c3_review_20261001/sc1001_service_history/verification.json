@@ -1,0 +1,76 @@
+{
+  "status": "OBSERVATION_WIRING_VERIFIED_NOT_GAIN_QUALIFIED",
+  "changes": {
+    "evaluation/controllers/lane_offramp_runtime.py": {
+      "changed": [
+        "initialize_shared_approach"
+      ],
+      "added": [
+        "observe_shared_approach",
+        "update_shared_observation"
+      ],
+      "removed": []
+    },
+    "evaluation/controllers/signal_head_observation.py": {
+      "changed": [
+        "install"
+      ],
+      "added": [],
+      "removed": []
+    },
+    "evaluation/controllers/runtime_setup.py": {
+      "changed": [
+        "configure_runtime"
+      ],
+      "added": [],
+      "removed": []
+    },
+    "diagnostics/repin_v3c3_review_20261001/sc1001_connection/check_connection.py": {
+      "changed": [],
+      "added": [],
+      "removed": []
+    }
+  },
+  "source_pins": {
+    "evaluation/controllers/lane_offramp_runtime.py": "72f7a27e9a70814bee4c1ddb0b4fb7e53ac87e5e8e8d833c2e967ae6f1b11607",
+    "evaluation/controllers/signal_head_observation.py": "836435b4c46b96778d88de1dff133263582899589cf5ff85ff81d32393ddec91",
+    "evaluation/controllers/runtime_setup.py": "5c9736f831ab146cd42659403af4fa13d831d093c66e21adcf5a5f375e93e350",
+    "diagnostics/test_sc1001_observation.py": "24b2dda7962d8c9a8c62c7c053ff703aefccdb53816c88a6773327e0e1c830c0",
+    "diagnostics/repin_v3c3_review_20261001/sc1001_connection/check_connection.py": "c73cfbda957405ce1dadacf15d640380b254b73482dd7dc6e8873fb67717a1d7"
+  },
+  "unchanged_core_pins": {
+    "vendor/NumSim-mine/src/models/state.py": "3faddc0fc0b1a003f3ccfaf53c49e74e2b69b768e5324f20dea7985e4878e96a",
+    "evaluation/controllers/area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "evaluation/controllers/freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation/controllers/physical_ramp_branches.py": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\reference_config.json": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\source_sc101\\readiness_candidate\\candidate_config.json": "9b613bfb151a417a6a8f0c131d316f96e839570473aecca2cb841e27361b2883"
+  },
+  "artifacts": {
+    "assessment.json": "3664bc804c4308774cdf6077a6915ce4a097d42681a3b883325689c14744fd6a",
+    "tests.log": "efae5589ab0b0de24eeeacdbca0ad185bc09dcd9a72b940e5ba49d1850f36a72",
+    "tests_routes.log": "cc7b0fe91ca5152f65a98a57fec84658ad8e4ef7a43da50bebe8ef176e9e6624",
+    "pair.log": "d5fd2f073d5ae8027d2eafd2048cc1e50773717dc77c2063d209b616dbcf0568",
+    "pair_routes.log": "e66c6af7f992f99c7997ba89d40405b5b3b8a81154b52d8f2bb6437bab2fbc81",
+    "assess.py": "bc99a8352858db81a5d68f68922007b4fecc1ef7a7e43286770cd72585cbcf1b",
+    "verify.py": "c234dbfe9d6deb27436d36f9476a23524560620b9bb9f09d1faf0cff2201a4bb"
+  },
+  "observation_scope": "Only validated current/past150s frames and head windows; 5s cached truth used separately to audit source identity.",
+  "capacity_interpretation": "Demonstrated green-discharge floor, not saturation identified from queues; amber counts excluded.",
+  "checks": {
+    "unit_tests": 23,
+    "completed450s": 4,
+    "latest_pair_completed": 2,
+    "optimizer": 0,
+    "new_native": 0,
+    "new_fzp_scans": 0,
+    "coefficient_fit": 0,
+    "push": 0,
+    "full_rollout_AD": false,
+    "new_independent_rollout": false
+  },
+  "active_processes_started_in_turn_remaining": 0,
+  "goal": "ACTIVE / NOT_QUALIFIED",
+  "production_default_enabled": false
+}

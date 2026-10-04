@@ -1,0 +1,61 @@
+{
+  "scope": "User-stopped native run; matched fully recorded8100s prefix",
+  "end_sec": 8100,
+  "run_names": {
+    "nc": "sdmpc31_nc9000_s29",
+    "sdmpc": "sdmpc31_sdmpc9000_s29"
+  },
+  "whole_omega_gain_qualified": false,
+  "whole9000_completed": false,
+  "native_uninserted_delay_available": false,
+  "arms": {
+    "nc": {
+      "TTT_veh_h": 6754.399916666652,
+      "outside_Omega_residence_veh_h": 2240.5311111111173,
+      "Omega_TTD_events": 53773,
+      "Omega_end_vehicles": 2020,
+      "unresolved_Omega_disappearances": 691,
+      "native_removals_through_end": 233,
+      "last_fzp_sec": 8095.1,
+      "tail_hold_veh_h": 2.7494444444442405,
+      "native_uninserted_delay_veh_h": null,
+      "native_uninserted_at_end": null
+    },
+    "sdmpc": {
+      "TTT_veh_h": 6806.956027777781,
+      "outside_Omega_residence_veh_h": 2487.9909444444515,
+      "Omega_TTD_events": 53473,
+      "Omega_end_vehicles": 2125,
+      "unresolved_Omega_disappearances": 754,
+      "native_removals_through_end": 373,
+      "last_fzp_sec": 8095.1,
+      "tail_hold_veh_h": 2.892361111110896,
+      "native_uninserted_delay_veh_h": null,
+      "native_uninserted_at_end": null
+    }
+  },
+  "prefixes": {
+    "nc": {
+      "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+      "rows": 431233,
+      "last_time_s": 895.1
+    },
+    "sdmpc": {
+      "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+      "rows": 431233,
+      "last_time_s": 895.1
+    }
+  },
+  "paired_prefix_exact": true,
+  "delta_TTT_veh_h": 52.55611111112921,
+  "delta_TTT_percent": 0.7781018559686714,
+  "delta_outside_Omega_residence_veh_h": 247.45983333333425,
+  "limitations": [
+    "Interrupted run has no normal completion or native total/latent cost receipt.",
+    "Buffered LDP/ERR tail is truncated;8100 is used for complete command-clock verification.",
+    "5s FZP residence uses4.9s terminal stock hold, not invented exits.",
+    "TTD contains observed exits and physically screened terminal disappearance inference; unresolved losses are separate.",
+    "Urban signals and freeway commands change together; not a single-lever causal comparison.",
+    "LSA COM coverage is unverified; actual LDP and setter readbacks supply prefix execution evidence."
+  ]
+}

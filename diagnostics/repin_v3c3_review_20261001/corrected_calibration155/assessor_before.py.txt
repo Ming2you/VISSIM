@@ -1,0 +1,70 @@
+"""Assess the finite completed145 calibration; do not launch any forecasts."""
+import hashlib
+import json
+from pathlib import Path
+
+HERE=Path(__file__).resolve().parent
+R=HERE.parent
+U=R.parents[1]
+PINS={}
+
+
+def read(path):
+    raw=path.read_bytes();PINS[str(path)]=hashlib.sha256(raw).hexdigest()
+    return json.loads(raw)
+
+
+def main():
+    status=read(HERE/'status.json')
+    assert status['status'].startswith('complete'), 'Do not assess a live/failed calculation'
+    evaluations=read(HERE/'evaluations.json')
+    selection=read(HERE/'selection.json')
+    protocol=read(HERE/'protocol.json')
+    baseline=evaluations[0]
+    assert baseline['z']==[1.]*4
+    configs=[];table=[];records=[]
+    original=read(R/'lane_state132/eval_01/reference_config.json')
+    for e in evaluations:
+        result=read(Path(e['folder'])/'result.json')
+        assert result==e
+        cfg=read(Path(e['folder'])/'reference_config.json')
+        expected=json.loads(json.dumps(original))
+        o=expected['freeway']['state_response']['FW_E']['cell_overrides'];z=e['z']
+        o['21']['delta_merge']*=z[0]
+        for k in ('20','21'):o[k]['relaxation']['acceleration_sec']*=z[1]
+        o['21']['anticipation']['downstream_lt_local']*=z[2]
+        o['22']['anticipation']['downstream_ge_local']*=z[3]
+        assert cfg==expected, 'Unexpected demand,FD,actuator,or other coefficient change'
+        configs.append(dict(label=e['label'],values=dict(delta21=o['21']['delta_merge'],tau20=o['20']['relaxation']['acceleration_sec'],
+            tau21=o['21']['relaxation']['acceleration_sec'],nu21_lt=o['21']['anticipation']['downstream_lt_local'],nu22_ge=o['22']['anticipation']['downstream_ge_local'])))
+        byarm={x['arm']:x for x in e['rows'] if x['case']=='s67_late'}
+        delta=lambda key,field='predicted':byarm['release_vsl90'][field][key]-byarm['release'][field][key]
+        exit_delta=byarm['release_vsl90']['discharge_windows'][1]['predicted']['exit20']-byarm['release']['discharge_windows'][1]['predicted']['exit20']
+        table.append(dict(label=e['label'],z=e['z'],objective=e['objective'],absolute=e['loss450']['absolute'],
+            response450=e['loss450']['response'],response150=e['loss150']['response'],discharge_response=e['discharge_response'],
+            meaningful_signs=all(x['sign_correct'] for x in e['loss450']['pairs'] if x['meaningful']),
+            s67_vsl_delta_ttt=delta('ttt'),s67_vsl_delta_exits=delta('exits'),s67_middle150_delta_off10483=exit_delta,
+            s67_rm_release_loss=byarm['release']['predicted']['ttt']-byarm['hold']['predicted']['ttt']))
+        records.extend(e['rows'])
+    assert all(x.get('conditional_source_input') is False for x in records)
+    assert all(x['spatial145']['samples']==2700 for x in records)
+    pp=read(HERE/'baseline_parity.json');assert len(pp)==8 and all(all(x.values()) for x in pp.values())
+    preservation=read(HERE/'preservation.json');assert all(preservation[k] for k in ('core','inputs','STOP','hooks_restored'))
+    pins={**protocol['protected_sha256'],**protocol['source_sha256'],**preservation['input_sha256']}
+    pins[protocol['STOP']['path']]=protocol['STOP']['sha256']
+    for p,h in {**pins,**PINS}.items():assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h
+    best=min(table,key=lambda x:x['objective'])
+    result=dict(status=status['status'],selection=selection,table=table,effective_coefficients=configs,best_objective_candidate=best,
+        max_conservation=max(x['conservation_max'] for x in records),max_route=max(x['route_error'] for x in records),
+        max_half_partition_error=max(x['spatial145']['max_half_class_partition_error'] for x in records),
+        checked_half_states=sum(x['spatial145']['samples'] for x in records),
+        all_forecasts_autonomous=True,unchanged_original_inputs=True,all_nonselected_config_fields_exact=True,
+        input_sha256=PINS,protected_and_runtime_inputs=pins,
+        limits='Both29/67 are explicit training. A lowest score is not an admissible candidate. Component cost not wholeOmega. This finite local fit is not a global calibration ceiling.',
+        new_forecasts=0,new_native=0,new_FZP=0,new_9000_analysis=0,push=0)
+    (HERE/'local_assessment.json').write_text(json.dumps(result,indent=2),encoding='utf8')
+    print(json.dumps(dict(status=status,selected=selection['z'],best=best,half_states=result['checked_half_states'])))
+    for x in table:print(json.dumps(x))
+
+
+if __name__=='__main__':main()

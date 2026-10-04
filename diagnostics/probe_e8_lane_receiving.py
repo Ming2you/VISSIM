@@ -65,7 +65,10 @@ class IndexedFzp:
                 high = midpoint
         self.handle.seek(low)
 
-    def snapshot(self, target):
+    def snapshot(self, target, *, extra_columns=()):
+        if len(extra_columns) != len(set(extra_columns)) or any(k not in self.names for k in extra_columns):
+            raise ValueError('Extra FZP columns must be unique and present in the native header')
+        extra_indexes = [(k, self.names.index(k)) for k in extra_columns]
         self.seek_time(target)
         values, digest, first_offset, last_time = {}, hashlib.sha256(), None, None
         while row := self.line():
@@ -86,9 +89,13 @@ class IndexedFzp:
             assert veh not in values
             values[veh] = (int(fields[index["LANE\\LINK\\NO"]]), int(fields[index["LANE\\INDEX"]]),
                            float(fields[index["POS"]]), float(fields[index["SPEED"]]))
+            if extra_indexes:
+                values[veh] += ({k: fields[i].decode('utf-8', errors='replace') for k, i in extra_indexes},)
         assert values, (self.path, target)
         self.selected[str(target)] = {"whole_network_vehicles": len(values), "first_byte_offset": first_offset,
                                       "selected_raw_rows_sha256": digest.hexdigest()}
+        if extra_columns:
+            self.selected[str(target)]['extra_columns'] = list(extra_columns)
         return values
 
 

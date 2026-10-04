@@ -1,0 +1,31 @@
+{
+  "hypothesis": "Separate upstream21 merge braking and downstream24 negative relaxation; original23 unchanged.",
+  "modes": {
+    "merge21": {
+      "merge21_multiplier": 0.5,
+      "negative_relaxation24_multiplier": 1.0
+    },
+    "relax24": {
+      "merge21_multiplier": 1.0,
+      "negative_relaxation24_multiplier": 0.5
+    },
+    "both": {
+      "merge21_multiplier": 0.5,
+      "negative_relaxation24_multiplier": 0.5
+    }
+  },
+  "relaxation_rule": "For current desired<speed only, double24 tau and nu together so anticipation is unchanged; no command/time/seed bonus.",
+  "candidate_count": 3,
+  "fit": 0,
+  "forecast_budget": {
+    "primary": 6,
+    "one_selected_onset": 1,
+    "total_max": 7
+  },
+  "selection_rule": "Require RM hold/release region21..25 endpoint speed+stock error and separately normalized East/ramp DeltaTTT error to improve vs baseline; retain large East and Omega loss signs. Select lowest combined normalized score. No cost-only cancellation target.",
+  "rollout_scope": "Full coupled31-cell/8-ramp/17-city model, existing command-conditioned2700-3150 pair; baseline reused.",
+  "new_native": 0,
+  "new_fzp_reads": 0,
+  "live_poll": 0,
+  "adopted": false
+}

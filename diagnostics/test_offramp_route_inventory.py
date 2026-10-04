@@ -358,6 +358,39 @@ class RoutingTests(unittest.TestCase):
             routing.compile_inventory(self.document,mapping)
 
 
+class CoupledScopeTests(unittest.TestCase):
+    def fixture(self):
+        runtime = {'bounds': {'E': [0, 1], 'W': [0, 1]}, 'branches': {},
+            'inputs': {'E': {'input': '1', 'weights': {'terminal': 1.}}}, 'merges': {}}
+        cfg = NS(network=NS(freeway_links=['E'], offramp_route_inventory=runtime))
+        state = NS(mainline_origin_queue={'E': 0., 'W': 0.}, offramp_route_inventory_state={
+            'schema': 'offramp-route-stock/v1',
+            'cells': {'E': [{'old|terminal': 3.}], 'W': [{'old|terminal': 7.}]},
+            'origins': {'E': {}, 'W': {}}})
+        return cfg, state
+
+    def test_stepping_one_road_preserves_the_other_candidate_stock(self):
+        cfg, state = self.fixture()
+        routing.assert_inventory(state, cfg, {'E': [3.]})
+        untouched = copy.deepcopy(state.offramp_route_inventory_state['cells']['W'])
+        routing.advance_inventory(state, cfg, 'E', mainline=[], terminal=1., offramps={},
+            entry=2., generated=2., merges={}, duration_h=1.)
+        routing.assert_inventory(state, cfg, {'E': [4.]})
+        self.assertEqual(state.offramp_route_inventory_state['cells']['W'], untouched)
+        cfg.network.freeway_links = ['W']
+        routing.assert_inventory(state, cfg, {'W': [7.]})
+        with self.assertRaisesRegex(ValueError, 'partition'):
+            routing.assert_inventory(state, cfg, {'W': [6.]})
+
+    def test_partial_scope_requires_exact_kernel_and_full_road_catalog(self):
+        cfg, state = self.fixture()
+        with self.assertRaisesRegex(ValueError, 'Invalid'):
+            routing.assert_inventory(state, cfg, {'W': [7.]})
+        cfg.network.offramp_route_inventory['bounds'].pop('W')
+        with self.assertRaisesRegex(ValueError, 'Invalid'):
+            routing.assert_inventory(state, cfg, {'E': [3.]})
+
+
 if __name__=='__main__':
     if sys.argv[1:]==['--setup-only']:
         RoutingTests.setUpClass()

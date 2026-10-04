@@ -1,0 +1,47 @@
+{
+  "schema": "recorded-controller-derivatives/v1",
+  "start_sec": 2700,
+  "seed": 47,
+  "horizon_sec": 450,
+  "purpose": "Verify zero-active-mass ramp transfer fix at the same saved anchor; reuse prior independent scalar witnesses",
+  "anchor_meter_green": {},
+  "axes": [
+    {
+      "kind": "meter",
+      "key": "RM_C10490",
+      "block": 0,
+      "steps": []
+    }
+  ],
+  "max_ad_rollouts": 1,
+  "max_independent_scalar_rollouts": 0,
+  "primal_abs_tolerance": 1e-07,
+  "cost_gradient_atol": 0.0001,
+  "resource_gradient_atol": 0.001,
+  "gradient_rtol": 0.001,
+  "no_optimization": true,
+  "no_native": true,
+  "no_push": true,
+  "future_observation_inputs": false,
+  "fit": 0,
+  "tuning_sha256": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+  "scope": "Continuous infinitesimal probes may lie outside native quantization/bounds. Never applied or accepted as feasible controls.",
+  "previous_turn_classification": "NO_PROGRESS: repeated upstream review; current work fixes confirmed derivative conservation defect",
+  "optimizer_iterations": 0,
+  "native_started": false,
+  "source_pins": {
+    "evaluation\\controllers\\sdmpc_tangent_audit.py": "48fb8f6f0e59cda08cd416ce7c4055a1d46f9fdfef3c0bb1a297b30ddf1b79ba",
+    "evaluation\\controllers\\sdmpc_tangent_worker.py": "6cd2cc3e75eac9341f9b395e71830dd407457a8cf6556dd379073d397d71332c",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "1ff44ec095167994403e275c218e3fe72d0b1eef9103d56e5638d763b7a08307",
+    "evaluation/controllers/physical_ramp_boundary.py": "f0603b14047adf988d26057c364d79aa45ec8721d0b0a0f439785381503a950f"
+  },
+  "known_nonsmooth_axis": "RM_C10490 green5 has prior one-sided kink; report left/right slopes rather than treating central mismatch alone as bug.",
+  "branch_probe": {
+    "key": "RM_C10490",
+    "kind": "meter",
+    "block": 0,
+    "max_records": 200000
+  },
+  "reference_ad_columns": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_budget_check_derivatives_sc1001_s47\\ad_columns.json",
+  "expected_gradient_change": "zero_active_ramp_transfer"
+}

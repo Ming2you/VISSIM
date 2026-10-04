@@ -1,0 +1,139 @@
+{
+  "result": "REJECTED_LOCAL_CANDIDATE",
+  "rollouts_verified": 16,
+  "rows": [
+    {
+      "folder": "baseline",
+      "conservation_max": 2.984279490192421e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e00",
+      "conservation_max": 1.8474111129762605e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e01",
+      "conservation_max": 2.8421709430404007e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e02",
+      "conservation_max": 3.410605131648481e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e03",
+      "conservation_max": 1.7053025658242404e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e04",
+      "conservation_max": 2.7000623958883807e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e05",
+      "conservation_max": 2.5579538487363607e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e06",
+      "conservation_max": 3.268496584496461e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e07",
+      "conservation_max": 3.126388037344441e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e08",
+      "conservation_max": 2.8421709430404007e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e09",
+      "conservation_max": 4.831690603168681e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e10",
+      "conservation_max": 3.268496584496461e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e11",
+      "conservation_max": 1.7053025658242404e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e12",
+      "conservation_max": 2.2737367544323206e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e13",
+      "conservation_max": 2.2737367544323206e-13,
+      "invalid": false
+    },
+    {
+      "folder": "e14",
+      "conservation_max": 1.7053025658242404e-13,
+      "invalid": false
+    }
+  ],
+  "source_pins_before_restoration_verified": 36,
+  "restored": [
+    {
+      "path": "evaluation\\controllers\\freeway_fd.py",
+      "restored_sha256": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+      "executed_sha256": "779afa1b60fc0e457076bf23a6f2f4c7205d47da45ad80c4788dff1686c04638"
+    },
+    {
+      "path": "evaluation\\controllers\\area_freeway_accounting.py",
+      "restored_sha256": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+      "executed_sha256": "efc454e1d6c4d7c8cc0513a245efc4da3d4036c2d5d60476b5259fa236d52ea9"
+    },
+    {
+      "path": "evaluation\\controllers\\vissim_stackelberg_adapter.py",
+      "restored_sha256": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+      "executed_sha256": "11e7f4d4f07acfe2fec68dc16771829bcff45fed1efe67fb26c3c5d93d635e41"
+    }
+  ],
+  "existing_helper_functions_unchanged": 61,
+  "new_helper_functions": [
+    "calibrate_bounded_recovery"
+  ],
+  "stop_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+  "production_adopted": false,
+  "new_native": 0,
+  "goal_qualified": false,
+  "fit_converged": false,
+  "optimizer_budget_stop": {
+    "nfev": 3,
+    "njev": 3,
+    "status": 0,
+    "message": "The maximum number of function evaluations is exceeded."
+  },
+  "best_within_budget": {
+    "parameters": {
+      "tau_sec": 11.705044614077591,
+      "eta": 0.562251349815601,
+      "kappa": 137.17461808011328,
+      "phi": 0.8091644074046105
+    },
+    "folder": "e12",
+    "local_losses": {
+      "first450": 3.76698155539226,
+      "tail300": 10.570967319749066,
+      "all": 6.488575861134981
+    },
+    "speed_rmse": 22.68152354278418
+  },
+  "failed_setup_before_any_rollout": [
+    "setup_import_failure.log",
+    "setup_access_failure.log"
+  ],
+  "next_action_basis": "New local speed law improves selected end speeds but delays congestion and creates excessive intermediate stock; do not promote based on terminal recovery alone."
+}

@@ -1,0 +1,309 @@
+"""Finite-entry diagnosis from completed traces and decision snapshots only."""
+from collections import defaultdict
+from pathlib import Path
+import gzip
+import hashlib
+import json
+import statistics
+import sys
+
+HERE = Path(__file__).resolve().parent
+I = HERE.parents[1]
+ROOT = I.parents[2]
+pins = {}
+
+
+def read(path, compressed=False):
+    raw = path.read_bytes()
+    pins[str(path)] = hashlib.sha256(raw).hexdigest()
+    return json.loads(gzip.decompress(raw) if compressed else raw)
+
+
+def distribution(values):
+    return dict(n=len(values), mean=statistics.mean(values) if values else None,
+                median=statistics.median(values) if values else None,
+                min=min(values) if values else None, max=max(values) if values else None)
+
+
+def native_snapshot(folder, time, head):
+    data = read(folder / f'state_{time:06d}.json')
+    records = data['vehicle_records']
+    assert records['complete'] and records['capture_sim_sec_before'] == records['capture_sim_sec_after'] == time
+    rows = sorted((r for r in records['records'] if r['link_no'] == 10484 and r['position_m'] <= head),
+                  key=lambda r: (r['lane_no'], r['position_m']))
+    pairs = [(a,b) for a,b in zip(rows, rows[1:]) if a['lane_no'] == b['lane_no']]
+    stopped_pairs = [(a,b) for a,b in pairs if a['speed_kph'] < 1 and b['speed_kph'] < 1]
+    return dict(time=time, prehead_veh=len(rows), stopped_veh=sum(r['speed_kph'] < 1 for r in rows),
+                min_pos_m=min((r['position_m'] for r in rows),default=None),
+                stopped_neighbor_spacing_m=distribution([b['position_m']-a['position_m'] for a,b in stopped_pairs]),
+                all_neighbor_spacing_m=distribution([b['position_m']-a['position_m'] for a,b in pairs]),
+                rows=rows)
+
+
+def inspect_trace(folder, case):
+    trace = read(folder / (case+'_RM_C10484_trace.json.gz'),True)
+    meta = trace['initial_buffer']; head=meta['head_position_m']; lanes=meta['lanes']
+    assert lanes == 1, 'This counterfactual is for the observed single-lane10484 only'
+    initial = meta['initial_cohorts']
+    pre = sum(p <= head for p,v,l in initial)
+    post = len(initial)-pre
+    nominal_cap = head*lanes/meta['spacing_m']
+    events = defaultdict(lambda:dict(arrival=0.,head=0.,merge=0.,ramp_end=[],ramp_start=None))
+    for r in trace['transfers']:
+        t = r['start_sec']
+        if r['target'] == 'ramp:RM_C10484':events[t]['arrival']+=r['vehicles']
+        if r['source'] == 'ramp:RM_C10484' and r['target'] == 'merge_pending:RM_C10484':
+            events[t]['merge']+=r['vehicles']
+    for r in trace['resources']:
+        if r['kind'] == 'physical_ramp_head_service':events[r['start_sec']]['head']+=r['accepted_total_veh']
+        if r['kind'] == 'physical_ramp_merge_stock':events[r['start_sec']]['ramp_start']=r['available_veh']
+    for r in trace['residence']:events[r['start_sec']]['ramp_end'].append(r['ramp_veh'])
+    rows=[];total=0.;heads=0.;merges=0.;max_error=0.
+    for t,e in sorted(events.items()):
+        before=pre+post
+        # The resource records the pre-merge inventory. The diagnostic's
+        # duplicated residence snapshots are captured after the complete step.
+        residual=abs(before-e['ramp_start'])
+        assert residual < 1e-7,(t,before,e['ramp_start'])
+        max_error=max(max_error,residual)
+        entry_pre=pre-e['head']
+        room=nominal_cap-entry_pre
+        pre=entry_pre+e['arrival'];post+=e['head']-e['merge']
+        assert min(pre,post)>-1e-7,(t,pre,post)
+        assert all(abs(pre+post-r)<1e-7 for r in e['ramp_end']),t
+        rows.append(dict(time=t,prehead_after_service=entry_pre,prehead_end=pre,posthead_end=post,
+                         nominal_prehead_space=room,requested_accepted_arrival=e['arrival'],
+                         head=e['head'],merge=e['merge'],nominal_capacity_would_bind=e['arrival']>room+1e-8))
+        total+=e['arrival'];heads+=e['head'];merges+=e['merge']
+    summary=read(folder/'summary.json')['results'][case]['ramps']['RM_C10484']
+    assert max(abs(total-summary['arrival']),abs(merges-summary['merge']),abs(pre+post-summary['final_stock']))<1e-7
+    return dict(initial_prehead=len(initial)-sum(p>head for p,v,l in initial),
+                metadata={k:v for k,v in meta.items() if k!='initial_cohorts'},
+                nominal_prehead_capacity=nominal_cap,max_prehead=max(r['prehead_end'] for r in rows),
+                min_entry_margin=min(r['nominal_prehead_space']-r['requested_accepted_arrival'] for r in rows),
+                nominal_capacity_binding_steps=sum(r['nominal_capacity_would_bind'] for r in rows),
+                arrival=total,head=heads,merge=merges,final_prehead=pre,final_posthead=post,
+                trace_stock_reconstruction_error=max_error,seconds=rows)
+
+
+def main():
+    folders={
+        'seed47':I/'closedloop_recorded2700_lever450_trace10484_transport_s47_v1',
+        'seed43':I/'closedloop_recorded2250_lever450_trace10484_transport_s43_v1'}
+    traces={s:{c:inspect_trace(folder,c) for c in read(folder/'summary.json')['results']} for s,folder in folders.items()}
+    head=traces['seed47']['held_actual']['metadata']['head_position_m']
+    root=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3')
+    native={arm:[native_snapshot(root/arm/f'decisions_sdmpc31_g_2700_{arm}_s47',t,head)
+                 for t in ((2250,2400,2550,2700,2850,3000,3150) if arm=='hold' else (2700,2850,3000,3150))]
+            for arm in ('hold','release')}
+    assert native['hold'][3]['rows'] == native['release'][0]['rows']
+    past_pairs=[]
+    for snapshot in native['hold']:
+        if snapshot['time'] > 2700:continue
+        rows=snapshot['rows']
+        past_pairs += [b['position_m']-a['position_m'] for a,b in zip(rows,rows[1:])
+                       if a['lane_no']==b['lane_no'] and a['speed_kph']<1 and b['speed_kph']<1]
+    past=distribution(past_pairs)
+    # A sensitivity, not a fitted production storage density. Repeated vehicles
+    # and sparse stationary pairs cannot identify effective moving-queue space.
+    past_cap=head/past['median'] if past_pairs else None
+    for cases in traces.values():
+        for row in cases.values():
+            row['past_median_spacing_capacity']=past_cap
+            row['past_spacing_capacity_binding_steps']=sum(r['prehead_end']>past_cap+1e-8 for r in row['seconds']) if past_cap else None
+    result=dict(traces=traces,native=native,past_only_stationary_spacing=past,
+        conclusion='Nominal prehead-capacity restriction is inactive in all saved candidate traces. '
+                   'It cannot create the missing47hold/release arrival response by itself. '
+                   'Finite wave propagation or moving-queue occupation remains untested; stationary '
+                   'spacing must not be chosen from the future queue to force binding.',
+        new_forecasts=0,new_native=0,core_changed=False,source_pins=pins)
+    for path,pin in pins.items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==pin,path
+    for name in ('evaluation/controllers/physical_ramp_boundary.py','evaluation/controllers/lane_ramp_runtime.py',
+                 'evaluation/controllers/urban_flow_accounting.py','evaluation/controllers/route_choice_corridor.py'):
+        p=ROOT/name;result.setdefault('core_pins',{})[name]=hashlib.sha256(p.read_bytes()).hexdigest()
+    out=HERE/'audit.json';assert not out.exists()
+    out.write_text(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
+    print(json.dumps(dict(past=past,results={s:{c:{k:v for k,v in r.items() if k in
+        ('max_prehead','min_entry_margin','nominal_prehead_capacity','past_median_spacing_capacity',
+         'nominal_capacity_binding_steps','past_spacing_capacity_binding_steps','trace_stock_reconstruction_error')}
+         for c,r in cases.items()} for s,cases in traces.items()}),indent=2))
+
+
+def native_paths():
+    """One read of each completed FZP; cache selected physical paths for reuse."""
+    prior=read(I/'baseline_reproduction_20260929/coupled_arrival_s47/comparison.json')
+    area=read(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json')
+    traces={};summary={}
+    links={76,80,84,85,78,10703,31,10484,10774,124,10480,10775,125,10119,10121,10698,10721,10723,10726}
+    base=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3')
+    for arm in ('hold','release'):
+        path=base/arm/'vissim_eval'/f'sdmpc31_g_2700_{arm}_s47_001.fzp'
+        digest=hashlib.sha256();prefix=hashlib.sha256();prefix_n=0;selected=[];all_rows=0;columns=None
+        with path.open('rb') as handle:
+            for line in handle:
+                digest.update(line)
+                if line.startswith(b'$VEHICLE:'):
+                    columns=line.strip().split(b':',1)[1].split(b';')
+                    assert columns[:7]==[b'SIMSEC',b'NO',b'LANE\\LINK\\NO',b'LANE\\INDEX',b'POS',b'POSLAT',b'SPEED']
+                    continue
+                if not line[:1].isdigit():continue
+                assert columns is not None
+                time=float(line.split(b';',1)[0]);all_rows+=1
+                if time<2700:prefix.update(line.rstrip(b'\r\n')+b'\n');prefix_n+=1
+                if time<2250:continue
+                fields=line.rstrip().split(b';');link=int(fields[2])
+                if link not in links:continue
+                selected.append([time,int(fields[1]),link,int(fields[3]),float(fields[4]),float(fields[6]),
+                                 fields[11].decode(),fields[12].decode(),fields[14].decode(),
+                                 float(fields[10]),fields[17].decode(),fields[18].decode(),fields[19].decode()])
+        assert prefix.hexdigest()==area['prefixes'][arm]['sha256']
+        assert prefix_n==area['prefixes'][arm]['rows']
+        pins[str(path)]=digest.hexdigest()
+        by_id=defaultdict(list)
+        for row in selected:by_id[row[1]].append(row)
+        arrivals={}
+        for key,event in prior['entries'][arm].items():
+            vid=int(key);entry=event['detector_time']
+            before=[r for r in by_id[vid] if entry is None or r[0]<entry]
+            from2001=[r for r in before if r[2] in (78,10703)]
+            from1001=[r for r in before if r[2] in (10119,10121,10698) or (r[2]==31 and r[6]=='1137')]
+            if from2001 and from1001:raise AssertionError(('ambiguous source',vid))
+            source='SC2001' if from2001 else 'SC1001' if from1001 else 'unknown'
+            arrivals[key]=dict(source=source,entry=entry,initial_link=event['initial_link'],
+                last_approach=next((r for r in reversed(before) if r[2]!=10484),None))
+        counts={source:sum(r['source']==source for r in arrivals.values()) for source in ('SC1001','SC2001','unknown')}
+        # Past-only observed entrants: each ID enters78 between2250 and2550,
+        # then is classified by last known outcome by2700; include censorship.
+        past=[]
+        for vid,rr in by_id.items():
+            before=[r for r in rr if r[0]<2700]
+            entries=[r for r in before if r[2]==78]
+            if not entries or not 2255.1<=entries[0][0]<2550:continue
+            first=entries[0][0];prior_links=[r[2] for r in before if r[0]<first and r[2] in (76,80,84,85)]
+            outcome=next((str(r[2]) for r in before if r[0]>first and r[2] in (10484,10480,125)), 'censored')
+            past.append(dict(veh=vid,entry_first_sample=first,origin=prior_links[-1] if prior_links else None,outcome=outcome))
+        traces[arm]=dict(rows=selected,arrival_sources=arrivals,past_cohorts=past)
+        summary[arm]=dict(counts=counts,unknown_ids=[v for v,r in arrivals.items() if r['source']=='unknown'],
+            fzp_rows=all_rows,cached_rows=len(selected),prefix_rows=prefix_n,
+            past_cohorts={key:sum(r['outcome']==key for r in past) for key in ('10484','10480','125','censored')})
+    assert traces['hold']['past_cohorts']==traces['release']['past_cohorts']
+    out=HERE/'native_paths.json.gz';assert not out.exists()
+    out.write_bytes(gzip.compress(json.dumps(traces,separators=(',',':'),allow_nan=False).encode(),mtime=0))
+    result=dict(summary=summary,source_pins=pins,cache_sha256=hashlib.sha256(out.read_bytes()).hexdigest(),
+                row_columns=['time','veh','link','lane','position','speed','route_decision','route','next_link',
+                             'length','interaction_state','interaction_target_type','interaction_target_id'],
+                training_future_inputs=False,new_forecasts=0,new_native=0,
+                caveat='Observed physical path attribution; past entrants have5s timing resolution and unknown initial origin. '
+                       'No outcomes are injected into autonomous forecasts or fitted here.')
+    out=HERE/'native_path_summary.json';assert not out.exists()
+    out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+    print(json.dumps(summary,indent=2))
+
+
+def wave_audit():
+    """Check the existing receiving law before adding it to a ramp runtime.
+
+    Native departures and release-arm arrivals are explicit conditional inputs,
+    never an autonomous forecast or a calibration target for the wave speed.
+    """
+    import bisect
+    import math
+    from evaluation.controllers.obs150_contract import MerRow, assign_window
+    from evaluation.controllers.physical_urban_transport import ReceivingEnvelope
+
+    config=read(I/'baseline_reproduction_20260929/sc1001_native_choices/candidate_config.json')
+    manifest=read(ROOT/config['freeway']['lane_plant'])
+    protocol=read(ROOT/manifest['sources']['reference_protocol']['path'])
+    paths=read(HERE/'native_paths.json.gz',True)
+    folder=I/'closedloop_recorded2700_lever450_trace10484_sc1001_native_s47_v1'
+    meta=read(folder/'held_actual_RM_C10484_trace.json.gz',True)['initial_buffer']
+    length=meta['head_position_m'];spacing=meta['spacing_m'];speed=meta['travel_speed_kmh']/3.6
+    positions=[p for p,v,l in meta['initial_cohorts'] if p<length]
+    assert meta['lanes']==1 and len(positions)==29
+    qmax=.5  # Existing physical single-lane service ceiling1800veh/h; not fitted.
+    waves={'existing_urban_wave':protocol['wave_m_s'],
+           'existing_ramp_service_consistent':qmax/(1/spacing-qmax/speed)}
+    profiles={};native={}
+    root=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3')
+    for arm,case in [('hold','held_actual'),('release','release_actual')]:
+        directory=root/arm/f'decisions_sdmpc31_g_2700_{arm}_s47'
+        heads=[]
+        for end in (2850,3000,3150):
+            state=read(directory/f'state_{end:06d}.json')
+            p=directory/'obs150'/f'mer_{end:06d}.jsonl';raw=p.read_bytes()
+            pins[str(p)]=hashlib.sha256(raw).hexdigest()
+            rows=[MerRow(*json.loads(line)) for line in raw.decode().splitlines()]
+            assigned=assign_window(state['obs150'],rows)
+            assert assigned.tails[960220]==0
+            heads.extend(r.t_entry-2700 for r in assigned.entries[960220])
+        assert len(heads)==(45 if arm=='hold' else 102)
+        arrivals=sorted(v['entry']-2700 for v in paths[arm]['arrival_sources'].values())
+        assert len(arrivals)==(72 if arm=='hold' else 83)
+        dh=[bisect.bisect_right(heads,t) for t in range(451)]
+        ah=[bisect.bisect_right(arrivals,t) for t in range(451)]
+        assert dh[0]==ah[0]==0
+        assert len(positions)+ah[-1]-dh[-1]==(56 if arm=='hold' else 10)
+        profiles[arm]=dict(heads=dh,arrivals=ah)
+        native[arm]={}
+        for name,wave in waves.items():
+            env=ReceivingEnvelope(length,spacing,speed,wave,positions)
+            rows=[]
+            for t in range(1,451):
+                bound=env.initial_bound(t)
+                if t>=env.lag:
+                    lag=t-env.lag;lo=int(lag);hi=lo+1;f=lag-lo
+                    bound=min(bound,dh[lo]*(1-f)+dh[hi]*f+env.capacity-env.initial)
+                rows.append(dict(elapsed=t,arrival=ah[t],head=dh[t],bound=bound,
+                                 observed_excess=ah[t]-bound,prehead=env.initial+ah[t]-dh[t]))
+            native[arm][name]=dict(wave=wave,lag=env.lag,qmax=env.qmax,capacity=env.capacity,
+                initial_projection_max_m=env.projection_max_m,
+                max_native_excess=max(r['observed_excess'] for r in rows),
+                windows=[r for r in rows if r['elapsed'] in (150,300,450)])
+
+    def replay(demand,heads,wave=None):
+        env=ReceivingEnvelope(length,spacing,speed,wave,positions) if wave is not None else None
+        admitted=0.;backlog=0.;series=[]
+        for t in range(1,451):
+            backlog+=demand[t]-demand[t-1]
+            room=max(0.,length/spacing-len(positions)-admitted+heads[t])
+            if env is not None:room=min(room,env.offer(t,1,admitted,heads[:t]))
+            accepted=min(backlog,room);admitted+=accepted;backlog-=accepted
+            stock=len(positions)+admitted-heads[t]
+            assert stock>=-1e-7,(t,stock)
+            series.append(dict(elapsed=t,admitted=admitted,backlog=backlog,prehead=stock))
+        return dict(arrival=admitted,backlog=backlog,head=heads[-1],final_prehead=series[-1]['prehead'],
+                    first_backlog_sec=next((r['elapsed'] for r in series if r['backlog']>1e-6),None),
+                    windows=[r for r in series if r['elapsed'] in (150,300,450)])
+
+    conditional={arm:{'instant_prehead':replay(profiles['release']['arrivals'],profiles[arm]['heads'])}
+                 for arm in profiles}
+    for arm in profiles:
+        for name,wave in waves.items():
+            conditional[arm][name]=replay(profiles['release']['arrivals'],profiles[arm]['heads'],wave)
+    autonomous_screens={}
+    for case in ('held_actual','release_actual'):
+        trace=inspect_trace(folder,case)
+        heads=[0.];arrivals=[0.]
+        for row in trace['seconds']:
+            heads.append(heads[-1]+row['head']);arrivals.append(arrivals[-1]+row['requested_accepted_arrival'])
+        autonomous_screens[case]={'instant_prehead':replay(arrivals,heads)}
+        for name,wave in waves.items():autonomous_screens[case][name]=replay(arrivals,heads,wave)
+    result=dict(previous_goal_turn='progress: native destination binding and six450s predictions',
+        native_feasibility=native,conditional_released_arrivals=conditional,frozen_predicted_flow_screen=autonomous_screens,
+        limitations=['Native future head times and release arrivals condition the diagnostic, NOT operational prediction.',
+                     'Frozen predicted-flow screens do not close the coupled loop or update head service.',
+                     'Discrete one-vehicle events can exceed a fluid bound by packet/phase error; report exceedances, do not silently clip truth.',
+                     'Urban wave transfer is not a ramp calibration; head service ceiling is not proof of an unconstrained road capacity.',
+                     'Same release arrivals are a diagnostic offer:96common1137cohorts have matching routes, but all generated cohorts are not identical.'],
+        waves_selected_before_comparison=True,parameter_fit=False,new_autonomous_rollouts=0,new_native=0,
+        core_changed=False,source_pins=pins)
+    for p,pin in pins.items():assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==pin,p
+    out=HERE/'wave_audit.json';assert not out.exists()
+    out.write_text(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
+    print(json.dumps({k:v for k,v in result.items() if k in ('native_feasibility','conditional_released_arrivals','frozen_predicted_flow_screen')},indent=2))
+
+
+if __name__=='__main__':
+    if '--native-paths' in sys.argv:native_paths()
+    elif '--wave-audit' in sys.argv:wave_audit()
+    else:main()

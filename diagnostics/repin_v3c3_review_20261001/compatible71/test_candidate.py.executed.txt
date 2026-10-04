@@ -1,0 +1,91 @@
+import copy
+from collections import Counter
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+import unittest
+from diagnostics.demand_sweep.ramp_dsd_20260916_v2.cohort_dynamics_20260920.urban_route_transport import Contracts
+
+
+class Candidate(unittest.TestCase):
+    def toy(self,source=4,target=5,dest=10635,n=3.8,other_n=0.,rate=.2,green=False):
+        queues={lane:[] for lane in range(1,6)}
+        queues[source]=[((dest,1),n)]
+        queues[target]=[((dest,2),other_n)] if other_n else []
+        p=Contracts().toy(queues,green=green)
+        p.compatible_71_balance_rate=rate
+        return p
+
+    def lateral(self,p):
+        return {key:n for key,n in p.movements.items() if key[-1]=='lateral'}
+
+    def test_compatible_turn_moves_to_more_space(self):
+        p=self.toy();p.step({})
+        self.assertGreater(p.cells[71,5,0].counts().get((10635,1),0),0)
+        self.assertAlmostEqual(sum(p.counts().values()),3.8)
+        self.assertEqual(set(p.counts()),{(10635,1)})
+
+    def test_reverse_direction_uses_same_law(self):
+        p=self.toy(source=5,target=4);p.step({})
+        self.assertGreater(p.cells[71,4,0].stock,0)
+        self.assertTrue(all(k[0][1]==5 and k[1][1]==4 for k in self.lateral(p)))
+
+    def test_straight_exit_uses_its_own_allowed_lanes(self):
+        p=self.toy(source=2,target=1,dest=10634);p.step({})
+        self.assertGreater(p.cells[71,1,0].stock,0)
+        self.assertGreater(p.cells[71,3,0].stock,0)
+        self.assertEqual(p.cells[71,4,0].stock+p.cells[71,5,0].stock,0)
+
+    def test_no_turn_change_to_empty_incompatible_lane(self):
+        p=self.toy(source=4,target=5,dest=10634);p.step({})
+        self.assertEqual(p.cells[71,5,0].stock,0)
+        self.assertEqual(set(p.counts()),{(10634,1)})
+
+    def test_equal_space_and_full_space_do_not_shuffle(self):
+        for n in (1.,4.):
+            p=self.toy(n=n,other_n=n);p.step({});self.assertFalse(self.lateral(p))
+
+    def test_unknown_turn_does_not_gain_an_assignment(self):
+        p=self.toy(dest=None);p.step({});self.assertFalse(self.lateral(p))
+
+    def test_red_still_blocks_discharge(self):
+        p=self.toy()
+        for _ in range(20):p.step({})
+        self.assertEqual(sum(p.departed.values()),0)
+        self.assertAlmostEqual(sum(p.counts().values()),3.8)
+
+    def test_old_sending_receiving_shared_by_all_transfers(self):
+        p=self.toy(green=True)
+        for _ in range(20):
+            p.step({});incoming=Counter();outgoing=Counter()
+            for source,target,packets in p.last_transfers:
+                n=sum(n for _,n in packets);incoming[target]+=n;outgoing[source]+=n
+            for k,n in incoming.items():
+                if k[0]!='exit':self.assertLessEqual(n,p.last_receiving_limits[k]+1e-8)
+            for k,n in outgoing.items():self.assertLessEqual(n,p.last_sending_limits[k]+1e-8)
+            p.check()
+
+    def test_disabled_matches_original_source_exactly(self):
+        ns={'__name__':'saved_physical_urban_transport'}
+        path=Path(__file__).with_name('physical_urban_transport.py.before')
+        exec(compile(path.read_text(encoding='utf8'),str(path),'exec'),ns)
+        p=self.toy(rate=0.,green=True);q=copy.deepcopy(p)
+        for _ in range(20):
+            p.step({});ns['UrbanTransport'].step(q,{})
+            self.assertEqual(p.last_transfers,q.last_transfers)
+            self.assertEqual(p.counts(),q.counts())
+            self.assertEqual(p.departed,q.departed)
+
+    def test_unimplemented_compiled_path_is_rejected(self):
+        p=self.toy()
+        with patch('evaluation.controllers.physical_urban_transport.prediction_cache.active',return_value=SimpleNamespace(urban_pipeline_enabled=True)):
+            with self.assertRaisesRegex(ValueError,'scalar validation'):p.step({})
+
+
+if __name__=='__main__':
+    suite=unittest.defaultTestLoader.loadTestsFromTestCase(Candidate)
+    for name in ('test_lateral_and_longitudinal_share_receiver','test_compatible_follower_cannot_pass_blocked_head',
+                 'test_compaction_matches_analytic_reciprocal_flows','test_reciprocal_exchange_remains_bounded_without_losing_mass'):
+        suite.addTest(Contracts(name))
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(not result.wasSuccessful())

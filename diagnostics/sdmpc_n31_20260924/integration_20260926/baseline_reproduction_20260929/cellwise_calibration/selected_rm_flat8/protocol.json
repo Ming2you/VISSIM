@@ -1,0 +1,45 @@
+{
+  "hypothesis": "At the frozen selected city/VSL sequence, legal finite GREEN8 may expose a cost gradient missed by the continuous cycle-mean RM derivative.",
+  "cases": [
+    "selected",
+    "RM_C10639_flat8",
+    "RM_C10681_flat8",
+    "RM_C10490_flat8",
+    "RM_C10484_flat8",
+    "east_all_flat8"
+  ],
+  "planned_surrogate_rollouts": 6,
+  "planned_execution_rollouts": 6,
+  "additional_optimizer_iterations": 0,
+  "new_native": 0,
+  "new_fit": false,
+  "horizon_sec": 450,
+  "selected_budgets_fixed": true,
+  "city_vsl_fixed": true,
+  "sources": {
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_config.json": "c4abfccb63110bb4f7458a666d5e87b7ae367a07c12ae8403169ec3d674ce6dc",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_manifest.json": "dfde6d754254f8cd21bad54859361bee7c17c77b45f257679dea9f13fee46de1",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_select_expanded_joint_s43_v1\\summary.json": "b058528e032fbcd7e41885010dd38799c7e5708d369240aca23770346ec3fb69",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_select_expanded_joint_s43_v1\\unused_action.json": "21f8dc9ec46dc93181dbd243d081b0d3a466c0ffd78e3a8e072dad7abae26555",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_select_expanded_joint_s43_v1\\unused_action.joint.json": "52f408c42a50a7716d8f6acdf5fbe2aeb7b783d3dc1b86bf5ea867e99558a6ad",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_select_expanded_joint_s43_v1\\unused_action.joint_written.json": "33bb92f101852c98b2d14192387c0106fd558aaf3cd03e6f68d92bb7910d7b97",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_select_check_expanded_joint_s43_v1\\summary.json": "6d4d7e38b32d3022c6d56114968c3c5767f869671467a71aa4f95ea31ea9a0df",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "e0c262469196e61c3b55334766a6eb874b8ec36f7ba22a85a1f06c3edade6857"
+  },
+  "core_pins": {
+    "evaluation/controllers/lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "evaluation/controllers/lane_freeway_runtime.py": "1707e476dadc032cc2d5fbb6cc68d48700585f17498ed9bb84fa19573b0fea62",
+    "evaluation/controllers/freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "evaluation/controllers/area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "evaluation/controllers/physical_movement_routes.py": "621efa1911ee4eac3a4cf8e2beeab3a4553f03d446f50ca57bcd041f4ad7d270",
+    "evaluation/controllers/physical_ramp_boundary.py": "46703b814b389ed82b43bb41fd8b244bd1ba14684e9c24065a3252a6251c6e73",
+    "evaluation/controllers/runtime_setup.py": "1d1d9568e2083a9c7eb5b50e554f35e1b33228fede5e2aead0a69005d555a8c9",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "692e0326d2cd6cab049a443e3d55f2c8cfef623a12ef22f0e36aad07855d6771"
+  },
+  "old_functions_unchanged_except": [
+    "probe_selected_meter",
+    "main"
+  ],
+  "qualification": "Previously inspected state. Diagnostic of selection, not calibration or native gain proof. Preserve STOP and no further grid on a failed bounded probe."
+}

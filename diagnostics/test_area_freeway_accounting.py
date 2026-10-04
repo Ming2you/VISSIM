@@ -59,6 +59,37 @@ def physical_state(state):
 
 
 class FreewayAccountingTests(unittest.TestCase):
+    def test_optional_merge_inlet_changes_speed_without_changing_accepted_mass(self):
+        cfg, state, control, demand = fixture()
+        # Isolate an internal merge; the fixture's default terminal has its
+        # own speed cap, which can hide a changed convection input.
+        cfg.network.ramp_merge_segment_index = {r: 1 for r in cfg.network.ramps}
+        ramp = cfg.network.ramps[0]
+        release = {r: 240. if r == ramp else 0. for r in cfg.network.ramps}
+        seed(state, cfg, **{f'merge_pending:{ramp}': {'inside': 240.*cfg.simulation.T_f_h}})
+        baseline, mixed = state.copy(), state.copy()
+        kwargs = dict(ramp_release_veh_h=release, update_ramp_queues=False)
+        accounting._freeway_substep_events(baseline, control, demand, cfg, **kwargs)
+        _, diag = accounting._freeway_substep_events(mixed, control, demand, cfg,
+            junction_ramp_speeds={r: 0. for r in cfg.network.ramps}, **kwargs)
+        self.assertEqual(inventory(baseline, cfg), inventory(mixed, cfg))
+        self.assertEqual(baseline._control_area_ledger.flow_counts, mixed._control_area_ledger.flow_counts)
+        link = cfg.network.ramp_to_freeway[ramp]
+        cell = metanet._ramp_merge_index(cfg, ramp, len(state.freeway_density[link]))
+        self.assertLess(mixed.freeway_speed[link][cell], baseline.freeway_speed[link][cell])
+        self.assertEqual(diag['flow_weighted_merge_inlet_cells'], 1)
+        mixed._control_area_ledger.assert_stocks(inventory(mixed, cfg))
+
+    def test_merge_inlet_with_no_accepted_ramp_flow_keeps_state_identical(self):
+        cfg, state, control, demand = fixture()
+        seed(state, cfg)
+        left, right = state.copy(), state.copy()
+        kwargs = dict(ramp_release_veh_h={}, update_ramp_queues=False)
+        accounting._freeway_substep_events(left, control, demand, cfg, **kwargs)
+        accounting._freeway_substep_events(right, control, demand, cfg,
+            junction_ramp_speeds={r: 0. for r in cfg.network.ramps}, **kwargs)
+        self.assertEqual(physical_state(left), physical_state(right))
+
     def test_extracted_equations_remain_pinned(self):
         for module, name, expected in (
             (metanet, "freeway_substep", accounting.VENDOR_FREEWAY_METHOD_SHA256),

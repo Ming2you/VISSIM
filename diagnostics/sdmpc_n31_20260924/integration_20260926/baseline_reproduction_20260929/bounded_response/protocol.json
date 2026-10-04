@@ -1,0 +1,76 @@
+{
+  "source": "https://arxiv.org/html/2503.17680v1",
+  "equations": "13-17; current accepted merge, dynamic lane loss, existing desired-speed FD/VSL exposure",
+  "adaptation": [
+    "Separate eta for rho_down>=rho and rho_down<rho as user requested.",
+    "speed/v_free clipped at1 only INSIDE virtual-density weight because observed initial speeds may exceed fitted cell v_free; no clipping of physical state.",
+    "Existing percell FD differences preserved; jointly fit common critical-density/shape multipliers and front/rear merge coefficients.",
+    "No separate legacy convection/anticipation/merge/lane-drop speed decrement when candidate enabled. Physical receiving and off-ramp caps retained."
+  ],
+  "variables": [
+    {
+      "name": "eta_ge",
+      "initial": 0.5,
+      "lower": 0.0,
+      "upper": 1.0
+    },
+    {
+      "name": "eta_lt",
+      "initial": 0.5,
+      "lower": 0.0,
+      "upper": 1.0
+    },
+    {
+      "name": "kappa",
+      "initial": 20.0,
+      "lower": 1.0,
+      "upper": 100.0
+    },
+    {
+      "name": "tau_sec",
+      "initial": 12.0,
+      "lower": 2.0,
+      "upper": 40.0
+    },
+    {
+      "name": "merge_front",
+      "initial": 0.25,
+      "lower": 0.0,
+      "upper": 1.0
+    },
+    {
+      "name": "merge_rear",
+      "initial": 0.25,
+      "lower": 0.0,
+      "upper": 1.0
+    },
+    {
+      "name": "lane_drop",
+      "initial": 0.5,
+      "lower": 0.0,
+      "upper": 1.0
+    },
+    {
+      "name": "rho_scale",
+      "initial": 1.0,
+      "lower": 0.6,
+      "upper": 1.6
+    },
+    {
+      "name": "shape_scale",
+      "initial": 1.0,
+      "lower": 0.7,
+      "upper": 1.5
+    }
+  ],
+  "optimizer": "scipy least_squares on existing state+2*paired-response residuals, normalized bound variables; finite-difference step0.03,max_nfev5,max_njev5,hard ceiling50 unique candidate evaluations",
+  "maximum_candidate_training450": 400,
+  "training": "seed29 common2220.1 fourarms +2670.1 hold/release with/withoutVSL, eight",
+  "checks": "Only after frozen train candidate improves paired loss20pct, all meaningful signs correct,N/q RMSE<=110pct original: seed43 early fourarms. No selecting coefficients on checks.",
+  "purpose": "Test whether bounded relaxation with a calibrated virtual-density pressure can preserve gain/loss directions without cancellation of large additive speed forces.",
+  "candidate_initialization": "Explicit exploratory starting values, not copied as calibrated physical constants.",
+  "objective_scope": "East31+eightconnector waiting; NOT fullOmega. Controller Omega objective unchanged.",
+  "new_native": 0,
+  "new_push": 0,
+  "production_adopted": false
+}

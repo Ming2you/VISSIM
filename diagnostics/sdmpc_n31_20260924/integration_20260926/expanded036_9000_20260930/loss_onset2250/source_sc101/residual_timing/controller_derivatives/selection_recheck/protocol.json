@@ -1,0 +1,51 @@
+{
+  "created": "2026-10-01T21:51:34.203400+09:00",
+  "previous_goal_turn": "NO_PROGRESS: existing calibration scope re-read only",
+  "purpose": "One actual saved-state SDMPC decision after the verified inactive-VSL AD correction; then held/selected canonical execution check",
+  "script": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py",
+  "args": [
+    "--closedloop-recorded",
+    "--at=2700",
+    "--warm-head-history",
+    "--replay-vsl-history",
+    "--select",
+    "--probe-label=adfix47v1",
+    "--recording-dir=D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47",
+    "--fixed-replay-summary=C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\native_rm_observation2700_writerfix_v3\\analysis\\summary.json",
+    "--tuning-json=C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\source_sc101\\readiness_candidate\\candidate_config.json"
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "d68beae98a00a95c08316cf25d288e1cd48c00f6eeb7959da3980a4998f2b7d4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\sdmpc.py": "33efa14e3d228bc73ee3b6b66613794fb83c025df0844e7aabf8b16466f0f3c4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\source_sc101\\readiness_candidate\\candidate_config.json": "9b613bfb151a417a6a8f0c131d316f96e839570473aecca2cb841e27361b2883",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_002700.json": "28628e9f6030b7ecfb83fec0ef7bf0a4c3e8ce5b6ab5a7d6eceac66070a9ea43",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_res47v2\\unused_action.joint.json": "9f8324178032d717a939dbce5dea5d23cbf79328c55a5c7e23cad08958c09595"
+  },
+  "only_runtime_change": "Inactive VSL command slope now matches the scalar law; no scalar physics changes",
+  "baseline_selection": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_res47v2",
+  "limits": {
+    "decisions": 1,
+    "max_iterations": 2,
+    "max_leader_candidates": 1,
+    "max_evaluations": 20000,
+    "canonical_execution_forecasts": 2
+  },
+  "wall_time_policy": "Preserve existing ignore_wall_time_limits=True; do not restart on observation timeout",
+  "gates": [
+    "source pins unchanged during decision",
+    "full causal history and native previous commands verified",
+    "same policy/options/objective and starting caps procedure",
+    "inspect legal VSL activation diagnostic and first differing selection",
+    "canonical execution: conservation, NP/NUF, command feasibility and held parity"
+  ],
+  "native_started": false,
+  "fit": false,
+  "goal_qualified": false,
+  "scope": "Selection wiring evidence only; physical RM/VSL response and 9000 qualification remain separate",
+  "remaining_known_limitations": [
+    "10490 AD magnitude differs from scalar finite differences",
+    "Physical VSL response qualification incomplete"
+  ]
+}

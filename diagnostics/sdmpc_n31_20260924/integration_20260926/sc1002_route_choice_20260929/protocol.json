@@ -1,0 +1,26 @@
+{
+  "scope": "SC1002 east native choice weights only; existing canonical initializer and forecast",
+  "native_runs": 0,
+  "fit": false,
+  "forecasts_max": 6,
+  "states": [
+    "seed43 common2250 NC/RM/VSL/both",
+    "seed47 common2700 hold/selected"
+  ],
+  "head_resource_change": false,
+  "metanet_change": false,
+  "checks": [
+    "current network/route/receiver/source continuity",
+    "current stock conservation",
+    "commands equal",
+    "ramp arrival/merge/error",
+    "delta Omega TTT",
+    "unrelated contract unchanged"
+  ],
+  "sources": {
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\sc1001_sources_20260929\\candidate_config.json": "8966ff9284fbc1621b8c8da92320ca1589edad81ca116e712c42c743e0ec516e",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\physical_movement_routes_ver2_35eb21.json": "44795bbd62dbb9ff6d22148aa700ada098abf1078b783f541b0224ad1acd94b4",
+    "evaluation\\controllers\\physical_movement_routes.py": "88f09efc4c894643e427bc6526589915a6a2d9f6ac4f4119d183812c6235a21f",
+    "evaluation\\controllers\\runtime_setup.py": "2e54b2e31d56beaf2ba638424e30e8737ad7804eb3bf687777b9d9934c127ebf"
+  }
+}

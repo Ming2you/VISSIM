@@ -136,6 +136,59 @@ class OwnPfoTests(unittest.TestCase):
         self.assertNotEqual(first[0].green_times,second[0].green_times)
 
 
+class HeldCandidateTests(unittest.TestCase):
+    """PFO may reduce owned cost while worsening total Omega residence."""
+    def compare(self, *, feasible=True, actual_cost=474.0091485968191,
+                selected_cost=476.3398563698755):
+        from evaluation.controllers import sdmpc
+        from diagnostics.test_sdmpc_surrogate_reuse import action
+        reference=action()
+        original=copy.deepcopy(reference)
+        candidate=reference.copy()
+        candidate.N_P_star=544.9866016430901
+        candidate.N_UF_star=5807.912080173454
+        best=(candidate,dict(objective_veh_h=selected_cost),{'candidate_dual':[1.,2.]})
+        calls=[]
+        def evaluate(actions):
+            self.assertEqual(len(actions),1)
+            calls.append(actions[0])
+            self.assertEqual(actions[0].N_P_star,candidate.N_P_star)
+            self.assertEqual(actions[0].N_UF_star,candidate.N_UF_star)
+            self.assertEqual(actions[0].green_times,reference.green_times)
+            self.assertEqual(actions[0].vsl,reference.vsl)
+            self.assertEqual(actions[0].ramp_metering,reference.ramp_metering)
+            return [dict(objective_veh_h=actual_cost)]
+        result,proof=sdmpc.retain_feasible_held(reference,474.0091485968191,best,
+            candidate,1e-7,evaluate,lambda action,item:feasible)
+        self.assertEqual(reference,original)
+        return result,proof,calls,best
+
+    def test_lower_cost_feasible_held_survives_pfo_warm_start(self):
+        result,proof,calls,best=self.compare()
+        self.assertTrue(proof['selected'])
+        self.assertAlmostEqual(result[1]['objective_veh_h'],474.0091485968191)
+        self.assertIsNone(result[2])  # No price signal from the rejected action.
+        self.assertEqual(len(calls),1)
+
+    def test_infeasible_held_is_not_a_fallback(self):
+        result,proof,calls,best=self.compare(feasible=False)
+        self.assertIs(result,best)
+        self.assertFalse(proof['feasible'])
+        self.assertFalse(proof['selected'])
+
+    def test_better_winner_needs_no_additional_prediction(self):
+        result,proof,calls,best=self.compare(selected_cost=470.)
+        self.assertIs(result,best)
+        self.assertEqual(calls,[])
+        self.assertFalse(proof['evaluated'])
+
+    def test_rescored_response_must_improve_under_actual_caps(self):
+        result,proof,calls,best=self.compare(actual_cost=477.)
+        self.assertIs(result,best)
+        self.assertTrue(proof['evaluated'])
+        self.assertFalse(proof['selected'])
+
+
 class CapsTests(unittest.TestCase):
     def test_slack_merge_has_no_lower_price(self):
         updated=central.update_duals(np.zeros(2),[-1.,-3.],[0.,0.],1.,caps=True)

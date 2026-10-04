@@ -1,0 +1,51 @@
+{
+  "stage": "completed_with_diagnostic_output_failure",
+  "previous_goal_turn": "progress",
+  "forecast_budget": 4,
+  "forecasts_completed": 0,
+  "native_budget": 0,
+  "fit_budget": 0,
+  "test_session": 75708,
+  "test_exit": 1,
+  "expected_failure": "Declared upstream/post-head calibration did not reach actual buffers",
+  "aborted_routing_hypothesis": "Disproved before any model rollout; route preservation and destination travel already enabled, c4ab config unchanged. The direct_only file is an identical copied config, NOT a candidate.",
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "36ae42dc5d11b59e113cac053bb9006210b32e89a4ebf91278ad11030b703ef2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_config.json": "c4abfccb63110bb4f7458a666d5e87b7ae367a07c12ae8403169ec3d674ce6dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\route_choice_corridor.py": "86ae488a49e50fb366bf8190b9a97470310128017a93558139734f1dfb9a09a7",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_ramp_runtime.py": "22dbd42be58fde3ba4c7161784af7da4f8f2c351fb329f556e483448baa90ed1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_boundary.py": "46703b814b389ed82b43bb41fd8b244bd1ba14684e9c24065a3252a6251c6e73",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\sdmpc.py": "33efa14e3d228bc73ee3b6b66613794fb83c025df0844e7aabf8b16466f0f3c4",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "forecasts_attempted": 4,
+  "forecasts_saved": 3,
+  "sessions": {
+    "binding_before": 75708,
+    "binding_after": 59167,
+    "forecast2250": 29188,
+    "forecast3600": 7342
+  },
+  "source_changed_functions": [
+    "initialize"
+  ],
+  "new_native": 0,
+  "new_fzp": 0,
+  "coefficient_fits": 0,
+  "live_polls": 0,
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "tests": {
+    "binding_before": "EXPECTED_FAIL",
+    "binding_after": "PASS",
+    "existing_ramp_invariants": {
+      "passed": 7,
+      "errors": 1,
+      "error": "Existing eighth geometry smoke fixture port_profile.json missing"
+    },
+    "verified_saved_forecast_ramp_conservation": "8 ramps each, residual<1e-8",
+    "source_changed_functions": [
+      "initialize"
+    ]
+  },
+  "report_sha256": "389ad7b09c39ce50f05e50aa28da9ac77fea83109e3bc6aa6e8d32c021c40221"
+}

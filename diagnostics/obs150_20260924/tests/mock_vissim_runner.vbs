@@ -22,6 +22,13 @@ Class MockVissimR
     Public Property Get Net(): Set Net = mNet: End Property
     Public Property Get Simulation(): Set Simulation = mSim: End Property
     Public Property Get Evaluation(): Set Evaluation = mEval: End Property
+    Public Sub Log(priority, message)
+        Dim stream
+        If priority <> 20480 Then Err.Raise vbObjectError + 15, "MockVissimR", "Expected NOTE priority"
+        Set stream = fso.OpenTextFile(obs150ErrPath, 8, True, False)
+        stream.WriteLine "                     Note" & vbTab & message
+        stream.Close
+    End Sub
 End Class
 
 Class MockNetR

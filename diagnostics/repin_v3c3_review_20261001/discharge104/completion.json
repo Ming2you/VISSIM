@@ -1,0 +1,41 @@
+{
+  "status": "COMPLETE_CACHED_DISCHARGE_DIAGNOSTIC_NOT_GAIN_QUALIFIED",
+  "previous_goal_turn": "PROGRESS",
+  "this_goal_turn": "PROGRESS",
+  "flow_checks": 96,
+  "paired_flow_checks": 48,
+  "speed_update_checks": 18000,
+  "max_suppression_veh": 1.0231815394945443e-12,
+  "max_recurrence_error_kmh": 0.0,
+  "max_velocity_identity_error_kmh": 2.0605739337042905e-13,
+  "source_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\discharge104\\protocol.json": "c5d0864329dd577e78209e69057694655b8963233640b6c2fe76ec5147f29013",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\physical_binding94\\binding.json": "0026c6c8e4b5f4eac23f2c2b5d824e83c615a1e2aaeb2573bf9b8730e0b47e62",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\geometry.json": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\response_horizon98\\cell_flux.json": "16fe4e777663f99561f0e5d2d7a55dd84316375334350efc3eb45c1e5e379ae9",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent_trace81_path\\release.terms.gz": "1fba66337916ddee8ea5bbcf1474deafcfe872e49da62d82726de63a6a953aff",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent_trace81_path\\release_vsl90.terms.gz": "efebff89dc91be80687ad86907f75e72aec0b4208d95fc51f288a9fe0031e896",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_s73_replication95\\release.terms.gz": "7e0d399ea0951edb2c708dcfe525b74d0d141507c669bfdbf4e8f6bce3a5a288",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_s73_replication95\\release_vsl90.terms.gz": "82b49be9d964e8cb5365aef0daadda7ca8a22975922ca1b52b6a124e9f9723bc"
+  },
+  "old_helper_functions_unchanged": 15,
+  "protected9_and_STOP_unchanged": true,
+  "forecast": 0,
+  "fit": 0,
+  "native": 0,
+  "fzp": 0,
+  "push": false,
+  "scope": "Current aggregate service66; cached 67/73 release110 and release90, 2700-3150. No adoption.",
+  "limitations": [
+    "Native face counts are conservation reconstructions, not independent detectors.",
+    "Density/speed and equation term differences are model bookkeeping, not causal shares.",
+    "No whole-network capacity or all-state claim."
+  ],
+  "finding": "Tested internal through-flow already equals rho*v*lanes. Raising receiving limits cannot repair these cached discharge deficits. Seed73 response differs at cell19, before recovery cells24/25.",
+  "next": "Inspect baseline congestion formation/transport around cells18-20 jointly with downstream recovery. Do not repeat rejected FD/tau/nu/joint-lane grids or infer a VSL capacity bonus.",
+  "report_count_correction": {
+    "initial_count": 9000,
+    "corrected_count": 18000,
+    "reason": "4 arms * 10 cells * 450 one-second updates; no forecast rerun."
+  }
+}

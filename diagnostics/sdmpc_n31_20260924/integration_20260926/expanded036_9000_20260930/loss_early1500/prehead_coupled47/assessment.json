@@ -1,0 +1,1237 @@
+{
+  "status": "coupled_receiving_changes_queue_location_not_gain",
+  "responses": {
+    "baseline": {
+      "omega": 1.8430415480386273,
+      "east": 5.2356381223731745,
+      "ramps": -3.299280104271942,
+      "outside": -0.000278933759972233
+    },
+    "candidate": {
+      "omega": 1.8430415480385136,
+      "east": 5.2356381223731745,
+      "ramps": -3.1497552857870494,
+      "outside": -0.000278933759972233
+    }
+  },
+  "actual_delta": {
+    "omega": 2.0538333333352057,
+    "east": 4.8699444444444,
+    "ramps": -2.6797222222222246
+  },
+  "rows": [
+    {
+      "case": "held_actual",
+      "ramp": "RM_C10639",
+      "baseline": {
+        "arrival": 56.190000000000005,
+        "merge": 45.62173477167188,
+        "final_stock": 50.568265228327604,
+        "residual": 5.115907697472721e-13
+      },
+      "candidate": {
+        "arrival": 51.08253845814368,
+        "merge": 45.62173477167188,
+        "final_stock": 45.46080368647174,
+        "residual": 6.394884621840902e-14
+      },
+      "constrained_steps": 349,
+      "repeated_query_steps": 450
+    },
+    {
+      "case": "held_actual",
+      "ramp": "RM_C10484",
+      "baseline": {
+        "arrival": 72.27360641058807,
+        "merge": 45.3290703081646,
+        "final_stock": 56.94453610242348,
+        "residual": -7.105427357601002e-15
+      },
+      "candidate": {
+        "arrival": 66.71491443805516,
+        "merge": 45.3290703081646,
+        "final_stock": 51.38584412989054,
+        "residual": 1.4210854715202004e-14
+      },
+      "constrained_steps": 219,
+      "repeated_query_steps": 449
+    },
+    {
+      "case": "release_actual",
+      "ramp": "RM_C10639",
+      "baseline": {
+        "arrival": 56.190000000000005,
+        "merge": 45.62173754537995,
+        "final_stock": 50.56826245461957,
+        "residual": 4.760636329592671e-13
+      },
+      "candidate": {
+        "arrival": 51.08253845814363,
+        "merge": 45.62173754537995,
+        "final_stock": 45.46080091276367,
+        "residual": 7.105427357601002e-15
+      },
+      "constrained_steps": 349,
+      "repeated_query_steps": 450
+    },
+    {
+      "case": "release_actual",
+      "ramp": "RM_C10484",
+      "baseline": {
+        "arrival": 72.27360641058807,
+        "merge": 95.00103208993262,
+        "final_stock": 7.272574320655623,
+        "residual": -1.7141843500212417e-13
+      },
+      "candidate": {
+        "arrival": 72.27360641058807,
+        "merge": 95.00103208993258,
+        "final_stock": 7.272574320655624,
+        "residual": -1.305622276959184e-13
+      },
+      "constrained_steps": 18,
+      "repeated_query_steps": 449
+    }
+  ],
+  "displacement": {
+    "held_actual": {
+      "cost_changes": {
+        "movement:SC1004_W_to_onE": 0.002240897810828077,
+        "storage:SC2001_S_out": 0.0004877396884331864,
+        "ramp:RM_C10639": -0.1662539248947832,
+        "storage:SC1001_W_out": 0.14948213696291068,
+        "ramp:RM_C10484": -0.14996987665133776,
+        "storage:shared_69": 0.16401302708396237
+      },
+      "omega": 1.1368683772161603e-13,
+      "outside": 0.0
+    },
+    "release_actual": {
+      "cost_changes": {
+        "movement:SC1004_W_to_onE": 0.002240897810828077,
+        "storage:SC2001_S_out": 7.126565228832149e-06,
+        "ramp:RM_C10639": -0.16625392489478408,
+        "storage:SC1001_W_out": 0.0004379316012135259,
+        "ramp:RM_C10484": -0.00044505816644413443,
+        "storage:shared_69": 0.1640130270839677
+      },
+      "omega": 0.0,
+      "outside": 0.0
+    }
+  },
+  "source_admissions": {
+    "held_actual": {
+      "baseline": {
+        "storage:SC2001_S_out": 23.98011374240992,
+        "storage:SC1001_W_out": 48.2934926681784
+      },
+      "candidate": {
+        "storage:SC2001_S_out": 23.98011374240992,
+        "storage:SC1001_W_out": 42.73480069564552
+      }
+    },
+    "release_actual": {
+      "baseline": {
+        "storage:SC2001_S_out": 23.98011374240992,
+        "storage:SC1001_W_out": 48.2934926681784
+      },
+      "candidate": {
+        "storage:SC2001_S_out": 23.98011374240992,
+        "storage:SC1001_W_out": 48.2934926681784
+      }
+    }
+  },
+  "native_cohort_attribution": {
+    "common_arrivals": 67,
+    "cohorts": {
+      "hold": [
+        {
+          "vehicle": 27074,
+          "initial": null,
+          "arrival_time": 3059.6,
+          "hold_end": {
+            "veh_no": 27074,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 62.8147515721296,
+            "speed_kph": 3.04907164423251,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27074,
+            "link_no": 1220017300,
+            "lane_no": 2,
+            "position_m": 71.182045619203,
+            "speed_kph": 42.178284154489,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27298,
+          "initial": null,
+          "arrival_time": 3090.9,
+          "hold_end": {
+            "veh_no": 27298,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 44.3664638363304,
+            "speed_kph": 0.82912791033389,
+            "stopped": true
+          },
+          "release_end": {
+            "veh_no": 27298,
+            "link_no": 2,
+            "lane_no": 2,
+            "position_m": 2029.36599358267,
+            "speed_kph": 0.102287110088707,
+            "stopped": true
+          }
+        },
+        {
+          "vehicle": 27303,
+          "initial": null,
+          "arrival_time": 3055.76,
+          "hold_end": {
+            "veh_no": 27303,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 75.6833961219153,
+            "speed_kph": 4.3071986266328,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27303,
+            "link_no": 1220061100,
+            "lane_no": 1,
+            "position_m": 148.496873140016,
+            "speed_kph": 30.9390111153247,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27405,
+          "initial": null,
+          "arrival_time": 3057.62,
+          "hold_end": {
+            "veh_no": 27405,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 68.7533470814551,
+            "speed_kph": 3.63433535033803,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27405,
+            "link_no": 1220014203,
+            "lane_no": 1,
+            "position_m": 103.461709901976,
+            "speed_kph": 39.4771045463419,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27486,
+          "initial": null,
+          "arrival_time": 3051.0,
+          "hold_end": {
+            "veh_no": 27486,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 88.4771488580002,
+            "speed_kph": 0.252,
+            "stopped": true
+          },
+          "release_end": {
+            "veh_no": 27486,
+            "link_no": 26,
+            "lane_no": 1,
+            "position_m": 456.805062429662,
+            "speed_kph": 38.8543509635997,
+            "stopped": false
+          }
+        }
+      ],
+      "release": [
+        {
+          "vehicle": 12355,
+          "initial": {
+            "veh_no": 12355,
+            "link_no": 40,
+            "lane_no": 4,
+            "position_m": 1032.31686505841,
+            "speed_kph": 0.0,
+            "stopped": true
+          },
+          "arrival_time": 3112.11,
+          "hold_end": {
+            "veh_no": 12355,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 400.83246712511,
+            "speed_kph": 6.72737246814056,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 12355,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 464.803665257555,
+            "speed_kph": 50.6009264878042,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 15679,
+          "initial": {
+            "veh_no": 15679,
+            "link_no": 1220011103,
+            "lane_no": 2,
+            "position_m": 7.03908766491804,
+            "speed_kph": 42.4729512719142,
+            "stopped": false
+          },
+          "arrival_time": 3141.0,
+          "hold_end": {
+            "veh_no": 15679,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 331.32820707036,
+            "speed_kph": 0.0,
+            "stopped": true
+          },
+          "release_end": {
+            "veh_no": 15679,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 107.04035935422,
+            "speed_kph": 42.4729512719142,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 16177,
+          "initial": {
+            "veh_no": 16177,
+            "link_no": 40,
+            "lane_no": 4,
+            "position_m": 1026.57975770492,
+            "speed_kph": 0.0,
+            "stopped": true
+          },
+          "arrival_time": 3114.31,
+          "hold_end": {
+            "veh_no": 16177,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 392.555849388289,
+            "speed_kph": 5.82310160032894,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 16177,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 418.546117720193,
+            "speed_kph": 60.8135706392556,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 20739,
+          "initial": {
+            "veh_no": 20739,
+            "link_no": 1220014100,
+            "lane_no": 3,
+            "position_m": 106.707021886011,
+            "speed_kph": 0.0,
+            "stopped": true
+          },
+          "arrival_time": 3127.81,
+          "hold_end": {
+            "veh_no": 20739,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 366.964490531925,
+            "speed_kph": 3.80817537395731,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 20739,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 269.018399995654,
+            "speed_kph": 43.4884684121908,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 21647,
+          "initial": {
+            "veh_no": 21647,
+            "link_no": 321,
+            "lane_no": 3,
+            "position_m": 66.3155036289546,
+            "speed_kph": 25.6716211472479,
+            "stopped": false
+          },
+          "arrival_time": 3122.41,
+          "hold_end": {
+            "veh_no": 21647,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 386.661209587076,
+            "speed_kph": 1.93891741142257,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 21647,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 336.172313169872,
+            "speed_kph": 43.7235132543658,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 21834,
+          "initial": {
+            "veh_no": 21834,
+            "link_no": 1220018401,
+            "lane_no": 3,
+            "position_m": 160.167028295402,
+            "speed_kph": 0.0,
+            "stopped": true
+          },
+          "arrival_time": 3135.02,
+          "hold_end": {
+            "veh_no": 21834,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 351.611056576028,
+            "speed_kph": 5.82378899573057,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 21834,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 169.571528348609,
+            "speed_kph": 40.507495692118,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 22390,
+          "initial": {
+            "veh_no": 22390,
+            "link_no": 1220018401,
+            "lane_no": 4,
+            "position_m": 160.124831686247,
+            "speed_kph": 0.0,
+            "stopped": true
+          },
+          "arrival_time": 3138.67,
+          "hold_end": {
+            "veh_no": 22390,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 337.885178079797,
+            "speed_kph": 1.74208090491222,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 22390,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 133.222312953346,
+            "speed_kph": 42.5867916485475,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 22986,
+          "initial": {
+            "veh_no": 22986,
+            "link_no": 1220007004,
+            "lane_no": 2,
+            "position_m": 13.420804499087,
+            "speed_kph": 42.1934391170297,
+            "stopped": false
+          },
+          "arrival_time": 3144.12,
+          "hold_end": {
+            "veh_no": 22986,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 325.001004557827,
+            "speed_kph": 1.64355471231451,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 22986,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 74.3424522622258,
+            "speed_kph": 44.9805383570447,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 23230,
+          "initial": {
+            "veh_no": 23230,
+            "link_no": 1220021203,
+            "lane_no": 4,
+            "position_m": 143.275787596501,
+            "speed_kph": 41.7533914539389,
+            "stopped": false
+          },
+          "arrival_time": 3136.71,
+          "hold_end": {
+            "veh_no": 23230,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 344.130854055663,
+            "speed_kph": 3.28127275848013,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 23230,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 149.978941814501,
+            "speed_kph": 41.5774331320124,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 24139,
+          "initial": {
+            "veh_no": 24139,
+            "link_no": 1220011503,
+            "lane_no": 3,
+            "position_m": 200.528716932607,
+            "speed_kph": 0.0,
+            "stopped": true
+          },
+          "arrival_time": 3125.83,
+          "hold_end": {
+            "veh_no": 24139,
+            "link_no": 31,
+            "lane_no": 1,
+            "position_m": 374.101103633054,
+            "speed_kph": 1.74845518154868,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 24139,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 292.325581092989,
+            "speed_kph": 43.3875017586135,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27295,
+          "initial": null,
+          "arrival_time": 3090.15,
+          "hold_end": {
+            "veh_no": 27295,
+            "link_no": 2,
+            "lane_no": 3,
+            "position_m": 2284.65515532807,
+            "speed_kph": 84.5025858624504,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27295,
+            "link_no": 24,
+            "lane_no": 1,
+            "position_m": 384.712334223254,
+            "speed_kph": 87.357717372126,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27302,
+          "initial": null,
+          "arrival_time": 3056.23,
+          "hold_end": {
+            "veh_no": 27302,
+            "link_no": 10501,
+            "lane_no": 1,
+            "position_m": 253.073893371806,
+            "speed_kph": 71.8681330023603,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27302,
+            "link_no": 24,
+            "lane_no": 1,
+            "position_m": 850.933253030737,
+            "speed_kph": 102.752901077717,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27399,
+          "initial": null,
+          "arrival_time": 3057.94,
+          "hold_end": {
+            "veh_no": 27399,
+            "link_no": 2,
+            "lane_no": 1,
+            "position_m": 1396.26685951006,
+            "speed_kph": 83.6941258138816,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27399,
+            "link_no": 24,
+            "lane_no": 2,
+            "position_m": 726.677157857842,
+            "speed_kph": 105.282882387567,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27482,
+          "initial": null,
+          "arrival_time": 3051.4,
+          "hold_end": {
+            "veh_no": 27482,
+            "link_no": 10482,
+            "lane_no": 2,
+            "position_m": 152.607301766324,
+            "speed_kph": 43.0517454603807,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27482,
+            "link_no": 24,
+            "lane_no": 2,
+            "position_m": 1146.88666962118,
+            "speed_kph": 84.1718221091745,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27539,
+          "initial": null,
+          "arrival_time": 3062.88,
+          "hold_end": {
+            "veh_no": 27539,
+            "link_no": 309,
+            "lane_no": 3,
+            "position_m": 106.342673383603,
+            "speed_kph": 39.2764772936091,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27539,
+            "link_no": 24,
+            "lane_no": 2,
+            "position_m": 535.217232025211,
+            "speed_kph": 81.532702551353,
+            "stopped": false
+          }
+        },
+        {
+          "vehicle": 27768,
+          "initial": null,
+          "arrival_time": 3132.97,
+          "hold_end": {
+            "veh_no": 27768,
+            "link_no": 124,
+            "lane_no": 3,
+            "position_m": 155.466635462181,
+            "speed_kph": 39.0503293689313,
+            "stopped": false
+          },
+          "release_end": {
+            "veh_no": 27768,
+            "link_no": 10484,
+            "lane_no": 1,
+            "position_m": 191.889181281951,
+            "speed_kph": 40.3797244165046,
+            "stopped": false
+          }
+        }
+      ]
+    },
+    "initial_common_release_only": 10,
+    "link31": {
+      "hold": [
+        {
+          "time": 2700,
+          "n": 4,
+          "slow10": 0
+        },
+        {
+          "time": 2850,
+          "n": 7,
+          "slow10": 0
+        },
+        {
+          "time": 3000,
+          "n": 5,
+          "slow10": 0
+        },
+        {
+          "time": 3150,
+          "n": 18,
+          "slow10": 13
+        }
+      ],
+      "release": [
+        {
+          "time": 2700,
+          "n": 4,
+          "slow10": 0
+        },
+        {
+          "time": 2850,
+          "n": 6,
+          "slow10": 0
+        },
+        {
+          "time": 3000,
+          "n": 6,
+          "slow10": 0
+        },
+        {
+          "time": 3150,
+          "n": 5,
+          "slow10": 0
+        }
+      ]
+    },
+    "limitation": "Future records used only for retrospective scoring. Link31 is not the whole model storage SC1001_W_out; matched cohort is not a total TTT attribution."
+  },
+  "eight_ramp_native_truth": [
+    {
+      "ramp": "RM_C10480",
+      "native_delta": 0.011055555555555596,
+      "models": {
+        "base": {
+          "delta": 0.0,
+          "error": -0.011055555555555596,
+          "flows": {
+            "hold": {
+              "arrival": 36.249130439506665,
+              "merge": 34.947364603439155,
+              "final_stock": 1.3017658360675124,
+              "residual": -2.4424906541753444e-15
+            },
+            "release": {
+              "arrival": 36.249130439506665,
+              "merge": 34.947364603439155,
+              "final_stock": 1.3017658360675124,
+              "residual": -2.4424906541753444e-15
+            }
+          }
+        },
+        "pressure": {
+          "delta": 0.0,
+          "error": -0.011055555555555596,
+          "flows": {
+            "hold": {
+              "arrival": 36.249130439506665,
+              "merge": 34.947364603439155,
+              "final_stock": 1.3017658360675124,
+              "residual": -2.4424906541753444e-15
+            },
+            "release": {
+              "arrival": 36.249130439506665,
+              "merge": 34.947364603439155,
+              "final_stock": 1.3017658360675124,
+              "residual": -2.4424906541753444e-15
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 0,
+          "arrival": 25,
+          "head": 25,
+          "final": 1,
+          "merge": 24,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 0,
+          "arrival": 28,
+          "head": 27,
+          "final": 2,
+          "merge": 26,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    },
+    {
+      "ramp": "RM_C10482",
+      "native_delta": -0.007888888888871293,
+      "models": {
+        "base": {
+          "delta": 0.0,
+          "error": 0.007888888888871293,
+          "flows": {
+            "hold": {
+              "arrival": 275.31119606633547,
+              "merge": 277.7111960663355,
+              "final_stock": 24.60000000000006,
+              "residual": -9.237055564881302e-14
+            },
+            "release": {
+              "arrival": 275.31119606633547,
+              "merge": 277.7111960663355,
+              "final_stock": 24.60000000000006,
+              "residual": -9.237055564881302e-14
+            }
+          }
+        },
+        "pressure": {
+          "delta": 0.0,
+          "error": 0.007888888888871293,
+          "flows": {
+            "hold": {
+              "arrival": 275.31119606633547,
+              "merge": 277.7111960663355,
+              "final_stock": 24.60000000000006,
+              "residual": -9.237055564881302e-14
+            },
+            "release": {
+              "arrival": 275.31119606633547,
+              "merge": 277.7111960663355,
+              "final_stock": 24.60000000000006,
+              "residual": -9.237055564881302e-14
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 27,
+          "arrival": 271,
+          "head": 275,
+          "final": 15,
+          "merge": 283,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 27,
+          "arrival": 272,
+          "head": 273,
+          "final": 24,
+          "merge": 275,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    },
+    {
+      "ramp": "RM_C10484",
+      "native_delta": -2.767666666666668,
+      "models": {
+        "base": {
+          "delta": -3.297163787266232,
+          "error": -0.5294971205995642,
+          "flows": {
+            "hold": {
+              "arrival": 72.27360641058807,
+              "merge": 45.3290703081646,
+              "final_stock": 56.94453610242348,
+              "residual": -7.105427357601002e-15
+            },
+            "release": {
+              "arrival": 72.27360641058807,
+              "merge": 95.00103208993262,
+              "final_stock": 7.272574320655623,
+              "residual": -1.7141843500212417e-13
+            }
+          }
+        },
+        "pressure": {
+          "delta": -3.2927373101374453,
+          "error": -0.5250706434707775,
+          "flows": {
+            "hold": {
+              "arrival": 72.27360641058807,
+              "merge": 45.333463286789986,
+              "final_stock": 56.940143123798066,
+              "residual": 2.1316282072803006e-14
+            },
+            "release": {
+              "arrival": 72.27360641058807,
+              "merge": 94.9746348633165,
+              "final_stock": 7.298971547271745,
+              "residual": -1.6786572132332367e-13
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 30,
+          "arrival": 72,
+          "head": 45,
+          "final": 57,
+          "merge": 45,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 30,
+          "arrival": 83,
+          "head": 102,
+          "final": 16,
+          "merge": 97,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    },
+    {
+      "ramp": "RM_C10490",
+      "native_delta": 0.09038888888888597,
+      "models": {
+        "base": {
+          "delta": -0.0020929340332411783,
+          "error": -0.09248182292212714,
+          "flows": {
+            "hold": {
+              "arrival": 89.51886618500409,
+              "merge": 90.51886618500411,
+              "final_stock": 6.000000000000004,
+              "residual": -3.2862601528904634e-14
+            },
+            "release": {
+              "arrival": 89.51886618500409,
+              "merge": 90.51886618500411,
+              "final_stock": 6.000000000000005,
+              "residual": -3.375077994860476e-14
+            }
+          }
+        },
+        "pressure": {
+          "delta": -0.0013234845238869752,
+          "error": -0.09171237341277294,
+          "flows": {
+            "hold": {
+              "arrival": 89.51886618500409,
+              "merge": 90.51886618500411,
+              "final_stock": 6.000000000000006,
+              "residual": -3.4638958368304884e-14
+            },
+            "release": {
+              "arrival": 89.51886618500409,
+              "merge": 90.51886618500411,
+              "final_stock": 6.000000000000006,
+              "residual": -3.4638958368304884e-14
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 7,
+          "arrival": 101,
+          "head": 92,
+          "final": 16,
+          "merge": 92,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 7,
+          "arrival": 96,
+          "head": 92,
+          "final": 12,
+          "merge": 91,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    },
+    {
+      "ramp": "RM_C10639",
+      "native_delta": 0.0,
+      "models": {
+        "base": {
+          "delta": -2.5827824323698678e-08,
+          "error": -2.5827824323698678e-08,
+          "flows": {
+            "hold": {
+              "arrival": 56.190000000000005,
+              "merge": 45.62173477167188,
+              "final_stock": 50.568265228327604,
+              "residual": 5.115907697472721e-13
+            },
+            "release": {
+              "arrival": 56.190000000000005,
+              "merge": 45.62173754537995,
+              "final_stock": 50.56826245461957,
+              "residual": 4.760636329592671e-13
+            }
+          }
+        },
+        "pressure": {
+          "delta": -2.4386480390603538e-08,
+          "error": -2.4386480390603538e-08,
+          "flows": {
+            "hold": {
+              "arrival": 56.190000000000005,
+              "merge": 45.62173449967105,
+              "final_stock": 50.56826550032844,
+              "residual": 5.115907697472721e-13
+            },
+            "release": {
+              "arrival": 56.190000000000005,
+              "merge": 45.6217371115724,
+              "final_stock": 50.56826288842712,
+              "residual": 4.760636329592671e-13
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 40,
+          "arrival": 52,
+          "head": 45,
+          "final": 46,
+          "merge": 46,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 40,
+          "arrival": 52,
+          "head": 45,
+          "final": 46,
+          "merge": 46,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    },
+    {
+      "ramp": "RM_C10644",
+      "native_delta": 0.0,
+      "models": {
+        "base": {
+          "delta": 0.0,
+          "error": 0.0,
+          "flows": {
+            "hold": {
+              "arrival": 59.59,
+              "merge": 56.97999999999997,
+              "final_stock": 11.609999999999982,
+              "residual": 5.3290705182007514e-14
+            },
+            "release": {
+              "arrival": 59.59,
+              "merge": 56.97999999999997,
+              "final_stock": 11.609999999999982,
+              "residual": 5.3290705182007514e-14
+            }
+          }
+        },
+        "pressure": {
+          "delta": 0.0,
+          "error": 0.0,
+          "flows": {
+            "hold": {
+              "arrival": 59.59,
+              "merge": 56.97999999999997,
+              "final_stock": 11.609999999999982,
+              "residual": 5.3290705182007514e-14
+            },
+            "release": {
+              "arrival": 59.59,
+              "merge": 56.97999999999997,
+              "final_stock": 11.609999999999982,
+              "residual": 5.3290705182007514e-14
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 9,
+          "arrival": 68,
+          "head": 60,
+          "final": 15,
+          "merge": 62,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 9,
+          "arrival": 68,
+          "head": 60,
+          "final": 15,
+          "merge": 62,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    },
+    {
+      "ramp": "RM_C10646",
+      "native_delta": -0.001388888888889106,
+      "models": {
+        "base": {
+          "delta": -9.495894991440323e-07,
+          "error": 0.001387939299389962,
+          "flows": {
+            "hold": {
+              "arrival": 42.73636394390617,
+              "merge": 48.29979905541243,
+              "final_stock": 1.4365648884937432,
+              "residual": -1.7763568394002505e-15
+            },
+            "release": {
+              "arrival": 42.7362536689966,
+              "merge": 48.29968878050286,
+              "final_stock": 1.4365648884937432,
+              "residual": -1.7763568394002505e-15
+            }
+          }
+        },
+        "pressure": {
+          "delta": -9.720981384298e-07,
+          "error": 0.0013879167907506762,
+          "flows": {
+            "hold": {
+              "arrival": 42.73637406104135,
+              "merge": 48.299809172547604,
+              "final_stock": 1.4365648884937432,
+              "residual": 5.329070518200751e-15
+            },
+            "release": {
+              "arrival": 42.73626117222527,
+              "merge": 48.29969628373153,
+              "final_stock": 1.4365648884937432,
+              "residual": -1.7763568394002505e-15
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 7,
+          "arrival": 44,
+          "head": 43,
+          "final": 7,
+          "merge": 44,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 7,
+          "arrival": 44,
+          "head": 43,
+          "final": 7,
+          "merge": 44,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    },
+    {
+      "ramp": "RM_C10681",
+      "native_delta": -0.004222222222235672,
+      "models": {
+        "base": {
+          "delta": -2.2407555145598224e-05,
+          "error": 0.004199814667090074,
+          "flows": {
+            "hold": {
+              "arrival": 117.20909183171851,
+              "merge": 145.35289053141145,
+              "final_stock": 25.85620130030725,
+              "residual": -1.7408297026122455e-13
+            },
+            "release": {
+              "arrival": 117.2087610069898,
+              "merge": 145.3531336214409,
+              "final_stock": 25.85562738554913,
+              "residual": -2.3092638912203256e-13
+            }
+          }
+        },
+        "pressure": {
+          "delta": -2.174496991447228e-05,
+          "error": 0.0042004772523212,
+          "flows": {
+            "hold": {
+              "arrival": 117.20912218312405,
+              "merge": 145.35286677254533,
+              "final_stock": 25.856255410578832,
+              "residual": -9.237055564881302e-14
+            },
+            "release": {
+              "arrival": 117.20878351667581,
+              "merge": 145.35309536060214,
+              "final_stock": 25.85568815607389,
+              "residual": -2.3447910280083306e-13
+            }
+          }
+        }
+      },
+      "native_flows": {
+        "hold": {
+          "initial": 54,
+          "arrival": 150,
+          "head": 151,
+          "final": 54,
+          "merge": 150,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        },
+        "release": {
+          "initial": 54,
+          "arrival": 152,
+          "head": 150,
+          "final": 57,
+          "merge": 149,
+          "merge_method": "native entry count plus initial minus final stock; no ramp removal"
+        }
+      }
+    }
+  ],
+  "budget_steps": 1800,
+  "mass_checks": true,
+  "shared_budget_checks": true,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\prehead_coupled47\\run_completion.json": "acb358767543474534123c081fa3566e071ce1640db1f786e6894d9e2114d5c2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\prehead_coupled47\\output.json": "0beb704fb157ee787d4dac95c76eb92df75fd152e1e00b70744ce18e85da7f4e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\held_actual.json": "8a751e54940cf930dee90a1268b5f6abbe090b3b44301804f7ddbb6be95d235d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\release_actual.json": "343b6232c7a5b502d61d33f46280c90900e194bfde4dcbd70925f6d8b63e6b63",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_prehead_coupled47\\held_actual.json": "13a8be13735807c5ea6543faf8841e78897469a43c4079e1774cd23145979a8c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_prehead_coupled47\\release_actual.json": "4a6db723cf56bcb20e2b817226f77e80436887392134c0526b6ce0045b6b29ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\prehead_coupled47\\admission_budgets.json.gz": "51c4f51657a55c68cbbba7c9351fdec0fd9cba898bc726f0fff156ef98bf4e35",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\held_actual_RM_C10484_trace.json.gz": "f66feecd22e85c9472aa0959b7711297b91304e07db67c1711cc70ab2f0b4dc1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_prehead_coupled47\\held_actual_RM_C10484_trace.json.gz": "fe08a46e71679047e587421693964570166dc28121af20356af823f7e1f1424c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_lane84_ind47_base\\release_actual_RM_C10484_trace.json.gz": "e2199497e2b1f62b0b7b638549eef228425ffc4cb35d2801a723bfac98711866",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_prehead_coupled47\\release_actual_RM_C10484_trace.json.gz": "99c79d6c9fb4b03c04b86a6ebd091bdb692492616ecce6e5c40c1e51da35c065",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\region21_24\\assessment.json": "f5ec3af257252e34924f2135325c5c1efb9b24dae19ac9922e25a1e0ddffe64c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\ramp_cost47\\assessment.json": "d6f99403383d4f8c972b6debfcc8f3f128ca34c01b0290325394882e43d68987",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\native_rm_observation2700_writerfix_v3\\analysis\\summary.json": "801bb757e033f268f0cef7e1d4e22add53f073b6e93fb9b5c4320083b4ecd915",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_002700.json": "28628e9f6030b7ecfb83fec0ef7bf0a4c3e8ce5b6ab5a7d6eceac66070a9ea43",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_002850.json": "c13726fef86474d63fce6a5af4d23cba3660c3530cd5a1508844c1878f582da0",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_003000.json": "f4d9bf3559af35e0cbba7dba60078bf1618449f132cddbec9f31f095f7edcb6e",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_003150.json": "da1934ae5bfe885e6c0e8dc8ba0e20ccd9ecdd702e813d75f27e2a33c22dc01e",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\obs150\\mer_002850.jsonl": "670fab4192de44b782c54c97233f57998512e1471cae6254193602e9cd6275ff",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\obs150\\mer_003000.jsonl": "3617b868693b6a0abae0b1e5189819e2cbbd117e1dff3dbe88f3aef1589a3626",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\obs150\\mer_003150.jsonl": "1a2ca50df8e3789b8dc08e6f1a8e8746e9f860098f861ffb99aa92613c12e728",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\release\\decisions_sdmpc31_g_2700_release_s47\\state_002700.json": "ec7923696c3f8e3a3796e72d6d061b2835550f6aa452b1c9384c173aadc2865a",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\release\\decisions_sdmpc31_g_2700_release_s47\\state_002850.json": "4611374052d8941a97cf15d68bc2d19c4be588f166609526f4c8314688abe5a7",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\release\\decisions_sdmpc31_g_2700_release_s47\\state_003000.json": "86e9face5f9b26c78ce864cd99598ef6decbc1d879c7e9f77989b5b0885eda70",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\release\\decisions_sdmpc31_g_2700_release_s47\\state_003150.json": "d35fd6eacc9f7408be0c20c8333f2b552f941d48d5264673049e463e0a375a3f",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\release\\decisions_sdmpc31_g_2700_release_s47\\obs150\\mer_002850.jsonl": "e1c21e83a8ef6502c01b7eec62dd2f7af84cc23b31856bcf7dbef2af25e796f6",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\release\\decisions_sdmpc31_g_2700_release_s47\\obs150\\mer_003000.jsonl": "41fa6b887ec1c3c4780c8fac9e26ff7ca0bc6ce5fbbcfbb95a3bc85bab91e475",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\release\\decisions_sdmpc31_g_2700_release_s47\\obs150\\mer_003150.jsonl": "072b3e3b98725b2b05ad42166d05e2480b4a8a13d3f4a7a96fb420a8ff597ac7",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_prehead_coupled47\\summary.json": "fde567260a9f412a0c11cb545768da81622237578850dee0616a5f6a6eb3cc01"
+  },
+  "new_forecasts": 2,
+  "compute_sec": 51.853342700051144,
+  "wall_sec": 74.19456670002546,
+  "new_native": 0,
+  "new_fzp_reads": 0,
+  "live_poll": 0,
+  "fit": 0,
+  "adopted": false,
+  "goal_qualified": false
+}

@@ -1,0 +1,250 @@
+{
+  "previous_goal_turn": "PROGRESS:5 frozen seed61 forecasts completed; big RM response improved, VSL flow direction remains wrong.",
+  "cases": [
+    {
+      "case": "s29_late",
+      "arm": "hold",
+      "cutoff": 2670.1
+    },
+    {
+      "case": "s29_late",
+      "arm": "hold_vsl90",
+      "cutoff": 2670.1
+    },
+    {
+      "case": "s29_early",
+      "arm": "none",
+      "cutoff": 2220.1
+    },
+    {
+      "case": "s29_early",
+      "arm": "vsl",
+      "cutoff": 2220.1
+    }
+  ],
+  "scope": "Only existing seed29 training native trajectories; 450s,5s samples,31east cells; detailed vehicle rows only cells14..26.",
+  "question": "Does the native VSL interaction/desired-speed change occur upstream of the modeled sign/cohort change, and when does the downstream110 reset occur?",
+  "paired_vehicles": "Only IDs already present in the identical whole-network cutoff frame; new IDs after the split are not paired.",
+  "limits": [
+    "Native future samples are diagnosis and scoring only, never autonomous prediction inputs.",
+    "Five-second change brackets are not exact event times; target IDs/types are native reported interaction fields, not assumed causes.",
+    "Do not fit on seed61 or infer a capacity increase from mean speed alone."
+  ],
+  "maximum_fzp_passes": 4,
+  "new_rollouts": 0,
+  "new_native": 0,
+  "fit": 0,
+  "signs": [
+    {
+      "no": 36,
+      "lane": 4,
+      "x_m": 11.869191846097497,
+      "cell": 0
+    },
+    {
+      "no": 37,
+      "lane": 3,
+      "x_m": 11.848150237030904,
+      "cell": 0
+    },
+    {
+      "no": 38,
+      "lane": 2,
+      "x_m": 11.587768547694159,
+      "cell": 0
+    },
+    {
+      "no": 39,
+      "lane": 1,
+      "x_m": 11.52826543395474,
+      "cell": 0
+    },
+    {
+      "no": 43,
+      "lane": 1,
+      "x_m": 40.0,
+      "cell": 0
+    },
+    {
+      "no": 44,
+      "lane": 2,
+      "x_m": 40.0,
+      "cell": 0
+    },
+    {
+      "no": 45,
+      "lane": 3,
+      "x_m": 40.0,
+      "cell": 0
+    },
+    {
+      "no": 46,
+      "lane": 4,
+      "x_m": 40.0,
+      "cell": 0
+    },
+    {
+      "no": 47,
+      "lane": 1,
+      "x_m": 1346.6386453522666,
+      "cell": 2
+    },
+    {
+      "no": 48,
+      "lane": 2,
+      "x_m": 1346.6386453522666,
+      "cell": 2
+    },
+    {
+      "no": 49,
+      "lane": 3,
+      "x_m": 1346.6386453522666,
+      "cell": 2
+    },
+    {
+      "no": 50,
+      "lane": 4,
+      "x_m": 1346.6386453522666,
+      "cell": 2
+    },
+    {
+      "no": 51,
+      "lane": 1,
+      "x_m": 2782.7125565649653,
+      "cell": 5
+    },
+    {
+      "no": 52,
+      "lane": 2,
+      "x_m": 2782.7125565649653,
+      "cell": 5
+    },
+    {
+      "no": 53,
+      "lane": 3,
+      "x_m": 2782.7125565649653,
+      "cell": 5
+    },
+    {
+      "no": 54,
+      "lane": 4,
+      "x_m": 2782.7125565649653,
+      "cell": 5
+    },
+    {
+      "no": 55,
+      "lane": 1,
+      "x_m": 4039.915703683193,
+      "cell": 7
+    },
+    {
+      "no": 56,
+      "lane": 2,
+      "x_m": 4039.915703683193,
+      "cell": 7
+    },
+    {
+      "no": 57,
+      "lane": 3,
+      "x_m": 4039.915703683193,
+      "cell": 7
+    },
+    {
+      "no": 58,
+      "lane": 4,
+      "x_m": 4039.915703683193,
+      "cell": 7
+    },
+    {
+      "no": 59,
+      "lane": 1,
+      "x_m": 5386.554349035459,
+      "cell": 14
+    },
+    {
+      "no": 60,
+      "lane": 2,
+      "x_m": 5386.554349035459,
+      "cell": 14
+    },
+    {
+      "no": 61,
+      "lane": 3,
+      "x_m": 5386.554349035459,
+      "cell": 14
+    },
+    {
+      "no": 62,
+      "lane": 4,
+      "x_m": 5386.554349035459,
+      "cell": 14
+    },
+    {
+      "no": 63,
+      "lane": 1,
+      "x_m": 6341.743,
+      "cell": 16
+    },
+    {
+      "no": 64,
+      "lane": 2,
+      "x_m": 6341.743,
+      "cell": 16
+    },
+    {
+      "no": 65,
+      "lane": 3,
+      "x_m": 6341.743,
+      "cell": 16
+    },
+    {
+      "no": 66,
+      "lane": 4,
+      "x_m": 6341.743,
+      "cell": 16
+    },
+    {
+      "no": 67,
+      "lane": 1,
+      "x_m": 8090.751139739827,
+      "cell": 25
+    },
+    {
+      "no": 68,
+      "lane": 2,
+      "x_m": 8090.751139739827,
+      "cell": 25
+    },
+    {
+      "no": 69,
+      "lane": 3,
+      "x_m": 8090.751139739827,
+      "cell": 25
+    },
+    {
+      "no": 71,
+      "lane": 1,
+      "x_m": 9437.389785092093,
+      "cell": 28
+    },
+    {
+      "no": 72,
+      "lane": 2,
+      "x_m": 9437.389785092093,
+      "cell": 28
+    },
+    {
+      "no": 73,
+      "lane": 3,
+      "x_m": 9437.389785092093,
+      "cell": 28
+    }
+  ],
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\compiled.json": "e8d749d8a3153b099a2f10f1a044e941045f38c309a0b373de290a964a4b5798",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "5f998b60c7345486f013261081461bd52b9b62cecd4dbcb4526f10007b9ee8fa",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\metanet_net_gain_goal_20260924\\mainline_moments\\manifest.json": "63d2c4e70455bb30aa982ea28be805c2259fd6dce34d0936f379a4899af209b6",
+    "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  }
+}

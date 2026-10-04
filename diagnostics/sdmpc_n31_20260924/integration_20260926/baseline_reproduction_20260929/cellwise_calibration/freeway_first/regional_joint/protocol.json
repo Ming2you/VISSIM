@@ -1,0 +1,106 @@
+{
+  "previous_goal_turn": "PROGRESS: frozen seed29 SDMPC9000 restarted; separate route bridge failed response checks. Runtime remains immutable.",
+  "factors": [
+    "delta_merge21",
+    "tau24-25",
+    "nu_downstream_lt24-25"
+  ],
+  "bounds": [
+    [
+      0.75,
+      0.75,
+      0.75
+    ],
+    [
+      1.25,
+      1.25,
+      1.25
+    ]
+  ],
+  "train": [
+    [
+      "s29_early",
+      "none",
+      750
+    ],
+    [
+      "s29_early",
+      "vsl",
+      750
+    ],
+    [
+      "s29_early",
+      "rm",
+      450
+    ],
+    [
+      "s29_early",
+      "both",
+      450
+    ],
+    [
+      "s29_late",
+      "hold",
+      450
+    ],
+    [
+      "s29_late",
+      "release",
+      450
+    ]
+  ],
+  "check": [
+    [
+      "s43_early",
+      "none",
+      750
+    ],
+    [
+      "s43_early",
+      "vsl",
+      750
+    ],
+    [
+      "s43_early",
+      "rm",
+      450
+    ],
+    [
+      "s43_early",
+      "both",
+      450
+    ],
+    [
+      "s29_late",
+      "hold_vsl90",
+      450
+    ],
+    [
+      "s29_late",
+      "release_vsl90",
+      450
+    ],
+    [
+      "s61_late",
+      "hold",
+      450
+    ],
+    [
+      "s61_late",
+      "release",
+      450
+    ]
+  ],
+  "source": "Frozen expanded036 plus existing route inventory/storage contract; diagnosed merge21 and recovery24/25 jointly, not rejected connected-FD coefficients.",
+  "max_residual_evaluations": 6,
+  "max_optimizer_nfev": 6,
+  "finite_difference_relative_step": 0.02,
+  "max_new_train_forecasts": 36,
+  "evaluation": "Absolute N/v/flow plus paired N/cumulative flow/mainline TTT. Ramp/off/component TTT remain in every forecast and are reported separately before any adoption. These calibration residuals do not change the Omega controller objective.",
+  "acceptance": "Same six training cases: combined loss>=5% lower, state<=110%, response>=5% lower, meaningful mainline signs preserved, no >=2vehh component sign wrong. If failed stop; if passed inspect eight frozen check cases without refit.",
+  "constraints": "Only three regional multipliers, seven existing coefficient leaves; all FD/source/route/commands/other cells unchanged. Current-predicted density selects recovery branch. No future observations in rollout.",
+  "limitations": "Independent states/seeds already inspected; not pristine holdout. No live native model updates or production adoption. External/urban costs not in component score; Omega objective unchanged.",
+  "new_native": 0,
+  "optimizer": "One forward-difference Jacobian at1, one ridge Gauss-Newton direction, infinity-norm step<=0.25 and half-step. No iterative grid or retry.",
+  "max_new_validation_forecasts": 8
+}

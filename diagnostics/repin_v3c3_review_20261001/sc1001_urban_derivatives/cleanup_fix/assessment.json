@@ -1,0 +1,43 @@
+{
+  "status": "mass_derivative_repaired_offset_still_fails",
+  "previous_goal_turn": "progress: independent urban derivative failure and queue-cleanup reproduction",
+  "tests_before": "20 tests, 8 backend subcase failures",
+  "tests_after": "87 tests pass",
+  "scalar_parity": {
+    "status": "exact",
+    "scenarios": 24,
+    "steps": 2880,
+    "scope": "all ordinary scalar approach state fields and departures, including finite receiving, red, shared turns and mandatory lane changes"
+  },
+  "recorded_primal_max_error": 0.0,
+  "ad_wall_sec": 62.187447499949485,
+  "captured_mirror_sites": [],
+  "probe_dropped": 0,
+  "owner_resource_errors_per_normalized_offset": {
+    "left": {
+      "max_owner_error": 6.132854976741218,
+      "max_resource_error": 45.67569021061475
+    },
+    "right": {
+      "max_owner_error": 6.124684761303687,
+      "max_resource_error": 45.675690483463164
+    },
+    "central": {
+      "max_owner_error": 6.128769869022452,
+      "max_resource_error": 45.67569034703896
+    }
+  },
+  "omega_ad_per_offset_sec": -0.0033152595953887037,
+  "omega_fd_per_offset_sec": -0.003324446359087574,
+  "resource_ad_per_offset_sec": [
+    0.008247751089412114,
+    -0.30450227855463
+  ],
+  "resource_fd_per_offset_sec": [
+    -0.002401187032319285,
+    2.3237589630298316e-06
+  ],
+  "new_native_runs": 0,
+  "calibration_changed": false,
+  "scope": "Approach mass bookkeeping is repaired; recorded downstream offset derivatives remain unqualified. Diagnostic actual-controller selection is a separate bounded test, not certification."
+}

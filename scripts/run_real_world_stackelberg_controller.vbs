@@ -228,6 +228,8 @@ Dim RW_RAMP_METER_IDS, RW_RAMP_METER_SCS, RW_RAMP_METER_CONNECTORS, RW_RAMP_METE
 ' so a config that sets it can be ExecuteGlobal'd under Option Explicit.
 Dim RW_PYTHON_EXE
 RW_PYTHON_EXE = ""
+Dim RW_COMMAND_REPLAY_DIR
+RW_COMMAND_REPLAY_DIR = ""
 ' N4-7. offset 승격 잠금의 **두 번째** 자물쇠. 권위는 여기가 아니다 - 삼중 잠금
 ' (D-core + N9 + N8-4)의 판정은 evaluation/controllers/offset_promotion.py 가 증거
 ' 산출물을 읽어서 내린다. 러너가 보장하는 것은 하나뿐이다.
@@ -599,6 +601,9 @@ If actualSimSec + 0.5 < CDbl(simPeriod) Then
     WScript.Quit 4
 End If
 
+If Trim(shell.ExpandEnvironmentStrings("%RW_NATIVE_EVAL%")) <> "0" Then
+    WriteNativeNetworkPerformance fso.BuildPath(fso.GetParentFolderName(stateOutPath), "native_network_performance.json")
+End If
 WScript.Echo "STAGE=SIM_DONE"
 WScript.Echo "SIM_SEC=" & SafeAtt(Vissim.Simulation, "SimSec")
 WScript.Echo "SIM_STEPS=" & simPeriod
@@ -730,7 +735,9 @@ End Function
 Function UseSingleDecisionEventMode()
     Dim c
     c = LCase(CStr(controllerName))
-    UseSingleDecisionEventMode = (Left(c, 11) = "diagnostic-" And c <> "diagnostic-rule-profile" And CLng(controlStartSec) >= 0)
+    ' A replay has an explicit command at every update, including diagnostic profiles.
+    UseSingleDecisionEventMode = (Trim(CStr(RW_COMMAND_REPLAY_DIR)) = "" And _
+        Left(c, 11) = "diagnostic-" And c <> "diagnostic-rule-profile" And CLng(controlStartSec) >= 0)
 End Function
 
 Sub RecordStartupSimulationProgress()
@@ -1200,6 +1207,12 @@ Sub RunControllerDecision(simSec)
     stateJsonPath = fso.BuildPath(decisionDir, "state_" & Pad6(simSec) & ".json")
     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
     outCsvPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".csv")
+    ' The obs150 predictor reads only past application receipts. Publish the
+    ' buffered CSV before it starts; this adds no COM reads or actuation writes.
+    If obs150Mode Then
+        vslTraceFile.Close
+        Set vslTraceFile = fso.OpenTextFile(vslTraceOutPath, 8, False)
+    End If
     WriteStateJson simSec, stateJsonPath, True
     ' obs150 (CONTRACT 2.2/4.3): the t=1 bundle covers the open interval (0, 1] whose start state
     ' is stop 0, all native. The meters therefore go under COM at t=1 only after that bundle and
@@ -1233,7 +1246,14 @@ Sub RunControllerDecision(simSec)
     adapterMode = EnvText("RW_ADAPTER_MODE")
     If adapterMode <> "" Then cmd = cmd & " --mode " & Q(adapterMode)
     wallT0 = Timer
-    exitCode = RunCapture3(cmd, outText, errText)
+    If Trim(CStr(RW_COMMAND_REPLAY_DIR)) <> "" Then
+        ' Fixed-command experiment: keep this runner's observation and writer
+        ' clocks, but never call the optimizer or fabricate an applied price receipt.
+        exitCode = CopyRecordedAction(RW_COMMAND_REPLAY_DIR, "action_" & Pad6(simSec), outJsonPath, outCsvPath, errText)
+        outText = "fixed_command_replay; no controller calculation"
+    Else
+        exitCode = RunCapture3(cmd, outText, errText)
+    End If
     wallSec = ElapsedSec(wallT0)
     PerfAdd "decision.python", wallT0
     result = "exit=" & exitCode & " stdout=" & OneLine(outText) & " stderr=" & OneLine(errText)
@@ -1292,6 +1312,32 @@ Sub RunControllerDecision(simSec)
         WScript.Quit 3
     End If
 End Sub
+
+Function CopyRecordedAction(sourceDir, stem, jsonPath, csvPath, ByRef errorText)
+    Dim sourceJson, sourceCsv
+    CopyRecordedAction = 1
+    errorText = ""
+    sourceJson = fso.BuildPath(sourceDir, stem & ".json")
+    sourceCsv = fso.BuildPath(sourceDir, stem & ".csv")
+    If Not fso.FileExists(sourceJson) Or Not fso.FileExists(sourceCsv) Then
+        errorText = "Recorded action is incomplete: " & stem
+        Exit Function
+    End If
+    If fso.FileExists(jsonPath) Or fso.FileExists(csvPath) Then
+        errorText = "Refusing to overwrite an existing replay action: " & stem
+        Exit Function
+    End If
+    On Error Resume Next
+    fso.CopyFile sourceJson, jsonPath, False
+    If Err.Number = 0 Then fso.CopyFile sourceCsv, csvPath, False
+    If Err.Number <> 0 Then
+        errorText = "Recorded action copy failed: " & Err.Description
+        Err.Clear
+    Else
+        CopyRecordedAction = 0
+    End If
+    On Error GoTo 0
+End Function
 
 Function ApplyActionCsv(simSec, csvPath, effectiveController)
     Dim ts, line, first, parts, kind, dsdNo, speed, dsd, readback, scNo, perfT0
@@ -4951,6 +4997,7 @@ Sub ConfigureEvaluationOutput(path)
     ' Do not treat a command CSV or missing LSA rows as execution confirmation.
     ' These runtime evaluation settings preserve the network file bytes.
     If Trim(shell.ExpandEnvironmentStrings("%RW_NATIVE_EVAL%")) <> "0" Then
+        ConfigureNativeNetworkPerformance
         TrySetEvaluationAtt "VehRecWriteFile", True
         TrySetEvaluationAtt "VehRecFromTime", 0
         TrySetEvaluationAtt "VehRecToTime", CLng(simPeriod)
@@ -5002,6 +5049,62 @@ Sub ConfigureEvaluationOutput(path)
             " interval=" & CStr(controlInterval) & " counters=" & CStr(QueueCounterCount())
     End If
     WScript.Echo "EVAL_OUT_DIR=" & path
+End Sub
+
+' One native interval covers the complete run. Read its result once at the end;
+' no per-second COM reads, demand estimates, or controller inputs are involved.
+Sub ConfigureNativeNetworkPerformance()
+    Dim keys, values, i, actual
+    keys = Array("VehNetPerfCollectData", "VehNetPerfFromTime", "VehNetPerfToTime", "VehNetPerfInterval")
+    values = Array(True, 0, CLng(simPeriod), CLng(simPeriod))
+    For i = 0 To UBound(keys)
+        Vissim.Evaluation.AttValue(keys(i)) = values(i)
+        actual = Vissim.Evaluation.AttValue(keys(i))
+        If IsEmpty(actual) Or IsNull(actual) Then NativeNetworkPerformanceFatal "Missing setting: " & keys(i)
+        If i = 0 Then
+            If Not ComBoolean(actual) Then NativeNetworkPerformanceFatal "Collection is disabled"
+        Else
+            If CDbl(actual) <> CDbl(values(i)) Then NativeNetworkPerformanceFatal "Setting mismatch: " & keys(i)
+        End If
+    Next
+    WScript.Echo "NATIVE_NETWORK_PERFORMANCE=1 from=0 to=" & CStr(simPeriod) & " interval=" & CStr(simPeriod)
+End Sub
+
+Sub WriteNativeNetworkPerformance(path)
+    Dim flags, i, metrics, values, raw, parsed, ts, links, simSec, suffix
+    ' Do not silently report a selected-link cost as whole-network cost.
+    flags = Vissim.Net.Links.GetMultiAttValues("NetPerfEvalAct")
+    links = Vissim.Net.Links.Count
+    If UBound(flags) + 1 <> links Then NativeNetworkPerformanceFatal "Incomplete link coverage"
+    For i = 0 To UBound(flags)
+        If Not ComBoolean(flags(i, 1)) Then NativeNetworkPerformanceFatal "Excluded link " & CStr(flags(i, 0))
+    Next
+    simSec = Vissim.Simulation.AttValue("SimSec")
+    If Not TryB1aFiniteDouble(simSec, CDbl(simPeriod), parsed) Then NativeNetworkPerformanceFatal "Incomplete interval"
+    metrics = Array("TravTmTot", "DelayLatent", "DemandLatent", "VehAct", "VehArr")
+    values = ""
+    For i = 0 To UBound(metrics)
+        ' Explicit interval 1: Current can designate the next, empty interval.
+        suffix = "(Current,1,All)"
+        ' VISSIM2020 latent aggregates have no VehicleClass subattribute.
+        If metrics(i) = "DelayLatent" Or metrics(i) = "DemandLatent" Then suffix = "(Current,1)"
+        raw = Vissim.Net.VehicleNetworkPerformanceMeasurement.AttValue(metrics(i) & suffix)
+        If Not TryB1aFiniteDouble(raw, 0.0, parsed) Then NativeNetworkPerformanceFatal "Missing or invalid metric: " & metrics(i)
+        If i > 0 Then values = values & ","
+        values = values & """" & metrics(i) & """:" & Num(parsed)
+    Next
+    If fso.FileExists(path) Then NativeNetworkPerformanceFatal "Result already exists"
+    Set ts = fso.CreateTextFile(path, False, False)
+    ts.WriteLine "{""schema"":""vissim_native_network_performance_v1"",""from_sec"":0,""to_sec"":" & CStr(simPeriod) & _
+        ",""read_at_sim_sec"":" & Num(simSec) & ",""evaluated_links"":" & CStr(links) & _
+        ",""all_links_included"":true,""time_unit"":""veh*s"",""native"":{" & values & "}}"
+    ts.Close
+    WScript.Echo "NATIVE_NETWORK_PERFORMANCE_JSON=" & path
+End Sub
+
+Sub NativeNetworkPerformanceFatal(message)
+    WScript.Echo "ERROR=NATIVE_NETWORK_PERFORMANCE " & message
+    WScript.Quit 15
 End Sub
 
 ' The state CSV row (every 30 sim-s) reads two fields of the last action JSON. An SDMPC
@@ -5123,36 +5226,20 @@ Function ElapsedSec(t0)
 End Function
 
 Function RunCapture3(cmd, ByRef outText, ByRef errText)
-    Dim exec
-    outText = ""
-    errText = ""
-    On Error Resume Next
-    Set exec = shell.Exec(cmd)
-    If Err.Number <> 0 Then
-        errText = "EXEC_FAILED " & Err.Description
-        Err.Clear
-        On Error GoTo 0
-        RunCapture3 = -1
-        Exit Function
-    End If
-    On Error GoTo 0
-    Do While exec.Status = 0
-        WScript.Sleep 50
-    Loop
-    outText = exec.StdOut.ReadAll
-    errText = exec.StdErr.ReadAll
-    RunCapture3 = exec.ExitCode
+    RunCapture3 = RunCapture3Timeout(cmd, 0, outText, errText)
 End Function
 
 Function RunCapture3Timeout(cmd, timeoutSec, ByRef outText, ByRef errText)
-    Dim exec, t0, elapsed
+    Dim exec, t0, elapsed, stdoutPath, stderrPath, failureText
     outText = ""
     errText = ""
     On Error Resume Next
-    Set exec = shell.Exec(cmd)
+    Set exec = StartFileCapture(cmd, stdoutPath, stderrPath)
     If Err.Number <> 0 Then
-        errText = "EXEC_FAILED " & Err.Description
+        failureText = "EXEC_FAILED " & Err.Description
         Err.Clear
+        FinishFileCapture stdoutPath, stderrPath, outText, errText
+        errText = failureText & vbCrLf & errText
         On Error GoTo 0
         RunCapture3Timeout = -1
         Exit Function
@@ -5163,21 +5250,57 @@ Function RunCapture3Timeout(cmd, timeoutSec, ByRef outText, ByRef errText)
         WScript.Sleep 25
         elapsed = Timer - CDbl(t0)
         If elapsed < 0 Then elapsed = elapsed + 86400.0
-        If elapsed > CDbl(timeoutSec) Then
+        If CDbl(timeoutSec) > 0 And elapsed > CDbl(timeoutSec) Then
             On Error Resume Next
             TerminateExecTree exec
             exec.Terminate
             Err.Clear
             On Error GoTo 0
-            errText = "EXEC_TIMEOUT"
+            FinishFileCapture stdoutPath, stderrPath, outText, errText
+            errText = "EXEC_TIMEOUT" & vbCrLf & errText
             RunCapture3Timeout = -2
             Exit Function
         End If
     Loop
-    outText = exec.StdOut.ReadAll
-    errText = exec.StdErr.ReadAll
+    FinishFileCapture stdoutPath, stderrPath, outText, errText
     RunCapture3Timeout = exec.ExitCode
 End Function
+
+Function StartFileCapture(cmd, ByRef stdoutPath, ByRef stderrPath)
+    ' Waiting for Exec.Status before draining either pipe deadlocks once a
+    ' helper fills the pipe. Separate owned files retain both streams in full.
+    Dim stream, captureDir, wrapped
+    captureDir = fso.GetSpecialFolder(2)
+    stdoutPath = fso.BuildPath(captureDir, fso.GetTempName())
+    Set stream = fso.CreateTextFile(stdoutPath, False)
+    stream.Close
+    stderrPath = fso.BuildPath(captureDir, fso.GetTempName())
+    Set stream = fso.CreateTextFile(stderrPath, False)
+    stream.Close
+    wrapped = Q(shell.ExpandEnvironmentStrings("%ComSpec%")) & " /d /s /c " & _
+        Q(cmd & " 1>" & Q(stdoutPath) & " 2>" & Q(stderrPath))
+    Set StartFileCapture = shell.Exec(wrapped)
+End Function
+
+Sub FinishFileCapture(stdoutPath, stderrPath, ByRef outText, ByRef errText)
+    Dim stream
+    If Len(stdoutPath) > 0 Then
+        If fso.FileExists(stdoutPath) Then
+            Set stream = fso.OpenTextFile(stdoutPath, 1, False)
+            If Not stream.AtEndOfStream Then outText = stream.ReadAll
+            stream.Close
+            fso.DeleteFile stdoutPath, True
+        End If
+    End If
+    If Len(stderrPath) > 0 Then
+        If fso.FileExists(stderrPath) Then
+            Set stream = fso.OpenTextFile(stderrPath, 1, False)
+            If Not stream.AtEndOfStream Then errText = stream.ReadAll
+            stream.Close
+            fso.DeleteFile stderrPath, True
+        End If
+    End If
+End Sub
 
 Sub TerminateExecTree(exec)
     Dim pid
@@ -7461,10 +7584,13 @@ End Function
 ' .mer/.err increments through the WP-B1 CLI (CONTRACT 4.5). Returns the capture file with its
 ' outer braces removed ("mer":...,"err":...) and its sha from the one stdout line.
 Function Obs150Capture(T, ByRef captureSha)
-    Dim cmd, exitCode, outText, errText, text, prefix, path
+    Dim cmd, exitCode, outText, errText, text, prefix, path, barrier
+    barrier = "OBS150_ERR_BARRIER_" & runId & "_" & CStr(CLng(T))
+    Obs150FlushErr T, barrier
     cmd = pythonExe & " -B " & Q(obs150CaptureScript) & " --eval-dir " & Q(obs150EvalOutDir) & _
         " --err " & Q(obs150ErrPath) & " --out-dir " & Q(obs150Dir) & " --sim-sec " & CStr(CLng(T)) & _
-        " --detectors " & Q(obs150DetectorsPath) & " --detectors-sha256 " & obs150DetectorsSha256
+        " --detectors " & Q(obs150DetectorsPath) & " --detectors-sha256 " & obs150DetectorsSha256 & _
+        " --err-barrier " & Q(barrier)
     exitCode = RunCapture3Timeout(cmd, OBS150_CAPTURE_TIMEOUT_SEC, outText, errText)
     If exitCode <> 0 Then Obs150Abort T, "CAPTURE_FAILED", "exit=" & CStr(exitCode) & " stderr=" & errText
     text = Obs150StripLineEnd(outText)
@@ -7483,6 +7609,28 @@ Function Obs150Capture(T, ByRef captureSha)
     End If
     Obs150Capture = Mid(text, 2, Len(text) - 2)
 End Function
+
+Sub Obs150FlushErr(T, barrier)
+    Dim i, errNo, detail
+    ' VISSIM2020 has no documented .err flush method. NOTE logging drains its
+    ' buffered native warnings; Python must see this exact complete marker.
+    ' No simulation step, traffic setting, or vehicle query is performed here.
+    On Error Resume Next
+    Err.Clear
+    Vissim.Log 20480, barrier
+    errNo = Err.Number : detail = Err.Description
+    If errNo = 0 Then
+        For i = 1 To 2
+            Vissim.Log 20480, "OBS150_ERR_FLUSH_PADDING " & String(8192, "x")
+            If Err.Number <> 0 Then
+                errNo = Err.Number : detail = Err.Description
+                Exit For
+            End If
+        Next
+    End If
+    On Error GoTo 0
+    If errNo <> 0 Then Obs150Abort T, "ERR_BARRIER_WRITE", CStr(errNo) & " " & detail
+End Sub
 
 Function Obs150StripLineEnd(text)
     Dim s

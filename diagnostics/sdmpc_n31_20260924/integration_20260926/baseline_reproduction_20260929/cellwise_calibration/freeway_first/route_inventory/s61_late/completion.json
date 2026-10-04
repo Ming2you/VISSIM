@@ -1,0 +1,138 @@
+{
+  "stage": "complete_not_adopted",
+  "new_rollouts": 5,
+  "new_native": 0,
+  "fit": 0,
+  "source_pins_unchanged": true,
+  "parity": {
+    "proxy_check": {
+      "cells": true,
+      "flows": true,
+      "ports": true,
+      "ramps": true
+    }
+  },
+  "physical_limits": {
+    "main_mass": 2.842170943040401e-14,
+    "route_partition": 1.1866063687193673e-12,
+    "connector_mass": 1.3002932064409833e-12
+  },
+  "choices": {
+    "mainline_ttt": {
+      "pairs": [
+        {
+          "a": "hold",
+          "b": "release",
+          "actual": 7.966666666666669,
+          "predicted": 8.118956290627935,
+          "meaningful": true,
+          "sign_correct": true
+        },
+        {
+          "a": "hold",
+          "b": "hold_vsl90",
+          "actual": -0.27916666666666856,
+          "predicted": 0.7298414738513088,
+          "meaningful": false,
+          "sign_correct": false
+        },
+        {
+          "a": "hold",
+          "b": "release_vsl90",
+          "actual": 7.45416666666668,
+          "predicted": 8.06754336364618,
+          "meaningful": true,
+          "sign_correct": true
+        },
+        {
+          "a": "release",
+          "b": "hold_vsl90",
+          "actual": -8.245833333333337,
+          "predicted": -7.389114816776626,
+          "meaningful": true,
+          "sign_correct": true
+        },
+        {
+          "a": "release",
+          "b": "release_vsl90",
+          "actual": -0.5124999999999886,
+          "predicted": -0.05141292698175448,
+          "meaningful": true,
+          "sign_correct": true
+        },
+        {
+          "a": "hold_vsl90",
+          "b": "release_vsl90",
+          "actual": 7.7333333333333485,
+          "predicted": 7.337701889794872,
+          "meaningful": true,
+          "sign_correct": true
+        }
+      ],
+      "meaningful_count": 5,
+      "meaningful_correct": 5,
+      "selected": "hold",
+      "actual_best": "hold_vsl90",
+      "regret": 0.27916666666666856
+    },
+    "ttt": {
+      "pairs": [
+        {
+          "a": "hold",
+          "b": "release",
+          "actual": 2.7125000000000057,
+          "predicted": 2.182888222458047,
+          "meaningful": true,
+          "sign_correct": true
+        },
+        {
+          "a": "hold",
+          "b": "hold_vsl90",
+          "actual": -0.3083333333333087,
+          "predicted": 0.6809896692319057,
+          "meaningful": false,
+          "sign_correct": false
+        },
+        {
+          "a": "hold",
+          "b": "release_vsl90",
+          "actual": 2.320833333333354,
+          "predicted": 2.1462678637111026,
+          "meaningful": true,
+          "sign_correct": true
+        },
+        {
+          "a": "release",
+          "b": "hold_vsl90",
+          "actual": -3.0208333333333144,
+          "predicted": -1.501898553226141,
+          "meaningful": true,
+          "sign_correct": true
+        },
+        {
+          "a": "release",
+          "b": "release_vsl90",
+          "actual": -0.3916666666666515,
+          "predicted": -0.03662035874694425,
+          "meaningful": false,
+          "sign_correct": true
+        },
+        {
+          "a": "hold_vsl90",
+          "b": "release_vsl90",
+          "actual": 2.629166666666663,
+          "predicted": 1.4652781944791968,
+          "meaningful": true,
+          "sign_correct": true
+        }
+      ],
+      "meaningful_count": 4,
+      "meaningful_correct": 4,
+      "selected": "hold",
+      "actual_best": "hold_vsl90",
+      "regret": 0.3083333333333087
+    }
+  },
+  "verification_sha256": "dfea6249643b0db10a91ab86c67025758a14172903e0406504ef54896c1cde15",
+  "helper_sha256": "9b5c106b26042c0c83def33d20c30d94523dc78938c892ec0435c0cd3c4356f4"
+}

@@ -1,0 +1,39 @@
+{
+  "bases": [
+    "predicted",
+    "observed_n",
+    "observed_v",
+    "observed_nv",
+    "observed_nv_off"
+  ],
+  "arms": [
+    "none",
+    "rm"
+  ],
+  "cutoff_sec": 2220.1,
+  "horizon_sec": 450,
+  "autonomous_rollouts": 2,
+  "conditional_steps": 900,
+  "scope": "Read-only canonical allocation at each5s sample; native N/v current snapshots substituted, not a continuous future-informed forecast.",
+  "common": "Same current predicted source/merge rates, off split/proxy and VSL110; observed_nv_off additionally replaces off stock/free space, retaining its entry proxy.",
+  "limits": [
+    "One instantaneous sampled flow multiplied by5s is not exact native boundary count.",
+    "Passive VSL cohorts are reset only in substituted copies; all commands110. Unchanged copy must reproduce the actual step.",
+    "Current observed snapshots are future information relative to the original cutoff; diagnostic only."
+  ],
+  "production_change": false,
+  "fit": false,
+  "new_native": 0,
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\manifest.json": "33dbee600039ceaccbcfa15ed4e7ffbca9ad40ab53a9a52d61e973918593c91b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "99e22fca5e60de59ba4254123bdd7a82251bbf97ca4cee4e8d8e50a2fdd76f6a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\canonical_harness.py": "692e0326d2cd6cab049a443e3d55f2c8cfef623a12ef22f0e36aad07855d6771",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\scoring.py": "8a14bb32b2e737ab2c3b9ac9b158c3885944765de1846d52e9277c6b750949a5",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\metanet_net_gain_goal_20260924\\mainline_moments\\manifest.json": "63d2c4e70455bb30aa982ea28be805c2259fd6dce34d0936f379a4899af209b6"
+  }
+}

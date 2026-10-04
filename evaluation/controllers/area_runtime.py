@@ -314,6 +314,10 @@ def install(adapter, cfg):
         if ledger is None:
             raise MembershipError('area objective requires a seeded candidate ledger')
         candidate = state.copy()
+        from evaluation.controllers import omega_distance
+        if getattr(cfg.network,'sdmpc_distance_reward',None):
+            depth=objective_spec.depth_override or cfg.mpc.horizon_steps
+            omega_distance.begin_reward(candidate,cfg,min(depth,len(forecast))*cfg.simulation.T_c_sec)
         # A copied rollout endpoint can be called on an already predicted state.
         # Retain its cohorts, but reset this evaluation window's accumulated score.
         candidate._control_area_ledger = ModelAreaLedger(copy.deepcopy(ledger.stocks),
@@ -357,6 +361,9 @@ def install(adapter, cfg):
                 result.control_area['predicted_ramp_merge'] = physical_ramp_branches.predicted_merge_quantity(
                     result.control_area_response, cfg, start_sec=state.time_sec,
                     end_sec=result.states[-1].time_sec)
+        from evaluation.controllers import sdmpc_terminal
+        sdmpc_terminal.apply(result, closing, cfg)
+        omega_distance.finish_reward(result,cfg)
         return result
 
     evaluate_price_point._control_area_objective = True

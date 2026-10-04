@@ -1,0 +1,1106 @@
+{
+  "status": "native_choice_connection_verified_gain_not_qualified",
+  "goal_complete": false,
+  "previous_goal_turn": "no_progress_existing_results_restatement",
+  "new_native_runs": 0,
+  "fitting": 0,
+  "optimizer_calls": 0,
+  "autonomous_future_traffic_inputs": false,
+  "forecast_count": 8,
+  "trace_forecasts": 2,
+  "candidate_forecasts": 6,
+  "sessions": {
+    "35405": "exit0",
+    "86994": "exit0",
+    "10012": "exit0"
+  },
+  "init_only_reused_session": "89473 exit0",
+  "config_change": "One evidence reference; two native choice groups added; demand/network/objective unchanged.",
+  "native_choice_groups": {
+    "SC105_N_SC1002": {
+      "decision": "1043",
+      "origin": "SC1002_to_SC105",
+      "signal": "SC105",
+      "stopline": "1220007200",
+      "route_to_movement": {
+        "1043:1": "SC105_N_SC1002_to_E_SC1",
+        "1043:2": "SC105_N_SC1002_to_S_SC1005",
+        "1043:3": "SC105_N_SC1002_to_W_SC1003"
+      },
+      "expected_specs": {
+        "SC105_N_SC1002_to_E_SC1": {
+          "kind": "internal",
+          "origin": "SC1002_to_SC105",
+          "signal": "SC105",
+          "destination": "SC105_to_SC1",
+          "receiving_link": "SC105_to_SC1"
+        },
+        "SC105_N_SC1002_to_S_SC1005": {
+          "kind": "internal",
+          "origin": "SC1002_to_SC105",
+          "signal": "SC105",
+          "destination": "SC105_to_SC1005",
+          "receiving_link": "SC105_to_SC1005"
+        },
+        "SC105_N_SC1002_to_W_SC1003": {
+          "kind": "internal",
+          "origin": "SC1002_to_SC105",
+          "signal": "SC105",
+          "destination": "SC105_to_SC1003",
+          "receiving_link": "SC105_to_SC1003"
+        }
+      },
+      "rationale": "Selected64cf native static weights; old0824 routing source differs. Future destination prior only, no fitting or demand change. Parallel10659/10660 connect the same two approach roads."
+    },
+    "SC105_W_SC1003": {
+      "decision": "1041",
+      "origin": "SC1003_to_SC105",
+      "signal": "SC105",
+      "stopline": "416",
+      "route_to_movement": {
+        "1041:1": "SC105_W_SC1003_to_N_SC1002",
+        "1041:2": "SC105_W_SC1003_to_E_SC1",
+        "1041:3": "SC105_W_SC1003_to_S_SC1005"
+      },
+      "expected_specs": {
+        "SC105_W_SC1003_to_N_SC1002": {
+          "kind": "internal",
+          "origin": "SC1003_to_SC105",
+          "signal": "SC105",
+          "destination": "SC105_to_SC1002",
+          "receiving_link": "SC105_to_SC1002"
+        },
+        "SC105_W_SC1003_to_E_SC1": {
+          "kind": "internal",
+          "origin": "SC1003_to_SC105",
+          "signal": "SC105",
+          "destination": "SC105_to_SC1",
+          "receiving_link": "SC105_to_SC1"
+        },
+        "SC105_W_SC1003_to_S_SC1005": {
+          "kind": "internal",
+          "origin": "SC1003_to_SC105",
+          "signal": "SC105",
+          "destination": "SC105_to_SC1005",
+          "receiving_link": "SC105_to_SC1005"
+        }
+      },
+      "rationale": "Selected64cf native static weights; old0824 routing source differs. Future destination prior only, no fitting or demand change. Parallel10659/10660 connect the same two approach roads."
+    }
+  },
+  "seed47": {
+    "held_actual": {
+      "native_10565": [
+        43,
+        37,
+        34
+      ],
+      "before_10565": [
+        32.087484462731936,
+        24.487534658395962,
+        12.702681211015495
+      ],
+      "after_10565": [
+        32.127768215719975,
+        29.124740320892574,
+        13.904487622086831
+      ],
+      "before_supply": [
+        {
+          "start_sec": 2700,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 6.8,
+              "arrivals": 3.8315382411214816,
+              "departures": 6.430577223088923,
+              "final_queue": 4.200961018032561
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 2.5,
+              "arrivals": 21.38875889147073,
+              "departures": 23.888758891470722,
+              "final_queue": 0.0
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 4.5,
+              "arrivals": 5.364672385605908,
+              "departures": 6.342934293429343,
+              "final_queue": 3.5217380921765558
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 2.6666666666666665,
+              "arrivals": 29.459829887602087,
+              "departures": 32.087484462731936,
+              "final_queue": 0.03901209153676649
+            }
+          }
+        },
+        {
+          "start_sec": 2850,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 4.200961018032561,
+              "arrivals": 7.0775864347972615,
+              "departures": 6.430577223088923,
+              "final_queue": 4.847970229740892
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 9.957809278016386,
+              "departures": 9.957809278016384,
+              "final_queue": 0.0
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 3.5217380921765558,
+              "arrivals": 2.4993515678098426,
+              "departures": 3.7104226749205433,
+              "final_queue": 2.310666985065855
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 0.03901209153676649,
+              "arrivals": 24.675132529393213,
+              "departures": 24.487534658395962,
+              "final_queue": 0.2266099625340291
+            }
+          }
+        },
+        {
+          "start_sec": 3000,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 4.847970229740892,
+              "arrivals": 4.737078218343759,
+              "departures": 6.25179030268964,
+              "final_queue": 3.3332581453950074
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 9.957809278016386,
+              "departures": 9.957809278016384,
+              "final_queue": 0.0
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 2.310666985065855,
+              "arrivals": 2.4993515678098426,
+              "departures": 2.499351567809844,
+              "final_queue": 2.310666985065855
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 0.2266099625340291,
+              "arrivals": 12.669291173549523,
+              "departures": 12.702681211015495,
+              "final_queue": 0.19321992506805818
+            }
+          }
+        }
+      ],
+      "after_supply": [
+        {
+          "start_sec": 2700,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 6.8,
+              "arrivals": 3.8315382411214816,
+              "departures": 6.430577223088923,
+              "final_queue": 4.200961018032561
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 2.5,
+              "arrivals": 25.668294658882026,
+              "departures": 28.168294658882072,
+              "final_queue": 0.0
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 4.5,
+              "arrivals": 7.153391798486463,
+              "departures": 8.259036144578317,
+              "final_queue": 3.394355653908145
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 2.6666666666666665,
+              "arrivals": 29.701532405530298,
+              "departures": 32.127768215719975,
+              "final_queue": 0.24043085647694395
+            }
+          }
+        },
+        {
+          "start_sec": 2850,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 4.200961018032561,
+              "arrivals": 7.0775864347972615,
+              "departures": 6.430577223088923,
+              "final_queue": 4.847970229740892
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 11.950201692488124,
+              "departures": 11.950201692488122,
+              "final_queue": 0.0
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 3.394355653908145,
+              "arrivals": 3.3326995055050133,
+              "departures": 3.6459525175531997,
+              "final_queue": 3.0811026418599536
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 0.24043085647694395,
+              "arrivals": 29.42737427547623,
+              "departures": 29.124740320892574,
+              "final_queue": 0.5430648110606004
+            }
+          }
+        },
+        {
+          "start_sec": 3000,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 4.847970229740892,
+              "arrivals": 4.737078218343759,
+              "departures": 6.25179030268964,
+              "final_queue": 3.3332581453950074
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 11.950201692488124,
+              "departures": 11.950201692488122,
+              "final_queue": 0.0
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 3.0811026418599536,
+              "arrivals": 3.3326995055050133,
+              "departures": 3.3326995055050084,
+              "final_queue": 3.0811026418599536
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 0.5430648110606004,
+              "arrivals": 13.55013268506663,
+              "departures": 13.904487622086831,
+              "final_queue": 0.1887098740404003
+            }
+          }
+        }
+      ],
+      "before_ramps": {
+        "RM_C10480": {
+          "arrival": 27.138805420610215,
+          "merge": 26.891143892932725,
+          "final_stock": 0.24766152767748958,
+          "residual": 4.718447854656915e-16
+        },
+        "RM_C10482": {
+          "arrival": 275.3111960663354,
+          "merge": 277.7111960663355,
+          "final_stock": 24.60000000000006,
+          "residual": -1.4921397450962104e-13
+        },
+        "RM_C10646": {
+          "arrival": 42.64862197421824,
+          "merge": 48.173352881471786,
+          "final_stock": 1.4752690927464522,
+          "residual": -8.881784197001252e-16
+        },
+        "RM_C10644": {
+          "arrival": 59.59,
+          "merge": 56.97999999999997,
+          "final_stock": 11.609999999999982,
+          "residual": 5.3290705182007514e-14
+        },
+        "RM_C10639": {
+          "arrival": 56.190000000000005,
+          "merge": 45.621456451448964,
+          "final_stock": 50.568543548550586,
+          "residual": 4.476419235288631e-13
+        },
+        "RM_C10681": {
+          "arrival": 116.9458659226547,
+          "merge": 145.22405657629653,
+          "final_stock": 25.72180934635841,
+          "residual": -2.2382096176443156e-13
+        },
+        "RM_C10490": {
+          "arrival": 89.51886618500409,
+          "merge": 90.51886618500411,
+          "final_stock": 6.000000000000004,
+          "residual": -3.2862601528904634e-14
+        },
+        "RM_C10484": {
+          "arrival": 68.3646494944883,
+          "merge": 45.32905605670041,
+          "final_stock": 53.03559343778795,
+          "residual": -5.684341886080802e-14
+        }
+      },
+      "after_ramps": {
+        "RM_C10480": {
+          "arrival": 27.138805420610215,
+          "merge": 26.891143892932725,
+          "final_stock": 0.24766152767748958,
+          "residual": 4.718447854656915e-16
+        },
+        "RM_C10482": {
+          "arrival": 275.3111960663354,
+          "merge": 277.7111960663355,
+          "final_stock": 24.60000000000006,
+          "residual": -1.4921397450962104e-13
+        },
+        "RM_C10646": {
+          "arrival": 43.35825719105957,
+          "merge": 48.38794435047118,
+          "final_stock": 1.9703128405883925,
+          "residual": -8.881784197001252e-16
+        },
+        "RM_C10644": {
+          "arrival": 59.59,
+          "merge": 56.97999999999997,
+          "final_stock": 11.609999999999982,
+          "residual": 5.3290705182007514e-14
+        },
+        "RM_C10639": {
+          "arrival": 56.190000000000005,
+          "merge": 45.621456451448964,
+          "final_stock": 50.568543548550586,
+          "residual": 4.476419235288631e-13
+        },
+        "RM_C10681": {
+          "arrival": 119.07477157317871,
+          "merge": 145.3703689415234,
+          "final_stock": 27.704402631655597,
+          "residual": -2.8421709430404007e-13
+        },
+        "RM_C10490": {
+          "arrival": 89.51886618500409,
+          "merge": 90.51886618500411,
+          "final_stock": 6.000000000000005,
+          "residual": -3.375077994860476e-14
+        },
+        "RM_C10484": {
+          "arrival": 68.3646494944883,
+          "merge": 45.32897456730321,
+          "final_stock": 53.03567492718512,
+          "residual": -2.842170943040401e-14
+        }
+      },
+      "before_omega": 484.94331287701243,
+      "after_omega": 484.8642101844899,
+      "before_tracked_outside": 231.7032940817008,
+      "after_tracked_outside": 231.78179023856507
+    },
+    "selected": {
+      "native_10565": [
+        40,
+        32,
+        38
+      ],
+      "before_10565": [
+        34.879829887602035,
+        24.583778565768796,
+        12.948350405800895
+      ],
+      "after_10565": [
+        34.97999999999995,
+        28.629022951794045,
+        14.92096514430553
+      ],
+      "before_supply": [
+        {
+          "start_sec": 2700,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 6.8,
+              "arrivals": 5.101955452553713,
+              "departures": 7.349231112101626,
+              "final_queue": 4.552724340452079
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 2.5,
+              "arrivals": 22.389245109786334,
+              "departures": 23.222578441564206,
+              "final_queue": 1.666666668222118
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 4.5,
+              "arrivals": 5.339412841017909,
+              "departures": 7.249067763919249,
+              "final_queue": 2.5903450770986542
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 2.6666666666666665,
+              "arrivals": 32.41595786500869,
+              "departures": 34.879829887602035,
+              "final_queue": 0.20279464407327635
+            }
+          }
+        },
+        {
+          "start_sec": 2850,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 4.552724340452079,
+              "arrivals": 8.062410600958671,
+              "departures": 6.798038778694004,
+              "final_queue": 5.81709616271675
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 1.666666668222118,
+              "arrivals": 11.353864508397853,
+              "departures": 11.097454251748298,
+              "final_queue": 1.9230769248716748
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 2.5903450770986542,
+              "arrivals": 2.7053282613088285,
+              "departures": 2.9138043618026344,
+              "final_queue": 2.3818689766048484
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 0.20279464407327635,
+              "arrivals": 24.38098392169551,
+              "departures": 24.583778565768796,
+              "final_queue": 0.0
+            }
+          }
+        },
+        {
+          "start_sec": 3000,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 5.81709616271675,
+              "arrivals": 5.377561955739858,
+              "departures": 5.695654111878761,
+              "final_queue": 5.499004006577849
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 1.9230769248716748,
+              "arrivals": 9.170322462915172,
+              "departures": 9.426732719564725,
+              "final_queue": 1.666666668222118
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 2.3818689766048484,
+              "arrivals": 2.5966608018388353,
+              "departures": 2.8131480228768226,
+              "final_queue": 2.165381755566862
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 0.0,
+              "arrivals": 12.948350405800893,
+              "departures": 12.948350405800895,
+              "final_queue": 0.0
+            }
+          }
+        }
+      ],
+      "after_supply": [
+        {
+          "start_sec": 2700,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 6.8,
+              "arrivals": 5.101955452553713,
+              "departures": 7.349231112101626,
+              "final_queue": 4.552724340452079
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 2.5,
+              "arrivals": 26.86896156920548,
+              "departures": 27.36882255435495,
+              "final_queue": 2.000139014850564
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 4.5,
+              "arrivals": 7.119710073657541,
+              "departures": 8.259036144578317,
+              "final_queue": 3.360673929079223
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 2.6666666666666665,
+              "arrivals": 33.42305168970958,
+              "departures": 34.97999999999995,
+              "final_queue": 1.109718356376251
+            }
+          }
+        },
+        {
+          "start_sec": 2850,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 4.552724340452079,
+              "arrivals": 8.062410600958671,
+              "departures": 6.798038778694004,
+              "final_queue": 5.81709616271675
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 2.000139014850564,
+              "arrivals": 13.625584410827836,
+              "departures": 13.31787071623543,
+              "final_queue": 2.3078527094429586
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 3.360673929079223,
+              "arrivals": 3.6073541132884097,
+              "departures": 3.791982838185031,
+              "final_queue": 3.1760452041825955
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 1.109718356376251,
+              "arrivals": 27.519304595417793,
+              "departures": 28.629022951794045,
+              "final_queue": 0.0
+            }
+          }
+        },
+        {
+          "start_sec": 3000,
+          "movements": {
+            "SC105_E_SC1_to_S_SC1005": {
+              "initial_queue": 5.81709616271675,
+              "arrivals": 5.377561955739858,
+              "departures": 5.695654111878761,
+              "final_queue": 5.499004006577849
+            },
+            "SC105_N_SC1002_to_S_SC1005": {
+              "initial_queue": 2.3078527094429586,
+              "arrivals": 11.0051518318315,
+              "departures": 11.312865526423908,
+              "final_queue": 2.000139014850564
+            },
+            "SC105_W_SC1003_to_S_SC1005": {
+              "initial_queue": 3.1760452041825955,
+              "arrivals": 3.462454134788192,
+              "departures": 3.7511237496570065,
+              "final_queue": 2.887375589313775
+            },
+            "SC105_E_to_S_SC1005": {
+              "initial_queue": 0.0,
+              "arrivals": 0,
+              "departures": 0,
+              "final_queue": 0.0
+            },
+            "SC1005_N_SC105_to_W_SC1004": {
+              "initial_queue": 0.0,
+              "arrivals": 14.93145801477741,
+              "departures": 14.92096514430553,
+              "final_queue": 0.010492870471879856
+            }
+          }
+        }
+      ],
+      "before_ramps": {
+        "RM_C10480": {
+          "arrival": 30.137356145247896,
+          "merge": 27.596940994381995,
+          "final_stock": 2.5404151508658948,
+          "residual": 5.773159728050814e-15
+        },
+        "RM_C10482": {
+          "arrival": 275.3111960663354,
+          "merge": 277.7111960663355,
+          "final_stock": 24.60000000000006,
+          "residual": -1.4921397450962104e-13
+        },
+        "RM_C10646": {
+          "arrival": 41.58921985530415,
+          "merge": 48.31917363459662,
+          "final_stock": 0.27004622070753126,
+          "residual": -3.6637359812630166e-15
+        },
+        "RM_C10644": {
+          "arrival": 59.59,
+          "merge": 56.97999999999997,
+          "final_stock": 11.609999999999982,
+          "residual": 5.3290705182007514e-14
+        },
+        "RM_C10639": {
+          "arrival": 56.190000000000005,
+          "merge": 45.63736877195611,
+          "final_stock": 50.55263122804337,
+          "residual": 5.186961971048731e-13
+        },
+        "RM_C10681": {
+          "arrival": 113.76765956591245,
+          "merge": 145.1083437741516,
+          "final_stock": 22.65931579176106,
+          "residual": -1.9895196601282805e-13
+        },
+        "RM_C10490": {
+          "arrival": 89.51886618500409,
+          "merge": 90.51886618500411,
+          "final_stock": 6.000000000000007,
+          "residual": -3.552713678800501e-14
+        },
+        "RM_C10484": {
+          "arrival": 73.27551905970569,
+          "merge": 45.329860424064194,
+          "final_stock": 57.94565863564155,
+          "residual": -5.684341886080802e-14
+        }
+      },
+      "after_ramps": {
+        "RM_C10480": {
+          "arrival": 30.137356145247896,
+          "merge": 27.596940994381995,
+          "final_stock": 2.5404151508658948,
+          "residual": 5.773159728050814e-15
+        },
+        "RM_C10482": {
+          "arrival": 275.3111960663354,
+          "merge": 277.7111960663355,
+          "final_stock": 24.60000000000006,
+          "residual": -1.4921397450962104e-13
+        },
+        "RM_C10646": {
+          "arrival": 42.265034046473836,
+          "merge": 48.9949878257663,
+          "final_stock": 0.27004622070753126,
+          "residual": 3.4416913763379853e-15
+        },
+        "RM_C10644": {
+          "arrival": 59.59,
+          "merge": 56.97999999999997,
+          "final_stock": 11.609999999999982,
+          "residual": 5.3290705182007514e-14
+        },
+        "RM_C10639": {
+          "arrival": 56.190000000000005,
+          "merge": 45.63737334950176,
+          "final_stock": 50.55262665049774,
+          "residual": 4.973799150320701e-13
+        },
+        "RM_C10681": {
+          "arrival": 115.7951021394215,
+          "merge": 145.56911697595547,
+          "final_stock": 24.225985163466166,
+          "residual": -1.4566126083082054e-13
+        },
+        "RM_C10490": {
+          "arrival": 89.51886618500409,
+          "merge": 90.51886618500411,
+          "final_stock": 6.000000000000005,
+          "residual": -3.375077994860476e-14
+        },
+        "RM_C10484": {
+          "arrival": 73.27551905970569,
+          "merge": 45.32985076771605,
+          "final_stock": 57.945668291989726,
+          "residual": -9.237055564881302e-14
+        }
+      },
+      "before_omega": 476.46623318858974,
+      "after_omega": 476.43908563089917,
+      "before_tracked_outside": 238.58057453361096,
+      "after_tracked_outside": 238.6069921053102
+    }
+  },
+  "seed43": {
+    "nc": {
+      "native_omega": 471.8902777777778,
+      "historical_omega": 475.77936966237286,
+      "after_omega": 475.62588759951655,
+      "native_delta": 0.0,
+      "historical_delta": 0.0,
+      "after_delta": 0.0,
+      "tracked_outside": 248.71979621359338,
+      "ramps": {
+        "RM_C10480": {
+          "arrival": 29.609985333204886,
+          "merge": 35.36520831128501,
+          "final_stock": 0.2447770219198796,
+          "residual": 5.551115123125783e-16
+        },
+        "RM_C10482": {
+          "arrival": 280.83632586507935,
+          "merge": 274.136325865079,
+          "final_stock": 28.69999999999997,
+          "residual": 3.588240815588506e-13
+        },
+        "RM_C10646": {
+          "arrival": 46.74082089257097,
+          "merge": 51.60019383009502,
+          "final_stock": 1.1406270624759518,
+          "residual": -1.7763568394002505e-15
+        },
+        "RM_C10644": {
+          "arrival": 67.16,
+          "merge": 72.61500000000012,
+          "final_stock": 13.545000000000055,
+          "residual": -1.8118839761882555e-13
+        },
+        "RM_C10639": {
+          "arrival": 78.7025,
+          "merge": 82.87499999999996,
+          "final_stock": 5.827499999999991,
+          "residual": 5.240252676230739e-14
+        },
+        "RM_C10681": {
+          "arrival": 127.22246267771291,
+          "merge": 113.2297212052336,
+          "final_stock": 66.99274147247966,
+          "residual": -3.552713678800501e-13
+        },
+        "RM_C10490": {
+          "arrival": 93.73059978030123,
+          "merge": 98.73059978030119,
+          "final_stock": 7.000000000000002,
+          "residual": 4.085620730620576e-14
+        },
+        "RM_C10484": {
+          "arrival": 61.479966049931235,
+          "merge": 74.366367425867,
+          "final_stock": 6.113598624064266,
+          "residual": -2.7533531010703882e-14
+        }
+      }
+    },
+    "rm": {
+      "native_omega": 470.34305555555557,
+      "historical_omega": 475.70128265368874,
+      "after_omega": 475.5478015455481,
+      "native_delta": -1.5472222222222172,
+      "historical_delta": -0.07808700868412188,
+      "after_delta": -0.07808605396843404,
+      "tracked_outside": 248.7197964406904,
+      "ramps": {
+        "RM_C10480": {
+          "arrival": 29.609985333204886,
+          "merge": 35.36520831128501,
+          "final_stock": 0.2447770219198796,
+          "residual": 5.551115123125783e-16
+        },
+        "RM_C10482": {
+          "arrival": 280.83632586507935,
+          "merge": 274.136325865079,
+          "final_stock": 28.69999999999997,
+          "residual": 3.588240815588506e-13
+        },
+        "RM_C10646": {
+          "arrival": 46.74082089257097,
+          "merge": 51.60019383009502,
+          "final_stock": 1.1406270624759518,
+          "residual": -1.7763568394002505e-15
+        },
+        "RM_C10644": {
+          "arrival": 67.16,
+          "merge": 72.61500000000012,
+          "final_stock": 13.545000000000055,
+          "residual": -1.8118839761882555e-13
+        },
+        "RM_C10639": {
+          "arrival": 78.7025,
+          "merge": 82.19338348186605,
+          "final_stock": 6.509116518133893,
+          "residual": 5.773159728050814e-14
+        },
+        "RM_C10681": {
+          "arrival": 127.22246267771291,
+          "merge": 113.1025423799388,
+          "final_stock": 67.11992029777447,
+          "residual": -3.552713678800501e-13
+        },
+        "RM_C10490": {
+          "arrival": 93.73059978030123,
+          "merge": 93.83110533282274,
+          "final_stock": 11.899494447478556,
+          "residual": -6.750155989720952e-14
+        },
+        "RM_C10484": {
+          "arrival": 61.479966049931235,
+          "merge": 72.1521581964493,
+          "final_stock": 8.327807853481985,
+          "residual": -5.684341886080802e-14
+        }
+      }
+    },
+    "vsl": {
+      "native_omega": 472.6673611111111,
+      "historical_omega": 475.87594276495474,
+      "after_omega": 475.7224616384229,
+      "native_delta": 0.7770833333333371,
+      "historical_delta": 0.09657310258188545,
+      "after_delta": 0.09657403890633987,
+      "tracked_outside": 248.71978718449319,
+      "ramps": {
+        "RM_C10480": {
+          "arrival": 29.609985333204886,
+          "merge": 35.36520831128501,
+          "final_stock": 0.2447770219198796,
+          "residual": 5.551115123125783e-16
+        },
+        "RM_C10482": {
+          "arrival": 280.83632586507935,
+          "merge": 274.136325865079,
+          "final_stock": 28.69999999999997,
+          "residual": 3.588240815588506e-13
+        },
+        "RM_C10646": {
+          "arrival": 46.74082089257097,
+          "merge": 51.60019383009502,
+          "final_stock": 1.1406270624759518,
+          "residual": -1.7763568394002505e-15
+        },
+        "RM_C10644": {
+          "arrival": 67.16,
+          "merge": 72.61500000000012,
+          "final_stock": 13.545000000000055,
+          "residual": -1.8118839761882555e-13
+        },
+        "RM_C10639": {
+          "arrival": 78.7025,
+          "merge": 82.87499999999996,
+          "final_stock": 5.827499999999991,
+          "residual": 5.240252676230739e-14
+        },
+        "RM_C10681": {
+          "arrival": 127.22246267771291,
+          "merge": 113.25577909391146,
+          "final_stock": 66.96668358380177,
+          "residual": -3.126388037344441e-13
+        },
+        "RM_C10490": {
+          "arrival": 93.73059978030123,
+          "merge": 98.73059978030119,
+          "final_stock": 7.000000000000002,
+          "residual": 4.085620730620576e-14
+        },
+        "RM_C10484": {
+          "arrival": 61.479966049931235,
+          "merge": 74.36636742586701,
+          "final_stock": 6.113598624064266,
+          "residual": -4.1744385725905886e-14
+        }
+      }
+    },
+    "both": {
+      "native_omega": 470.43680555555557,
+      "historical_omega": 475.83442663097645,
+      "after_omega": 475.68094522540395,
+      "native_delta": -1.4534722222222172,
+      "historical_delta": 0.055056968603594214,
+      "after_delta": 0.05505762588740026,
+      "tracked_outside": 248.7197874705264,
+      "ramps": {
+        "RM_C10480": {
+          "arrival": 29.609985333204886,
+          "merge": 35.36520831128501,
+          "final_stock": 0.2447770219198796,
+          "residual": 5.551115123125783e-16
+        },
+        "RM_C10482": {
+          "arrival": 280.83632586507935,
+          "merge": 274.136325865079,
+          "final_stock": 28.69999999999997,
+          "residual": 3.588240815588506e-13
+        },
+        "RM_C10646": {
+          "arrival": 46.74082089257097,
+          "merge": 51.60019383009502,
+          "final_stock": 1.1406270624759518,
+          "residual": -1.7763568394002505e-15
+        },
+        "RM_C10644": {
+          "arrival": 67.16,
+          "merge": 72.61500000000012,
+          "final_stock": 13.545000000000055,
+          "residual": -1.8118839761882555e-13
+        },
+        "RM_C10639": {
+          "arrival": 78.7025,
+          "merge": 82.19340799477949,
+          "final_stock": 6.509092005220455,
+          "residual": 5.417888360170764e-14
+        },
+        "RM_C10681": {
+          "arrival": 127.22246267771291,
+          "merge": 113.12829720437136,
+          "final_stock": 67.09416547334192,
+          "residual": -3.694822225952521e-13
+        },
+        "RM_C10490": {
+          "arrival": 93.73059978030123,
+          "merge": 93.84974929582832,
+          "final_stock": 11.880850484472958,
+          "residual": -4.263256414560601e-14
+        },
+        "RM_C10484": {
+          "arrival": 61.479966049931235,
+          "merge": 72.16023808014171,
+          "final_stock": 8.319727969789584,
+          "residual": -5.861977570020827e-14
+        }
+      }
+    }
+  },
+  "input_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\sc1001_connection\\candidate_config.json": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\sc105_supply\\candidate_config.json": "48d33e17b6f6a997702a3929a9bc12c6dbcd6f9659d69e04406a51e173ceab3a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\sc1001_native_choices\\physical_routes.json": "835e7ef3ea25472e43182781b2bcd8fa5c0ddd773d2931ffd44a86fc0daf9f4e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\sc105_supply\\physical_routes.json": "5117f642b612ec8191af69f53bf62b981c07db6adde4b7bb7600557ebb0e642b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\sc1004_response\\assessment.json": "b8aae1073b4108f63319dd6d2759e3646f1105ec152e3a8b8c39e5e24c1de227",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc1004_response47\\held_actual.json": "e1d16ee14719d59471c03a7d336d50b52c92394821bf51997c93f443c14c1daf",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_supply47\\held_actual.json": "4b8461d10113df656210b46a4b54a633f85f0942c5fca9a1e837519ea1a87b5c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_native_choice47\\held_actual.json": "4666da0dcf371156579ed4f1f31e671d985e7c33d832a2bc6f06be0388bf6aa9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc1004_response47\\held_actual_RM_C10681_trace.json.gz": "1afeaa5d895010150555f60111215482a39789b0d8160dab51fabe8031ee2e32",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_supply47\\held_actual_RM_C10681_trace.json.gz": "4950e8f51460cfe62048efc6efd71ac0d74c59de812e9485155f144d9a86a7f0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_native_choice47\\held_actual_RM_C10681_trace.json.gz": "79f09c2d1e39c03e493b2756dd8dcdacb06feee23d77e4a2207cf50c91a1dc82",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc1004_response47\\selected.json": "5b4c47a41165506fa499de6eb4174ca27489625ebca8cdb1c4148dd1f82b9516",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_supply47\\selected.json": "051121edf857a2585d6c726e5c6adbc2148928cc6b03cfc0a8e224f07989db7b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_native_choice47\\selected.json": "97b647be40823902d7f293cafd10077b32e7150db697745a502d1f34dc4b0c16",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc1004_response47\\selected_RM_C10681_trace.json.gz": "34776c092d844dbf0070ca6c81d41849d324a636d1c5691da2fe179706bab98e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_supply47\\selected_RM_C10681_trace.json.gz": "ad2ed2bbec9575e7cebb18db5c9d4388d678eae35b4d6d64cbfda2e696fbbd81",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_native_choice47\\selected_RM_C10681_trace.json.gz": "b6ab891273ee3e4d17dde3a107661df1d7e1f7823be64e357264030175825181",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_native_choice47\\runtime.json": "2b8c677f910769fd1e5aedb9d906850ca275c4671217ce1c613242275dca94d1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc105_supply47\\runtime.json": "a833f3c35b9ad192da60bcc3d2f00de8bbc9fa71442584e86a7d7e7729be8d3c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\sc1001_independent_s43\\comparison.json": "13cebe57846d26aa5ff60ea0a9d25193f4c5703abb58d187bd89ea09930027e8",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc105_native_choice43\\runtime.json": "95795bb3f1b26f484b273bcd43ece96efeef1daa082ef825dc89b28fee1ef5a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc1001_shared_history_s43\\runtime.json": "c4e4b0aec1d7645bdfd82be0ab1ac024f311ef2102b027790cf99fdf6b73598c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc105_native_choice43\\held_actual.json": "95d03b5b994861cf79fd8dc6d7c559ca77acc32047c3d53c5b7b797b552c9473",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc105_native_choice43\\rm.json": "52fc59a3c0469074d418fed8d77ebd1b336f78fa1844f7309e5a36c6a50e2c35",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc105_native_choice43\\vsl.json": "fbf3742b088b56b136a77fcf61d3a3efef940c78572da940a22f786787cf7e0b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc105_native_choice43\\both.json": "90b37b32f7e8ed88bcd4ec28e4755a0a6115af56449d24dde3057df69e4e789d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc1001_shared_history_s43\\held_actual.json": "2a2dc053c2b8301bddb5ab40df17db65c2387e763674c50adfec1f10d52c386f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc1001_shared_history_s43\\rm.json": "fb6ad1d7b1e86da9eedea0994271c8bb4d932dd895fdc6402f2a3e0a87ab9a5b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc1001_shared_history_s43\\vsl.json": "7618168e65746303b94cd5db00365e559106dfbd8b11fd007cb4c74290c0b95f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_sc1001_shared_history_s43\\both.json": "027a1ceefd5a5ff06b82a66ca494aaaa6753de4385fc02f8d40cafa31cf02823"
+  },
+  "changed_functions": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": [
+      "probe_levers"
+    ],
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_movement_routes.py": [
+      "configure_native_choice_groups"
+    ]
+  },
+  "installed_choices47": {
+    "SC105_N_SC1002": {
+      "native_decision": "1043",
+      "native_weights": {
+        "SC105_N_SC1002_to_E_SC1": 136.0,
+        "SC105_N_SC1002_to_S_SC1005": 602.0,
+        "SC105_N_SC1002_to_W_SC1003": 59.0
+      },
+      "before": {
+        "SC105_N_SC1002_to_S_SC1005": 0.6294000000000001,
+        "SC105_N_SC1002_to_E_SC1": 0.3089,
+        "SC105_N_SC1002_to_W_SC1003": 0.061700000000000005
+      },
+      "after": {
+        "SC105_N_SC1002_to_E_SC1": 0.17063989962358847,
+        "SC105_N_SC1002_to_S_SC1005": 0.7553324968632371,
+        "SC105_N_SC1002_to_W_SC1003": 0.0740276035131744
+      }
+    },
+    "SC105_W_SC1003": {
+      "native_decision": "1041",
+      "native_weights": {
+        "SC105_W_SC1003_to_N_SC1002": 110.0,
+        "SC105_W_SC1003_to_E_SC1": 61.0,
+        "SC105_W_SC1003_to_S_SC1005": 78.0
+      },
+      "before": {
+        "SC105_W_SC1003_to_S_SC1005": 0.23492349234923493,
+        "SC105_W_SC1003_to_E_SC1": 0.4337433743374337,
+        "SC105_W_SC1003_to_N_SC1002": 0.3313331333133313
+      },
+      "after": {
+        "SC105_W_SC1003_to_N_SC1002": 0.44176706827309237,
+        "SC105_W_SC1003_to_E_SC1": 0.24497991967871485,
+        "SC105_W_SC1003_to_S_SC1005": 0.3132530120481928
+      }
+    }
+  },
+  "wall_forecasts_sec": 189.74671649979427,
+  "max_ramp_balance_residual": 4.973799150320701e-13,
+  "seed43_ramp_mae": {
+    "arrival": 7.592163758451148,
+    "merge": 6.928732351056423,
+    "final_stock": 4.871307004327101
+  },
+  "seed43_native_rank": [
+    "rm",
+    "both",
+    "nc",
+    "vsl"
+  ],
+  "seed43_candidate_rank": [
+    "rm",
+    "nc",
+    "both",
+    "vsl"
+  ],
+  "interpretation": "Native static choice mismatch repaired. Supply improves modestly;10681 control response and joint RM/VSL gain remain unqualified.",
+  "limitations": [
+    "Native43 reference is a previously inspected different seed, not a blind holdout.",
+    "Historical43 baseline reused from prior compatible scalar implementation; not a fresh rerun of all earlier code.",
+    "Execution-command-conditioned predictions, not new SDMPC optimization or VISSIM runs.",
+    "Tracked outside cost is not identical to full native network plus uninserted waiting.",
+    "No claim that current initial chosen destinations or position/lane travel are fully repaired."
+  ]
+}

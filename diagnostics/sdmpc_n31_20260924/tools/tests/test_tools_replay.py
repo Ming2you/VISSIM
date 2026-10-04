@@ -157,6 +157,37 @@ class Prepare(unittest.TestCase):
         self.fake_replay(case)
         self.assertEqual(rs.compare(case, 120.0)['checks']['action_contract']['ok'], False)
 
+    def test_tuning_checks_vsl_membership_not_only_maximum(self):
+        case = self.tmp / 'r_allowed_vsl'
+        rs.prepare(self.syn.decisions, T, case)
+        self.fake_replay(case)
+        # Replace the original hard link before changing our fixture; the run is immutable.
+        for directory in (case / 'original', case / rs.REPLAY_SUBDIR):
+            path = directory / f'action_{T:06d}.csv'
+            content = path.read_text(encoding='utf-8').replace(',110.0,', ',90.0,')
+            path.unlink()
+            path.write_text(content, encoding='utf-8')
+        tuning = self.tmp / 'allowed_vsl.json'
+        tuning.write_text(json.dumps({'config_overrides': {'freeway_follower': {
+            'vsl_set': [50, 60, 70, 80, 90, 100, 110]}}}), encoding='utf-8')
+        self.assertEqual(rs.main(['compare', str(case), '--tuning', str(tuning)]), 0)
+        report = json.loads((case / rs.COMPARE_NAME).read_text())
+        self.assertEqual(report['checks']['action_contract']['vsl_allowed'],
+                         [50., 60., 70., 80., 90., 100., 110.])
+        # An explicit fixed-speed expectation remains strict (e.g. a no-control replay).
+        self.assertEqual(rs.main(['compare', str(case), '--vsl-expected', '110']), 1)
+
+    def test_action_contract_rejects_invalid_or_unavailable_speeds(self):
+        path = self.tmp / 'bad_speed.csv'
+        source = self.syn.decisions / f'action_{T:06d}.csv'
+        for value in ('85', '120', 'nan', 'inf', '', 'bad'):
+            path.write_text(source.read_text().replace(',110.0,', f',{value},'), encoding='utf-8')
+            with self.subTest(value=value):
+                result = rs.action_contract(path, None, vsl_allowed=[80., 90., 100., 110.])
+                self.assertFalse(result['ok'])
+        path.write_text(source.read_text().replace(',110.0,', ',50.0,'), encoding='utf-8')
+        self.assertTrue(rs.action_contract(path, None, vsl_allowed=[50., 60., 70., 80., 90., 100., 110.])['ok'])
+
     def test_missing_on_both_sides_is_never_identical(self):
         """Review fix 3: 'neither side has it' is not a pass for the SDMPC objective or the derived file."""
         run_progress = self.syn.decisions / f'action_{T:06d}.joint.progress.jsonl'

@@ -1,0 +1,152 @@
+{
+  "status": "completed_evidence_not_gain_qualified",
+  "scope": "Tracked local126/10641/71 cohort2700.1–3145.1; not freeway or fullOmega result.",
+  "native_own_policy_normal_out_delta": -23,
+  "conditional_model_own_policy_normal_out_delta": {
+    "early": 4.837876031989168,
+    "late": 5.131570585384196
+  },
+  "cohorts": {
+    "held": {
+      "initial_n": 35,
+      "arrivals": 204,
+      "arrival_by_source": {
+        "upstream70": 93,
+        "off10643": 93,
+        "city10640": 18
+      },
+      "arrival_by_destination": {
+        "10642": 43,
+        "10635": 64,
+        "unknown": 48,
+        "10634": 49
+      },
+      "final_local_n": 25,
+      "native_tracked_cohort_normal_out": 212,
+      "abnormal_removals": 2,
+      "head_ids_missing_from_tracked_cohort": []
+    },
+    "selected": {
+      "initial_n": 35,
+      "arrivals": 194,
+      "arrival_by_source": {
+        "upstream70": 91,
+        "off10643": 83,
+        "city10640": 20
+      },
+      "arrival_by_destination": {
+        "10642": 43,
+        "10635": 57,
+        "unknown": 48,
+        "10634": 46
+      },
+      "final_local_n": 38,
+      "native_tracked_cohort_normal_out": 189,
+      "abnormal_removals": 2,
+      "head_ids_missing_from_tracked_cohort": [
+        25422
+      ]
+    }
+  },
+  "factorial": [
+    {
+      "arrivals": "held",
+      "clock": "held",
+      "timing": "early",
+      "normal_out": 163.94287129353756,
+      "local_n": 57.6185714219146,
+      "external_wait": 17.43855725387802,
+      "admitted_off10643": 83.13455342519717,
+      "max_balance_residual": 3.066982046107114e-08
+    },
+    {
+      "arrivals": "held",
+      "clock": "held",
+      "timing": "late",
+      "normal_out": 163.27035163339863,
+      "local_n": 58.04384742322734,
+      "external_wait": 17.68580090788443,
+      "admitted_off10643": 82.41355555665626,
+      "max_balance_residual": 3.548961302612952e-08
+    },
+    {
+      "arrivals": "held",
+      "clock": "selected",
+      "timing": "early",
+      "normal_out": 166.10874988617067,
+      "local_n": 69.68101908178048,
+      "external_wait": 3.210230991231574,
+      "admitted_off10643": 92.91431805020133,
+      "max_balance_residual": 4.081728999238976e-08
+    },
+    {
+      "arrivals": "held",
+      "clock": "selected",
+      "timing": "late",
+      "normal_out": 166.92994341861672,
+      "local_n": 70.91896995573883,
+      "external_wait": 1.1510865823722245,
+      "admitted_off10643": 92.8489134163204,
+      "max_balance_residual": 4.327224273348307e-08
+    },
+    {
+      "arrivals": "selected",
+      "clock": "held",
+      "timing": "early",
+      "normal_out": 167.6460141954006,
+      "local_n": 47.38440695126252,
+      "external_wait": 13.969578819977695,
+      "admitted_off10643": 79.42427380818262,
+      "max_balance_residual": 3.3359212281425243e-08
+    },
+    {
+      "arrivals": "selected",
+      "clock": "held",
+      "timing": "late",
+      "normal_out": 163.2899590928695,
+      "local_n": 53.54509221743682,
+      "external_wait": 12.164948653549272,
+      "admitted_off10643": 80.94371586334344,
+      "max_balance_residual": 3.614441279609082e-08
+    },
+    {
+      "arrivals": "selected",
+      "clock": "selected",
+      "timing": "early",
+      "normal_out": 168.78074732552673,
+      "local_n": 59.15654575031265,
+      "external_wait": 1.0627068781966291,
+      "admitted_off10643": 81.93729312178553,
+      "max_balance_residual": 4.596399593809154e-08
+    },
+    {
+      "arrivals": "selected",
+      "clock": "selected",
+      "timing": "late",
+      "normal_out": 168.40192221878283,
+      "local_n": 56.78089606885731,
+      "external_wait": 3.8171816674743546,
+      "admitted_off10643": 81.18281833250784,
+      "max_balance_residual": 4.488551930137419e-08
+    }
+  ],
+  "findings": [
+    "Initial35vehicles and future arrival IDs are disjoint; no double-count proof in this component replay.",
+    "Stopped queue, moving/local approaching stock and later boundary arrivals are distinct in the native audit.",
+    "Selected lane5 last green begins with2stopped vehicles,2crossings then28.75s empty tail.",
+    "Selected lane3 last green has11stopped at3030.1,7compatible+4wrong-lane destinations;42s green yields2crossings.",
+    "Vehicle21111 stands lane3 at73.39m toward10635 during3035.1–3050.1 while lane4 is red and queued.",
+    "No-physical-arrival shortage explanation for all green losses: eligible lane access and FIFO order also matter.",
+    "Even actual policy-specific arrivals and clocks do not reproduce local discharge difference; do not fit freeway coefficients to this.",
+    "Off10643 arrivals in this local replay are an endogenous observed drainage outcome, not independent desired demand.",
+    "Model local initialization uses position/route and finite-volume mass; speed is not an independent ready-queue state."
+  ],
+  "limits": [
+    "5s sampling cannot establish exact ready times, complete lane-change chronology or every short whole-area traversal.",
+    "Native normal discharge excludes2abnormal removals per policy; model keeps all vehicles, a retained comparison limitation.",
+    "The two policies change several city signals; observed differences are not isolated RM effects.",
+    "Future observations are diagnostic inputs only. No autonomous gain or9000 qualification.",
+    "First two clock tests used stale signal-gated receiving and are invalid; preserved separately."
+  ],
+  "next": "Validate eligible head-queue composition and within-green arrivals at the same actual state, including lane access and exchange; reuse prior rejected exchange/FIFO candidates rather than repeat their grids."
+}

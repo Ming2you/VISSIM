@@ -1,0 +1,30 @@
+{
+  "previous_goal_turn": "progress",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "candidate_count": 1,
+  "fits": 0,
+  "max_initial_forecasts": 3,
+  "max_followup_forecasts": 2,
+  "initial_stages": [
+    "default2250 exact parity with saved geotime candidate",
+    "candidate2250 held450 and primary first150",
+    "candidate3600 held450 recovery guard"
+  ],
+  "followup": "Only if both states pass: existing independentseed47 hold/release2",
+  "primary_gate": "At least20% reduction in10490 first150 absolute merge AND posthead error against geotime, and all8 conservation, native command match; if fails stop and restore core. Recovery error must not worsen by more than1vehicle in merge or posthead. No tiny-sign fitting.",
+  "hypothesis": "Cap travelling posthead cohorts by current predicted merge-cell speed. Remaining ETA shift dt*(1-vcap/vnom); separate receiving queue unchanged. No new coefficient, future traffic or command-based gain.",
+  "scope": "10490 only; geotime and origin receiving baseline unchanged. Aggregate speed may miss blocked lane.",
+  "source_pins": {
+    "evaluation/controllers/physical_ramp_boundary.py": "70c5def2ea20774652a68255b9b42b1adc47cc734a9b47e3b95a05d5add4d241",
+    "evaluation/controllers/lane_ramp_runtime.py": "383e578012f2629c7f55897d99b9d7521a1ccb6c97a0d3c73beeb04140e64825",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "93463ba0c0f3dbf57bd69ed1e764d5813972d3473d8bea99e74c36bbe567ebca"
+  },
+  "backups": {
+    "evaluation/controllers/physical_ramp_boundary.py": "diagnostics/sdmpc_n31_20260924/integration_20260926/expanded036_9000_20260930/loss_onset2250/posthead_clock10490/before/physical_ramp_boundary.py",
+    "evaluation/controllers/lane_ramp_runtime.py": "diagnostics/sdmpc_n31_20260924/integration_20260926/expanded036_9000_20260930/loss_onset2250/posthead_clock10490/before/lane_ramp_runtime.py",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "diagnostics/sdmpc_n31_20260924/integration_20260926/expanded036_9000_20260930/loss_onset2250/posthead_clock10490/before/canonical_harness.py"
+  },
+  "native": 0,
+  "live_monitoring": 0,
+  "push": 0
+}

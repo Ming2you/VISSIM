@@ -1,0 +1,37 @@
+{
+  "status": "completed_current_VSL_cell_response_diagnosis",
+  "goal_status": "ACTIVE / NOT_QUALIFIED",
+  "current_goal_turn": "progress: two exact current-model forecasts and new executed speed/receiving evidence",
+  "forecasts450": 2,
+  "owned_session_terminal": {
+    "62801": 0
+  },
+  "live_owned_jobs": [],
+  "fit": 0,
+  "new_native": 0,
+  "new_fzp_scans": 0,
+  "production_sources_changed": 0,
+  "source_pins_unchanged": 112,
+  "push": 0,
+  "source_changed": {
+    "diagnostics\\repin_v3c3_review_20261001\\urban66_u7\\audit.py": "fe65bf5963a6fe97b42b49963958d146487f7adec59c0e5a96a332f41b6a72e3"
+  },
+  "findings": [
+    "Receiving never limits cells16-20; capacity increase cannot address this observed model error",
+    "Current2250 cell16 accelerates in native but decelerates in model; other cells have mixed error directions",
+    "Native-source-equal prefix: east deltaTTT +.05833/native +.03482/model, below materiality; cell16 flow +15/native -6.03/model still mismatched",
+    "No parameter adopted; current full450 Omega gain remains unqualified"
+  ],
+  "next": "Claude-first current spatial-state/anticipation aggregation diagnosis of cell16 and wave timing; reuse strongRM validation, no duplicate global coefficient or exposure loops.",
+  "evidence_pins": {
+    "protocol.json": "12b352ebc3b90161bcee137e91a15d155eeb0db418d5733707350e59efcc4e75",
+    "candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05",
+    "assessment.json": "3b7d44ad5296f04bc4a2ac4bba8a4ced2589f3f7a6874166cedea07845784e89",
+    "prefix_assessment.json": "21e1fc471cf1f714b35f5170081ac4dfc380cb24ae74bba424f847cd1be45396",
+    "snapshots.json": "2291de891b1d306135f46de4a6d5446729f42c69d683beb20955a052332c004a",
+    "README.md": "eb7bd1f8c5e407a77fac6c05a9f787431b72f57c33a43f71227268ed6e716047",
+    "assess.py": "909f772fb1a35ede5d1e97bc41db8913101e26ec711e86de2f41ec7cbe25d549",
+    "audit_executed.py": "fe65bf5963a6fe97b42b49963958d146487f7adec59c0e5a96a332f41b6a72e3",
+    "run.log": "0e05995b4450f93763523c3308d09df9dece0fac926f14a8cb5aad2e128310cc"
+  }
+}

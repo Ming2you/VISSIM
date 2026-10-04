@@ -1,0 +1,262 @@
+"""Causal desired-speed cohort estimation from a closed obs150 window.
+
+Native boundary counts plus the two observed stocks determine every internal
+cell flux by conservation. Their within-window timing is not observed: the
+estimator uses uniform rates and implicit well-mixed transport. It estimates
+the latent command cohorts; it does not claim individual DSD passage labels.
+No predicted future state, candidate command or new COM query is used.
+"""
+from __future__ import annotations
+
+import copy
+from bisect import bisect_right
+import csv
+import hashlib
+import io
+import json
+import math
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+from evaluation.controllers.freeway_fd import VSLExposure
+
+
+def cell_fluxes(old, new, entry, merges, exits, removed, terminal):
+    """Infer accepted mainline counts; reject inconsistent measured balances."""
+    count=len(old)
+    if not count or any(len(x)!=count for x in (new,merges,exits,removed)):
+        raise ValueError('Observed cohort stock/flow dimensions differ')
+    values=[entry,terminal,*old,*new,*merges,*exits,*removed]
+    if any(not math.isfinite(x) or x<0 for x in values):
+        raise ValueError('Observed cohort stocks/flows must be nonnegative')
+    incoming=entry;out=[]
+    for a,b,r,o,d in zip(old,new,merges,exits,removed):
+        incoming=a+incoming+r-o-d-b
+        if incoming < -1e-7:raise ValueError('Negative inferred past mainline crossings')
+        out.append(max(0.,incoming))
+    if abs(out[-1]-terminal)>1e-7:
+        raise ValueError('Past mainline balance differs from measured terminal count')
+    return out
+
+
+def assimilate(exposure, old, new, entry, merges, exits, removed, terminal,
+               commands, duration, step_sec, changes=None):
+    """Return a separate posterior; native end stocks stay exact.
+
+    Implicit mixing allows a cell empty at the first snapshot to carry a
+    positive closed-window through count. All departures take the same cohort
+    shares. Deletion is a sink only, never a completed-trip event.
+    """
+    mainline=cell_fluxes(old,new,entry,merges,exits,removed,terminal)
+    if not math.isfinite(duration) or not math.isfinite(step_sec) or duration<=0 or step_sec<=0 or len(commands)!=len(old):
+        raise ValueError('Invalid cohort observation interval')
+    result=copy.deepcopy(exposure)
+    if any(not math.isfinite(n) or n<0 for row in result.cohorts for n in row.values()):
+        raise ValueError('Previous VSL cohort masses must be finite and nonnegative')
+    if any(commands[i] is None or not math.isfinite(commands[i]) or commands[i]<=0 for i in result.signs):
+        raise ValueError('Past sign commands must be finite and positive')
+    if len(result.cohorts)!=len(old) or any(abs(sum(row.values())-n)>1e-7 for row,n in zip(result.cohorts,old)):
+        raise ValueError('Previous VSL cohorts do not match the observed previous stock')
+    if any(abs(v)>1e-12 for row in result.tangents for v in row.values()):
+        raise ValueError('Past observed cohorts must not carry candidate derivatives')
+    changes=changes or {}
+    if any(not math.isfinite(t) or not 0<=t<duration or len(v)!=len(old) for t,v in changes.items()):
+        raise ValueError('Past VSL change lies outside its closed interval')
+    for v in changes.values():
+        if any(v[i] is None or not math.isfinite(v[i]) or v[i]<=0 for i in result.signs):
+            raise ValueError('Invalid past VSL change')
+    steps=math.ceil(duration/step_sec)
+    times=sorted(set([duration*k/steps for k in range(steps+1)]+list(changes)))
+    for t0,t1 in zip(times,times[1:]):
+        if t0 in changes:commands=changes[t0]
+        fraction=(t1-t0)/duration
+        incoming={float(result.spec['initial_command']):entry*fraction}
+        rows=[]
+        for i,row in enumerate(result.cohorts):
+            amount=sum(incoming.values())
+            if i in result.signs:incoming={float(commands[i]):amount}
+            pool=dict(row)
+            for command,n in incoming.items():pool[command]=pool.get(command,0.)+n
+            command=float(result.spec['ramp_command'])
+            pool[command]=pool.get(command,0.)+merges[i]*fraction
+            mass=sum(pool.values());depart=(mainline[i]+exits[i]+removed[i])*fraction
+            if depart>mass+1e-7:raise ArithmeticError('Past cohort transport would remove unavailable vehicles')
+            ratio=max(0.,1.-depart/mass) if mass>0 else 0.
+            incoming={cmd:n/mass*mainline[i]*fraction for cmd,n in pool.items()} if mass>0 else {}
+            kept={cmd:n*ratio for cmd,n in pool.items() if n*ratio>0.}
+            expected=old[i]+(new[i]-old[i])*t1/duration
+            residual=abs(sum(kept.values())-expected)
+            result.max_residual=max(result.max_residual,residual)
+            if residual>1e-7:raise ArithmeticError('Past cohort mass is not conserved')
+            rows.append(kept)
+        result.cohorts=rows
+    result.tangents=[{cmd:0. for cmd in row} for row in result.cohorts]
+    return result
+
+
+def read_commands(network_path, readback_bytes, groups, signs, cells, start, end, allowed):
+    """Past displayed commands, verified against the application readbacks."""
+    tree=ET.parse(network_path)
+    dsds={int(d.get('no')):d for d in tree.findall('./desSpeedDecisions/desSpeedDecision')}
+    current={}
+    for group in groups:
+        for no in group['dsds']:
+            current.update({(no,int(z.get('vehClass'))):float(z.get('desSpeedDistr'))
+                            for z in dsds[no].findall('./vehClassDesSpeedDistr/vehClassDesSpeedDistribution')})
+    if not current or any(value not in allowed for value in current.values()):
+        raise ValueError('Initial native VSL distributions are unsupported')
+    ever_active=any(value!=max(allowed) for value in current.values())
+    records=[];last=-1.;batches={}
+    reader=csv.DictReader(io.StringIO(readback_bytes.decode('utf-8-sig')))
+    required=['sim_sec','dsd_no','veh_class_no','requested_kph','readback_distribution_no','ok','stage']
+    if reader.fieldnames!=required:raise ValueError('Missing or invalid native VSL readback header')
+    for row in reader:
+        t=float(row['sim_sec'])
+        if not math.isfinite(t) or t<last:raise ValueError('Native VSL readbacks are not time ordered')
+        last=t
+        if t>=end:break  # the decision at end has not controlled this window
+        key=(int(row['dsd_no']),int(row['veh_class_no']))
+        if key not in current:continue
+        request=float(row['requested_kph']);actual=float(row['readback_distribution_no'])
+        if row['ok']!='1' or row['stage']!='immediate' or request!=actual or actual not in allowed:
+            raise ValueError('Unverified native VSL application in the observed past')
+        batches.setdefault(t,[]).append((key,actual));ever_active|=actual!=max(allowed)
+        records.append(row)
+    if len(groups)!=len(signs):raise ValueError('Physical VSL groups and signs differ')
+    def vector():
+        commands=[None]*cells
+        for group,sign in zip(groups,signs):
+            values={v for (no,cls),v in current.items() if no in group['dsds']}
+            if len(values)!=1:raise ValueError('Native sign lanes/classes have different VSL distributions')
+            commands[sign]=values.pop()
+        return commands
+    commands=vector();changes={};last_commands=commands
+    for t,updates in batches.items():
+        current.update(updates);row=vector()
+        if t<=start:commands=row
+        elif row!=last_commands:changes[t-start]=row
+        last_commands=row
+    return commands,ever_active,records,changes
+
+
+def permanent_nominal_counts(network_path, vehicles, geometry, road, groups, records, maximum, cutoff):
+    """A lower bound from current positions after signs always held nominal.
+
+    Between lane-staggered signs no label is forced. A sign ever restricted
+    before cutoff is not a nominal proof, even after release. Ramp arrivals
+    are covered only when the caller's physical ramp entry command is nominal.
+    """
+    dsds={int(z.get('no')):z for z in ET.parse(network_path).findall('./desSpeedDecisions/desSpeedDecision')}
+    varied={int(z['dsd_no']) for z in records if float(z['readback_distribution_no'])!=maximum}
+    intervals=[]
+    for group in groups:
+        positions=[];nominal=True
+        for no in group['dsds']:
+            d=dsds[no];link=int(d.get('lane').split()[0]);address=geometry['addresses'].get(link,geometry['addresses'].get(str(link)))
+            if address is None or address[0]!=road:raise ValueError('Nominal-history sign is outside its physical road')
+            positions.append(address[1]+float(d.get('pos')))
+            initial={float(z.get('desSpeedDistr')) for z in d.findall('./vehClassDesSpeedDistr/vehClassDesSpeedDistribution')}
+            nominal &= initial=={maximum} and no not in varied and float(d.get('timeFrom','0'))==0 and float(d.get('timeTo','inf'))>=cutoff
+        intervals.append((min(positions),max(positions),nominal))
+    intervals.sort();floors=[0.]*(len(geometry['bounds'][road])-1)
+    for row in vehicles:
+        address=geometry['addresses'].get(row[1],geometry['addresses'].get(str(row[1])))
+        if address is None or address[0]!=road:continue
+        position=address[1]+row[3];cell=bisect_right(geometry['bounds'][road],position)-1
+        if cell<0:continue
+        cell=min(len(floors)-1,cell)
+        for j,(lower,upper,nominal) in enumerate(intervals):
+            end=intervals[j+1][0] if j+1<len(intervals) else float('inf')
+            if nominal and upper<=position<end:floors[cell]+=1;break
+    return floors
+
+
+def constrain_nominal(exposure, floors, maximum):
+    """Conserve N while enforcing only independently known nominal lower bounds."""
+    if len(floors)!=len(exposure.cohorts):raise ValueError('Nominal lower-bound dimension mismatch')
+    moved=0.
+    for i,(row,floor) in enumerate(zip(exposure.cohorts,floors)):
+        total=sum(row.values())
+        if not math.isfinite(floor) or floor<0 or floor>total+1e-7:raise ValueError('Invalid observed nominal lower bound')
+        nominal=row.get(maximum,0.);needed=max(0.,floor-nominal);other=total-nominal
+        if needed>1e-12:
+            factor=max(0.,1-needed/other)
+            exposure.cohorts[i]={cmd:n*factor for cmd,n in row.items() if cmd!=maximum and n*factor>0}
+            exposure.cohorts[i][maximum]=nominal+needed;moved+=needed
+        exposure.tangents[i]={cmd:0. for cmd in exposure.cohorts[i]}
+        if abs(sum(exposure.cohorts[i].values())-total)>1e-7:raise ArithmeticError('Nominal constraint changed vehicle count')
+    return moved
+
+
+def initialize(context, raw, state, cfg):
+    """Install the same posterior in all candidates and save its causal receipt."""
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.lane_plant_runtime import bin_frame
+    if context.get('plant_mode')!='v2' or not getattr(cfg.network,'physical_vsl_sign_binding',False):
+        raise ValueError('Observed VSL history requires v2 and physical sign binding')
+    obs=raw[oc.RAW_STATE_KEY];derived=raw[oc.MERGED_DERIVED_KEY]
+    start,end,_=oc.bundle_interval(obs['sim_sec'])
+    directory=Path(obs['directory'])
+    start_frame=oc.load_frame(oc.resolve(obs,obs['frames']['previous']['path']),obs['frames']['previous']['sha256'],start)
+    end_frame=oc.load_frame(oc.resolve(obs,obs['frames']['current']['path']),obs['frames']['current']['sha256'],end)
+    readback=(directory/'vsl_readback.csv').read_bytes()
+    prior_path=directory/'obs150'/f'vsl_cohorts_{start:06d}.json'
+    previous=json.loads(prior_path.read_text(encoding='utf8')) if prior_path.exists() else None
+    identity=dict(schema='observed-vsl-cohorts/v1',run_id=obs['run_id'],manifest_sha256=context['manifest_sha256'])
+    if previous is not None and (any(previous.get(k)!=v for k,v in identity.items()) or previous['cutoff']!=start
+            or previous['frame_sha256']!=obs['frames']['previous']['sha256']):
+        raise ValueError('Previous VSL history is stale or from another run/observation')
+    results={};audit={};command_records={}
+    geometry=context['geometry'];boundaries=derived['boundaries'];removals=derived['removals']['rows']
+    count_link=lambda frame,link:sum(row[1]==int(link) for row in frame['vehicles'])
+    for road,conf in state.lane_freeway_runtime.configs.items():
+        spec=(getattr(conf.network,'component_vsl_transport',{}) or {}).get(road)
+        if spec is None:continue
+        cells,a,dropped=bin_frame(geometry,start_frame['vehicles'],road,drop_before_start=True)
+        _,b,dropped_end=bin_frame(geometry,end_frame['vehicles'],road,drop_before_start=True)
+        if dropped or dropped_end:raise ValueError('Past VSL history has unassigned before-entry vehicles')
+        old=list(map(len,a));new=list(map(len,b));size=len(old)
+        groups=sorted((z for z in cfg.network.physical_vsl_groups if z['road']==road),key=lambda z:z['parent'])
+        commands,active,records,changes=read_commands(context['paths']['network'],readback,groups,spec['sign_cells'],size,start,end,cfg.freeway_follower.vsl_set)
+        exp=VSLExposure(old,spec,max(cfg.freeway_follower.vsl_set))
+        if previous is None:
+            if active and any(old):raise ValueError('Missing prior VSL cohorts after an observed restriction; never reset to110')
+        else:
+            if road not in previous['cohorts']:raise ValueError('Previous VSL history lacks a carried road')
+            exp.cohorts=[{float(cmd):float(n) for cmd,n in z.items()} for z in previous['cohorts'][road]]
+            exp.tangents=[{cmd:0. for cmd in z} for z in exp.cohorts]
+        entry=boundaries['source:'+road]['cross'];terminal=boundaries['chain_end:'+road]['cross']
+        merges=[0.]*size;exits=[0.]*size;deleted=[0.]*size
+        for boundary in geometry['boundaries']:
+            if boundary['road']!=road or boundary['kind'] not in ('ramp','offramp'):continue
+            connector=str(boundary['connector'])
+            if boundary['kind']=='offramp':exits[boundary['from_cell']]+=boundaries['off_entry:'+connector]['cross']
+            else:
+                removed=sum(z['link']==int(connector) for z in removals)
+                admitted=boundaries['ramp_arrival:RM_C'+connector]['cross']
+                merges[boundary['to_cell']]+=admitted+count_link(start_frame,connector)-count_link(end_frame,connector)-removed
+        for row in removals:
+            _,assigned,_=bin_frame(geometry,[[row['vehicle_id'],row['link'],1,row['position_m'],0.,1.]],road,drop_before_start=True)
+            for i,z in enumerate(assigned):deleted[i]+=len(z)
+        posterior=assimilate(exp,old,new,entry,merges,exits,deleted,terminal,commands,end-start,conf.simulation.T_f_sec,changes)
+        maximum=max(cfg.freeway_follower.vsl_set)
+        floors=permanent_nominal_counts(context['paths']['network'],end_frame['vehicles'],geometry,road,groups,records,maximum,end) if spec['ramp_command']==maximum else [0.]*size
+        constrained=constrain_nominal(posterior,floors,maximum)
+        actual_stock=[rho*cell['length_km']*lanes for rho,cell,lanes in zip(state.freeway_density[road],cells,state.freeway_effective_lanes[road])]
+        if any(abs(x-y)>1e-7 for x,y in zip(new,actual_stock)):raise ValueError('VSL history and projected current freeway stock differ')
+        results[road]=posterior;command_records[road]=records
+        audit[road]=dict(start_stock=sum(old),end_stock=sum(new),entry=entry,merges=sum(merges),off=sum(exits),removed=sum(deleted),terminal=terminal,
+            conservation_max=posterior.max_residual,
+            geometry_nominal_lower_bound_veh=sum(floors),geometry_nominal_reassigned_veh=constrained,
+            retained_nonmaximum_veh=sum(n for row in posterior.cohorts for cmd,n in row.items() if cmd<max(cfg.freeway_follower.vsl_set)))
+    if not results:raise ValueError('Observed VSL history enabled without a carried VSL road')
+    receipt=dict(**identity,cutoff=end,frame_sha256=obs['frames']['current']['sha256'],
+        derived_sha256=oc.canonical_sha256(derived),previous_sha256=oc.file_sha256(prior_path) if previous is not None else None,
+        applied_readbacks_sha256=oc.canonical_sha256(command_records),
+        estimator='uniform past measured flows; implicit mixed cells; current physical positions enforce permanent nominal-sign lower bounds',
+        cohorts={road:exp.cohorts for road,exp in results.items()},audit=audit)
+    data=oc.canonical_json_bytes(receipt);target=directory/'obs150'/f'vsl_cohorts_{end:06d}.json'
+    if target.exists() and target.read_bytes()!=data:raise ValueError('Existing VSL posterior differs; do not overwrite causal evidence')
+    if not target.exists():target.write_bytes(data)
+    state._component_vsl_exposure=results
+    return {'observed_vsl_history':dict(path=str(target),sha256=hashlib.sha256(data).hexdigest(),audit=audit)}

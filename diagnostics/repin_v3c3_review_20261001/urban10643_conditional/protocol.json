@@ -1,0 +1,27 @@
+{
+  "status": "prepared_eight_conditional_replays",
+  "initial_epoch_s": 2700.1,
+  "end_epoch_s": 3145.1,
+  "future_native_input": true,
+  "autonomous_forecast": false,
+  "max_component_replays": 8,
+  "variations": [
+    "early vs late5s entry bracket",
+    "frozen existing exit budgets vs unrestricted exits",
+    "no deletion vs2 recorded removals, abnormal mass accounted separately"
+  ],
+  "amended_before_any_replay": "Preflight found2 delayed ERR removals. Never count these as normal discharge or calibrate them into a physical service law.",
+  "controls": "same verified native signal windows",
+  "geometry_and_parameters": "unchanged retained10638",
+  "source_rows": 7518,
+  "arrivals": 204,
+  "new_fzp_scans": 0,
+  "new_native": 0,
+  "limitations": [
+    "Inlet lane can change between5s snapshots; use last off/city source lane, first126 lane for upstream70.",
+    "Order within simultaneous5s brackets uses upstream position thenID; it is not a complete microscopic chronology.",
+    "Actual off drainage is boundary demand; any rejected portion stays in an explicit backlog.",
+    "Unrestricted exit removes downstream constraints for diagnosis only; not feasible full-network control.",
+    "Stored control/no-control gains cannot be inferred from this single-policy conditional replay."
+  ]
+}

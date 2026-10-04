@@ -1,0 +1,16 @@
+{
+  "hypothesis": "The standard v_i/L convection weight can misrepresent velocity transport when actual accepted flow and cell inventory are nonuniform. Test an accepted-flow moment balance instead, no fitted coefficient.",
+  "formula": "delta_v = dt_h * accepted_mainline_in_vph * (upstream_speed - speed) / N_after; arrivals from ramps carry current recipient speed before existing separate merge damping.",
+  "scope": "All31 FW_E cells, same physical1s conservation and native command cohorts; all FD/relaxation/anticipation/lane-drop/merge coefficients unchanged.",
+  "order": "Velocity transport substituted BEFORE existing min-speed clipping/lane-drop/merge/boundary caps.",
+  "evidence": "Earlier five_second audit: persistent cell24/25 convection slow bias; experiment tests closure, not proof of root cause.",
+  "budget": "1default450+4seed29training450; if response loss improves at least20pct and N/q RMSE worsen at most10pct then4seed43+4seed29late. One candidate, no parameter grid. Conditional five1s probes optional diagnostic only.",
+  "limits": [
+    "Incoming mainline mean still approximated by upstream mean; faster exiting vehicle selection not solved.",
+    "Prior observed five_second probes freeze off support/lagged accepted-merge rates, so are not full plant gain validation.",
+    "Existing check states previously seen, not blind holdout."
+  ],
+  "production_adopted": false,
+  "new_native": 0,
+  "new_fit": 0
+}

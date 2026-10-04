@@ -1,0 +1,50 @@
+{
+  "reason": "132 state errors improved but local discharge response failed. Separate macro ranking falsification, not weakening132 gates or promoting the candidate.",
+  "selection": "One no-fit cell22 density-pressure bound; no modified coefficients or multiple thresholds.",
+  "manifest": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\lane_state132\\eval_01\\manifest.json",
+  "z": [
+    0.7729929835738953,
+    0.7,
+    1.3,
+    1.0937843356561079
+  ],
+  "future_observations_in_model": false,
+  "budget": {
+    "parity450": 1,
+    "autonomous450": 8,
+    "additional_fit": 0,
+    "new_native": 0,
+    "new_FZP": 0
+  },
+  "gate": "Same >=.5vehh paired signs, >=10% response improvement, absolute<=110%, bestchoice regret<=.5. No additional candidate if failure.",
+  "scope": "FW_E31+4on+4off; component TTT, not Omega. Original captured source forecasts and all waiting costs unchanged.",
+  "protected_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP": {
+    "path": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "inputs": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\junction_fifo124\\dynamic\\executed_function_sources.json": "c3d83b19d15ba4dedec1d4a08429de4d354a3b8db6c2373a8a51f86f05c5142b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\lane_state132\\eval_01\\manifest.json": "45ad05a159b9c8c0d2b5d0a0831c116f4e2210a2ffa738dd4d05735edec3137c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\lane_state132\\proposal.json": "3c323dfa96140e70e1f09f7aba22d32b313bc8b7e015d246dafe9d10b2af5f36"
+  },
+  "helper_sha256": "01763dbae500f27bd691be839c44aa9bbf96188ca9f3b1f9970b1872ec6b3b9b",
+  "previous_goal_turn": "PROGRESS:137 scalar nu reduction improved state but erased RM response;138 five1s local advances retained excess braking.",
+  "mechanism": "Preserve all conserved flows, fixed132 coefficients and all other speed terms. Bound only negative cell22 anticipation so it cannot remove more than positive current local-to-downstream speed difference in one1s update. Keep original negative pressure if downstream is stopped and original update would not close the gap. This bounds one term, not total deceleration.",
+  "source_basis": "Independent hypothesis, NOT literal Fang2019 or Zhao2025 formula. Fang2019 supports state-dependent driver response; Zhao2025 addresses steep-density anticipation overshoot. Prior local Bounded-METANET and center-distance failures retained, not replayed.",
+  "references": [
+    "https://onlinelibrary.wiley.com/doi/10.1155/2019/8151582",
+    "https://arxiv.org/html/2503.17680v1"
+  ],
+  "compared_to": "Unmodified132, identical original autonomous inputs. No calibration/future states/control-specific bonus.29/67 previously inspected; no blind validation claim."
+}

@@ -1,0 +1,216 @@
+{
+  "tables": [
+    {
+      "model": "spatial_context148",
+      "native_blocks": [],
+      "mask": 0,
+      "off110": 22.323595890540084,
+      "off90": 22.369107628805505,
+      "difference": 0.04551173826542154
+    },
+    {
+      "model": "spatial_context148",
+      "native_blocks": [
+        "request20"
+      ],
+      "mask": 1,
+      "off110": 24.067602088883522,
+      "off90": 26.258970816374504,
+      "difference": 2.191368727490982
+    },
+    {
+      "model": "spatial_context148",
+      "native_blocks": [
+        "receiving21"
+      ],
+      "mask": 2,
+      "off110": 20.97217030193776,
+      "off90": 25.800837209314324,
+      "difference": 4.828666907376565
+    },
+    {
+      "model": "spatial_context148",
+      "native_blocks": [
+        "request20",
+        "receiving21"
+      ],
+      "mask": 3,
+      "off110": 24.70540417548037,
+      "off90": 40.3553971103023,
+      "difference": 15.649992934821928
+    },
+    {
+      "model": "spatial_context148",
+      "native_blocks": [
+        "merge21"
+      ],
+      "mask": 4,
+      "off110": 20.310644880192058,
+      "off90": 18.300407333445413,
+      "difference": -2.0102375467466445
+    },
+    {
+      "model": "spatial_context148",
+      "native_blocks": [
+        "request20",
+        "merge21"
+      ],
+      "mask": 5,
+      "off110": 21.949670308751426,
+      "off90": 28.32229896232722,
+      "difference": 6.372628653575795
+    },
+    {
+      "model": "spatial_context148",
+      "native_blocks": [
+        "receiving21",
+        "merge21"
+      ],
+      "mask": 6,
+      "off110": 22.017522275340422,
+      "off90": 24.15007262561329,
+      "difference": 2.1325503502728687
+    },
+    {
+      "model": "spatial_context148",
+      "native_blocks": [
+        "request20",
+        "receiving21",
+        "merge21"
+      ],
+      "mask": 7,
+      "off110": 26.153118025987762,
+      "off90": 37.14690229294649,
+      "difference": 10.99378426695873
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [],
+      "mask": 0,
+      "off110": 20.490735697624167,
+      "off90": 20.378365672162165,
+      "difference": -0.11237002546200259
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [
+        "request20"
+      ],
+      "mask": 1,
+      "off110": 21.34195087213178,
+      "off90": 23.06646514756227,
+      "difference": 1.72451427543049
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [
+        "receiving21"
+      ],
+      "mask": 2,
+      "off110": 22.33100373946183,
+      "off90": 26.046614897521042,
+      "difference": 3.715611158059211
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [
+        "request20",
+        "receiving21"
+      ],
+      "mask": 3,
+      "off110": 24.791662137444135,
+      "off90": 40.461261806784684,
+      "difference": 15.669599669340549
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [
+        "merge21"
+      ],
+      "mask": 4,
+      "off110": 18.920079169214457,
+      "off90": 17.533869084878216,
+      "difference": -1.3862100843362413
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [
+        "request20",
+        "merge21"
+      ],
+      "mask": 5,
+      "off110": 21.008274295219216,
+      "off90": 26.527712524337066,
+      "difference": 5.519438229117849
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [
+        "receiving21",
+        "merge21"
+      ],
+      "mask": 6,
+      "off110": 22.279839816914553,
+      "off90": 24.385900367996772,
+      "difference": 2.1060605510822192
+    },
+    {
+      "model": "coupled_recovery158",
+      "native_blocks": [
+        "request20",
+        "receiving21",
+        "merge21"
+      ],
+      "mask": 7,
+      "off110": 26.153118025987762,
+      "off90": 37.14690229294649,
+      "difference": 10.99378426695873
+    }
+  ],
+  "decompositions": [
+    {
+      "model": "spatial_context148",
+      "predicted_response": 0.04551173826542154,
+      "native_conditional_response": 10.99378426695873,
+      "actual_response": 14.0,
+      "permutation_average": {
+        "request20": 6.869729006598441,
+        "receiving21": 6.06833894488977,
+        "merge21": -1.9897954227949015
+      },
+      "residual": 0.0,
+      "interpretation": "Algebraic response attribution only; not causal shares or a conservative rollout."
+    },
+    {
+      "model": "coupled_recovery158",
+      "predicted_response": -0.11237002546200259,
+      "native_conditional_response": 10.99378426695873,
+      "actual_response": 14.0,
+      "permutation_average": {
+        "request20": 6.718142143045573,
+        "receiving21": 6.007001745342118,
+        "merge21": -1.6189895959669578
+      },
+      "residual": 0.0,
+      "interpretation": "Algebraic response attribution only; not causal shares or a conservative rollout."
+    }
+  ],
+  "baseline_steps": 600,
+  "exact_max_error": 0.0,
+  "native156_matched": true,
+  "source_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\recurrent_node159\\check.py": "096e15880d297c1867124550fac53f9d2dccdcbd20a14be4ae8b6f1e123ab2b3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\exit_sending131\\attempt2\\steps.json": "0d7123558b382ec2c8195bffb45971adc1827ae3f9c9f1b8b51e9c5628cd3e08",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\receiving_lane152\\steps.json": "067a315b428e7e3378d7df544891f68ca8d73bae0fa4b0a08b0bad7835d43ba7",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\exit_recovery156\\receiving_probe.json": "1556a8361e9fcf3d5e52e8d7790676a5f85c806ed74998ff527149126e19edf8",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\mapping31.json": "075467c61ee386d0c98e0762bb3ad9c579ea57c304a0a22ef2cd9c3b4449ca0d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\spatial_context148\\forecast\\training\\s67_late_release.json.gz": "8078df7fbba28306e4dcd2937ed0c704c92f90297f01c41176d2e9693e80ce24",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\spatial_context148\\forecast\\training\\s67_late_release_vsl90.json.gz": "eb5bdaf0c70d5309ef6b2e718d8816fde69f60ed1fed5ee0360d343c3c4ca336",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\coupled_recovery158\\forecast\\training\\s67_late_release.json.gz": "0f84466eca49791f8fc76cfeede56d9f704b6582d06503caec0db92216ea2e0d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\coupled_recovery158\\forecast\\training\\s67_late_release_vsl90.json.gz": "96de2ddee30ad392a82009e2375403e5d2eaeb7fbde2d6d7914435ab97b8573d"
+  },
+  "core": true,
+  "STOP": true,
+  "adopted": false,
+  "goal_complete": false
+}

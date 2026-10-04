@@ -356,6 +356,33 @@ def _require_line_start(handle, offset, what):
                                           'the file changed between captures')
 
 
+def require_err_barrier(err_path, decision_dir, sim_sec, token):
+    """Require the live runner's current log marker in newly flushed complete bytes.
+
+    VISSIM2020 buffers .err even while paused. Absence of warnings is not
+    evidence of absence of removals. The runner posts a unique NOTE followed
+    by bounded padding through VISSIM.Log; that drains preceding native
+    warnings without stepping traffic. Never treat padding alone, a previous
+    capture's marker, or an incomplete final line as proof of freshness.
+    The original capture signature and legacy offline files remain unchanged.
+    """
+    _require(re.fullmatch(r'OBS150_ERR_BARRIER_[A-Za-z0-9_-]{1,128}_'+str(sim_sec), token) is not None,
+             'Invalid current-run .err barrier token')
+    source = _check_err_source(err_path)
+    start, _, _, _ = _previous_err(decision_dir, _previous_stop(sim_sec), str(source))
+    _require(source.exists(), '.err barrier file is missing')
+    with source.open('rb') as handle:
+        handle.seek(0, 2)
+        _require(handle.tell() >= start, '.err shrank before barrier verification')
+        _require_line_start(handle, start, '.err')
+        handle.seek(start)
+        data = handle.read()
+    complete = data[:data.rfind(b'\n')+1]
+    expected = b'Note\t'+token.encode('ascii')
+    _require(sum(line.strip() == expected for line in complete.splitlines()) == 1,
+             'Current .err barrier is not flushed exactly once; no observation may be committed')
+
+
 def capture_err(err_path, decision_dir, sim_sec, table):
     """(meta, chunk bytes) of the .err increment; nothing is written here."""
     source_path = _check_err_source(err_path)

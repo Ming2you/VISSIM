@@ -1,0 +1,67 @@
+{
+  "purpose": "Conditional joint-policy discharge/recovery diagnosis; same physical predictions, richer recorded outputs.",
+  "previous_goal_turn": "PROGRESS: native pair complete, selected VSL loss confirmed.",
+  "max_exact450_forecasts": 5,
+  "max_surrogate450_forecasts": 3,
+  "max_optimizer_calls": 0,
+  "new_native_runs": 0,
+  "coefficient_fit": 0,
+  "production_changes": 0,
+  "changed_diagnostic_functions": [
+    "executed_interval_responses",
+    "main",
+    "probe_levers",
+    "probe_selected_meter"
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "60ef7890e27070db2d56c8c221f12eec6bf86144f399b546df798c889e1d2a37",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\observation_projection.py": "8013a7cb972c037e96c213a4fb83a97bdd9125943b2b3048f4186a751d813408",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\runtime_setup.py": "641429cb66235a2762aec44cddc53f8958172ec6fe02ce2bd54e5dabbf4096b3",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\vissim_stackelberg_adapter.py": "e8c56ba39790001e6abbf244ac05cbd4f468493d7a16751e1dd92e28d6bf700c",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\retained10638\\candidate_manifest.json": "2df69af43f596f2728978a1b03c409c46cb089e7398868b129835e94dc841248",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_selected_vsl78\\response_assessment80.json": "1de032122816108cec93c3683c97ddb221bf0a3584875857b495dbb8b9cf160e",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_full_observation\\response_assessment76.json": "d667e4d5a5e45ff7cb3d42e0af78fdeedbd7a70d09280538f0a55361f9ae1932"
+  },
+  "jobs": [
+    {
+      "name": "release",
+      "argv": [
+        "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py",
+        "--closedloop-recorded",
+        "--at=2700",
+        "--warm-head-history",
+        "--replay-vsl-history",
+        "--lever-probe450",
+        "--fixed-replay-summary=C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_full_observation\\analysis\\summary.json",
+        "--recording-dir=D:\\VISSIM_runs\\20261003_s67_vsl_observation2700\\release\\decisions_sdmpc31_g_2700_release_s67",
+        "--tuning-json=C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json",
+        "--probe-label=s67_service66_20261003_actuator_equivalent",
+        "--recording-start-alignment=C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_full_observation\\recording_start_alignment76.json",
+        "--output-suffix=trace81"
+      ],
+      "output": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent_trace81"
+    },
+    {
+      "name": "selected",
+      "argv": [
+        "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py",
+        "--closedloop-recorded",
+        "--at=2700",
+        "--warm-head-history",
+        "--replay-vsl-history",
+        "--selected-vsl-check",
+        "--fixed-replay-summary=C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_full_observation\\analysis\\summary.json",
+        "--recording-dir=D:\\VISSIM_runs\\20261003_s67_vsl_observation2700\\release\\decisions_sdmpc31_g_2700_release_s67",
+        "--tuning-json=C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json",
+        "--probe-label=s67_service66_selection77_access",
+        "--recording-start-alignment=C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_full_observation\\recording_start_alignment76.json",
+        "--output-suffix=trace81"
+      ],
+      "output": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_budget_check_selected_vsl13_s67_service66_selection77_access_trace81"
+    }
+  ],
+  "acceptance": "Prior scalar costs/ramps/commands remain exact. Report interval flow and speed-term limits; no model adoption from this observation-only trace.",
+  "stop_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+}

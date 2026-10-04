@@ -95,6 +95,25 @@ class Engine(unittest.TestCase):
         self.assertEqual(ev, [])
         self.assertEqual(engine.anomalies[0]['kind'], 'ambiguous_exit')
 
+    def test_vanished_exit_uses_observed_active_route_not_detector_counts(self):
+        L=g.Link
+        n=g.Network.from_parts([L(1,False,None,None,None,None,100.),
+            L(2,False,None,None,None,None,50.),L(3,False,None,None,None,None,50.),
+            L(11,True,1,98.,2,0.,20.),L(12,True,1,99.8,3,0.,20.)],
+            routes={(7,1):[1,11,2],(7,2):[1,12,3],(7,3):[1,11,2,1,12,3]})
+        pt=g.Point('head',1,98.5,None)
+        for route,cross in ((1,False),(2,True)):
+            engine=g.Engine(n,[pt],(1,2,3))
+            p=g.Pos(1,1,97.9,72.,route,7)
+            events=engine.step(100,{9:p},101,{})
+            self.assertEqual(bool(events),cross)
+            self.assertEqual(engine.anomalies,[])
+        # Unknown or repeated current-link occurrence cannot select a connector.
+        for route in (None,3):
+            engine=g.Engine(n,[pt],(1,2,3))
+            engine.step(100,{9:g.Pos(1,1,97.9,72.,route,7)},101,{})
+            self.assertEqual(engine.anomalies[0]['kind'],'ambiguous_exit')
+
     def test_case_c_entry(self):
         pts = [g.Point('start', 11, 0.0, frozenset((1,))), g.Point('p1', 11, 1.0, None),
                g.Point('mid1', 1, 20.0, None), g.Point('mid2', 1, 35.0, None)]

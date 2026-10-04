@@ -1,0 +1,35 @@
+{
+  "scope": "Existing geometry-based gate capacity, connected to topology-only initialization",
+  "baseline_config": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\sc109_capacity_20260929\\candidate_config.json",
+  "baseline_sha256": "b2aca660b18d6cc3b5a031ee60bd5ae9108906b26f4f1c56bbd8f2db38298d99",
+  "changed_setting": {
+    "urban.ramp.gate_entry_capacity_per_lane_veh_h": 1800.0
+  },
+  "unchanged": [
+    "initial vehicle timing and route expectations",
+    "future arrival timing",
+    "RM service and commands",
+    "merge receiving and METANET",
+    "Omega objective",
+    "native network"
+  ],
+  "fitted_parameters": 0,
+  "planned_canonical_450_rollouts": 12,
+  "plan": [
+    "Two seed47 baseline forecasts for disabled parity",
+    "same two forecasts with physical entry lanes",
+    "two independent saved-state held-command forecasts for execution/conservation only"
+  ],
+  "no_future_observation_prediction_inputs": true,
+  "new_native_runs": 0,
+  "bounded_extension": {
+    "reason": "Lane ceiling alone exposes 337.59 predicted gate arrivals vs271 actual; compare existing future travel separately and jointly, not fit a replacement capacity.",
+    "additional_rollouts": 4,
+    "variants": [
+      "travel only",
+      "lanes + travel"
+    ],
+    "same_s47_hold_release": true
+  },
+  "independent_extension": "After the combined same-state improvement, add exactly two held-state combined forecasts at4500/6000; no additional fitted values."
+}

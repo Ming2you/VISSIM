@@ -28,6 +28,38 @@ def step(model, *, service=0., request=0., mode="RED", accepted=None):
 
 
 class RampBoundaryTests(unittest.TestCase):
+    def test_full_prehead_cannot_borrow_empty_posthead_storage(self):
+        model = make(initial_cohorts=[[6.*i, 0., 1] for i in range(10)])
+        self.assertEqual(model.current_admission_space(), 0.)
+        receipt = step(model, request=3.)
+        self.assertEqual(receipt['admitted_arrivals_veh'], 0.)
+        self.assertEqual(receipt['end']['outside_component_backlog_veh'], 3.)
+        self.assertEqual(receipt['end']['connector_veh'], 10.)
+        self.assertEqual(receipt['conservation_residual_veh'], 0.)
+
+    def test_head_service_frees_prehead_space_without_requiring_merge(self):
+        model = make(initial_cohorts=[[60., 0., 1]]*10)
+        receipt = step(model, service=2., mode='GREEN', request=3.)
+        self.assertEqual(receipt['accepted_merge_veh'], 0.)
+        self.assertEqual(receipt['admitted_arrivals_veh'], 2.)
+        self.assertEqual(receipt['end']['outside_component_backlog_veh'], 1.)
+        self.assertEqual(receipt['end']['downstream_travelling_veh'], 2.)
+        self.assertEqual(receipt['conservation_residual_veh'], 0.)
+
+    def test_coupled_transfer_rejects_full_prehead_without_duplicate_backlog(self):
+        model = make(initial_cohorts=[[6.*i, 0., 1] for i in range(10)])
+        before = model.snapshot()
+        with self.assertRaises(ValueError):
+            model.admit_current(1.)
+        self.assertEqual(model.snapshot(), before)
+        self.assertEqual(model.backlog_veh, 0.)
+
+    def test_zero_distance_head_keeps_point_queue_storage(self):
+        model = make(head_position_m=0.)
+        self.assertEqual(model.current_admission_space(), 20.)
+        model.admit_current(1.)
+        self.assertEqual(model.snapshot()['head_ready_veh'], 1.)
+
     def test_01_passed_head_is_unaffected_by_new_red(self):
         rows = [[60., 0., 1], [90., 20., 1]]
         red = make(initial_cohorts=rows)
@@ -51,9 +83,11 @@ class RampBoundaryTests(unittest.TestCase):
         step(model, service=3., mode="OFF")
         receipt = step(model)
         self.assertEqual(receipt["accepted_merge_veh"], 3.)
-        self.assertEqual(receipt["admitted_arrivals_veh"], 3.)
-        self.assertEqual(receipt["end"]["outside_component_backlog_veh"], 4.)
-        self.assertEqual(receipt["end"]["connector_veh"], 20.)
+        # The supplied initial point queue exceeded pre-head storage. Preserve
+        # it and hold new arrivals until that excess has actually discharged.
+        self.assertEqual(receipt["admitted_arrivals_veh"], 0.)
+        self.assertEqual(receipt["end"]["outside_component_backlog_veh"], 7.)
+        self.assertEqual(receipt["end"]["connector_veh"], 17.)
         self.assertEqual(receipt["conservation_residual_veh"], 0.)
 
     def test_03_positive_post_head_travel_prevents_early_merge(self):

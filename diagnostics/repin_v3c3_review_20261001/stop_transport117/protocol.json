@@ -1,0 +1,118 @@
+{
+  "previous_goal_turn": "PROGRESS:113 completed fits and four forecasts but rejected autonomous stopped-stock closure.",
+  "question": "Can one small shared state-dependent law explain observed stop/restart counts outside training, without VSL-specific coefficients?",
+  "train": [
+    "29_none",
+    "29_vsl"
+  ],
+  "evaluation": [
+    "43_none",
+    "43_vsl",
+    "67_release",
+    "67_release_vsl90"
+  ],
+  "scope": "Same cells16..23/threshold5kmh/features, but follow old vehicles to ANY next mainline cell rather than condition on staying in old cell.",
+  "equations": {
+    "stop_pressure": "(rho_i/rho_crit_i)*(B_down/N_down + max(v_i-v_down,0)/v_free_i + rho_down/rho_max)",
+    "release_room": "max(v_down,0)/v_free_down * max(1-rho_down/rho_max,0)",
+    "rates": "a=theta_stop*stop_pressure; b=theta_release*release_room",
+    "transition": "p01=a/(a+b)*(1-exp(-(a+b)*5)); p10=b/(a+b)*(1-exp(-(a+b)*5))"
+  },
+  "baseline": "One common constant two-rate Markov law, fitted by pooled training transition proportions; no per-cell/arm coefficients.",
+  "fits": 1,
+  "fitted_coefficients": 2,
+  "bounds_rates_per_second": [
+    1e-05,
+    2.0
+  ],
+  "max_iterations": 40,
+  "max_function_evaluations": 150,
+  "fixed_features": true,
+  "thresholds_not_tuned": true,
+  "critical": {
+    "16": 29.000419094058614,
+    "17": 35.597622209448126,
+    "18": 38.17602482771074,
+    "19": 46.99421977001796,
+    "20": 46.27510373443716,
+    "21": 39.4088934484684,
+    "22": 38.4391475169758,
+    "23": 40.90511324421103
+  },
+  "v_free": {
+    "16": 122.30610389610389,
+    "17": 122.30610389610389,
+    "18": 122.30610389610389,
+    "19": 111.69604761904762,
+    "20": 111.69604761904762,
+    "21": 111.69604761904762,
+    "22": 108.15933333333334,
+    "23": 108.15933333333334,
+    "24": 108.15933333333334
+  },
+  "rho_max": 180.0,
+  "gates": "For each evaluation seed: conditional NLL improves>=10%,150s transition-count RMSE improves>=20%,and aggregate onset/restart delta signs correct when |observed delta|>=10events.",
+  "limitations": [
+    "Previously inspected seeds, not blind.",
+    "Five-second endpoint transitions can hide repeated stops/restarts.",
+    "Current observed traffic states feed this diagnostic, not autonomous future states.",
+    "Stayer membership defines labelled exposure and uses the next frame; not deployable unmodified.",
+    "Not Zhou2022 equations or a proof that this state improves discharge, TTT or control selection.",
+    "No production change, no future observation injected into a plant, no new native/FZP."
+  ],
+  "input_pins": {
+    "29_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_none_frames.json.gz",
+      "sha256": "5b05cf5366daf96afc6832118f4c3d8e1273e1c8bcdd1a22c905fca7fd2bc713"
+    },
+    "29_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_vsl_frames.json.gz",
+      "sha256": "456db85b5dd98135a4c4cea8309944397709f37478ea731b54d3b71bfdfb0ab1"
+    },
+    "43_none": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_none_frames.json.gz",
+      "sha256": "7646676de2327a018fa7ebebac6439c72962008785c979c3f9ca72701cb18a3d"
+    },
+    "43_vsl": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_vsl_frames.json.gz",
+      "sha256": "698418a50715149af32cd50eecaa8734d32083482c80748e3729303cbb086e52"
+    },
+    "67_release": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz",
+      "sha256": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c"
+    },
+    "67_release_vsl90": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz",
+      "sha256": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93"
+    }
+  },
+  "core_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "hypothesis": "Stopped labels should not advect at the same speed as all vehicles; isolate transport from existing stop/restart rates.",
+  "budget": {
+    "moment_estimates": 1,
+    "rate_fits": 0,
+    "new_parameters_searched": 0,
+    "forecasts_if_native_transport_supported": 4
+  },
+  "censoring": "Vehicles absent from next mainline cache are missing labels, not assumed to stop or restart. Quantify counts.",
+  "next_gate": "Same113 conditional macro gate; then4fixed450 passive checks, plus>=20% reduction of43/67 averageB RMSE vs113state and>=20% reduction of meaningful67 VSL delta error. No coefficient/feature extension.",
+  "no_production_change": true,
+  "exact_parent_helper_sha256": "bf8e68d6635c1774baf945942b0e250d40ef19c14358876d60711ec007e45320",
+  "previous_turn": "PROGRESS115;1169000 analysis now stopped by explicit user steering",
+  "conditional": "Current-origin vehicles with known next mainline record; use actual postreaction labels ONLY to isolate transport, not as forecast inputs.",
+  "transport_candidate": "qB=clip(q*B*vB/(N*max(v,vB)), max(0,q-N+B), min(q,B)); per-source shares, exact tag conservation",
+  "interpretation": "Two-pool flux allocation hypothesis, not a reproduced Zhou equation; no feedback to physical flow or cost yet.",
+  "gate": "Native transport MAE improves>=10% separately43/67; then4fixed450. vs114 require>=20% reduction of both material67delta errors and no43 meanB RMSE worsening. No more parameters/grid if failed.",
+  "helper_sha256": "bf8e68d6635c1774baf945942b0e250d40ef19c14358876d60711ec007e45320",
+  "STOP_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+}

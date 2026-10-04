@@ -1,0 +1,44 @@
+{
+  "cells": [
+    18,
+    19,
+    20
+  ],
+  "parameters": "Two common multipliers of existing rho_crit and metanet_a_m; physical_cell_fd in existing harness.",
+  "rho_multipliers": [
+    0.85,
+    1.15
+  ],
+  "shape_multipliers": [
+    0.75,
+    1.0,
+    1.25
+  ],
+  "candidate_count": 6,
+  "train": "seed29 common2220.1 NC/VSL/RM/both450s",
+  "max_training_rollouts": 24,
+  "max_validation_rollouts": 8,
+  "validation": "Frozen chosen config on seed43 common2220.1 and seed29 common2670.1, four arms each; already inspected states, not untouched holdout.",
+  "score": "Mean over three controlled-minus-reference changes: (deltaTTT error/.5veh-h)^2+(delta totalexit error/50veh)^2+(delta merge error/50veh)^2",
+  "selection": ">=20% response-loss improvement and mean whole31 N/q RMSE no worse by>10%. Require correct sign for actual deltaTTT magnitude>.2veh-h in train and checks. Choose lowest loss. No extra candidate grid.",
+  "unchanged": [
+    "v_free",
+    "all cells outside18-20",
+    "existing cell10/12/21 FD",
+    "cell23 response correction",
+    "tau/nu/kappa/phi/merge coefficients",
+    "actual physical controls and initial state",
+    "dynamic off storage/merge/ramp cost",
+    "all exogenous demand predictions"
+  ],
+  "caveat": "rho_crit also enters existing lane-drop denominator; preserve this equation consistency, do not claim pure FD effect or hard-capacity bonus. Shape>1 for all trial cells.",
+  "scope": "East31 plus8connectors, not wholeOmega. No future observed data as prediction inputs.",
+  "core_pins": {
+    "evaluation/controllers/freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "evaluation/controllers/area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "692e0326d2cd6cab049a443e3d55f2c8cfef623a12ef22f0e36aad07855d6771"
+  },
+  "production_adopted": false,
+  "new_native": 0
+}

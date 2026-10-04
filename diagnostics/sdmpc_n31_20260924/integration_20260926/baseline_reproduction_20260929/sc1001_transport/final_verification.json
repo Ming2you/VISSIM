@@ -1,0 +1,67 @@
+{
+  "status": "complete_not_gain_qualified",
+  "candidate_forecasts": 6,
+  "default_regression_forecasts": 2,
+  "new_native_runs": 0,
+  "coefficient_fit": false,
+  "production_adopted": false,
+  "tests_passed": 19,
+  "default_results_exact_except_wall_sec": true,
+  "max_ramp_mass_residual": 5.755396159656812e-13,
+  "commands_equal": true,
+  "reverse_ad": {
+    "passed": true,
+    "backend": "reverse-v1",
+    "checks": [
+      {
+        "output": 0,
+        "primal": 8.0,
+        "derivative": 0.5,
+        "finite_difference": 0.4999999999992788
+      },
+      {
+        "output": 1,
+        "primal": 4.0,
+        "derivative": 0.25,
+        "finite_difference": 0.2499999999996394
+      },
+      {
+        "output": 2,
+        "primal": 12.0,
+        "derivative": 0.75,
+        "finite_difference": 0.7500000000000284
+      },
+      {
+        "output": 3,
+        "primal": 88.0,
+        "derivative": -0.75,
+        "finite_difference": -0.7500000000106866
+      }
+    ],
+    "full_rollout_ad_qualified": false,
+    "discrete_arrival_derivative_tested": false
+  },
+  "input_and_result_pins_verified": {
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\coupled_arrival_s47\\comparison.json": "c1655cfe0194e067ba17a1fd03a94f520a9b80d2aada894d803b558a51f1d768",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\sc1002_route_choice_20260929\\comparison.json": "629cadc0c9d88e091991cce13dd45284bf149f9ab96350c7fe1da1da7fdaf792",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_coupled_s47_v1\\summary.json": "f899d5c63d0068ce979d9d08518797ccdb2779ba5e0cca8df23ffefc6b9c5cbb",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_transport_s47_v1\\summary.json": "52e0677f06bbf39398f6f748e6c7219520bc0c3d89ba47b0fc74d72e3eb9f092",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_native1113_s43\\summary.json": "bf9df574eef17592a6e86b27847aef99959208449d4fcfcd9c1994fa1cc31f6c",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10484_transport_s43_v1\\summary.json": "363b1a67e968f7c4b06d12d7e99fe55cbfe47514d3445ee65ce44f501db5a191",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_trace10484_transport_disabled_s47\\summary.json": "1bc702b8192d3565dca0ecab6968adedef9866147945aca47dd77a54b6762809",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\sc1002_route_choice_20260929\\candidate_config.json": "1ed9af5d65d6c14a57e0dca81a84fe476657d996e47c86f4034252365b4cf968",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\sc1001_transport\\candidate_config.json": "927f98dfe12b42394427327c202a48bedf31d419e3bd4c08e1dd9d0214895eeb"
+  },
+  "final_source_sha256": {
+    "evaluation\\controllers\\route_choice_corridor.py": "9559d5d4f83600250f175f3252fcce78f4378b551f45e729111c267c980bfbc3",
+    "evaluation\\controllers\\urban_flow_accounting.py": "a03aa5d5172476aac05488eef331900d773d7c0c274aa6ac30a239bb9cfb1fa0",
+    "evaluation\\controllers\\lane_offramp_runtime.py": "0465b15e9784b610b64efcff9cc8734cc5ce0fa57b42b49d8861eb3d60c6a02e",
+    "diagnostics\\sdmpc_n31_20260924\\tests\\test_sc1001_destination_travel.py": "559de8e716c934d1a17d762e3e1ef6e0c6253e0af0b8eef682616a5735fe2a99",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\check_transport_ad.py": "eb13118f2fdbbd29b1868e3a473bd51e4dae2935b45ab8d3d8d9ade1a8cc5b49",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\sc1001_transport\\compare.py": "708738c996acb37718cd3462d2e8db1117412cd15becfc61f5a2219d26a9c10c"
+  },
+  "source_archive_note": "Post-run final source including dependency guard added after forecasts, not contemporaneous execution snapshot. Guard does not change the paths of executed valid configurations.",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "previous_9000_STOP_and_native_prep_HOLD": "unchanged",
+  "report_sha256": "be1abd53f87dfe3bfe7b905aeaa0899c1cd643f50d47b581b46ce43e62a24dd5"
+}

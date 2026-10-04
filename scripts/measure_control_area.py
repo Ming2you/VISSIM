@@ -133,7 +133,7 @@ def state_frame(path: Path, expected_time: float, *, expected_run_id=None, expec
 def measure_frames(frames: Iterable[Frame], membership: dict[str, bool], terminal_lengths_m: dict[str, float],
                    *, start_sec=0.0, end_sec=5400.0, final_frame: Frame | None = None,
                    max_tail_extrap_sec=10.0, terminal_margin_m=10.0, terminal_acceleration_m_s2=3.0,
-                   simulation_step_sec=1.0):
+                   simulation_step_sec=1.0, include_distance=False):
     """Account every observed stock change without converting unknown loss to TTD."""
     if start_sec != 0:
         raise ValueError("Only fresh-run start_sec=0 is supported; a later start needs an initial frame")
@@ -144,6 +144,8 @@ def measure_frames(frames: Iterable[Frame], membership: dict[str, bool], termina
     simulation_step_sec = number(simulation_step_sec, "simulation_step_sec")
     if simulation_step_sec <= 0:
         raise ValueError("simulation_step_sec must be positive")
+    if type(include_distance) is not bool:
+        raise ValueError('include_distance must be boolean')
     prev = Frame(start_sec, {}, "assumed_initial_empty")
     cumulative = Counter()
     observed_exit_ids, terminal_exit_ids, all_seen = set(), set(), set()
@@ -151,6 +153,8 @@ def measure_frames(frames: Iterable[Frame], membership: dict[str, bool], termina
     first_time, last_fzp, periods, record_count = None, None, [], 0
     left, right, trapezoid, max_abs_closure = 0.0, 0.0, 0.0, 0
     link_ttt, link_slow_ttt = Counter(), Counter()
+    link_distance = Counter()
+    distance_left = distance_right = distance_trapezoid = 0.
     rows = []
 
     def inside(v):
@@ -160,6 +164,7 @@ def measure_frames(frames: Iterable[Frame], membership: dict[str, bool], termina
 
     def consume(frame, *, transitions=True):
         nonlocal prev, left, right, trapezoid, max_abs_closure
+        nonlocal distance_left, distance_right, distance_trapezoid
         dt = frame.time_sec - prev.time_sec
         if dt <= 0:
             raise ValueError("Measurement frames must have strictly increasing timestamps")
@@ -231,12 +236,31 @@ def measure_frames(frames: Iterable[Frame], membership: dict[str, bool], termina
                 link_ttt[link] += count * .5 * dt / 3600
             for link, count in slow.items():
                 link_slow_ttt[link] += count * .5 * dt / 3600
+        if include_distance:
+            # Speed integral at the same actual timestamps and physical Omega
+            # mask as residence. This includes all urban links and connectors;
+            # zero-speed queues earn zero. It is sampled quadrature, not exact
+            # route interpolation or a count of terminated vehicles.
+            speeds = []
+            for endpoint in (prev, frame):
+                total = 0.
+                for vehicle in endpoint.vehicles.values():
+                    speed = number(vehicle.speed_kph, 'distance speed')
+                    link_distance[vehicle.link] += speed * .5 * dt / 3600
+                    if inside(vehicle):
+                        total += speed
+                speeds.append(total)
+            distance_left += speeds[0] * dt / 3600
+            distance_right += speeds[1] * dt / 3600
+            distance_trapezoid += (speeds[0]+speeds[1]) * .5 * dt / 3600
         rows.append({'sim_sec':frame.time_sec,'source':frame.source,'interval_sec':dt,'network_vehicles':len(frame.vehicles),
                      'inside_vehicles':len(after),'outside_vehicles':len(frame.vehicles)-len(after),
                      'ttt_veh_h_cumulative':trapezoid,
                      **{k:step[k] for k in ('observed_exit_events','terminal_exit_inferred_events','unresolved_inside_disappearances','observed_entry_events','appeared_inside_events','reappeared_inside_events')},
                      'ttd_observed_plus_terminal_cumulative':cumulative['observed_exit_events']+cumulative['terminal_exit_inferred_events'],
                      'stock_closure_residual_veh':closure})
+        if include_distance:
+            rows[-1]['sampled_tvd_omega_veh_km_cumulative'] = distance_trapezoid
         prev = frame
 
     for frame in frames:
@@ -265,6 +289,7 @@ def measure_frames(frames: Iterable[Frame], membership: dict[str, bool], termina
             consume(final_frame)
     observed_through = prev.time_sec
     observed_ttt = trapezoid
+    observed_distance = distance_trapezoid
     tail_sec = max(0.0,end_sec-prev.time_sec)
     tail_inside = sum(inside(v) for v in prev.vehicles.values())
     tail_extrap = None
@@ -319,6 +344,26 @@ def measure_frames(frames: Iterable[Frame], membership: dict[str, bool], termina
     inside_sum = sum(row['ttt_veh_h'] for row in result['physical_link_residence'].values() if row['inside'])
     if not math.isclose(inside_sum, trapezoid, rel_tol=1e-10, abs_tol=1e-8):
         raise AssertionError(f"Physical link residence does not sum to area TTT: {inside_sum} vs {trapezoid}")
+    if include_distance:
+        inside_distance = sum(value for link, value in link_distance.items() if membership[link])
+        if not math.isclose(inside_distance, distance_trapezoid, rel_tol=1e-10, abs_tol=1e-8):
+            raise AssertionError('Physical link distance does not sum to Omega distance')
+        result['distance'] = {
+            'schema': 'sampled-omega-speed-integral/v1',
+            'scope': 'full_control_area_omega', 'unit': 'veh.km',
+            'sampled_tvd_omega_veh_km': distance_trapezoid if tail_extrap is not None else None,
+            'observed_through_last_frame_veh_km': observed_distance,
+            'censored_tail_hold_veh_km': distance_trapezoid-observed_distance if tail_extrap is not None else None,
+            'left_rule_veh_km': distance_left, 'right_rule_veh_km': distance_right,
+            'physical_link_distance': {link: {'inside': membership[link], 'veh_km': value}
+                                       for link, value in sorted(link_distance.items())},
+            'definition': 'Integral of sum of observed vehicle speeds inside Omega; trapezoid at actual timestamps.',
+            'limitations': ['Sampled speed quadrature, not exact path-length reconstruction.',
+                            'Crossing times and speed changes between frames are unresolved.',
+                            'Short-lived vehicles absent from both endpoints are not observed.',
+                            'Any permitted censored tail holds the last observed speeds and membership.',
+                            'Left/right rules are sensitivity diagnostics, not confidence bounds.'],
+        }
     return result, rows
 
 

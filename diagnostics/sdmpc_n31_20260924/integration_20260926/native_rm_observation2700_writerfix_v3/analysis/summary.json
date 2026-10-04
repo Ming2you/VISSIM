@@ -1,0 +1,83 @@
+{
+  "scope": "Two3150s native runs proposed for full-observation common2700s RM response; not a9000s restart or new policy",
+  "start_sec": 2700,
+  "end_sec": 3150,
+  "arms": {
+    "hold": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2632.7514861111104,
+      "TTT_2700p1_3150_veh_h": 465.5368888888893,
+      "Omega_TTD_events": 21340,
+      "Omega_end_vehicles": 3672,
+      "native_removals": 83,
+      "uninserted_at_end": 8152,
+      "unresolved_Omega_disappearances": 277,
+      "outside_Omega_residence_veh_h": 985.938611111113,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 4.998000000000093,
+      "native_physical_network_time_veh_h": 3618.775547180833,
+      "native_uninserted_delay_veh_h": 2869.173388888889,
+      "native_total_time_including_uninserted_veh_h": 6487.948936069722,
+      "native_uninserted_at_end": 8152.0,
+      "native_network_end_vehicles": 5040.0,
+      "native_arrived_vehicles": 23937.0
+    },
+    "release": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2634.8053194444456,
+      "TTT_2700p1_3150_veh_h": 467.5907222222245,
+      "Omega_TTD_events": 21275,
+      "Omega_end_vehicles": 3734,
+      "native_removals": 83,
+      "uninserted_at_end": 8156,
+      "unresolved_Omega_disappearances": 277,
+      "outside_Omega_residence_veh_h": 985.4400000000018,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 5.082388888888984,
+      "native_physical_network_time_veh_h": 3620.335769397222,
+      "native_uninserted_delay_veh_h": 2869.1824444444446,
+      "native_total_time_including_uninserted_veh_h": 6489.518213841667,
+      "native_uninserted_at_end": 8156.0,
+      "native_network_end_vehicles": 5095.0,
+      "native_arrived_vehicles": 23878.0
+    }
+  },
+  "reused_nc_run": null,
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "prefixes": {
+    "hold": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    },
+    "release": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    }
+  },
+  "original_prefix": null,
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": null,
+  "delta_definition": "release minus hold",
+  "delta_TTT_veh_h": 2.0538333333352057,
+  "delta_outside_Omega_residence_veh_h": -0.498611111111245,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Only10484 RM changes after the common paired prefix; native urban signals and VSL110 held. No original fast-run trajectory identity claimed.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": 1.5692777719450532,
+  "delta_native_uninserted_delay_veh_h": 0.009055555555733008,
+  "protocol_path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\native_rm_observation2700_writerfix_v3\\protocol.json",
+  "protocol_sha256": "39193fdc0fd1d66578393018e0b32051e61c5635b5b991b3c7b9bf401b9d8534",
+  "prediction_source": null,
+  "matched_prior_run_claimed": false,
+  "counterfactual_valid": true,
+  "native_urban_ownership_readback_scope": "Initialization and termination; no per-decision ownership readback claimed. Every actual CSV is checked against the pinned plan without urban rows; native LDP covers the intervening states."
+}

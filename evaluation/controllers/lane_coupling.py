@@ -84,6 +84,8 @@ def run_interval(state,control,demand,cfg):
         for index in range(sim.K_cf):
             sec=int(start)+index
             state.time_sec=sec
+            from evaluation.controllers.omega_distance import before_reward_step
+            before_reward_step(state,cfg,demand)
             ledger.begin_response_step('freeway',sec,sec+1)
             release,group_release,receipts=ramps.advance(state,control,demand,freeway,service=services)
             ledger.complete_constraint_coverage('physical_ramp_release')

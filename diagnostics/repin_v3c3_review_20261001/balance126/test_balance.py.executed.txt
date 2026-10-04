@@ -1,0 +1,81 @@
+import copy
+from collections import Counter
+from types import SimpleNamespace
+from unittest.mock import patch
+import unittest
+
+from evaluation.controllers.physical_urban_transport import FIFO
+from diagnostics.demand_sweep.ramp_dsd_20260916_v2.cohort_dynamics_20260920.urban_route_transport import Contracts
+
+
+class Balance(unittest.TestCase):
+    def toy(self, first, second, rate=.2, label=(None,'unrouted')):
+        p=Contracts().toy({})
+        p.edges={126:[0.,24.,48.],10641:[0.,24.,48.],71:[0.,24.]}
+        p.cells={(road,lane,cell):FIFO() for road,edges in p.edges.items()
+                 for lane in range(1,6 if road==71 else 3) for cell in range(len(edges)-1)}
+        p.cells[126,1,0]=FIFO([(label,first)])
+        p.cells[126,2,0]=FIFO([(label,second)])
+        p.cap={key:4. for key in p.cells};p.dx={key:24. for key in p.cells}
+        p.initial=p.counts();p.continuation=True;p.unrouted_126_balance_rate=rate
+        return p
+
+    def lateral(self,p):
+        return {key:n for key,n in p.movements.items() if key[-1]=='lateral'}
+
+    def test_moves_toward_space_preserving_identity(self):
+        p=self.toy(0.,3.8);p.step({})
+        self.assertGreater(p.cells[126,1,0].stock,0.)
+        self.assertTrue(all(key[0][1]==2 and key[1][1]==1 for key in self.lateral(p)))
+        self.assertEqual(set(p.counts()),{(None,'unrouted')})
+        self.assertAlmostEqual(sum(p.counts().values()),3.8)
+
+    def test_direction_is_not_hardcoded_right(self):
+        p=self.toy(3.8,0.);p.step({})
+        self.assertGreater(p.cells[126,2,0].stock,0.)
+        self.assertTrue(all(key[0][1]==1 and key[1][1]==2 for key in self.lateral(p)))
+
+    def test_equal_space_has_no_discretionary_shuffle(self):
+        p=self.toy(1.,1.);p.step({});self.assertFalse(self.lateral(p))
+
+    def test_full_lanes_cannot_create_gap_by_swapping(self):
+        p=self.toy(4.,4.);p.step({});self.assertFalse(self.lateral(p))
+
+    def test_assigned_and_unresolved_nonfallback_labels_unchanged(self):
+        for label in ((10634,1),(None,2)):
+            p=self.toy(0.,3.8,label=label);p.step({});self.assertFalse(self.lateral(p))
+
+    def test_existing_disabled_path_exact(self):
+        p=self.toy(0.,3.8,rate=0.);q=copy.deepcopy(p);del q.unrouted_126_balance_rate
+        for _ in range(5):
+            p.step({});q.step({})
+            self.assertEqual(p.last_transfers,q.last_transfers)
+            self.assertEqual(p.counts(),q.counts())
+
+    def test_longitudinal_and_lateral_share_original_budgets(self):
+        p=self.toy(0.,3.8)
+        for _ in range(15):
+            p.step({});incoming=Counter();outgoing=Counter()
+            for source,target,packets in p.last_transfers:
+                amount=sum(n for _,n in packets);incoming[target]+=amount;outgoing[source]+=amount
+            for k,n in incoming.items():
+                if k[0]!='exit':self.assertLessEqual(n,p.last_receiving_limits[k]+1e-8)
+            for k,n in outgoing.items():self.assertLessEqual(n,p.last_sending_limits[k]+1e-8)
+            p.check()
+
+    def test_unimplemented_ad_is_not_silently_used(self):
+        p=self.toy(0.,3.8)
+        with patch('evaluation.controllers.physical_urban_transport.prediction_cache.active',
+                   return_value=SimpleNamespace(urban_pipeline_enabled=True)):
+            with self.assertRaisesRegex(ValueError,'scalar validation'):p.step({})
+
+
+if __name__=='__main__':
+    suite=unittest.defaultTestLoader.loadTestsFromTestCase(Balance)
+    for name in ('test_lateral_and_longitudinal_share_receiver',
+                 'test_compatible_follower_cannot_pass_blocked_head',
+                 'test_compaction_matches_analytic_reciprocal_flows',
+                 'test_reciprocal_exchange_remains_bounded_without_losing_mass'):
+        suite.addTest(Contracts(name))
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(not result.wasSuccessful())

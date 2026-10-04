@@ -1,0 +1,47 @@
+{
+  "hypothesis": "Excess low-density braking anticipation creates false bottleneck congestion and suppresses paired control response.",
+  "law": "For downstream>rho only, use denominator max(rho,beta*rho_crit)+kappa. Equivalent nu scaling; no capacity or command bonus.",
+  "candidates": [
+    0.5,
+    1.0
+  ],
+  "cells": [
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "direction": "FW_E",
+  "unchanged": [
+    "recovery anticipation",
+    "rho>=rho_crit response",
+    "FD/E",
+    "lane-drop",
+    "merge",
+    "dynamic ports",
+    "actual controls",
+    "demand",
+    "objective"
+  ],
+  "training": "seed29 common2220.1,450s none/vsl/rm/both; future observations used only for scores",
+  "response_score": "Mean over three action-baseline pairs of squared deltaTTT error/(1veh*h)^2 + delta(total off+terminal departures) error/(20veh)^2 + delta actual merges error/(20veh)^2.",
+  "selection": "Require >=20% response-score reduction and mean stock/flow RMSE no more than10% worse than current across four arms. Select lowest response score; stop if none passes.",
+  "frozen_checks": [
+    "seed43 early450 four arms",
+    "seed29 late450 hold/release +/-VSL"
+  ],
+  "qualification": "Require meaningful actual gain/harm signs (abs deltaTTT>=0.25veh*h), improved paired score and stock/flow guards in both checks. Still not fullOmega, freeflow or unseen-seed qualification.",
+  "max_default_regressions": 1,
+  "max_training_rollouts": 8,
+  "max_frozen_rollouts": 8,
+  "new_native": 0,
+  "independence": "Checks not used to choose beta, but previously examined states; not pristine holdouts.",
+  "manifest": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\local_merge_cell23\\candidate_manifest.json",
+  "manifest_sha256": "45ec8b73f8d55e275d55b3f3f60152b9270188931d73a9af48b383e0ea724429",
+  "helper_sha256": "ea4ea35ce68d23be849b13496ab494872bbe1312388f583c1b2eab6fb5f7e882"
+}

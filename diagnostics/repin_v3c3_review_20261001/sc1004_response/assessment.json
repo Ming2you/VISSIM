@@ -1,0 +1,343 @@
+{
+  "status": "complete_not_gain_qualified",
+  "forecasts": 2,
+  "new_native_runs": 0,
+  "new_fit": 0,
+  "fzp_rescans": 0,
+  "optimizer_calls": 0,
+  "future_forecast_inputs": false,
+  "arms": {
+    "held_actual": {
+      "head_resource": {
+        "spec": {
+          "group": "52|p3",
+          "heads": [
+            {
+              "head_id": "90030884",
+              "link": "52",
+              "lane": 1,
+              "position_m": 463.38614254772256,
+              "sc": "1004",
+              "sg": "6"
+            },
+            {
+              "head_id": "90030885",
+              "link": "52",
+              "lane": 2,
+              "position_m": 463.3108544496501,
+              "sc": "1004",
+              "sg": "6"
+            },
+            {
+              "head_id": "90030886",
+              "link": "52",
+              "lane": 3,
+              "position_m": 463.43271083205224,
+              "sc": "1004",
+              "sg": "6"
+            }
+          ],
+          "mode": "regular_pool",
+          "members": {
+            "SC1004_E_SC1005_to_W": {
+              "kind": "boundary_out",
+              "signal": "SC1004",
+              "phase": "SC1004_p3",
+              "origin": "SC1005_to_SC1004",
+              "receiving_link": "SC1004_W_out"
+            },
+            "SC1004_E_SC107_to_W": {
+              "kind": "boundary_out",
+              "signal": "SC1004",
+              "phase": "SC1004_p3",
+              "origin": "SC107_to_SC1004",
+              "receiving_link": "SC1004_W_out"
+            }
+          },
+          "receiver": "SC1004_W_out",
+          "target_link": "68",
+          "proof": {
+            "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/dynamic_area_routes_ver2_dbaf86.json",
+            "sha256": "e9bb9500b1939ec45bc9058d22642f2a64535b67cee9d5a6dd08af07ee6ec7e0"
+          }
+        },
+        "observation": {
+          "observed_only_floor_veh_h": 4080.0,
+          "current_pair_support_veh_h": 4000.0,
+          "carried_observed_support_veh_h": 4080.0,
+          "metadata_key": "head_resource_observed_floor_10629_1ead63e27bacf7b6",
+          "snapshot_sec": 2700.0
+        },
+        "installed_pool": {
+          "members": [
+            "SC1004_E_SC1005_to_W",
+            "SC1004_E_SC107_to_W"
+          ],
+          "signal": "SC1004",
+          "phase": "SC1004_p3",
+          "receiver": "SC1004_W_out",
+          "service_veh_h": 4080.0
+        }
+      },
+      "windows": [
+        {
+          "start_sec": 2700.0,
+          "end_sec": 2850.0,
+          "model_green_sec": 45.0,
+          "model_head_budget": 50.999999999999986,
+          "model_actual": 50.999999999999986,
+          "model_pre_head_shortfall": 0.0,
+          "model_post_head_shortfall": 5.995204332975845e-15,
+          "model_green_low_queue_steps": 0,
+          "model_queue_arrival": 48.18922988366439,
+          "model_10565_flow": 32.08748446273202,
+          "native_head_classification": {
+            "green": 54,
+            "not_green": 3,
+            "ambiguous": 0
+          },
+          "native_green_intervals": [
+            [
+              2775,
+              2820
+            ]
+          ],
+          "native_green_sec": 45,
+          "native_10565_flow": 43,
+          "model_queue_initial": 14.279205607476635,
+          "model_queue_final": 11.468435491141147
+        },
+        {
+          "start_sec": 2850.0,
+          "end_sec": 3000.0,
+          "model_green_sec": 45.0,
+          "model_head_budget": 50.999999999999986,
+          "model_actual": 35.06350123475807,
+          "model_pre_head_shortfall": 15.93649876524189,
+          "model_post_head_shortfall": 4.440892098500626e-16,
+          "model_green_low_queue_steps": 16,
+          "model_queue_arrival": 33.04259408575678,
+          "model_10565_flow": 24.487534658396,
+          "native_head_classification": {
+            "green": 51,
+            "not_green": 1,
+            "ambiguous": 0
+          },
+          "native_green_intervals": [
+            [
+              2925,
+              2970
+            ]
+          ],
+          "native_green_sec": 45,
+          "native_10565_flow": 37,
+          "model_queue_initial": 11.468435491141147,
+          "model_queue_final": 9.447528342139698
+        },
+        {
+          "start_sec": 3000.0,
+          "end_sec": 3150.0,
+          "model_green_sec": 45.0,
+          "model_head_budget": 50.999999999999986,
+          "model_actual": 32.709473850698785,
+          "model_pre_head_shortfall": 18.290526149301208,
+          "model_post_head_shortfall": 0.0,
+          "model_green_low_queue_steps": 18,
+          "model_queue_arrival": 30.657038151252735,
+          "model_10565_flow": 12.702681211015491,
+          "native_head_classification": {
+            "green": 46,
+            "not_green": 2,
+            "ambiguous": 0
+          },
+          "native_green_intervals": [
+            [
+              3075,
+              3120
+            ]
+          ],
+          "native_green_sec": 45,
+          "native_10565_flow": 34,
+          "model_queue_initial": 9.447528342139698,
+          "model_queue_final": 7.395092642693476
+        }
+      ]
+    },
+    "selected": {
+      "head_resource": {
+        "spec": {
+          "group": "52|p3",
+          "heads": [
+            {
+              "head_id": "90030884",
+              "link": "52",
+              "lane": 1,
+              "position_m": 463.38614254772256,
+              "sc": "1004",
+              "sg": "6"
+            },
+            {
+              "head_id": "90030885",
+              "link": "52",
+              "lane": 2,
+              "position_m": 463.3108544496501,
+              "sc": "1004",
+              "sg": "6"
+            },
+            {
+              "head_id": "90030886",
+              "link": "52",
+              "lane": 3,
+              "position_m": 463.43271083205224,
+              "sc": "1004",
+              "sg": "6"
+            }
+          ],
+          "mode": "regular_pool",
+          "members": {
+            "SC1004_E_SC1005_to_W": {
+              "kind": "boundary_out",
+              "signal": "SC1004",
+              "phase": "SC1004_p3",
+              "origin": "SC1005_to_SC1004",
+              "receiving_link": "SC1004_W_out"
+            },
+            "SC1004_E_SC107_to_W": {
+              "kind": "boundary_out",
+              "signal": "SC1004",
+              "phase": "SC1004_p3",
+              "origin": "SC107_to_SC1004",
+              "receiving_link": "SC1004_W_out"
+            }
+          },
+          "receiver": "SC1004_W_out",
+          "target_link": "68",
+          "proof": {
+            "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/dynamic_area_routes_ver2_dbaf86.json",
+            "sha256": "e9bb9500b1939ec45bc9058d22642f2a64535b67cee9d5a6dd08af07ee6ec7e0"
+          }
+        },
+        "observation": {
+          "observed_only_floor_veh_h": 4080.0,
+          "current_pair_support_veh_h": 4000.0,
+          "carried_observed_support_veh_h": 4080.0,
+          "metadata_key": "head_resource_observed_floor_10629_1ead63e27bacf7b6",
+          "snapshot_sec": 2700.0
+        },
+        "installed_pool": {
+          "members": [
+            "SC1004_E_SC1005_to_W",
+            "SC1004_E_SC107_to_W"
+          ],
+          "signal": "SC1004",
+          "phase": "SC1004_p3",
+          "receiver": "SC1004_W_out",
+          "service_veh_h": 4080.0
+        }
+      },
+      "windows": [
+        {
+          "start_sec": 2700.0,
+          "end_sec": 2850.0,
+          "model_green_sec": 46.0,
+          "model_head_budget": 52.13333333333332,
+          "model_actual": 36.79801521482568,
+          "model_pre_head_shortfall": 15.335318118507631,
+          "model_post_head_shortfall": 6.661338147750939e-16,
+          "model_green_low_queue_steps": 15,
+          "model_queue_arrival": 48.18922988366439,
+          "model_10565_flow": 34.8798298876021,
+          "native_head_classification": {
+            "green": 33,
+            "not_green": 0,
+            "ambiguous": 0
+          },
+          "native_green_intervals": [
+            [
+              2708,
+              2754
+            ]
+          ],
+          "native_green_sec": 46,
+          "native_10565_flow": 40,
+          "model_queue_initial": 14.279205607476635,
+          "model_queue_final": 25.67042027631547
+        },
+        {
+          "start_sec": 2850.0,
+          "end_sec": 3000.0,
+          "model_green_sec": 46.0,
+          "model_head_budget": 52.13333333333332,
+          "model_actual": 45.53464329923796,
+          "model_pre_head_shortfall": 6.598690034095342,
+          "model_post_head_shortfall": 1.3322676295501878e-15,
+          "model_green_low_queue_steps": 7,
+          "model_queue_arrival": 37.44416905096536,
+          "model_10565_flow": 24.583778565768842,
+          "native_head_classification": {
+            "green": 48,
+            "not_green": 1,
+            "ambiguous": 0
+          },
+          "native_green_intervals": [
+            [
+              2885,
+              2931
+            ]
+          ],
+          "native_green_sec": 46,
+          "native_10565_flow": 32,
+          "model_queue_initial": 25.67042027631547,
+          "model_queue_final": 17.57994602804279
+        },
+        {
+          "start_sec": 3000.0,
+          "end_sec": 3150.0,
+          "model_green_sec": 42.0,
+          "model_head_budget": 47.59999999999999,
+          "model_actual": 32.14947614461835,
+          "model_pre_head_shortfall": 15.450523855381643,
+          "model_post_head_shortfall": 2.220446049250313e-16,
+          "model_green_low_queue_steps": 16,
+          "model_queue_arrival": 28.2165503746463,
+          "model_10565_flow": 12.948350405800893,
+          "native_head_classification": {
+            "green": 46,
+            "not_green": 3,
+            "ambiguous": 0
+          },
+          "native_green_intervals": [
+            [
+              3031,
+              3073
+            ]
+          ],
+          "native_green_sec": 42,
+          "native_10565_flow": 38,
+          "model_queue_initial": 17.57994602804279,
+          "model_queue_final": 13.64702025807058
+        }
+      ]
+    }
+  },
+  "wall_forecasts_sec": 49.914521600003354,
+  "previous_outputs_exact": true,
+  "source_pins_unchanged": true,
+  "input_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_native_selected_sc1001_corrected47\\analysis\\ramp_response_audit.json": "fc99c4255615494be93903ad7b4ff38cc4184710a3f4dd93f19f8a730c0febe1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc1004_response47\\held_actual_RM_C10681_trace.json.gz": "1afeaa5d895010150555f60111215482a39789b0d8160dab51fabe8031ee2e32",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_002850.json": "c13726fef86474d63fce6a5af4d23cba3660c3530cd5a1508844c1878f582da0",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\network\\개포동 test-bed1004_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_003000.json": "f4d9bf3559af35e0cbba7dba60078bf1618449f132cddbec9f31f095f7edcb6e",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\state_003150.json": "da1934ae5bfe885e6c0e8dc8ba0e20ccd9ecdd702e813d75f27e2a33c22dc01e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_sc1004_response47\\selected_RM_C10681_trace.json.gz": "34776c092d844dbf0070ca6c81d41849d324a636d1c5691da2fe179706bab98e",
+    "D:\\VISSIM_runs\\20261002_sc1001_corrected2700_s47\\selected\\decisions_sdmpc31_g_2700_selected_s47\\state_002850.json": "9b4e334c5255eb8495b2505f571676a16d9e060ca1c3c9820a92f5eeb41434cf",
+    "D:\\VISSIM_runs\\20261002_sc1001_corrected2700_s47\\selected\\network\\개포동 test-bed1004_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+    "D:\\VISSIM_runs\\20261002_sc1001_corrected2700_s47\\selected\\decisions_sdmpc31_g_2700_selected_s47\\state_003000.json": "58738c89232d73791ef92fe442a51fa53bf5e121952ddf04cb3d7c35576b4582",
+    "D:\\VISSIM_runs\\20261002_sc1001_corrected2700_s47\\selected\\decisions_sdmpc31_g_2700_selected_s47\\state_003150.json": "d88c3757bc074ca1809ef50719f91f476fca216a71e701e111b5d3dc76ef02c8"
+  },
+  "driver_changed_functions": [
+    "probe_levers"
+  ],
+  "driver_sha256": "b5853b890263c3d4c6384bf62f085a3bde28e615811f367216c2feff7980f9df"
+}

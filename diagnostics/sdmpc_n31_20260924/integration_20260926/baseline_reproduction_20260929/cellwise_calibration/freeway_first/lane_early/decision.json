@@ -1,0 +1,196 @@
+{
+  "adopted": false,
+  "new_coefficients": false,
+  "reason": "Both prior lane candidates reverse observed29 VSL benefit and worsen NC state/flow materially.43 sign agreement alone is insufficient.",
+  "nc_metrics": [
+    {
+      "case": "s29_early",
+      "version": "route036",
+      "speed": 19.37395605121763,
+      "cell_n": 11.985736486551964,
+      "flow_vph": 1179.645619928286
+    },
+    {
+      "case": "s29_early",
+      "version": "connected19_25",
+      "speed": 25.434818164988496,
+      "cell_n": 20.31915397702568,
+      "flow_vph": 2062.441916033673
+    },
+    {
+      "case": "s29_early",
+      "version": "connected_recovery24_25",
+      "speed": 24.491089302981397,
+      "cell_n": 19.396117770402288,
+      "flow_vph": 1963.0512358270855
+    },
+    {
+      "case": "s43_early",
+      "version": "route036",
+      "speed": 20.580537133385064,
+      "cell_n": 11.99306946951179,
+      "flow_vph": 1160.487579144311
+    },
+    {
+      "case": "s43_early",
+      "version": "connected19_25",
+      "speed": 26.380328327695388,
+      "cell_n": 23.24574564688956,
+      "flow_vph": 2399.825696156014
+    },
+    {
+      "case": "s43_early",
+      "version": "connected_recovery24_25",
+      "speed": 25.848634528325647,
+      "cell_n": 22.69109182331885,
+      "flow_vph": 2334.4772490088544
+    }
+  ],
+  "comparisons": [
+    {
+      "seed": 29,
+      "version": "route036",
+      "initial_delta": -0.7081519164138754,
+      "actual_initial_delta": -0.7152777777777715,
+      "delta": {
+        "actual": {
+          "mainline_ttt": -3.5666666666666913,
+          "ttt": -3.1166666666666742,
+          "ramp_ttt": 0.07499999999999929,
+          "off_ttt": 0.375,
+          "exits": 10.0,
+          "end_n": -28.0
+        },
+        "predicted": {
+          "mainline_ttt": -3.039697596861231,
+          "ttt": -2.8638422823206042,
+          "ramp_ttt": 0.026146510702130143,
+          "off_ttt": 0.14970880383849305,
+          "exits": 38.391943985615626,
+          "end_n": -36.411010699520375
+        }
+      }
+    },
+    {
+      "seed": 29,
+      "version": "connected19_25",
+      "initial_delta": 0.6819540304044409,
+      "actual_initial_delta": -0.7152777777777715,
+      "delta": {
+        "actual": {
+          "mainline_ttt": -3.5666666666666913,
+          "ttt": -3.1166666666666742,
+          "ramp_ttt": 0.07499999999999929,
+          "off_ttt": 0.375,
+          "exits": 10.0,
+          "end_n": -28.0
+        },
+        "predicted": {
+          "mainline_ttt": 1.457165878344,
+          "ttt": 1.3560456229839701,
+          "ramp_ttt": -0.04962920452693176,
+          "off_ttt": -0.05149105083307681,
+          "exits": -13.758658154508794,
+          "end_n": 13.363871201201619
+        }
+      }
+    },
+    {
+      "seed": 29,
+      "version": "connected_recovery24_25",
+      "initial_delta": 0.652869381249559,
+      "actual_initial_delta": -0.7152777777777715,
+      "delta": {
+        "actual": {
+          "mainline_ttt": -3.5666666666666913,
+          "ttt": -3.1166666666666742,
+          "ramp_ttt": 0.07499999999999929,
+          "off_ttt": 0.375,
+          "exits": 10.0,
+          "end_n": -28.0
+        },
+        "predicted": {
+          "mainline_ttt": 1.3494854064481672,
+          "ttt": 1.2557038715639237,
+          "ramp_ttt": -0.04469223599265426,
+          "off_ttt": -0.049089298891605626,
+          "exits": -12.271180167428383,
+          "end_n": 11.899838880073958
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "version": "route036",
+      "initial_delta": -0.5944138450784706,
+      "actual_initial_delta": 0.07638888888888573,
+      "delta": {
+        "actual": {
+          "mainline_ttt": 3.7041666666666515,
+          "ttt": 3.60833333333332,
+          "ramp_ttt": -0.16249999999999787,
+          "off_ttt": 0.06666666666666643,
+          "exits": 18.0,
+          "end_n": 22.0
+        },
+        "predicted": {
+          "mainline_ttt": -3.4163687787825836,
+          "ttt": -3.37574212624628,
+          "ramp_ttt": -0.0018187102364741747,
+          "off_ttt": 0.042445362772768114,
+          "exits": 52.89265903429646,
+          "end_n": -53.11906137736128
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "version": "connected19_25",
+      "initial_delta": 0.9963913868403012,
+      "actual_initial_delta": 0.07638888888888573,
+      "delta": {
+        "actual": {
+          "mainline_ttt": 3.7041666666666515,
+          "ttt": 3.60833333333332,
+          "ramp_ttt": -0.16249999999999787,
+          "off_ttt": 0.06666666666666643,
+          "exits": 18.0,
+          "end_n": 22.0
+        },
+        "predicted": {
+          "mainline_ttt": 1.9085561210622473,
+          "ttt": 1.7683007050842434,
+          "ramp_ttt": -0.11457953252082476,
+          "off_ttt": -0.025675883457176862,
+          "exits": -18.385510658166368,
+          "end_n": 18.33521128271218
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "version": "connected_recovery24_25",
+      "initial_delta": 0.9741029126273446,
+      "actual_initial_delta": 0.07638888888888573,
+      "delta": {
+        "actual": {
+          "mainline_ttt": 3.7041666666666515,
+          "ttt": 3.60833333333332,
+          "ramp_ttt": -0.16249999999999787,
+          "off_ttt": 0.06666666666666643,
+          "exits": 18.0,
+          "end_n": 22.0
+        },
+        "predicted": {
+          "mainline_ttt": 1.8669061372326894,
+          "ttt": 1.7237478344483748,
+          "ramp_ttt": -0.11736897555435633,
+          "off_ttt": -0.02578932722998495,
+          "exits": -18.192252652614116,
+          "end_n": 18.13882455860403
+        }
+      }
+    }
+  ],
+  "next": "Do not extend this failed candidate to additional RM cases or run another coefficient grid. Preserve expanded036 and separate source/admission uncertainty from physical response."
+}

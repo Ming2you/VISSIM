@@ -1,0 +1,85 @@
+{
+  "previous_goal_turn": "PROGRESS:10 response-isolation forecasts; current fixednuGE candidate completed15 forecasts, improves NC but reverses29VSL benefit.",
+  "factors": [
+    "cell23 anticipation downstream_lt_local"
+  ],
+  "bounds": [
+    4.644838002682434,
+    18.375
+  ],
+  "train": [
+    [
+      "s29_early",
+      "none",
+      750
+    ],
+    [
+      "s29_early",
+      "vsl",
+      750
+    ],
+    [
+      "s29_early",
+      "rm",
+      450
+    ],
+    [
+      "s29_early",
+      "both",
+      450
+    ],
+    [
+      "s29_late",
+      "hold",
+      450
+    ],
+    [
+      "s29_late",
+      "release",
+      450
+    ]
+  ],
+  "check": [
+    [
+      "s43_early",
+      "none",
+      750
+    ],
+    [
+      "s43_early",
+      "vsl",
+      750
+    ],
+    [
+      "s43_early",
+      "rm",
+      450
+    ],
+    [
+      "s43_early",
+      "both",
+      450
+    ],
+    [
+      "s29_late",
+      "hold_vsl90",
+      450
+    ],
+    [
+      "s29_late",
+      "release_vsl90",
+      450
+    ]
+  ],
+  "source": "Frozen connected-FD plus one recovery coefficient. Its endpoints are already measured, not production qualified.",
+  "max_residual_evaluations": 8,
+  "max_optimizer_nfev": 6,
+  "max_new_train_forecasts": 36,
+  "evaluation": "Absolute N/v/flow plus paired N/cumulative flow/mainline TTT. Ramp/off/component TTT remain in every forecast and are reported separately before any adoption. These calibration residuals do not change the Omega controller objective.",
+  "acceptance": "Training combined loss reduces>=5%; state loss<=110% baseline; response loss<=105% baseline; no meaningful >=2vehh mainline pair has wrong sign. Then inspect other states without refitting. Also require response loss<=105percent of pre-FD expanded036 anchor; do not waive the previously failed response gate.",
+  "constraints": "Only existing cell23 recovery anticipation coefficient. No FD/merge/tau/capacity/source/command/route changes. Future measurements only in scoring.",
+  "limitations": "Previously inspected seeds, not pristine blind validation. Passing this local fit is not whole-Omega/SDMPC qualification.",
+  "new_native": 0,
+  "endpoint_reuse": "Twelve saved predictions: connected_fd/eval_20 and connected_recovery23, six training conditions each.",
+  "optimizer": "Bounded scalar minimization, at most6 new interior values; xatol0.1. Budget exhaustion is not convergence."
+}

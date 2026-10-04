@@ -1,0 +1,23 @@
+{
+  "previous_goal_turn": "PROGRESS:connected lane model and recovery fit still missVSL response; audit benchmark cohort contributions before more calibration.",
+  "cases": [
+    "release",
+    "release_vsl90"
+  ],
+  "cutoff": 2670.1,
+  "end": 3120.1,
+  "scope": "FW_E31 mainline only; not Omega or overall waiting cost.",
+  "cohorts": [
+    "vehicles already on mainline at cutoff",
+    "subsequent source admissions",
+    "subsequent ramp merges"
+  ],
+  "native": "Existing5s frames; disjoint identities, ramp merge events and source counts checked against native30s flows.",
+  "forecast": "Exact route036 replays with read-only route class observer; no physical change/future input. Native/predicted same5s and30s quadrature.",
+  "caveat": "Cohort accounting is not a causal separation of control from stochastic demand or backward spillback; new-source membership/arrival times differ between arms.",
+  "max_forecasts": 2,
+  "new_native": 0,
+  "new_fzp": 0,
+  "fit": false,
+  "production_adopted": false
+}

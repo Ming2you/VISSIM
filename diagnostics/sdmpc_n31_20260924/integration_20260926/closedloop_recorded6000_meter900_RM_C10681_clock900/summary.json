@@ -1,0 +1,240 @@
+{
+  "protocol": {
+    "ramp": "RM_C10681",
+    "paths": {
+      "held": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "progressive": [
+        8,
+        6,
+        4,
+        2,
+        2,
+        2
+      ]
+    },
+    "initial_time": 6000.0,
+    "existing_mpc_horizon_sec": 450,
+    "diagnostic_duration_sec": 900,
+    "demand": "Original three causal forecast intervals; repeat interval3 thereafter, no future observed inputs.",
+    "purpose": "Does the legal green change sequence enter an effective metering range only after the current horizon?",
+    "caveat": "Fixed-command sensitivity only; later demand is uncertain. No optimizer, NP/NUF candidate-feasibility or native-gain qualification.",
+    "service_by_green_vph": {
+      "0": 0.0,
+      "2": 720.0,
+      "3": 1080.0,
+      "4": 1440.0,
+      "5": 1800.0,
+      "6": 2160.0,
+      "7": 2520.0,
+      "8": 2880.0,
+      "9": 3024.0,
+      "10": 3024.0
+    },
+    "new_native_runs": 0,
+    "production_changed": false,
+    "diagnostic_route_bin_horizon_sec": 900,
+    "source_files": {
+      "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "f9d466380c3038902aa495daa267dc1176efd55a89237b0a5f7c87851edde4a8",
+      "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded6000_lever450_RM_C10681_detached\\held_actual.json": "a33ad162228a3eaf2ecdad654d8a43fbea53bd930e5ae0254a36cbad87bd1eb5",
+      "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded6000_lever450_RM_C10681_detached\\meter_RM_C10681_progressive.json": "b41a83a69b9af003e7fae7d02bf7d4ddd9a4e911bfc780696eaaa49797f309f5"
+    }
+  },
+  "results": {
+    "held": [
+      {
+        "block": 0,
+        "start_sec": 6000.0,
+        "end_sec": 6150.0,
+        "green_sec": 10,
+        "ttt_omega_veh_h": 123.11499659562466,
+        "tracked_outside_veh_h": 35.89990626186159,
+        "target_arrivals_veh": 25.97353580200221,
+        "target_merges_veh": 25.683083484408307,
+        "target_end_stock": 20.290452317593896,
+        "conservation_residual": 7.105427357601002e-15,
+        "wall_sec": 4.948941899987403
+      },
+      {
+        "block": 1,
+        "start_sec": 6150.0,
+        "end_sec": 6300.0,
+        "green_sec": 10,
+        "ttt_omega_veh_h": 127.04460039338126,
+        "tracked_outside_veh_h": 43.36359786819344,
+        "target_arrivals_veh": 17.662260577884844,
+        "target_merges_veh": 23.720399742447302,
+        "target_end_stock": 14.23231315303143,
+        "conservation_residual": 7.105427357601002e-15,
+        "wall_sec": 6.328224199998658
+      },
+      {
+        "block": 2,
+        "start_sec": 6300.0,
+        "end_sec": 6450.0,
+        "green_sec": 10,
+        "ttt_omega_veh_h": 131.87380521066706,
+        "tracked_outside_veh_h": 47.088296658555045,
+        "target_arrivals_veh": 11.778638176165906,
+        "target_merges_veh": 16.504141501201808,
+        "target_end_stock": 9.506809827995545,
+        "conservation_residual": -1.5987211554602254e-14,
+        "wall_sec": 7.082004000025336
+      },
+      {
+        "block": 3,
+        "start_sec": 6450.0,
+        "end_sec": 6600.0,
+        "green_sec": 10,
+        "ttt_omega_veh_h": 138.32833372886526,
+        "tracked_outside_veh_h": 49.7323877176639,
+        "target_arrivals_veh": 14.345455778392795,
+        "target_merges_veh": 12.48846337678708,
+        "target_end_stock": 11.363802229601266,
+        "conservation_residual": -5.329070518200751e-15,
+        "wall_sec": 7.528201500012074
+      },
+      {
+        "block": 4,
+        "start_sec": 6600.0,
+        "end_sec": 6750.0,
+        "green_sec": 10,
+        "ttt_omega_veh_h": 145.72490313056386,
+        "tracked_outside_veh_h": 53.60200893940029,
+        "target_arrivals_veh": 14.612193855183687,
+        "target_merges_veh": 14.458396422609152,
+        "target_end_stock": 11.517599662175815,
+        "conservation_residual": -1.4210854715202004e-14,
+        "wall_sec": 8.183828500041272
+      },
+      {
+        "block": 5,
+        "start_sec": 6750.0,
+        "end_sec": 6900.0,
+        "green_sec": 10,
+        "ttt_omega_veh_h": 153.22664578441834,
+        "tracked_outside_veh_h": 57.925145366207886,
+        "target_arrivals_veh": 14.827444320896694,
+        "target_merges_veh": 14.827533189658634,
+        "target_end_stock": 11.517510793413889,
+        "conservation_residual": -1.5987211554602254e-14,
+        "wall_sec": 8.796749499975704
+      }
+    ],
+    "progressive": [
+      {
+        "block": 0,
+        "start_sec": 6000.0,
+        "end_sec": 6150.0,
+        "green_sec": 8,
+        "ttt_omega_veh_h": 123.11499451623246,
+        "tracked_outside_veh_h": 35.89990702534319,
+        "target_arrivals_veh": 25.97353580200221,
+        "target_merges_veh": 25.682805375466344,
+        "target_end_stock": 20.290730426535855,
+        "conservation_residual": 1.0658141036401503e-14,
+        "wall_sec": 4.951278299966361
+      },
+      {
+        "block": 1,
+        "start_sec": 6150.0,
+        "end_sec": 6300.0,
+        "green_sec": 6,
+        "ttt_omega_veh_h": 127.04456707365847,
+        "tracked_outside_veh_h": 43.36360377722426,
+        "target_arrivals_veh": 17.662260577884844,
+        "target_merges_veh": 23.71918447851853,
+        "target_end_stock": 14.23380652590216,
+        "conservation_residual": 3.552713678800501e-15,
+        "wall_sec": 6.5429181000217795
+      },
+      {
+        "block": 2,
+        "start_sec": 6300.0,
+        "end_sec": 6450.0,
+        "green_sec": 4,
+        "ttt_omega_veh_h": 131.87374793613503,
+        "tracked_outside_veh_h": 47.08829552996437,
+        "target_arrivals_veh": 11.778638176165906,
+        "target_merges_veh": 16.505634874072538,
+        "target_end_stock": 9.506809827995545,
+        "conservation_residual": -1.5987211554602254e-14,
+        "wall_sec": 7.152071000018623
+      },
+      {
+        "block": 3,
+        "start_sec": 6450.0,
+        "end_sec": 6600.0,
+        "green_sec": 2,
+        "ttt_omega_veh_h": 138.32824591432006,
+        "tracked_outside_veh_h": 49.73239763712691,
+        "target_arrivals_veh": 14.345455778392795,
+        "target_merges_veh": 12.488463376787093,
+        "target_end_stock": 11.36380222960127,
+        "conservation_residual": -2.3092638912203256e-14,
+        "wall_sec": 7.5939822000218555
+      },
+      {
+        "block": 4,
+        "start_sec": 6600.0,
+        "end_sec": 6750.0,
+        "green_sec": 2,
+        "ttt_omega_veh_h": 145.72485561562235,
+        "tracked_outside_veh_h": 53.60199812221981,
+        "target_arrivals_veh": 14.612193855183687,
+        "target_merges_veh": 14.458396422609159,
+        "target_end_stock": 11.517599662175815,
+        "conservation_residual": -1.7763568394002505e-14,
+        "wall_sec": 7.955685599998105
+      },
+      {
+        "block": 5,
+        "start_sec": 6750.0,
+        "end_sec": 6900.0,
+        "green_sec": 2,
+        "ttt_omega_veh_h": 153.22665079874815,
+        "tracked_outside_veh_h": 57.925144049465466,
+        "target_arrivals_veh": 14.827444320896694,
+        "target_merges_veh": 14.82753318965864,
+        "target_end_stock": 11.517510793413887,
+        "conservation_residual": -1.9539925233402755e-14,
+        "wall_sec": 8.908260600001086
+      }
+    ]
+  },
+  "comparisons": [
+    {
+      "duration_sec": 450,
+      "delta_omega_ttt_veh_h": -9.267364703191561e-05,
+      "delta_tracked_outside_veh_h": 5.543921758999204e-06,
+      "delta_target_merges_veh": 0.0
+    },
+    {
+      "duration_sec": 600,
+      "delta_omega_ttt_veh_h": -0.0001804881921998458,
+      "delta_tracked_outside_veh_h": 1.5463384784197842e-05,
+      "delta_target_merges_veh": 1.4210854715202004e-14
+    },
+    {
+      "duration_sec": 750,
+      "delta_omega_ttt_veh_h": -0.00022800313377047132,
+      "delta_tracked_outside_veh_h": 4.6462043030714995e-06,
+      "delta_target_merges_veh": 1.4210854715202004e-14
+    },
+    {
+      "duration_sec": 900,
+      "delta_omega_ttt_veh_h": -0.0002229888038982608,
+      "delta_tracked_outside_veh_h": 3.3294618901891226e-06,
+      "delta_target_merges_veh": 1.4210854715202004e-14
+    }
+  ],
+  "first450_parity_passed": true,
+  "new_native_runs": 0,
+  "production_changed": false
+}

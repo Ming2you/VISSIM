@@ -1,0 +1,36 @@
+{
+  "hypothesis": "Advancing vehicle speed differs from upstream spatial mean at recovery edges; a paired causal correction may improve discharge response.",
+  "source_cells": [
+    23,
+    24
+  ],
+  "recipient_cells": [
+    24,
+    25
+  ],
+  "formula": "epsilon_i=beta*max(v[i+1]-v[i],0); dP=q_accepted[i]*dt_h*epsilon_i; P_i-=dP; P_i+1+=dP, applied to post-step stocks with a shared bounded dP.",
+  "fit": "Exploratory current-state gradient regression on s29 NC moving-vehicle BEFORE speeds; other inspected states evaluated for explanatory error only.",
+  "beta": 0.34217356769315466,
+  "candidates": [
+    0.17108678384657733,
+    0.34217356769315466
+  ],
+  "training": "s29 common2220.1: NC,RM,VSL,both450s",
+  "max_training_rollouts": 8,
+  "max_validation_rollouts": 8,
+  "max_default_regression": 1,
+  "selection": "Require >=20% improvement in normalized paired gain/discharge/merge response loss, <=10% worsening of mean whole-road N/q RMSE; no further sweep if fail.",
+  "validation": "s43 common2220 four arms and s29 common2670 hold/release with VSL90; no wrong meaningful signs and response improvements in both cases.",
+  "scope": "East31 cells plus8connectors, not full Omega or9000 policy. Previously inspected data, not untouched holdout.",
+  "invariants": [
+    "q/vehicle conservation unchanged within correction",
+    "equal-opposite speed moment residual, not complete physical momentum model",
+    "actual accepted merge, ramp cost, off storage and all controls unchanged",
+    "no measured future variance/speed/control-specific bonus",
+    "apply donor reaction at23; do not call it cell24/25-only dynamics"
+  ],
+  "new_native": 0,
+  "production_adopted": false,
+  "loss": "Mean over three command differences: (deltaTTT error/.5veh-h)^2 + (delta totalexit error/50veh)^2 + (delta merge error/50veh)^2",
+  "execution_note": "One additional disabled rollout was needed to isolate tuple/list serialization mismatch. It was reused after JSON normalization; all saved physical arrays match exactly. Candidate budget unchanged."
+}

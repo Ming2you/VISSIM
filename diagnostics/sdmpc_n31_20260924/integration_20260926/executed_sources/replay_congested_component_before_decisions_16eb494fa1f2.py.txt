@@ -1,0 +1,365 @@
+"""Bridge completed response inputs into the selected checkout's sole plant.
+
+Capture runs in a separate process against the historical input builder and
+stops BEFORE its rollout/scoring. Prediction imports only the selected checkout.
+No native runs, fitting, future observed inputs, or new adapter are involved.
+"""
+import copy
+import csv
+import gzip
+import hashlib
+import json
+from pathlib import Path
+import pickle
+import sys
+import time
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[2]
+OLD=ROOT.parent/'control-full-review'
+OUT=HERE/'congested_replay'
+
+
+def load(p): return json.loads(Path(p).read_text(encoding='utf-8-sig'))
+def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def save(p,x): Path(p).write_text(json.dumps(x,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+
+
+def capture():
+    sys.path.insert(0,str(OLD))
+    from diagnostics.metanet_net_gain_goal_20260924 import extract as e
+    c=e.c
+    data,ctx,_,_=c.inputs()
+    prior=e.HERE/'legal_release2670'
+    assert load(prior/'status.json')['stage']=='complete_response_validation'
+    protocol=load(prior/'protocol.json')
+    assert protocol['source_sha']==load(HERE/'selected/plant_n31_v2.json')['sources']['network']['sha256']
+    ctx=list(copy.deepcopy(ctx));ctx[3]=protocol['port_profile']
+    model=c.prior.one.base.load_base_model(data['rm'].geometry,e.HERE/'local_fd/candidate.json')
+    OUT.mkdir(exist_ok=False)
+    class Captured(BaseException): pass
+    records=[]
+    for arm in ('hold','release','hold_vsl90','release_vsl90'):
+        commands={int(k):v for k,v in load(prior/f'{arm}_commands.json').items()}
+        def intercept(*args,**kwargs):
+            # Native future truth is scored only after model.rollout, which
+            # this capture deliberately never enters.
+            json.dumps([args,kwargs],allow_nan=False)
+            payload=pickle.dumps((args,kwargs),protocol=5)
+            path=OUT/(arm+'_input.pickle');path.write_bytes(payload)
+            records.append(dict(arm=arm,input=path.name,sha256=sha(path),
+                truth=str(prior/'observations'/arm),previous_native_result=str(prior/f'{arm}_result.json'),
+                previous_prediction=str(prior/f'{arm}_prediction.json.gz'),
+                command_sha256=sha(prior/f'{arm}_commands.json')))
+            raise Captured()
+        model.rollout=intercept
+        try:
+            c.prior.forecast(model,protocol['parameters'],data['rm'],data['rm'],2670.1,450,
+                             *ctx[:-1],commands,True)
+            raise AssertionError('Rollout input not captured')
+        except Captured: pass
+    save(OUT/'capture.json',dict(source_network=protocol['source_sha'],cutoff=2670.1,horizon=450,
+        geometry_sha256=sha(data['rm'].folder/'geometry.json'),records=records,
+        parameter_source=str(prior/'protocol.json'),parameter_sha256=sha(prior/'protocol.json'),
+        builder_sources={str(p):sha(p) for p in (Path(c.prior.__file__),Path(c.prior.one.__file__),Path(__file__))},
+        cutoff_truncation_assertion_passed=True,native_started=False,future_truth_read_for_prediction=False))
+    print(json.dumps(dict(captured=len(records),folder=str(OUT))),flush=True)
+
+
+def predict():
+    sys.path.insert(0,str(ROOT))
+    from evaluation.controllers import lane_plant_runtime as lpr
+    from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.boundary_factory import ObservationData
+    from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.scoring import score_rollout
+    context=lpr.load_sources(HERE/'selected/plant_n31_v2.json')
+    model=context['component'];manifest=load(OUT/'capture.json')
+    assert context['document']['sources']['network']['sha256']==manifest['source_network']
+    results=[]
+    for row in manifest['records']:
+        p=OUT/row['input'];assert sha(p)==row['sha256']
+        args,kwargs=pickle.loads(p.read_bytes()) # only our locally generated pinned primitives
+        assert args[2]==context['parameters'], 'Selected coefficients differ; do not silently replace them'
+        assert kwargs['roads']==['FW_E'] and kwargs['horizon_sec']==450
+        started=time.perf_counter();pred=model.rollout(*args,**kwargs)
+        wall=time.perf_counter()-started
+        with gzip.open(OUT/(row['arm']+'_prediction.json.gz'),'wt',encoding='utf-8') as f:
+            json.dump(pred,f,allow_nan=False)
+        # Open future observations ONLY after completing this prediction.
+        truth=ObservationData(row['truth']);t0=manifest['cutoff']
+        initial_n=sum(x['n_veh'] for x in args[0] if x['road']=='FW_E')
+        times=[round(t0+d,6) for d in range(0,451,30)]
+        port_ids={str(v['connector']) for v in model.ramps.values() if v['road']=='FW_E'}
+        port_ids|={str(k) for k,v in model.offramps.items() if v['road']=='FW_E'}
+        observed_main={t:sum(x['n_veh'] for x in truth.cells[t] if x['road']=='FW_E') for t in times}
+        observed_port={t:sum(float(truth.ports[t,c]['end_n_veh']) for c in port_ids) for t in times}
+        predicted_main={t:sum(x['n_veh'] for x in pred['cells'] if abs(x['time_s']-t)<1e-6) for t in times[1:]}
+        predicted_port={t:sum(x['n_veh'] for x in pred['ports'] if abs(x['time_s']-t)<1e-6)+
+            sum(x['end']['connector_veh'] for x in pred['ramps'] if abs(x['end_sec']-t)<1e-6) for t in times[1:]}
+        assert observed_main[t0]==initial_n
+        predicted_main[t0]=initial_n;predicted_port[t0]=observed_port[t0]
+        integral=lambda values:sum((values[a]+values[b])*(b-a)/7200 for a,b in zip(times,times[1:]))
+        flows={}
+        for label,records in [('predicted',pred['flows']),('actual',[dict(v,window_end_s=t)
+                for (t,r,c),v in truth.flows.items() if r=='FW_E' and t0<t<=times[-1]])]:
+            flows[label]={key:sum(float(x[key]) for x in records) for key in
+                          ('source_admissions','off_departures','terminal_exits' if label=='predicted' else 'terminal_exits_inferred')}
+        merges={r:sum(x['accepted_merge_veh'] for x in pred['ramps'] if x['ramp']==r) for r,v in model.ramps.items() if v['road']=='FW_E'}
+        actual_merges={r:sum(float(truth.ports[t,str(model.ramps[r]['connector'])]['departures_veh']) for t in times[1:]) for r in merges}
+        score=score_rollout(truth,t0,pred,'FW_E',include_source_boundary=True)
+        assert not score['invalid']
+        residual=max([abs(x['conservation_residual_veh']) for x in pred['ports']]+[abs(x['conservation_residual_veh']) for x in pred['ramps']])
+        assert residual<1e-7
+        previous=load(row['previous_native_result'])
+        item=dict(arm=row['arm'],wall_sec=wall,score=score,conservation_max=residual,
+            predicted_mainline_ttt=integral(predicted_main),actual_mainline_ttt=integral(observed_main),
+            predicted_port_ttt=integral(predicted_port),actual_port_ttt=integral(observed_port),
+            predicted_merge=merges,actual_merge=actual_merges,flows=flows,
+            native_total_cost=previous['native'])
+        item['predicted_component_ttt']=item['predicted_mainline_ttt']+item['predicted_port_ttt']
+        item['actual_component_ttt']=item['actual_mainline_ttt']+item['actual_port_ttt']
+        results.append(item);save(OUT/(row['arm']+'_result.json'),item)
+        print(json.dumps(dict(arm=row['arm'],wall_sec=wall,predicted=item['predicted_component_ttt'],actual=item['actual_component_ttt'])),flush=True)
+    base=results[0]
+    for row in results:
+        row['deltas']={k:row[k]-base[k] for k in ('predicted_component_ttt','actual_component_ttt','predicted_mainline_ttt','actual_mainline_ttt','predicted_port_ttt','actual_port_ttt')}
+        row['deltas']['predicted_merge']=sum(row['predicted_merge'].values())-sum(base['predicted_merge'].values())
+        row['deltas']['actual_merge']=sum(row['actual_merge'].values())-sum(base['actual_merge'].values())
+    save(OUT/'summary.json',dict(results=results,gain_qualified=False,calibration=False,
+        scope='East31 cells plus8 ramp connectors; not full urban/Omega prediction',
+        total_native_cost_scope='All network plus latent waiting; independent scope, not compared numerically to component prediction',
+        independent_holdout=False,source_file_pins={str(p):sha(p) for p in
+            (Path(lpr.__file__),Path(sys.modules[model.__class__.__module__].__file__),HERE/'selected/plant_n31_v2.json',Path(__file__))}))
+
+
+def compare_saved():
+    manifest=load(OUT/'capture.json');checks=[]
+    for item in manifest['records']:
+        now=OUT/(item['arm']+'_prediction.json.gz')
+        before=Path(item['previous_prediction'])
+        with gzip.open(now,'rt',encoding='utf-8') as f: actual=json.load(f)
+        with gzip.open(before,'rt',encoding='utf-8') as f: old=json.load(f)['rollout']
+        for key in ('cells','flows','ports','ramps'):
+            assert actual[key]==old[key], (item['arm'],key,'physical replay changed')
+        checks.append(dict(arm=item['arm'],arrays_exact=['cells','flows','ports','ramps'],
+                           current_sha256=sha(now),previous_sha256=sha(before)))
+    save(OUT/'historical_parity.json',dict(passed=True,checks=checks,
+        interpretation='Selected current component reproduces the prior wrong response; no new gain calibration',
+        no_new_rollouts=True))
+    print(json.dumps(dict(parity_cases=len(checks),physical_arrays_exact=True)))
+
+
+def decompose_saved():
+    """Accounting audit of cached outcomes, never forecast inputs or capacity fits."""
+    manifest=load(OUT/'capture.json');t0=manifest['cutoff'];end=t0+manifest['horizon']
+    steps=[round(t0+x,6) for x in range(0,451,30)]
+    all_rows={};pins={};events={};ports={}
+    for item in manifest['records']:
+        arm=item['arm'];truth=Path(item['truth']);native_manifest=load(truth/'manifest.json')
+        def read_csv(name):
+            path=truth/name
+            assert sha(path)==native_manifest['files'][name],str(path)
+            pins[str(path)]=sha(path)
+            with path.open(encoding='utf-8-sig',newline='') as f:return list(csv.DictReader(f))
+        cells={(round(float(r['time_s']),6),int(r['cell'])):float(r['n_veh'])
+               for r in read_csv('cells_30s.csv') if r['road']=='FW_E'}
+        flows={(round(float(r['window_end_s']),6),int(r['cell'])):r
+               for r in read_csv('flows_30s.csv') if r['road']=='FW_E'}
+        ports[arm]=[r for r in read_csv('ports_30s.csv') if r['road']=='FW_E']
+        events[arm]=read_csv('port_events.csv')
+        path=OUT/(arm+'_prediction.json.gz');pins[str(path)]=sha(path)
+        with gzip.open(path,'rt') as f:p=json.load(f)
+        predicted={(round(r['time_s'],6),r['cell']):r['n_veh'] for r in p['cells']}
+        pf={(round(r['window_end_s'],6),r['cell']):r for r in p['flows']}
+        for c in range(31):predicted[t0,c]=cells[t0,c]
+        all_rows[arm]={}
+        for c in range(31):
+            row={}
+            for label,stocks,ff in [('actual',cells,flows),('predicted',predicted,pf)]:
+                row[label+'_ttt']=sum((stocks[a,c]+stocks[b,c])*(b-a)/7200 for a,b in zip(steps,steps[1:]))
+                for key in ('source_admissions','ramp_merges','off_departures','terminal_exits','downstream_crossings'):
+                    source='terminal_exits_inferred' if label=='actual' and key=='terminal_exits' else key
+                    row[label+'_'+key]=sum(float(ff[t,c][source]) for t in steps[1:])
+                row[label+'_n_final']=stocks[end,c]
+            all_rows[arm][c]=row
+    base=all_rows['hold'];summary={};series=[];matches={}
+    off_ids={r['connector'] for r in ports['hold'] if r['kind']!='ramp'}
+    assert off_ids=={'10643','10682','10481','10483'},off_ids
+    for arm,rows in all_rows.items():
+        if arm=='hold':continue
+        differences=[]
+        for c,row in rows.items():
+            delta={key:row[key]-base[c][key] for key in row}
+            delta.update(cell=c,arm=arm,ttt_response_error=delta['predicted_ttt']-delta['actual_ttt'])
+            series.append(delta);differences.append(delta)
+        ports_delta={}
+        for connector in sorted(off_ids):
+            def total(name,key):return sum(float(r[key]) for r in ports[name]
+                if r['connector']==connector and t0<float(r['window_end_s'])<=end)
+            ports_delta[connector]={key:total(arm,key)-total('hold',key) for key in ('arrivals_veh','departures_veh')}
+        # Same IDs reaching the same exit; missing IDs are NOT assumed deleted,
+        # rerouted, or queued because this event cache cannot distinguish them.
+        def exits(name):
+            out={}
+            for r in events[name]:
+                if r['connector'] in off_ids and r['kind']=='arrival' and float(r['time_s'])>t0:
+                    out.setdefault(int(r['vehicle']),[]).append((r['connector'],float(r['time_s'])))
+            return out
+        hold,changed=exits('hold'),exits(arm)
+        by_port={}
+        for connector in sorted(off_ids):
+            ids={v for v,ee in hold.items() if any(c==connector and t<=end for c,t in ee)}
+            categories=dict(same_exit_within_horizon=0,same_exit_after_horizon=0,
+                            different_exit_only_observed=0,no_east_exit_observed=0)
+            later=[]
+            for v in ids:
+                same=[t for c,t in changed.get(v,[]) if c==connector]
+                if same:
+                    key='same_exit_within_horizon' if min(same)<=end else 'same_exit_after_horizon'
+                    categories[key]+=1
+                    h=min(t for c,t in hold[v] if c==connector)
+                    later.append(min(same)-h)
+                elif changed.get(v):categories['different_exit_only_observed']+=1
+                else:categories['no_east_exit_observed']+=1
+            assert sum(categories.values())==len(ids)
+            by_port[connector]=dict(hold_exit_ids=len(ids),categories=categories,
+                                   matched_same_exit_mean_delay_s=sum(later)/len(later) if later else None)
+        matches[arm]=by_port
+        summary[arm]=dict(component_mainline_deltas={key:sum(r[key] for r in differences)
+            for key in ('actual_ttt','predicted_ttt','actual_off_departures','predicted_off_departures',
+                        'actual_terminal_exits','predicted_terminal_exits')},
+            largest_underestimated_cost_cells=sorted(differences,key=lambda r:r['ttt_response_error'])[:6],
+            actual_port_delta=ports_delta)
+    checked=load(OUT/'summary.json')
+    for r in checked['results']:
+        if r['arm']=='hold':continue
+        for label in ('actual','predicted'):
+            assert abs(summary[r['arm']]['component_mainline_deltas'][label+'_ttt']-
+                       r['deltas'][label+'_mainline_ttt'])<1e-7
+    with (OUT/'cell_response.csv').open('w',encoding='utf-8',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(series[0]));writer.writeheader();writer.writerows(series)
+    save(OUT/'spatial_audit.json',dict(summary=summary,matched_exit_events=matches,pins=pins,
+        no_new_rollouts=True,no_future_prediction_inputs=True,
+        limits='Port events alone do not identify initial destination, final location, removals, or causal rerouting'))
+    print(json.dumps({arm:dict(total=x['component_mainline_deltas'],ports=x['actual_port_delta'],
+        cells=[(r['cell'],round(r['actual_ttt'],3),round(r['predicted_ttt'],3))
+               for r in x['largest_underestimated_cost_cells']]) for arm,x in summary.items()}))
+
+
+def initial_cohort_exits():
+    """Separate known common vehicles from arrivals after the initial snapshot.
+
+    Only the missing whole-network initial frame is read from native FZP.
+    All post-initial outcomes come from previously validated event caches.
+    """
+    source=OLD/'diagnostics/metanet_net_gain_goal_20260924/legal_release2670'
+    meta=load(source/'current_route_snapshot/manifest.json');t0=meta['cutoff'];end=t0+450
+    path=Path(meta['source']);stat=path.stat()
+    assert (stat.st_size,stat.st_mtime_ns)==(meta['size'],meta['mtime_ns'])
+    assert meta['network_sha256']==load(OUT/'capture.json')['source_network']
+    cache=OUT/'initial_network_cohort.json'
+    assert not cache.exists(),'Reuse the completed initial cohort audit, do not rescan'
+    digest=hashlib.sha256();initial={};count=0
+    with path.open('rb') as f:
+        header=None
+        for raw in f:
+            if raw.startswith(b'$VEHICLE:'):
+                header=raw.decode('ascii').strip().split(':',1)[1].split(';')
+                fields={k:header.index(k) for k in ('NO','LANE\\LINK\\NO','LANE\\INDEX','POS','ROUTDECNO','ROUTENO')}
+                digest.update(raw);continue
+            if header is None or raw.startswith((b'*',b'$')) or not raw.strip():
+                digest.update(raw);continue
+            sec=float(raw.split(b';',1)[0])
+            if sec>t0+1e-7:break
+            digest.update(raw);count+=1
+            if abs(sec-t0)>1e-7:continue
+            z=raw.decode('ascii').strip().split(';');row={k:z[i].strip() for k,i in fields.items()}
+            no=int(row['NO']);assert no not in initial;initial[no]=row
+    assert digest.hexdigest()==meta['prefix_sha256'] and count==meta['scanned_data_rows']
+    assert (path.stat().st_size,path.stat().st_mtime_ns)==(stat.st_size,stat.st_mtime_ns)
+    prior_snapshot=load(source/'current_route_snapshot/snapshot.json')
+    assert len(prior_snapshot)==1035
+    for row in prior_snapshot:
+        assert all(initial[int(row['NO'])][k]==row[k] for k in fields)
+    pins={str(source/'current_route_snapshot/manifest.json'):sha(source/'current_route_snapshot/manifest.json'),
+          str(source/'current_route_snapshot/snapshot.json'):sha(source/'current_route_snapshot/snapshot.json')}
+    east={int(r['NO']) for r in prior_snapshot};offs={'10643','10682','10481','10483'}
+    events={};prefix=None
+    for arm in ('hold','release','hold_vsl90','release_vsl90'):
+        result=load(source/(arm+'_result.json'))
+        if prefix is None:prefix=result['prefix_exact']
+        assert result['prefix_exact']==prefix
+        p=source/'observations'/arm/'port_events.csv';m=load(p.parent/'manifest.json')
+        assert sha(p)==m['files'][p.name];pins[str(p)]=sha(p)
+        with p.open(encoding='utf-8-sig',newline='') as f:
+            events[arm]=[r for r in csv.DictReader(f) if r['kind']=='arrival'
+                         and r['connector'] in offs and float(r['time_s'])>t0]
+    totals={};paired={}
+    for arm,rows in events.items():
+        totals[arm]={}
+        for off in sorted(offs):
+            totals[arm][off]={label:sum(r['connector']==off and float(r['time_s'])<=end and test(int(r['vehicle'])) for r in rows)
+                for label,test in [('initial_east',lambda v:v in east),
+                                   ('initial_elsewhere',lambda v:v in initial and v not in east),
+                                   ('not_present_at_initial',lambda v:v not in initial)]}
+        if arm=='hold':continue
+        paired[arm]={}
+        for off in sorted(offs):
+            hold={int(r['vehicle']):float(r['time_s']) for r in events['hold']
+                  if r['connector']==off and float(r['time_s'])<=end and int(r['vehicle']) in initial}
+            same={int(r['vehicle']):float(r['time_s']) for r in rows if r['connector']==off}
+            other={int(r['vehicle']) for r in rows if r['connector']!=off}
+            matched=[v for v in hold if v in same]
+            differences=[dict(vehicle=v,initial_link=initial[v]['LANE\\LINK\\NO'],
+                initial_route=initial[v]['ROUTDECNO']+':'+initial[v]['ROUTENO'],
+                changed_exit=[(r['connector'],float(r['time_s'])) for r in rows if int(r['vehicle'])==v])
+                for v in hold if v not in same and v in other]
+            paired[arm][off]=dict(initial_hold_exit_count=len(hold),
+                same_exit_within_horizon=sum(same[v]<=end for v in matched),
+                same_exit_after_horizon=sum(same[v]>end for v in matched),
+                different_exit_only_observed=differences,
+                unresolved_by_end_of_cache=[v for v in hold if v not in same and v not in other],
+                matched_delay_sum_s=sum(same[v]-hold[v] for v in matched),
+                matched_delay_mean_s=sum(same[v]-hold[v] for v in matched)/len(matched) if matched else None)
+    save(cache,dict(cutoff=t0,vehicles=initial,source_meta=meta))
+    pins[str(cache)]=sha(cache)
+    summary=dict(initial_network_count=len(initial),initial_east_count=len(east),totals=totals,paired=paired,
+        pins=pins,precontrol_prefix=prefix,future_model_inputs=False,new_rollouts=0,
+        limits='Known initial IDs are comparable; later creation identities are not certified. Missing cached exit is not proof of deletion or rerouting. Exit timing includes full network interaction and is not an identified local capacity.')
+    save(OUT/'initial_cohort_exit_audit.json',summary)
+    print(json.dumps(dict(initial_network=len(initial),initial_east=len(east),totals=totals,paired=paired)))
+
+
+def cohort_delay_bounds():
+    audit=load(OUT/'initial_cohort_exit_audit.json')
+    cache=OUT/'initial_network_cohort.json'
+    assert sha(cache)==audit['pins'][str(cache)]
+    initial=load(cache);ids=set(map(int,initial['vehicles']));t0=initial['cutoff'];end=t0+450
+    source=OLD/'diagnostics/metanet_net_gain_goal_20260924/legal_release2670/observations'
+    rows={}
+    for arm in ('hold','release','hold_vsl90','release_vsl90'):
+        p=source/arm/'port_events.csv';assert sha(p)==audit['pins'][str(p)]
+        with p.open(encoding='utf-8-sig',newline='') as f:
+            rows[arm]={(int(r['vehicle']),r['connector']):r for r in csv.DictReader(f)
+                       if r['kind']=='arrival' and int(r['vehicle']) in ids and float(r['time_s'])>t0}
+    result={}
+    for arm in ('release','hold_vsl90','release_vsl90'):
+        result[arm]={}
+        for off,expected in audit['paired'][arm].items():
+            matched=[(r,rows[arm][key]) for key,r in rows['hold'].items() if key[1]==off
+                     and float(r['time_s'])<=end and key in rows[arm]]
+            assert len(matched)==expected['same_exit_within_horizon']+expected['same_exit_after_horizon']
+            lower=sum(float(b['lower_time_s'])-float(a['upper_time_s']) for a,b in matched)
+            upper=sum(float(b['upper_time_s'])-float(a['lower_time_s']) for a,b in matched)
+            measured=sum(float(b['time_s'])-float(a['time_s']) for a,b in matched)
+            assert lower<=measured<=upper
+            result[arm][off]=dict(matched=len(matched),delay_mean_s=measured/len(matched),
+                mean_lower_s=lower/len(matched),mean_upper_s=upper/len(matched))
+    save(OUT/'initial_cohort_delay_bounds.json',dict(results=result,source_audit_sha256=sha(OUT/'initial_cohort_exit_audit.json'),
+        interpretation='Deterministic crossing-time brackets from FZP5; not a confidence interval or local capacity estimate. Same-exit matching conditions on the eventual outcome.',
+        new_scans=0,new_rollouts=0))
+    print(json.dumps(result))
+
+
+if __name__=='__main__':
+    {'capture':capture,'predict':predict,'compare':compare_saved,'decompose':decompose_saved,
+     'initial-cohort':initial_cohort_exits,'delay-bounds':cohort_delay_bounds}[sys.argv[1]]()

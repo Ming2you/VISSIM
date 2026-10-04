@@ -1,0 +1,137 @@
+"""Attribute saved SC1001 arrivals; no new forecast or native future model input."""
+from collections import defaultdict
+import gzip
+import hashlib
+import json
+import math
+from pathlib import Path
+import statistics
+import xml.etree.ElementTree as ET
+
+L = Path(__file__).resolve().parent
+I = L.parent.parent
+U = I.parents[2]
+OUT = L / 'ramp10484_path_v2/arrival_provenance.json'
+assert not OUT.exists()
+D = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+pins = {}
+
+def load(path):
+    raw = path.read_bytes()
+    pins[str(path)] = hashlib.sha256(raw).hexdigest()
+    return json.loads(gzip.decompress(raw) if path.suffix == '.gz' else raw)
+
+def close(a, b):
+    assert abs(a-b) < 1e-8, (a, b)
+
+network = I / 'selected/network/native_seed29.inpx'
+pins[str(network)] = hashlib.sha256(network.read_bytes()).hexdigest()
+assert pins[str(network)] == '64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+tree = ET.parse(network).getroot()
+links = {x.get('no'): x for x in tree.findall('./links/link')}
+branch = float(links['10484'].find('fromLinkEndPt').get('pos'))
+choice = tree.find("./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic[@no='1137']")
+route_weights = {r.get('no'): float(r.get('relFlow').split(':')[-1]) if r.get('relFlow') else 1.
+                 for r in choice.findall('./vehRoutSta/vehicleRouteStatic')}
+assert route_weights['1']/sum(route_weights.values()) == .5
+timing = load(L / 'speed_binding/native_timing.json')
+results = {}
+for at in (2250, 3600):
+    init = load(L / f'city_path/{at}_svc/initial.json')
+    trace = load(L / f'city_path/{at}_svc/trace.json.gz')
+    projection = load(L / f'city_path/{at}_svc/projection.json')
+    raw = load(D / f'state_{at:06d}.json')
+    # Captured urban steps are one second. Derived serialized ratios are stale;
+    # this audit verifies the actually executed second-by-second resource trace.
+    assert init['simulation']['T_u'] == 1
+    nominal = init['travel_parameters']['urban_avg_speed_km_h']
+    speeds = init['state']['urban_link_speed_kph']
+    assert all(s['urban_link_speed_kph'] == speeds for s in trace['states'])
+    origins = {}
+    for m, row in init['network']['urban_movements'].items():
+        if row.get('receiving_link') != 'SC1001_W_out' or row.get('beta', 0) <= 0:
+            continue
+        turn, = init['network']['control_area_routes']['movement:'+m]['physical_turns']
+        connector = links[str(turn['connector'])]
+        points = [tuple(float(p.get(k, 0)) for k in ('x', 'y', 'zOffset'))
+                  for p in connector.findall('./geometry/linkPolyPts/linkPolyPoint')]
+        length = sum(math.dist(a, b) for a, b in zip(points, points[1:]))
+        distance = length + branch-float(connector.find('toLinkEndPt').get('pos'))
+        speed = max(nominal/2.5, speeds.get(row['origin'], nominal))
+        origins['movement:'+m] = dict(delay_sec=max(1, math.ceil(distance/(speed/3.6))),
+            distance_m=distance, effective_speed_kmh=speed, connector=turn['connector'],
+            origin=row['origin'], connector_length_m=length)
+    cohorts = []
+    assigned = projection['diagnostics']['physical_stock_assignment_by_link']
+    initial_support = {k for k, v in assigned.items() if v.get('storage:SC1001_W_out', 0) > 0}
+    # In these two states no accepted connector vehicles are projected here.
+    assert initial_support <= {'31', '10774', '124'}, initial_support
+    for r in raw['vehicle_records']['records']:
+        if r['link_no'] != 31 or r['position_m'] > branch+1e-3:
+            continue
+        speed = max(nominal/2.5, r['speed_kph'])
+        due = at+max(1, math.ceil(max(0, branch-r['position_m'])/(speed/3.6)))
+        cohorts.append(dict(source='initial31_expected', vehicles=.5, due=due))
+    initial_expected = sum(c['vehicles'] for c in cohorts)
+    transfers = defaultdict(list)
+    for r in trace['transfers']:
+        transfers[int(r['start_sec'])].append(r)
+    resources = {int(r['start_sec']): r for r in trace['resources']
+                 if r['resource'] == 'SC1001_W_out:RM_C10484'
+                 and r['kind'] == 'legsplit_source_reach_share'}
+    attributed = []
+    for t in range(at, at+450):
+        ready = [c for c in cohorts if c['due'] <= t]
+        requested = sum(c['vehicles'] for c in ready)
+        row = resources.get(t, {'available_veh': 0, 'accepted_total_veh': 0})
+        close(requested, row['available_veh'])
+        accepted = row['accepted_total_veh']
+        for c in ready:
+            amount = accepted*c['vehicles']/requested if requested else 0
+            c['vehicles'] -= amount
+            if amount:
+                attributed.append(dict(start_sec=t, source=c['source'], vehicles=amount))
+        cohorts = [c for c in cohorts if c['vehicles'] > 0]
+        # Same step ordering as direct_exit_movement_receive/legsplit_commit:
+        # only pre-existing ready cohorts can be accepted in this step.
+        for r in transfers[t]:
+            if r['target'] == 'storage:SC1001_W_out' and r['source'] in origins:
+                cohorts.append(dict(source=r['source'], vehicles=.5*r['vehicles'],
+                                    due=t+origins[r['source']]['delay_sec']))
+        actual = sum(r['vehicles'] for r in transfers[t]
+                     if r['source'] == 'storage:SC1001_W_out' and r['target'] == 'ramp:RM_C10484')
+        close(accepted, actual)
+    by_source = defaultdict(lambda: [0., 0., 0., 0., 0.])
+    for r in attributed:
+        if r['start_sec'] < at+150:
+            by_source[r['source']][(r['start_sec']-at)//30] += r['vehicles']
+    by_source['storage:SC2001_S_out'] = [sum(r['vehicles'] for r in trace['transfers']
+        if r['source'] == 'storage:SC2001_S_out' and r['target'] == 'ramp:RM_C10484'
+        and at+j <= r['start_sec'] < at+j+30) for j in range(0, 150, 30)]
+    for j in range(5):
+        close(sum(v[j] for v in by_source.values()), sum(r['vehicles'] for r in trace['transfers']
+            if r['target'] == 'ramp:RM_C10484' and at+j*30 <= r['start_sec'] < at+j*30+30))
+    native = timing['states'][str(at)]['arrival_cohort']
+    observed_transit = defaultdict(list)
+    for r in native:
+        for e in r['upstream_events']:
+            # A post-run, right-truncated realized ramp-going cohort only.
+            if at <= e['time'] < at+150:
+                observed_transit[str(e['dcp'])].append(e['to_ramp_sec'])
+    results[at] = dict(all450_resource_requests_and_receipts_exact=True,
+        initial_expected_ramp_veh=initial_expected,
+        native_arrivals_from_initial31=sum(r['initial_link'] == 31 for r in native),
+        model_sources_30sec=dict(by_source), movement_transport=origins,
+        native_head_to_ramp_observed_cohort={k:dict(n=len(v),median_sec=statistics.median(v),
+            min_sec=min(v),max_sec=max(v)) for k,v in observed_transit.items()},
+        native_total_arrivals=len(native), model_total_arrivals=sum(map(sum, by_source.values())),
+        native_initial_link_counts={str(k):sum(r['initial_link'] == k for r in native)
+            for k in {r['initial_link'] for r in native}})
+for p in ('evaluation/controllers/route_choice_corridor.py','evaluation/controllers/urban_flow_accounting.py',
+          'vendor/NumSim-mine/src/models/urban_queue_model.py'):
+    pins[str(U/p)] = hashlib.sha256((U/p).read_bytes()).hexdigest()
+OUT.write_text(json.dumps(dict(status='complete', states=results, pins=pins,
+    new_forecasts=0, native_runs=0, live_polls=0, fzp_scans=0,
+    warning='Reconstructs saved expected routing, not individual native destinations. Native cohort travel is diagnostic, truncated at the end of the arrival window; never fed into the model.'),
+    ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+print(json.dumps(results, indent=2))

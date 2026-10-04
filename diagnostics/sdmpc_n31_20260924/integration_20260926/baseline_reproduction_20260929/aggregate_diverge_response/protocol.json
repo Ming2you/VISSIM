@@ -1,0 +1,32 @@
+{
+  "law": "Hegyi2004 Eq3.9: sum(outlet_density^2)/sum(outlet_density), using existing dynamic connector stock/physical lane-km.",
+  "changed": "Aggregate anticipation virtual downstream density at existing off-ramp source cells only",
+  "unchanged": [
+    "parameters",
+    "31cell geometry",
+    "lane-drop",
+    "FD",
+    "merge",
+    "conservation",
+    "off storage/drain/spillback",
+    "ramp waiting",
+    "actual commands",
+    "all prediction boundaries"
+  ],
+  "limitation": "The connector is one lumped outlet cell; its mean density may miss an internal queue-front position. Formula is not a new capacity benefit.",
+  "fit_parameters": 0,
+  "max_candidates": 1,
+  "max_default450": 1,
+  "max_action450": 12,
+  "new_native": 0,
+  "cases": [
+    "s29_early",
+    "s43_early",
+    "s29_late"
+  ],
+  "source": "https://www.hegyi.info/thesis/dep_hegyi_20040203.pdf",
+  "acceptance": "Improve paired deltaTTT and cumulative departure errors while retaining meaningful benefit/harm signs and not worsening stock/flow RMSE by more than10%. No subsequent coefficient sweep.",
+  "scope": "East31 plus8connector costs, not fullOmega; known states, not pristine holdouts",
+  "original_manifest_sha256": "45ec8b73f8d55e275d55b3f3f60152b9270188931d73a9af48b383e0ea724429",
+  "helper_sha256": "3527d305f29b900d34bbdbae3537ef1cb738a927e1d572facb1b369c08f0b0f6"
+}

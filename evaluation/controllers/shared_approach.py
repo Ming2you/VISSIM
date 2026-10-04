@@ -147,7 +147,10 @@ def configure(cfg, tuning, raw):
                 previous = links[path_links[index - 1]].find('toLinkEndPt')
                 following = links[path_links[index + 1]].find('fromLinkEndPt')
                 distance += max(0.0, float(following.get('pos')) - float(previous.get('pos')))
-        branches[key] = {**choice, 'weight': weight, 'relFlow_raw': raw_weight, 'path': path_links,
+        from evaluation.controllers.sc2001_corridor import _travel_segments
+        geometry = _travel_segments(links, path_links[:path_links.index(receiving_link)+1])
+        travel_segments = [dict(link=s['link'],start=s['start_m'],stop=s['stop_m']) for s in geometry]
+        branches[key] = {**choice, 'travel_segments': travel_segments, 'weight': weight, 'relFlow_raw': raw_weight, 'path': path_links,
             'branch_position_m': float(origin.get('pos')), 'pre_receiver_distance_m': distance,
             'lanes': len(links[connector].findall('./lanes/lane'))}
     total_weight = sum(row['weight'] for row in branches.values())
@@ -234,6 +237,9 @@ def initialize(state, cfg, raw, detectors):
             distance = max(0.0, branch['branch_position_m'] - float(vehicle['position_m'])) + branch['pre_receiver_distance_m']
             due = index + max(1, math.ceil(distance / (speed / 3.6) / dt))
             bins[key][due] = bins[key].get(due, 0.0) + (1.0 if selected is not None else branch['share'])
+            from evaluation.controllers.omega_distance import record_shared
+            record_shared(state,cfg,key,1.0 if selected is not None else branch['share'],
+                          vehicle['position_m'],index,due)
     if routes is not None and not math.isclose(sum(sum(row.values()) for row in bins.values()), occupancy,
                                               rel_tol=0., abs_tol=1e-8):
         raise ValueError('Shared initial observed-route bins do not conserve projected stock')
@@ -350,6 +356,8 @@ def advance(state, control, demand, cfg, urban_step_index):
             due = urban_step_index + max(1, math.ceil(distance / (speed / 3.6) / dt))
             bins = local['bins'][key]
             bins[due] = bins.get(due, 0.0) + admitted * branch['share']
+            from evaluation.controllers.omega_distance import record_shared
+            record_shared(state,cfg,key,admitted*branch['share'],0.,urban_step_index,due)
         emit_input(state, cfg, 'storage:' + source, admitted, route_key='input:shared:' + source)
     departed = sum(accepted_by_branch.values())
     after = capacity - state.urban_link_storage[source]

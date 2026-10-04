@@ -1,0 +1,50 @@
+import copy
+import json
+from pathlib import Path
+import unittest
+from evaluation.controllers.lane_plant_runtime import _local_exchange_history
+from diagnostics.demand_sweep.ramp_dsd_20260916_v2.cohort_dynamics_20260920.urban_route_transport import Contracts
+
+HERE=Path(__file__).resolve().parent
+
+class CalibrationContract(unittest.TestCase):
+    def setUp(self):
+        self.protocol=json.loads((HERE/'local_protocol.json').read_text())
+        self.history=dict(exchange_rates=[],information_cutoff_s=2700,off_composition=[[],[]])
+        self.exits={10635:dict(lanes=[4,5])}
+
+    def test_explicit_frozen_value_does_not_fabricate_or_modify_observation(self):
+        original=copy.deepcopy(self.history)
+        out=_local_exchange_history(self.history,self.protocol,self.exits)
+        self.assertEqual(self.history,original)
+        self.assertEqual(out['information_cutoff_s'],2700)
+        self.assertEqual(out['exchange_rate_source'],'frozen_calibration_not_current_observation')
+        self.assertEqual([x['rate_per_s'] for x in out['exchange_rates']],[3/635,3/635])
+
+    def test_existing_configuration_identity(self):
+        self.assertIs(_local_exchange_history(self.history,{},self.exits),self.history)
+
+    def test_mandatory_or_wrong_route_changes_rejected(self):
+        self.protocol['calibrated_discretionary_exchange']['rates'][0]['from_lane']=3
+        with self.assertRaises(ValueError):_local_exchange_history(self.history,self.protocol,self.exits)
+
+    def test_observed_rates_not_silently_overwritten(self):
+        self.history['exchange_rates']=[dict(rate_per_s=.1)]
+        with self.assertRaises(ValueError):_local_exchange_history(self.history,self.protocol,self.exits)
+
+    def test_disabled_switch_or_invalid_rate_rejected(self):
+        self.protocol['history_exchange']=False
+        with self.assertRaises(ValueError):_local_exchange_history(self.history,self.protocol,self.exits)
+        self.protocol['history_exchange']=True
+        self.protocol['calibrated_discretionary_exchange']['rates'][0]['rate_per_s']=float('nan')
+        with self.assertRaises(ValueError):_local_exchange_history(self.history,self.protocol,self.exits)
+
+if __name__=='__main__':
+    suite=unittest.defaultTestLoader.loadTestsFromTestCase(CalibrationContract)
+    for name in ('test_eligible_lane_change_uses_history_and_preserves_label',
+                 'test_lateral_and_longitudinal_share_receiver',
+                 'test_compaction_matches_analytic_reciprocal_flows',
+                 'test_reciprocal_exchange_remains_bounded_without_losing_mass'):
+        suite.addTest(Contracts(name))
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(not result.wasSuccessful())

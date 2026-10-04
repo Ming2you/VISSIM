@@ -20,12 +20,14 @@ def onset(rows):
     return None
 
 
-def score_rollout(data,cutoff,rollout,road, *, include_source_boundary=False):
-    observed={(t,r['cell']):r for t,rows in data.cells.items() if cutoff<=t<=cutoff+450
+def score_rollout(data,cutoff,rollout,road, *, include_source_boundary=False,horizon_sec=450):
+    if type(horizon_sec) is not int or not 0<horizon_sec<=750 or horizon_sec%30:
+        raise ValueError('Score horizon must be a positive30s multiple, at most750s')
+    observed={(t,r['cell']):r for t,rows in data.cells.items() if cutoff<=t<=cutoff+horizon_sec
               for r in rows if r['road']==road}
     predicted={(round(float(r['time_s']),6),int(r['cell'])):r for r in rollout['cells'] if r['road']==road}
     cell_ids=sorted(r['cell'] for r in data.cells[cutoff] if r['road']==road)
-    times=[round(cutoff+d,6) for d in range(30,451,30)]
+    times=[round(cutoff+d,6) for d in range(30,horizon_sec+1,30)]
     expected={(t,c) for t in times for c in cell_ids}
     if set(predicted)!=expected or not expected.issubset(observed):
         raise ValueError('Missing or extra prediction/observation states')
@@ -68,7 +70,7 @@ def score_rollout(data,cutoff,rollout,road, *, include_source_boundary=False):
         obs_ttt+=(old_obs+new_obs)*30/7200
         pred_ttt+=(old_pred+new_pred)*30/7200
         old_obs,old_pred=new_obs,new_pred
-        if round(t-cutoff,6) in (150,300,450):
+        if round(t-cutoff,6) in range(150,horizon_sec+1,150):
             horizons[str(int(round(t-cutoff)))]={'density':stats(er),'speed':stats(ev),'cell_n':stats(en),
                 'total_n_observed':new_obs,'total_n_predicted':new_pred}
     detail=next(r for r in rollout['diagnostics']['roads'] if r['road']==road)

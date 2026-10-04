@@ -1,0 +1,121 @@
+"""Assess the four completed1500s forecasts against the same-command150s prefix."""
+import csv
+import hashlib
+import json
+from pathlib import Path
+
+O = Path(__file__).resolve().parent
+E, I = O.parent, O.parents[1]
+P = I/'closedloop_recorded1500_lever450_RM_C10484_trace10484_early1500'
+D = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+pins = {}
+
+
+def read(p):
+    b = p.read_bytes()
+    pins[str(p)] = hashlib.sha256(b).hexdigest()
+    return b.decode('utf-8-sig')
+
+
+def js(p):
+    return json.loads(read(p))
+
+
+def table(p):
+    return list(csv.DictReader(read(p).splitlines()))
+
+
+def main():
+    done = js(O/'run_completion.json')
+    assert done['status'] == 'complete' and done['forecasts'] == 4 and done['pins_unchanged']
+    result = js(P/'summary.json')['results']
+    assert list(result) == ['held_actual','rm10490','rm10484','both_ramps']
+    base = result['held_actual']
+    quantity = {r['case']: r for r in js(O/'quantities.json')}
+    captures = {t: js(D/f'state_{t:06d}.json')['vehicle_records'] for t in (1500,1650)}
+    assert all(r['complete'] and r['unobservable_count']==0 for r in captures.values())
+    vehicles = {t: r['records'] for t,r in captures.items()}
+    detector_rows = [r for r in table(E/'loss_diagnosis/detector_windows_150s.csv')
+                     if r['arm']=='sdmpc' and float(r['sim_sec'])==1650]
+    locations = table(I/'selected/obs150/obs150_detectors_v2.csv')
+    native = {}
+    for ramp in base['ramps']:
+        con = ramp.removeprefix('RM_C')
+        stock = {t: [r for r in vs if str(r['link_no'])==con] for t,vs in vehicles.items()}
+        def count(role):
+            rows = [r for r in detector_rows if r['role']==role and r['link']==con]
+            assert rows
+            return sum(int(r['count']) for r in rows)
+        def position(role):
+            values = {float(r['pos']) for r in locations if r['role']==role and r['link']==con}
+            assert len(values)==1
+            return values.pop()
+        arrival_pos, head_pos = position('ramp_arrival'), position('meter_head')
+        pre = {t: sum(v['position_m']<arrival_pos for v in vs) for t,vs in stock.items()}
+        post = {t: sum(v['position_m']>=head_pos for v in vs) for t,vs in stock.items()}
+        arrival = count('ramp_arrival')+pre[1650]-pre[1500]
+        head = count('meter_head')
+        merge = head+post[1500]-post[1650]
+        assert len(stock[1500])+arrival-merge==len(stock[1650])
+        native[ramp] = dict(initial_stock=len(stock[1500]),arrival=arrival,head=head,
+            merge=merge,final_stock=len(stock[1650]))
+    geometry = js(I/'selected/port_gain/geometry.json')
+    addr = geometry['addresses']
+    from bisect import bisect_right
+    cell_truth = {}
+    for t,vs in vehicles.items():
+        cell_truth[t] = {}
+        for road in ('FW_E','FW_W'):
+            cells = sorted([c for c in geometry['cells'] if c['road']==road],key=lambda c:c['cell'])
+            ends = [c['end_m'] for c in cells]
+            bins = [[] for _ in cells]
+            for v in vs:
+                item = addr.get(str(v['link_no']))
+                if item and item[0]==road:
+                    cell = min(bisect_right(ends,item[1]+v['position_m']),30)
+                    bins[cell].append(v['speed_kph'])
+            cell_truth[t][road] = dict(n=[len(b) for b in bins],
+                speed=[sum(b)/len(b) if b else None for b in bins])
+    rows = []
+    for name,r in result.items():
+        first = r['first_interval']
+        assert first['physical_cell_states'][0]==base['first_interval']['physical_cell_states'][0]
+        for road in ('FW_E','FW_W'):
+            model_n = first['physical_cell_states'][0]['vehicle_count'][road]
+            assert max(abs(a-b) for a,b in zip(model_n,cell_truth[1500][road]['n']))<1e-8
+        targets = ({'RM_C10490'} if name=='rm10490' else {'RM_C10484'} if name=='rm10484'
+                   else {'RM_C10490','RM_C10484'} if name=='both_ramps' else set())
+        for block,(cmd,held) in enumerate(zip(r['commands'],base['commands'])):
+            assert all(cmd[k]==held[k] for k in ('vsl','green_times','offsets'))
+            assert all(v==110 for v in cmd['vsl'].values())
+            assert all(v==(8-2*block if k in targets else 10) for k,v in cmd['meters'].items())
+        delta = {k:r['cost_by_stock'].get(k,0)-base['cost_by_stock'].get(k,0) for k in set(r['cost_by_stock'])|set(base['cost_by_stock'])}
+        # Report exact model stock addresses; keep origin/merge stocks separate.
+        east = delta.get('freeway:FW_E',0)
+        west = delta.get('freeway:FW_W',0)
+        ramps = sum(v for k,v in delta.items() if k.startswith('ramp:'))
+        total = r['ttt_omega_veh_h']-base['ttt_omega_veh_h']
+        assert abs(sum(delta.values())-total)<1e-7
+        assert all(abs(v['residual'])<1e-7 for v in r['ramps'].values())
+        rows.append(dict(case=name,delta_omega=total,delta_E=east,delta_W=west,delta_ramps=ramps,
+            delta_other_omega=total-east-west-ramps,delta_outside=r['tracked_outside_residence_veh_h']-base['tracked_outside_residence_veh_h'],
+            delta_merge={k:v['merge']-base['ramps'][k]['merge'] for k,v in r['ramps'].items()},
+            first150_delta_merge={k:v['merge']-base['first_interval']['ramps'][k]['merge'] for k,v in first['ramps'].items()},
+            n_p=quantity[name]['resource']['np'],n_uf=quantity[name]['resource']['nuf'],
+            feasible=quantity[name]['resource']['feasible']))
+    actual_first = dict(ramps=native,cells=cell_truth,
+        model_ramps=base['first_interval']['ramps'],model_cells=base['first_interval']['physical_cell_states'][1])
+    for p,h in js(O/'execution_pins.json').items():
+        assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h
+    for p,h in pins.items():
+        assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h
+    output = dict(status='complete',rows=rows,first150=actual_first,all_commands_valid=True,
+        all_initial_cells_exact=True,all8_ramp_balances_pass=True,source_pins=pins,
+        forecast_compute_seconds=sum(r['wall_sec'] for r in result.values()),run_wall_seconds=done['wall_sec'],
+        new_native=0,new_forecasts=0,model_response_only=True,adopted=False,goal_qualified=False)
+    (O/'assessment.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(rows=rows,native_first150=native,model_first150=base['first_interval']['ramps']),ensure_ascii=False))
+
+
+if __name__=='__main__':
+    main()

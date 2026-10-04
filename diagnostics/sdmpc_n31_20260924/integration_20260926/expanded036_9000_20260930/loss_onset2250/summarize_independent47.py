@@ -1,0 +1,114 @@
+"""Saved seed47 RM response: physical commands, native caches, no new FZP scan."""
+import csv
+import gzip
+import hashlib
+import json
+from pathlib import Path
+
+L=Path(__file__).resolve().parent;I=L.parent.parent;U=I.parents[2]
+O=L/'physical_speed/independent47';assert not (O/'verification.json').exists()
+D=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3')
+A=I/'native_rm_observation2700_writerfix_v3/analysis';pins={}
+def read(p):
+    b=p.read_bytes();pins[str(p)]=hashlib.sha256(b).hexdigest();return b
+def load(p):
+    b=read(p);return json.loads(gzip.decompress(b) if p.suffix=='.gz' else b)
+def close(a,b):assert abs(a-b)<1e-7,(a,b)
+protocol=load(O/'protocol.json')
+for p,h in protocol['source_pins'].items():assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h,p
+proof=load(A/'summary.json');assert proof['paired_prefix_exact'] and proof['counterfactual_valid']
+assert proof['prefixes']['hold']['sha256']==proof['prefixes']['release']['sha256']
+geometry=load(I/'selected/port_gain/geometry.json')
+main={road:{str(r['link']) for r in rows} for road,rows in geometry['chains'].items()}
+ramps={str(n) for n in (10480,10482,10484,10490,10639,10644,10646,10681)}
+
+native={};initial_records={}
+for arm in ('hold','release'):
+    folder=D/arm/f'decisions_sdmpc31_g_2700_{arm}_s47'
+    states={t:load(folder/f'state_{t:06d}.json') for t in (2700,2850,3000,3150)}
+    initial_records[arm]=states[2700]['vehicle_records']
+    meta=states[2700]['obs150']['detector_config'];raw=read(Path(meta['path']))
+    assert hashlib.sha256(raw).hexdigest()==meta['sha256']
+    detectors=list(csv.DictReader(raw.decode('utf-8-sig').splitlines()))
+    events=load(A/arm/'native_errors.json')['unique_events']
+    removals=[r for r in events if r['kind']=='lane_change_removal' and 2700<=r['time_sec']<=3150]
+    assert not [r for r in removals if r['link'] in ramps]
+    counters={}
+    for link in sorted(ramps):
+        ids={role:[r['dcp_no'] for r in detectors if r['role']==role and r['link']==link]
+             for role in ('ramp_arrival','meter_head')}
+        assert ids['ramp_arrival'] and ids['meter_head']
+        volume={}
+        for role,numbers in ids.items():
+            count=sum(states[3150]['obs150']['detectors_cum'][k]-states[2700]['obs150']['detectors_cum'][k] for k in numbers)
+            close(count,sum(states[t]['obs150']['detectors'][k] for t in (2850,3000,3150) for k in numbers))
+            volume[role]=count
+        records={t:[r for r in states[t]['vehicle_records']['records'] if str(r['link_no'])==link] for t in (2700,3150)}
+        assert all(r['position_m']>=1. for rows in records.values() for r in rows), (arm,link,'entry plane')
+        counters['RM_C'+link]=dict(initial=len(records[2700]),arrival=volume['ramp_arrival'],
+            head=volume['meter_head'],final=len(records[3150]),
+            merge=len(records[2700])+volume['ramp_arrival']-len(records[3150]),
+            merge_method='native entry count plus initial minus final stock; no ramp removal')
+    metrics=load(A/arm/'area_metrics.json')
+    links=metrics['physical_link_residence'];parts={}
+    for road,keys in main.items():parts[road]=sum(v['ttt_veh_h'] for k,v in links.items() if k in keys and v['inside'])
+    parts['ramps']=sum(v['ttt_veh_h'] for k,v in links.items() if k in ramps and v['inside'])
+    parts['other_Omega']=sum(v['ttt_veh_h'] for k,v in links.items() if v['inside'] and k not in ramps and not any(k in s for s in main.values()))
+    close(sum(parts.values()),metrics['ttt_veh_h'])
+    row=proof['arms'][arm];assert row['native_execution_passed']
+    native[arm]=dict(ttt=row['TTT_2700p1_3150_veh_h'],outside=row['outside_Omega_residence_veh_h'],
+        total_TTT_0_3150_by_physical_group=parts,ramps=counters,removals_window=removals,
+        native_total_with_uninserted=row['native_total_time_including_uninserted_veh_h'])
+assert initial_records['hold']==initial_records['release']
+native_delta={k:native['release']['total_TTT_0_3150_by_physical_group'][k]-v
+              for k,v in native['hold']['total_TTT_0_3150_by_physical_group'].items()}
+close(sum(native_delta.values()),proof['delta_TTT_veh_h'])
+close(native['release']['ttt']-native['hold']['ttt'],proof['delta_TTT_veh_h'])
+
+models={};records={}
+for model,label in (('before','svc_ind47_20261001'),('after','ps_ind47_20261001')):
+    folder=I/f'closedloop_recorded2700_lever450_trace10484_{label}'
+    summary=load(folder/'summary.json')
+    assert set(summary['results'])=={'held_actual','release_actual'}
+    assert summary['native_started'] is False and summary['future_observation_inputs'] is False
+    assert summary['optimizer_iterations']==0
+    receipt=load(folder/'fixed_replay_receipt.json')
+    assert receipt['observation_cutoff_sec']==2700 and receipt['future_states_used'] is False
+    for p,h in receipt['files'].items():assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h,p
+    for arm in ('held_actual','release_actual'):
+        row=load(folder/f'{arm}.json');records[model,arm]=row
+        assert row['validation']['all_actuator_and_step_constraints_checked']
+        assert max(abs(r['residual']) for r in row['ramps'].values())<1e-8
+        assert [c['meters']['RM_C10484'] for c in row['commands']]==([2.,2.,2.] if arm=='held_actual' else [4.,6.,8.])
+        close(sum(row['cost_by_stock'].values()),row['ttt_omega_veh_h'])
+    hold=records[model,'held_actual'];release=records[model,'release_actual']
+    assert hold['physical_cell_states'][0]==release['physical_cell_states'][0]
+    cost=hold['cost_by_stock'];delta={k:release['cost_by_stock'].get(k,0.)-cost.get(k,0.)
+                                    for k in cost.keys()|release['cost_by_stock'].keys()}
+    parts={road:delta.get('freeway:'+road,0.) for road in main}
+    parts['ramps']=sum(v for k,v in delta.items() if k.startswith('ramp:'))
+    parts['other_Omega']=sum(delta.values())-sum(parts.values())
+    close(sum(parts.values()),release['ttt_omega_veh_h']-hold['ttt_omega_veh_h'])
+    models[model]=dict(delta_omega=release['ttt_omega_veh_h']-hold['ttt_omega_veh_h'],
+        delta_outside=release['tracked_outside_residence_veh_h']-hold['tracked_outside_residence_veh_h'],
+        delta_combined=release['ttt_with_tracked_outside_veh_h']-hold['ttt_with_tracked_outside_veh_h'],
+        delta_by_group=parts,ramps={r:dict(hold=hold['ramps'][r],release=release['ramps'][r],
+            delta_merge=release['ramps'][r]['merge']-hold['ramps'][r]['merge']) for r in hold['ramps']},
+        all_actuator_constraints_pass=True,all8_ramp_mass_pass=True)
+for arm in ('held_actual','release_actual'):
+    assert records['before',arm]['commands']==records['after',arm]['commands']
+    assert records['before',arm]['physical_cell_states'][0]==records['after',arm]['physical_cell_states'][0]
+    f=lambda lab:I/f'closedloop_recorded2700_lever450_trace10484_{lab}/{arm}_RM_C10484_trace.json.gz'
+    a=load(f('svc_ind47_20261001'));b=load(f('ps_ind47_20261001'))
+    for key in ('initial_stock','initial_buffer','head_service_by_green'):assert a[key]==b[key]
+report=dict(status='completed_independent_fixed_command_response',goal='ACTIVE/NOT_QUALIFIED',
+    previous_goal_turn='progress',current_goal_turn='progress',forecasts=4,sessions={'40913':'exit0','70131':'exit0'},
+    native_runs=0,fzp_scans=0,fit=0,live_poll=0,push=0,adopted=False,
+    native=native,native_delta_omega=proof['delta_TTT_veh_h'],native_delta_by_group=native_delta,
+    native_delta_outside=proof['delta_outside_Omega_residence_veh_h'],models=models,pins=pins,
+    scope='Delta is release minus hold. Fixed native command response, not optimization or NP/NUF feasibility. Native link-residence differences use identical precontrol histories; inlet coverage follows full physical links. Outside metrics exclude some uninserted queues; native total-time change reported separately. No native future traffic inputs.')
+(O/'verification.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({'native_delta':native_delta,'native_omega':report['native_delta_omega'],
+    'models':{k:{key:v[key] for key in ('delta_omega','delta_outside','delta_combined','delta_by_group')} for k,v in models.items()},
+    'ramp10484':{k:v['ramps']['RM_C10484'] for k,v in native.items()},
+    'model10484':{k:v['ramps']['RM_C10484'] for k,v in models.items()}},indent=2))

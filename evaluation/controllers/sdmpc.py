@@ -25,6 +25,30 @@ def token(value):
     return hashlib.sha256(pickle.dumps(value, protocol=5)).hexdigest()
 
 
+def retain_feasible_held(reference, initial_cost, best, cap_action, tolerance,
+                         evaluate, feasible):
+    """PFO's own-cost warm start must not discard a better feasible Omega hold.
+
+    Keep the selected budgets. Re-evaluate the actual held controls under those
+    budgets, and use the same physical/quantity checks as every other candidate.
+    This does not change the PFO merit or assert native control benefit.
+    """
+    proof = dict(evaluated=False, selected=False, original_held_objective=initial_cost,
+                 budget_source='selected_candidate', additional_predictions=0)
+    if best is not None and initial_cost >= best[1]['objective_veh_h']-tolerance:
+        return best, proof
+    held = reference.copy()
+    held.N_P_star, held.N_UF_star = cap_action.N_P_star, cap_action.N_UF_star
+    item = evaluate([held])[0]
+    valid = feasible(held, item)
+    proof.update(evaluated=True, feasible=valid, objective=item['objective_veh_h'],
+                 np_cap=held.N_P_star, nuf_cap=held.N_UF_star, additional_predictions=1)
+    if valid and (best is None or item['objective_veh_h'] < best[1]['objective_veh_h']-tolerance):
+        best = (held, item, None)
+        proof['selected'] = True
+    return best, proof
+
+
 class GradientCache:
     """NP is a constraint cap, not a physical input in this shared rollout.
 
@@ -94,7 +118,7 @@ def configure(tuning, cfg, controller='wu-link'):
             pfo_cap_options[key] = sdmpc_budget.checked_margin(pfo_cap_options[key], key)
         options = dict(options, budget_caps=True, pfo_each_interval=True, pfo_cap_options=pfo_cap_options)
     for name in ('response_np_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
-                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath'):
+                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant'):
         value = tuning.get('adapter', {}).get('sdmpc_'+name)
         if value is not None:
             if type(value) is not bool:
@@ -214,6 +238,14 @@ def configure(tuning, cfg, controller='wu-link'):
         if type(options[key]) not in (int, float) or not math.isfinite(options[key]) or options[key] <= 0:
             raise ValueError('SDMPC positive parameter required: '+key)
     cfg.network.sdmpc_options = options
+    from evaluation.controllers import sdmpc_terminal
+    sdmpc_terminal.configure(tuning, cfg)
+    if getattr(cfg.network, 'sdmpc_terminal_cost', None) is not None:
+        options['terminal_cost_sha256'] = sdmpc_terminal.specification_token(cfg.network.sdmpc_terminal_cost)
+    from evaluation.controllers import omega_distance
+    omega_distance.configure_reward(tuning,cfg)
+    if getattr(cfg.network,'sdmpc_distance_reward',None) is not None:
+        options['distance_reward_sha256']=omega_distance.reward_token(cfg.network.sdmpc_distance_reward)
     return options
 
 
@@ -279,9 +311,37 @@ def omega_costs(point, cfg):
     if not math.isclose(total, point.control_area['ttt_veh_h'], rel_tol=1e-10, abs_tol=1e-8):
         raise ValueError('SDMPC cost partition differs from original Omega ledger')
     local = {owner: {'cost': costs[owner], 'scope': 'disjoint_omega_residence'} for owner in owners}
-    return local, {'schema': 'sdmpc-omega-partition/v1', 'costs': costs,
+    partition = {'schema': 'sdmpc-omega-partition/v1', 'costs': costs,
         'total_veh_h': total, 'residual_veh_h': total-point.control_area['ttt_veh_h'],
         'passive_stocks_veh_h': passive}
+    if 'terminal_cost' in point.control_area:
+        from evaluation.controllers import sdmpc_terminal
+        sdmpc_terminal.validate_score(point.control_area, point.objective, cfg)
+        terminal = point.control_area['terminal_cost']['cost_by_owner_veh_h']
+        combined = {owner: costs[owner]+terminal[owner] for owner in costs}
+        value = math.fsum(combined.values())
+        if not math.isclose(value, point.objective, rel_tol=1e-10, abs_tol=1e-8):
+            raise ValueError('Terminal ownership partition differs from endpoint objective')
+        local = {owner: dict(cost=combined[owner], near_ttt_veh_h=costs[owner],
+            terminal_cost_veh_h=terminal[owner], scope='disjoint_omega_residence_and_terminal') for owner in owners}
+        partition.update(costs=combined, total_veh_h=value,
+            residual_veh_h=value-point.objective, near_costs=costs,
+            near_ttt_veh_h=total, terminal_costs=terminal,
+            terminal_cost_veh_h=point.control_area['terminal_cost']['total_veh_h'])
+    if 'distance_reward' in point.control_area:
+        from evaluation.controllers import omega_distance
+        omega_distance.validate_reward_score(point.control_area,point.objective,cfg)
+        distance=point.control_area['distance_reward']['cost_by_owner_veh_h']
+        combined={owner:costs[owner]+distance[owner] for owner in costs}
+        value=math.fsum(combined.values())
+        if not math.isclose(value,point.objective,rel_tol=1e-10,abs_tol=1e-8):
+            raise ValueError('Distance ownership differs from endpoint objective')
+        local={owner:dict(cost=combined[owner],near_ttt_veh_h=costs[owner],
+            distance_cost_veh_h=distance[owner],scope='disjoint_omega_residence_and_distance') for owner in owners}
+        partition.update(costs=combined,total_veh_h=value,residual_veh_h=value-point.objective,
+            near_costs=costs,near_ttt_veh_h=total,distance_costs=distance,
+            distance_cost_veh_h=point.control_area['distance_reward']['total_cost_veh_h'])
+    return local, partition
 
 
 class Coordinates:
@@ -429,6 +489,28 @@ class Coordinates:
             nearest = lambda values: min(values, key=lambda step: (abs(abs(step)-axis['fd']), abs(step))) if values else 0.
             return nearest(lower), nearest(upper)
         return max(lo, -self.axes[j]['fd']), min(hi, self.axes[j]['fd'])
+
+
+def vsl_activation_axes(coord,z,gradient,resources,maximum):
+    """Probe legal VSL steps only when the inactive command has zero sensitivity.
+
+    Endpoints retain the physical costs and nonlinear acceptance checks.
+    This adds no activation reward and never forces a speed reduction.
+    """
+    return {j:'inactive_vsl_legal_step' for j,axis in enumerate(coord.axes)
+            if axis['kind']=='vsl'
+            and axis['reference_value']+z[j]*axis['scale']>=maximum-.5
+            and not np.any(gradient[:,j]) and not np.any(resources[:,j])
+            and any(v<maximum-.5 for v in axis['allowed'])}
+
+
+def meter_activation_axes(coord, z, gradient, resources):
+    """Bounded OPEN probes only when all local cost/resource derivatives vanish."""
+    return {j: 'open_meter_legal_edge' for j, axis in enumerate(coord.axes)
+            if axis['kind'] == 'meter'
+            and abs(axis['reference_value'] + z[j]*axis['scale'] - axis['scale']) < 1e-9
+            and not np.any(gradient[:, j]) and not np.any(resources[:, j])
+            and any(value < axis['scale'] for value in axis['allowed'])}
 
 
 def solve_qp(center, gradient, proximal, lower, upper, G, glo, ghi, options):
@@ -640,7 +722,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             # the held-action result. Its complete nonlinear response is still
             # queried and checked below, while this frozen Jacobian is prepared.
             domain = joint.prepare_joint_leader_candidates(controller, state, forecast, historical,
-                budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check)
+                budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check, np_only=True)
             first=anchor.copy();first.N_P_star=max(domain['np_values'])
             from evaluation.controllers import sdmpc_tangent
             from evaluation.controllers.sdmpc_tangent_prefetch import InitialDerivative
@@ -658,7 +740,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         best = (anchor, held, None) if hold_valid else None
         if domain is None:
             domain = joint.prepare_joint_leader_candidates(controller, state, forecast, historical,
-                budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check)
+                budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check, np_only=True)
         caps = sorted(set(domain['np_values']), reverse=True)
         observed_np = vector(anchor, held)[0]
         ordered = [caps[0]]
@@ -719,6 +801,10 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 derivative_receipts.append(receipt)
                 emit('sdmpc_tangent_done', ad_axes=len(z)-len(fallback),
                     fallback_axes=len(fallback), seconds=receipt['wall_sec_including_spawn'])
+            if policy.get('vsl_activation_secant'):
+                fallback.update(vsl_activation_axes(coord,z,grad,A,max(follower.cfg.freeway_follower.vsl_set)))
+            if policy.get('meter_activation_secant'):
+                fallback.update(meter_activation_axes(coord, z, grad, A))
             candidates, stencils = [], []
             for j in range(len(z)):
                 if j not in fallback:
@@ -918,6 +1004,10 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                         targets.append(tuple(new_target))
             if candidate_best and (best is None or candidate_best[1]['objective_veh_h'] < best[1]['objective_veh_h']-policy['objective_tolerance']):
                 best = candidate_best
+        held_candidate = None
+        if cap_mode:
+            best, held_candidate = retain_feasible_held(reference, pfo_initial['objective_veh_h'],
+                best, best[0] if best is not None else anchor, policy['objective_tolerance'], evaluate, feasible)
         if best is None:
             raise ValueError('SDMPC found no executable feasible candidate; hold was also infeasible')
         selected, item, signal = best
@@ -975,6 +1065,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         if cap_mode:
             metadata.pop('nuf_initialization'); metadata.pop('held_feasible')
             metadata.update(algorithm='sdmpc-central-pfo-cap/v3',pfo_warm_start=pfo_receipt,
+                original_held_candidate=held_candidate,
                 budget_initialization=initialization,budget_constraint_policy='NP <= cap; actual_merge_NUF <= cap',
                 nuf_target_policy='fresh_PFO_achieved_plus_margin_budget_each_interval_then_leader_search',
                 warm_start_feasible=hold_valid,warm_start_objective=held['objective_veh_h'],
@@ -987,5 +1078,16 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 independent_ad_witness_performed=False, surrogate_query=query.stats())
         if sequence_proof is not None:
             metadata['control_sequence'] = response['control_sequence']
+        if 'terminal_cost' in item['control_area']:
+            base = pfo_initial if cap_mode else held
+            metadata.update(prediction_objective_reduction=base['objective_veh_h']-item['objective_veh_h'],
+                prediction_ttt_reduction=base['control_area']['ttt_veh_h']-item['control_area']['ttt_veh_h'],
+                prediction_terminal_reduction=base['control_area']['additional_cost_veh_h']-item['control_area']['additional_cost_veh_h'])
+        if 'distance_reward' in item['control_area']:
+            base = pfo_initial if cap_mode else held
+            metadata.update(prediction_objective_reduction=base['objective_veh_h']-item['objective_veh_h'],
+                prediction_ttt_reduction=base['control_area']['ttt_veh_h']-item['control_area']['ttt_veh_h'],
+                prediction_distance_increase_veh_km=item['control_area']['distance_reward']['shifted_tvd_veh_km']-base['control_area']['distance_reward']['shifted_tvd_veh_km'],
+                prediction_distance_cost_reduction=base['control_area']['additional_cost_veh_h']-item['control_area']['additional_cost_veh_h'])
         emit('sdmpc_completed', objective=item['objective_veh_h'], held_objective=held['objective_veh_h'])
         return response, metadata

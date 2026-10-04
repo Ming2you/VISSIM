@@ -1,0 +1,138 @@
+{
+  "binding_regression": "before FAIL / after PASS",
+  "changed_functions": [
+    "initialize"
+  ],
+  "ramp_metadata_changes": {
+    "RM_C10480": [],
+    "RM_C10482": [],
+    "RM_C10646": [],
+    "RM_C10644": [],
+    "RM_C10639": [
+      "post_head_travel_sec",
+      "posthead_travel_speed_kmh",
+      "travel_speed_kmh",
+      "travel_model"
+    ],
+    "RM_C10681": [],
+    "RM_C10490": [
+      "post_head_travel_sec",
+      "posthead_travel_speed_kmh",
+      "travel_speed_kmh",
+      "travel_model"
+    ],
+    "RM_C10484": [
+      "post_head_travel_sec",
+      "posthead_travel_speed_kmh",
+      "travel_speed_kmh",
+      "travel_model"
+    ]
+  },
+  "comparison2250": {
+    "held_actual": {
+      "before150": {
+        "initial": 22.0,
+        "arrival": 23.904249939257582,
+        "merge": 43.24584258929714,
+        "head": 34.95159115899557,
+        "final": 2.6584073499604415
+      },
+      "after150": {
+        "initial": 22.0,
+        "arrival": 23.904249939257582,
+        "merge": 43.18899160993409,
+        "head": 34.67248425209481,
+        "final": 2.7152583293234898
+      },
+      "before450": 485.1719683527701,
+      "after450": 485.1621378829676,
+      "before_ramp450": {
+        "arrival": 64.28783295210937,
+        "merge": 83.2038493500853,
+        "final_stock": 3.0839836020241282,
+        "residual": -6.572520305780927e-14
+      },
+      "after_ramp450": {
+        "arrival": 64.28783295210937,
+        "merge": 83.08602671707563,
+        "final_stock": 3.2018062350338106,
+        "residual": -6.750155989720952e-14
+      }
+    },
+    "meter_RM_C10484_flat8": {
+      "before150": {
+        "initial": 22.0,
+        "arrival": 23.904249939257582,
+        "merge": 43.24584258929714,
+        "head": 34.84029213580891,
+        "final": 2.6584073499604415
+      },
+      "after150": {
+        "initial": 22.0,
+        "arrival": 23.904249939257582,
+        "merge": 43.18899160993409,
+        "head": 34.586948465475515,
+        "final": 2.7152583293234898
+      },
+      "before450": 485.1638176363194,
+      "after450": 485.1513246696099,
+      "before_ramp450": {
+        "arrival": 64.28783295210937,
+        "merge": 83.2038493500853,
+        "final_stock": 3.0839836020241274,
+        "residual": -6.483702463810914e-14
+      },
+      "after_ramp450": {
+        "arrival": 64.28783295210937,
+        "merge": 83.08602671707563,
+        "final_stock": 3.2018062350338106,
+        "residual": -6.750155989720952e-14
+      }
+    }
+  },
+  "independent3600": {
+    "before450": 517.5983935981086,
+    "after450": 517.5937176466567,
+    "after150": {
+      "initial": 2.0,
+      "arrival": 16.90042575459984,
+      "merge": 16.97554878224708,
+      "head": 17.15574581488803,
+      "final": 1.9248769723527595
+    },
+    "native150": {
+      "initial": 2,
+      "arrival": 23,
+      "head": 23,
+      "merge": 23,
+      "final": 2
+    },
+    "before_ramp450": {
+      "arrival": 56.73846434365598,
+      "merge": 56.96397298263974,
+      "final_stock": 1.774491361016228,
+      "residual": 1.0436096431476471e-14
+    },
+    "after_ramp450": {
+      "arrival": 56.73846434365598,
+      "merge": 56.939595534568525,
+      "final_stock": 1.7988688090874447,
+      "residual": 7.105427357601002e-15
+    },
+    "scope": "Another state in seed29, NOT an independent seed or full9000 validation"
+  },
+  "road29_first150": {
+    "predicted": 2.5416666666666665,
+    "actual": 31,
+    "scope": "Two dedicated straight head detectors on29 into10119->31; no conversion of all this traffic to10484 demand"
+  },
+  "limitations": [
+    "2250 progressive forecast completed compute but hit Windows path length saving its trace; unavailable result is not counted as validation.",
+    "Three saved predictions out of four attempted; no repeat of failed progressive run.",
+    "Seven ramp invariant tests passed; eighth existing smoke fixture missing port_profile.json, not reported PASS.",
+    "NP/NUF and optimizer/native gain not evaluated; no additional capacity or reward.",
+    "Post-head speed is a supplied travel approximation and remains receiving-constrained; faster travel alone is not proven recovery accuracy."
+  ],
+  "native_gain_qualified": false,
+  "core_source_sha256": "327f16a14b2006a1d4881f6da3419e126ce0152b2c53ac493b7ea14850a9af4d"
+}

@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\repin_v3c3_review_20261001\state_lateral168\run.py", line 159, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\repin_v3c3_review_20261001\state_lateral168\run.py", line 24, in main
+    read(HERE/'fit.py');read(HERE/'protocol.json')
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\repin_v3c3_review_20261001\state_lateral168\run.py", line 20, in read
+    def read(p):pins[str(p)]=h.sha(p);return h.read(p)
+                                             ^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\repin_v3c3_review_20261001\junction_calibration125\run.py", line 27, in read
+    return json.loads(gzip.decompress(data) if str(p).endswith('.gz') else data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\decoder.py", line 341, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 3 (char 2)

@@ -1,0 +1,778 @@
+{
+  "variants": [
+    {
+      "name": "no_extra_lane_drop_deceleration",
+      "coefficients": null,
+      "rows": [
+        {
+          "case": "s29_late",
+          "arm": "hold",
+          "reference": "hold",
+          "predicted": {
+            "main": 129.0997055328544,
+            "port": 19.60658276651751,
+            "total": 148.7062882993719
+          },
+          "actual": {
+            "main": 120.89583333333333,
+            "port": 19.616666666666667,
+            "total": 140.5125
+          },
+          "merge": 318.40780463514716,
+          "flows": {
+            "source_admissions": 930.0000000000008,
+            "off_departures": 395.20236356545627,
+            "terminal_exits": 855.67238775438
+          },
+          "conservation_max": 1.0658141036401503e-12,
+          "wall_sec": 0.8030635000322945,
+          "predicted_delta": 0.0,
+          "actual_delta": 0.0
+        },
+        {
+          "case": "s29_late",
+          "arm": "release",
+          "reference": "hold",
+          "predicted": {
+            "main": 134.62833665799022,
+            "port": 13.811789812838473,
+            "total": 148.4401264708287
+          },
+          "actual": {
+            "main": 130.3625,
+            "port": 14.854166666666666,
+            "total": 145.21666666666667
+          },
+          "merge": 412.97506508678816,
+          "flows": {
+            "source_admissions": 930.0000000000008,
+            "off_departures": 396.78275635623197,
+            "terminal_exits": 864.597371548535
+          },
+          "conservation_max": 1.0658141036401503e-12,
+          "wall_sec": 0.8872980000451207,
+          "predicted_delta": -0.26616182854320414,
+          "actual_delta": 4.70416666666668
+        },
+        {
+          "case": "s29_late",
+          "arm": "hold_vsl90",
+          "reference": "hold",
+          "predicted": {
+            "main": 128.92649097156468,
+            "port": 19.62833215868479,
+            "total": 148.55482313024947
+          },
+          "actual": {
+            "main": 121.50833333333334,
+            "port": 19.7875,
+            "total": 141.29583333333335
+          },
+          "merge": 318.4084365282423,
+          "flows": {
+            "source_admissions": 930.0000000000008,
+            "off_departures": 395.43124219435333,
+            "terminal_exits": 859.9307048346598
+          },
+          "conservation_max": 1.0658141036401503e-12,
+          "wall_sec": 0.8213032999774441,
+          "predicted_delta": -0.15146516912241736,
+          "actual_delta": 0.7833333333333599
+        },
+        {
+          "case": "s29_late",
+          "arm": "release_vsl90",
+          "reference": "hold",
+          "predicted": {
+            "main": 134.3697664686064,
+            "port": 13.833776227625501,
+            "total": 148.2035426962319
+          },
+          "actual": {
+            "main": 130.28333333333333,
+            "port": 14.979166666666666,
+            "total": 145.2625
+          },
+          "merge": 412.9736202564451,
+          "flows": {
+            "source_admissions": 930.0000000000008,
+            "off_departures": 397.02550852656293,
+            "terminal_exits": 872.3269845693601
+          },
+          "conservation_max": 1.0658141036401503e-12,
+          "wall_sec": 0.8302518999553286,
+          "predicted_delta": -0.5027456031399993,
+          "actual_delta": 4.75
+        },
+        {
+          "case": "s29_early",
+          "arm": "none",
+          "reference": "none",
+          "predicted": {
+            "main": 126.19003000762673,
+            "port": 11.53422563048266,
+            "total": 137.72425563810938
+          },
+          "actual": {
+            "main": 124.24583333333334,
+            "port": 13.383333333333333,
+            "total": 137.62916666666666
+          },
+          "merge": 427.3268421814912,
+          "flows": {
+            "source_admissions": 885.0000000000002,
+            "off_departures": 374.8987768639497,
+            "terminal_exits": 864.8002252307147
+          },
+          "conservation_max": 3.339550858072471e-13,
+          "wall_sec": 0.9440505999955349,
+          "predicted_delta": 0.0,
+          "actual_delta": 0.0
+        },
+        {
+          "case": "s29_early",
+          "arm": "vsl",
+          "reference": "none",
+          "predicted": {
+            "main": 125.90901883982048,
+            "port": 11.534227931096806,
+            "total": 137.44324677091728
+          },
+          "actual": {
+            "main": 123.87083333333334,
+            "port": 13.433333333333334,
+            "total": 137.30416666666667
+          },
+          "merge": 427.3268421814912,
+          "flows": {
+            "source_admissions": 885.0000000000002,
+            "off_departures": 374.8987948578691,
+            "terminal_exits": 873.1921843918994
+          },
+          "conservation_max": 3.339550858072471e-13,
+          "wall_sec": 0.8452622999902815,
+          "predicted_delta": -0.2810088671920994,
+          "actual_delta": -0.32499999999998863
+        },
+        {
+          "case": "s29_early",
+          "arm": "rm",
+          "reference": "none",
+          "predicted": {
+            "main": 126.00663985296033,
+            "port": 11.723017266839936,
+            "total": 137.72965711980027
+          },
+          "actual": {
+            "main": 123.24583333333334,
+            "port": 13.558333333333334,
+            "total": 136.80416666666667
+          },
+          "merge": 420.7321547180381,
+          "flows": {
+            "source_admissions": 885.0000000000002,
+            "off_departures": 374.89860795912654,
+            "terminal_exits": 864.5907607398103
+          },
+          "conservation_max": 8.242295734817162e-13,
+          "wall_sec": 0.8506595999933779,
+          "predicted_delta": 0.0054014816908818375,
+          "actual_delta": -0.8249999999999886
+        },
+        {
+          "case": "s29_early",
+          "arm": "both",
+          "reference": "none",
+          "predicted": {
+            "main": 125.72682911525243,
+            "port": 11.723483270915743,
+            "total": 137.45031238616818
+          },
+          "actual": {
+            "main": 123.14583333333333,
+            "port": 13.654166666666667,
+            "total": 136.79999999999998
+          },
+          "merge": 420.7127588537868,
+          "flows": {
+            "source_admissions": 885.0000000000002,
+            "off_departures": 374.8986238049187,
+            "terminal_exits": 872.8942715055705
+          },
+          "conservation_max": 9.379164112033322e-13,
+          "wall_sec": 0.8904539000359364,
+          "predicted_delta": -0.27394325194120484,
+          "actual_delta": -0.8291666666666799
+        },
+        {
+          "case": "s43_early",
+          "arm": "none",
+          "reference": "none",
+          "predicted": {
+            "main": 121.32556201986766,
+            "port": 12.356458881771118,
+            "total": 133.6820209016388
+          },
+          "actual": {
+            "main": 128.5375,
+            "port": 11.958333333333334,
+            "total": 140.49583333333334
+          },
+          "merge": 378.1436837832246,
+          "flows": {
+            "source_admissions": 914.9999999999993,
+            "off_departures": 442.3981983673394,
+            "terminal_exits": 830.4040658421219
+          },
+          "conservation_max": 6.536993168992922e-13,
+          "wall_sec": 0.9331968000042252,
+          "predicted_delta": 0.0,
+          "actual_delta": 0.0
+        },
+        {
+          "case": "s43_early",
+          "arm": "vsl",
+          "reference": "none",
+          "predicted": {
+            "main": 121.16735204933262,
+            "port": 12.357563327918768,
+            "total": 133.52491537725138
+          },
+          "actual": {
+            "main": 129.3,
+            "port": 11.9875,
+            "total": 141.28750000000002
+          },
+          "merge": 378.1436837832246,
+          "flows": {
+            "source_admissions": 914.9999999999993,
+            "off_departures": 442.64793135243,
+            "terminal_exits": 833.8285208780331
+          },
+          "conservation_max": 6.536993168992922e-13,
+          "wall_sec": 0.8382612999994308,
+          "predicted_delta": -0.15710552438741843,
+          "actual_delta": 0.7916666666666856
+        },
+        {
+          "case": "s43_early",
+          "arm": "rm",
+          "reference": "none",
+          "predicted": {
+            "main": 121.19648957021394,
+            "port": 12.49617838611959,
+            "total": 133.69266795633354
+          },
+          "actual": {
+            "main": 127.3375,
+            "port": 11.9875,
+            "total": 139.32500000000002
+          },
+          "merge": 373.44349106238724,
+          "flows": {
+            "source_admissions": 914.9999999999993,
+            "off_departures": 442.3973818910826,
+            "terminal_exits": 829.9986479218459
+          },
+          "conservation_max": 1.0800249583553523e-12,
+          "wall_sec": 0.8514532999834046,
+          "predicted_delta": 0.010647054694743474,
+          "actual_delta": -1.17083333333332
+        },
+        {
+          "case": "s43_early",
+          "arm": "both",
+          "reference": "none",
+          "predicted": {
+            "main": 121.04033907017163,
+            "port": 12.497303936764464,
+            "total": 133.5376430069361
+          },
+          "actual": {
+            "main": 127.40416666666667,
+            "port": 11.816666666666666,
+            "total": 139.22083333333333
+          },
+          "merge": 373.44385984171157,
+          "flows": {
+            "source_admissions": 914.9999999999993,
+            "off_departures": 442.6472049404181,
+            "terminal_exits": 833.3319512667874
+          },
+          "conservation_max": 1.1368683772161603e-12,
+          "wall_sec": 0.8915946999914013,
+          "predicted_delta": -0.1443778947026999,
+          "actual_delta": -1.2750000000000057
+        },
+        {
+          "case": "s47_late",
+          "arm": "hold",
+          "reference": "hold",
+          "predicted": {
+            "main": 124.17974698592103,
+            "port": 23.455776641652783,
+            "total": 147.6355236275738
+          },
+          "actual": {
+            "main": 118.96666666666667,
+            "port": 21.8,
+            "total": 140.76666666666668
+          },
+          "merge": 300.847312035022,
+          "flows": {
+            "source_admissions": 932.9999999999995,
+            "off_departures": 426.12621584279293,
+            "terminal_exits": 809.8743115188837
+          },
+          "conservation_max": 1.5560885913146194e-12,
+          "wall_sec": 0.8536471000406891,
+          "predicted_delta": 0.0,
+          "actual_delta": 0.0
+        },
+        {
+          "case": "s47_late",
+          "arm": "release_10490",
+          "reference": "hold",
+          "predicted": {
+            "main": 124.16771406226525,
+            "port": 23.455958322958388,
+            "total": 147.62367238522364
+          },
+          "actual": {
+            "main": 119.4375,
+            "port": 21.579166666666666,
+            "total": 141.01666666666665
+          },
+          "merge": 300.8450623645236,
+          "flows": {
+            "source_admissions": 932.9999999999995,
+            "off_departures": 426.12637369243055,
+            "terminal_exits": 810.1470031298702
+          },
+          "conservation_max": 1.5560885913146194e-12,
+          "wall_sec": 0.8452264000079595,
+          "predicted_delta": -0.011851242350161328,
+          "actual_delta": 0.24999999999997158
+        },
+        {
+          "case": "s47_late",
+          "arm": "release_10484",
+          "reference": "hold",
+          "predicted": {
+            "main": 126.99526971233597,
+            "port": 20.14549266602496,
+            "total": 147.14076237836093
+          },
+          "actual": {
+            "main": 123.2375,
+            "port": 19.208333333333332,
+            "total": 142.44583333333333
+          },
+          "merge": 367.2928340110162,
+          "flows": {
+            "source_admissions": 932.9999999999995,
+            "off_departures": 426.1215099470799,
+            "terminal_exits": 827.378079528752
+          },
+          "conservation_max": 1.5489831639570184e-12,
+          "wall_sec": 0.8584053000085987,
+          "predicted_delta": -0.49476124921287123,
+          "actual_delta": 1.6791666666666458
+        },
+        {
+          "case": "s47_late",
+          "arm": "hold_vsl90",
+          "reference": "hold",
+          "predicted": {
+            "main": 124.12936935590106,
+            "port": 23.457869141470443,
+            "total": 147.58723849737152
+          },
+          "actual": {
+            "main": 119.53333333333333,
+            "port": 21.775,
+            "total": 141.30833333333334
+          },
+          "merge": 300.85531860101327,
+          "flows": {
+            "source_admissions": 932.9999999999995,
+            "off_departures": 426.17378399563904,
+            "terminal_exits": 811.1940683590541
+          },
+          "conservation_max": 1.5560885913146194e-12,
+          "wall_sec": 0.8603285999852233,
+          "predicted_delta": -0.048285130202287974,
+          "actual_delta": 0.5416666666666572
+        }
+      ],
+      "choices": [
+        {
+          "case": "s29_early",
+          "selected": "vsl",
+          "observed_best": "both",
+          "component_regret": 0.5041666666666913
+        },
+        {
+          "case": "s29_late",
+          "selected": "release_vsl90",
+          "observed_best": "hold",
+          "component_regret": 4.75
+        },
+        {
+          "case": "s43_early",
+          "selected": "vsl",
+          "observed_best": "both",
+          "component_regret": 2.0666666666666913
+        },
+        {
+          "case": "s47_late",
+          "selected": "release_10484",
+          "observed_best": "hold",
+          "component_regret": 1.6791666666666458
+        }
+      ]
+    }
+  ],
+  "baseline_rows": [
+    {
+      "case": "s29_late",
+      "arm": "hold",
+      "reference": "hold",
+      "predicted": {
+        "main": 129.35402031899594,
+        "port": 19.480747094890212,
+        "total": 148.83476741388614
+      },
+      "actual": {
+        "main": 120.89583333333333,
+        "port": 19.616666666666667,
+        "total": 140.5125
+      },
+      "merge": 318.4625857848931,
+      "conservation_max": 1.0658141036401503e-12,
+      "speed_rmse": 23.42682898529913,
+      "mainline_n_rmse": 11.63134296734835,
+      "actual_delta": 0.0,
+      "predicted_delta": 0.0
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "reference": "hold",
+      "predicted": {
+        "main": 134.98497616278817,
+        "port": 13.670373658827955,
+        "total": 148.65534982161614
+      },
+      "actual": {
+        "main": 130.3625,
+        "port": 14.854166666666666,
+        "total": 145.21666666666667
+      },
+      "merge": 413.0016903937077,
+      "conservation_max": 1.0658141036401503e-12,
+      "speed_rmse": 19.608250607295446,
+      "mainline_n_rmse": 11.893076568717271,
+      "actual_delta": 4.70416666666668,
+      "predicted_delta": -0.1794175922699992
+    },
+    {
+      "case": "s29_late",
+      "arm": "hold_vsl90",
+      "reference": "hold",
+      "predicted": {
+        "main": 128.98589025720602,
+        "port": 19.529539748075152,
+        "total": 148.5154300052812
+      },
+      "actual": {
+        "main": 121.50833333333334,
+        "port": 19.7875,
+        "total": 141.29583333333335
+      },
+      "merge": 318.43986868073335,
+      "conservation_max": 1.0658141036401503e-12,
+      "speed_rmse": 22.011664835747936,
+      "mainline_n_rmse": 11.440331219495498,
+      "actual_delta": 0.7833333333333599,
+      "predicted_delta": -0.31933740860495163
+    },
+    {
+      "case": "s29_late",
+      "arm": "release_vsl90",
+      "reference": "hold",
+      "predicted": {
+        "main": 134.4231745363148,
+        "port": 13.738139671024678,
+        "total": 148.16131420733947
+      },
+      "actual": {
+        "main": 130.28333333333333,
+        "port": 14.979166666666666,
+        "total": 145.2625
+      },
+      "merge": 412.9891014199817,
+      "conservation_max": 1.0658141036401503e-12,
+      "speed_rmse": 19.60271928409639,
+      "mainline_n_rmse": 12.066350077155489,
+      "actual_delta": 4.75,
+      "predicted_delta": -0.6734532065466681
+    },
+    {
+      "case": "s29_early",
+      "arm": "none",
+      "reference": "none",
+      "predicted": {
+        "main": 126.27314441243534,
+        "port": 11.528194982872217,
+        "total": 137.80133939530756
+      },
+      "actual": {
+        "main": 124.24583333333334,
+        "port": 13.383333333333333,
+        "total": 137.62916666666666
+      },
+      "merge": 427.33075174563436,
+      "conservation_max": 3.410605131648481e-13,
+      "speed_rmse": 18.42534137833008,
+      "mainline_n_rmse": 11.02853112025287,
+      "actual_delta": 0.0,
+      "predicted_delta": 0.0
+    },
+    {
+      "case": "s29_early",
+      "arm": "vsl",
+      "reference": "none",
+      "predicted": {
+        "main": 125.99793865928054,
+        "port": 11.529394468415905,
+        "total": 137.52733312769644
+      },
+      "actual": {
+        "main": 123.87083333333334,
+        "port": 13.433333333333334,
+        "total": 137.30416666666667
+      },
+      "merge": 427.33075174563436,
+      "conservation_max": 3.410605131648481e-13,
+      "speed_rmse": 17.644242868835537,
+      "mainline_n_rmse": 10.775306208168955,
+      "actual_delta": -0.32499999999998863,
+      "predicted_delta": -0.2740062676111279
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "reference": "none",
+      "predicted": {
+        "main": 126.09321428100195,
+        "port": 11.717045172820267,
+        "total": 137.81025945382223
+      },
+      "actual": {
+        "main": 123.24583333333334,
+        "port": 13.558333333333334,
+        "total": 136.80416666666667
+      },
+      "merge": 420.73933504965794,
+      "conservation_max": 8.952838470577262e-13,
+      "speed_rmse": 18.704784453636922,
+      "mainline_n_rmse": 10.85819247562619,
+      "actual_delta": -0.8249999999999886,
+      "predicted_delta": 0.008920058514661378
+    },
+    {
+      "case": "s29_early",
+      "arm": "both",
+      "reference": "none",
+      "predicted": {
+        "main": 125.81524027010533,
+        "port": 11.718422631571359,
+        "total": 137.5336629016767
+      },
+      "actual": {
+        "main": 123.14583333333333,
+        "port": 13.654166666666667,
+        "total": 136.79999999999998
+      },
+      "merge": 420.73649715655074,
+      "conservation_max": 7.389644451905042e-13,
+      "speed_rmse": 18.2869302745268,
+      "mainline_n_rmse": 11.111531101388278,
+      "actual_delta": -0.8291666666666799,
+      "predicted_delta": -0.26767649363085866
+    },
+    {
+      "case": "s43_early",
+      "arm": "none",
+      "reference": "none",
+      "predicted": {
+        "main": 121.45557132183922,
+        "port": 12.348753839317789,
+        "total": 133.804325161157
+      },
+      "actual": {
+        "main": 128.5375,
+        "port": 11.958333333333334,
+        "total": 140.49583333333334
+      },
+      "merge": 378.15038112111733,
+      "conservation_max": 6.536993168992922e-13,
+      "speed_rmse": 17.03781686921605,
+      "mainline_n_rmse": 11.024989709520993,
+      "actual_delta": 0.0,
+      "predicted_delta": 0.0
+    },
+    {
+      "case": "s43_early",
+      "arm": "vsl",
+      "reference": "none",
+      "predicted": {
+        "main": 121.31517220917372,
+        "port": 12.350299003446652,
+        "total": 133.6654712126204
+      },
+      "actual": {
+        "main": 129.3,
+        "port": 11.9875,
+        "total": 141.28750000000002
+      },
+      "merge": 378.15038112111733,
+      "conservation_max": 6.536993168992922e-13,
+      "speed_rmse": 16.417987831731807,
+      "mainline_n_rmse": 11.487804866730544,
+      "actual_delta": 0.7916666666666856,
+      "predicted_delta": -0.13885394853662092
+    },
+    {
+      "case": "s43_early",
+      "arm": "rm",
+      "reference": "none",
+      "predicted": {
+        "main": 121.32690365659907,
+        "port": 12.488445545786222,
+        "total": 133.8153492023853
+      },
+      "actual": {
+        "main": 127.3375,
+        "port": 11.9875,
+        "total": 139.32500000000002
+      },
+      "merge": 373.45060046628214,
+      "conservation_max": 1.1226575225009583e-12,
+      "speed_rmse": 17.25079201982219,
+      "mainline_n_rmse": 11.543332594040573,
+      "actual_delta": -1.17083333333332,
+      "predicted_delta": 0.011024041228296255
+    },
+    {
+      "case": "s43_early",
+      "arm": "both",
+      "reference": "none",
+      "predicted": {
+        "main": 121.19043196558535,
+        "port": 12.489999263677433,
+        "total": 133.68043122926278
+      },
+      "actual": {
+        "main": 127.40416666666667,
+        "port": 11.816666666666666,
+        "total": 139.22083333333333
+      },
+      "merge": 373.45091830028804,
+      "conservation_max": 1.0658141036401503e-12,
+      "speed_rmse": 17.048756236869327,
+      "mainline_n_rmse": 10.947170223339052,
+      "actual_delta": -1.2750000000000057,
+      "predicted_delta": -0.12389393189423004
+    },
+    {
+      "case": "s47_late",
+      "arm": "hold",
+      "reference": "hold",
+      "predicted": {
+        "main": 124.22647759495474,
+        "port": 23.432321622925834,
+        "total": 147.65879921788058
+      },
+      "actual": {
+        "main": 118.96666666666667,
+        "port": 21.8,
+        "total": 140.76666666666668
+      },
+      "merge": 300.9066582487801,
+      "conservation_max": 1.5489831639570184e-12,
+      "speed_rmse": 22.77105804976431,
+      "mainline_n_rmse": 11.17870486464865,
+      "actual_delta": 0.0,
+      "predicted_delta": 0.0
+    },
+    {
+      "case": "s47_late",
+      "arm": "release_10490",
+      "reference": "hold",
+      "predicted": {
+        "main": 124.21465861403986,
+        "port": 23.432534536456284,
+        "total": 147.64719315049615
+      },
+      "actual": {
+        "main": 119.4375,
+        "port": 21.579166666666666,
+        "total": 141.01666666666665
+      },
+      "merge": 300.9041056389584,
+      "conservation_max": 1.5560885913146194e-12,
+      "speed_rmse": 22.195182221186524,
+      "mainline_n_rmse": 11.122782383833108,
+      "actual_delta": 0.24999999999997158,
+      "predicted_delta": -0.011606067384434482
+    },
+    {
+      "case": "s47_late",
+      "arm": "release_10484",
+      "reference": "hold",
+      "predicted": {
+        "main": 127.02693320317294,
+        "port": 20.12219116819725,
+        "total": 147.1491243713702
+      },
+      "actual": {
+        "main": 123.2375,
+        "port": 19.208333333333332,
+        "total": 142.44583333333333
+      },
+      "merge": 367.3521979338112,
+      "conservation_max": 1.5631940186722204e-12,
+      "speed_rmse": 20.931859914061246,
+      "mainline_n_rmse": 11.305723046549819,
+      "actual_delta": 1.6791666666666458,
+      "predicted_delta": -0.5096748465103929
+    },
+    {
+      "case": "s47_late",
+      "arm": "hold_vsl90",
+      "reference": "hold",
+      "predicted": {
+        "main": 124.20741733208763,
+        "port": 23.43358644953155,
+        "total": 147.6410037816192
+      },
+      "actual": {
+        "main": 119.53333333333333,
+        "port": 21.775,
+        "total": 141.30833333333334
+      },
+      "merge": 300.904665895537,
+      "conservation_max": 1.5631940186722204e-12,
+      "speed_rmse": 22.994935792564267,
+      "mainline_n_rmse": 11.344726231768135,
+      "actual_delta": 0.5416666666666572,
+      "predicted_delta": -0.01779543626139457
+    }
+  ],
+  "new_rollouts": 18,
+  "production_adopted": false,
+  "gain_qualified": false,
+  "native_runs": 0
+}

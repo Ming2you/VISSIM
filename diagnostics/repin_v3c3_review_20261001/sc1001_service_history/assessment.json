@@ -1,0 +1,357 @@
+{
+  "status": "CAUSAL_SERVICE_CONNECTION_IMPROVED_NOT_GAIN_QUALIFIED",
+  "binding": {
+    "status": "BOUNDARY_ABLATION_NOT_GAIN_QUALIFIED",
+    "initial_veh": 69.0,
+    "initial_sources": {
+      "initial_off": 39,
+      "initial_city": 23,
+      "initial_unresolved": 7
+    },
+    "migrated_source_storage_veh": 52.0,
+    "source_remaining_veh": 156.0,
+    "source_remaining_capacity_veh": 911.5622547497246,
+    "approach_capacity_veh": 311.28342796004915,
+    "entries": {
+      "10491": [
+        {
+          "lane": "2",
+          "movement": "E",
+          "share": 0.30000000000000004,
+          "delay_sec": 50
+        },
+        {
+          "lane": "1",
+          "movement": "E",
+          "share": 0.30000000000000004,
+          "delay_sec": 50
+        },
+        {
+          "lane": "3",
+          "movement": "N",
+          "share": 0.2,
+          "delay_sec": 50
+        },
+        {
+          "lane": "1",
+          "movement": "S",
+          "share": 0.2,
+          "delay_sec": 50
+        }
+      ],
+      "10481": [
+        {
+          "lane": "2",
+          "movement": "E",
+          "share": 0.30000000000000004,
+          "delay_sec": 30
+        },
+        {
+          "lane": "1",
+          "movement": "E",
+          "share": 0.30000000000000004,
+          "delay_sec": 30
+        },
+        {
+          "lane": "3",
+          "movement": "N",
+          "share": 0.2,
+          "delay_sec": 30
+        },
+        {
+          "lane": "1",
+          "movement": "S",
+          "share": 0.2,
+          "delay_sec": 30
+        }
+      ]
+    },
+    "head_service_veh_h": {
+      "3": 1725.0,
+      "2": 1920.0,
+      "1": 2000.0
+    },
+    "head_support_cutoff_sec": 2700,
+    "limitations": [
+      "Existing city upstream travel and future turn proportions retained.",
+      "Port travel reserves head-approach space; not a spatial129/127 gap model.",
+      "Unknown initial source uses legacy city-inflow upper interpretation."
+    ]
+  },
+  "service_evidence": {
+    "2": {
+      "head_id": "90030835",
+      "history": [
+        {
+          "start": 2100,
+          "end": 2250,
+          "green": [
+            45
+          ],
+          "qualified": [
+            23
+          ]
+        },
+        {
+          "start": 2250,
+          "end": 2400,
+          "green": [
+            45
+          ],
+          "qualified": [
+            26
+          ]
+        },
+        {
+          "start": 2400,
+          "end": 2550,
+          "green": [
+            45
+          ],
+          "qualified": [
+            20
+          ]
+        },
+        {
+          "start": 2550,
+          "end": 2700,
+          "green": [
+            45
+          ],
+          "qualified": [
+            24
+          ]
+        }
+      ],
+      "support_veh_h": 1760.0,
+      "floor_veh_h": 1920.0
+    },
+    "1": {
+      "head_id": "90030836",
+      "history": [
+        {
+          "start": 2100,
+          "end": 2250,
+          "green": [
+            45
+          ],
+          "qualified": [
+            26
+          ]
+        },
+        {
+          "start": 2250,
+          "end": 2400,
+          "green": [
+            45
+          ],
+          "qualified": [
+            24
+          ]
+        },
+        {
+          "start": 2400,
+          "end": 2550,
+          "green": [
+            45
+          ],
+          "qualified": [
+            24
+          ]
+        },
+        {
+          "start": 2550,
+          "end": 2700,
+          "green": [
+            45
+          ],
+          "qualified": [
+            26
+          ]
+        }
+      ],
+      "support_veh_h": 2000.0,
+      "floor_veh_h": 2000.0
+    },
+    "3": {
+      "head_id": "90030834",
+      "history": [
+        {
+          "start": 2100,
+          "end": 2250,
+          "green": [
+            24
+          ],
+          "qualified": [
+            12
+          ]
+        },
+        {
+          "start": 2250,
+          "end": 2400,
+          "green": [
+            24
+          ],
+          "qualified": [
+            11
+          ]
+        },
+        {
+          "start": 2400,
+          "end": 2550,
+          "green": [
+            24
+          ],
+          "qualified": [
+            12
+          ]
+        },
+        {
+          "start": 2550,
+          "end": 2700,
+          "green": [
+            24
+          ],
+          "qualified": [
+            12
+          ]
+        }
+      ],
+      "support_veh_h": 1725.0,
+      "floor_veh_h": 1725.0
+    }
+  },
+  "ports": {
+    "10491": {
+      "actual": {
+        "initial": 3,
+        "arrival": 127,
+        "drain": 128,
+        "final": 2
+      },
+      "before": {
+        "initial": 3.0,
+        "arrival": 62.94767627498509,
+        "drain": 27.36530612244895,
+        "final": 38.58237015253615
+      },
+      "after": {
+        "initial": 3.0,
+        "arrival": 91.6487469431967,
+        "drain": 92.41114193110882,
+        "final": 2.2376050120879007
+      },
+      "causal_observation": {
+        "initial": 3.0,
+        "arrival": 91.64874533021477,
+        "drain": 92.41114050181763,
+        "final": 2.237604828397144
+      }
+    },
+    "10481": {
+      "actual": {
+        "initial": 1,
+        "arrival": 36,
+        "drain": 37,
+        "final": 0
+      },
+      "before": {
+        "initial": 1.0,
+        "arrival": 24.781861021272004,
+        "drain": 24.903015826951957,
+        "final": 0.8788451943200464
+      },
+      "after": {
+        "initial": 1.0,
+        "arrival": 24.78123344623365,
+        "drain": 25.04253242488587,
+        "final": 0.7387010213477827
+      },
+      "causal_observation": {
+        "initial": 1.0,
+        "arrival": 24.7816394253636,
+        "drain": 25.042826429226032,
+        "final": 0.738812996137569
+      }
+    }
+  },
+  "source_audit": {
+    "current_veh": 69,
+    "agreed_with_cached_past": 62,
+    "mismatch": [],
+    "unresolved": [
+      {
+        "vehicle": "13641",
+        "cached_past_source": "initial_off"
+      },
+      {
+        "vehicle": "13937",
+        "cached_past_source": "initial_off"
+      },
+      {
+        "vehicle": "14823",
+        "cached_past_source": "initial_off"
+      },
+      {
+        "vehicle": "15430",
+        "cached_past_source": "initial_off"
+      },
+      {
+        "vehicle": "17268",
+        "cached_past_source": "initial_off"
+      },
+      {
+        "vehicle": "21794",
+        "cached_past_source": "initial_off"
+      },
+      {
+        "vehicle": "22032",
+        "cached_past_source": "initial_off"
+      }
+    ],
+    "caveat": "Only past 5s cached observations; fast unseen visits can remain unclassified. Runtime uses150s frames, never this cache."
+  },
+  "shared_head": {
+    "window": [
+      2700,
+      3140
+    ],
+    "native_bracket": [
+      180,
+      186
+    ],
+    "previous_model": 130.27777777777777,
+    "current_model": 166.83142363405514,
+    "model450_entry": 159.62390467970414,
+    "model450_departure": 170.1855903007218,
+    "final_model": 58.438314378982334,
+    "final_native": 90
+  },
+  "delta_release_minus_hold": {
+    "omega_veh_h": 1.644437354389936,
+    "FW_E_veh_h": 4.807318000172529,
+    "ramps_veh_h": -3.0702881138057485,
+    "outside_veh_h": -1.138339484896278e-07,
+    "native_omega_veh_h": 2.0538333333352057
+  },
+  "NP_sums": [
+    501.3974898320314,
+    500.39375554377045
+  ],
+  "source_only_change_traffic_exact": true,
+  "physical_resource_max_exceedance": 8.881784197001252e-16,
+  "tests_passed": 23,
+  "forecasts": 4,
+  "native_runs": 0,
+  "fitting_runs": 0,
+  "new_fzp_scans": 0,
+  "sdmpc_selections": 0,
+  "sources": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_sc1001_causal_history_routes\\summary.json": "cdedd53935db4c2cd1bccb6a3908038d4e97110863d57ca921681d72b7fb7a06",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_lever450_sc1001_causal_history_routes\\runtime.json": "104f6561cf34e087157c7cff25f6cd5fee8282a2d01f170b6f0af2fa7d22aa20",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\sc1001_connection\\sc1001_causal_history_routes.json": "8c067f092adc6414d8a1e41af2c94b344df8bfe40ccb4b72f10e80d556569fb9",
+    "D:\\VISSIM_runs\\20260928_rm_observation2700_s47_v3\\hold\\decisions_sdmpc31_g_2700_hold_s47\\lane_observations\\frame_002700.json": "7058b319c57ffa37fc9136319e4f9eec2c857c358dcb2583a4921e4644f350f9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\stopline\\s47_rm_hold_frames.json.gz": "6aec57cdacf009f4c52510445802585109f254a0127ad644ce62d8595769a16c"
+  },
+  "qualification": "RM rank retained; head flow closer but final inventory farther due insufficient upstream arrival. Full AD, independent response and SDMPC selection remain unqualified."
+}

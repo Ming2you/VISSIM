@@ -1,0 +1,62 @@
+{
+  "train": [
+    [
+      "s29_early",
+      "none",
+      750
+    ],
+    [
+      "s29_early",
+      "vsl",
+      750
+    ],
+    [
+      "s29_late",
+      "hold",
+      450
+    ],
+    [
+      "s29_late",
+      "release",
+      450
+    ]
+  ],
+  "check": [
+    [
+      "s43_early",
+      "none",
+      750
+    ],
+    [
+      "s43_early",
+      "vsl",
+      750
+    ]
+  ],
+  "maximum_forecasts": 12,
+  "maximum_candidates": 1,
+  "fit": false,
+  "model": "Live expanded036 component; experimental off-ramp route inventory bridge OFF as in live run.",
+  "hypothesis": "First-cell upstream velocity held at current observed0..40m spatial mean, replacing only convection inlet argument. All later cells, FD, demand, VSL exposure, merge, dynamic off storage/drain and queue cost unchanged.",
+  "observation": "Initial snapshot only; same initial speed in each paired arm.40m spatial mean is a proxy, not insertion velocity.",
+  "acceptance": "First-cell mean N MAE decreases>=10%; whole31cell speed and N RMSE do not rise>10%; no newly wrong >=2vehh mainline or component delta. If passed check previously inspected seed43 once, no refit.",
+  "limitations": "Component FW_E31cells+8connectors,not fullOmega. No independent pristine holdout or live deployment. No future boundary truth input.",
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "9eec088f06f78104a2a1c88bd7691d1dfec010db3f262fb51aa545772d4d6067",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_manifest.json": "dfde6d754254f8cd21bad54859361bee7c17c77b45f257679dea9f13fee46de1",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\geometry.json": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\geometry_200_branch_guard.json": "9769b3a4462f5d9c619709ffea7d6b14fc1faeecade0ff4cf73d9e9023906bea",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\reference_config.json": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\parameters.json": "bd7439894b1fcd165f53d51e7896865673efa52b82296d057cd7271bcdb1dad5",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\port_profile.json": "44d0645bcae40d523b1099611a942311cc17a7b15124028ecad42046f140f777",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\cohort_dynamics_20260920\\transport_step1_exchange_off_v2\\protocol.json": "32bb2d6a682323a878f0b90a1d7c8afc8a375420b9534b60221db54b3ed01aea",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs": "b74e05b2a1dc910d39989894a30c373c791a7f0dc7f3c52620763995b58a9956",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\sig_manifest.json": "f3b660ce2ab996b3face29829bfa145a360d813be33251c505682c3569f19417",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1"
+  }
+}

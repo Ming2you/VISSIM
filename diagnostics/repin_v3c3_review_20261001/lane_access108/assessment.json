@@ -1,0 +1,205 @@
+{
+  "status": "complete_diagnostic_not_gain_qualified",
+  "results": {
+    "release": {
+      "exits": {
+        "n": 136,
+        "exit_count": 136,
+        "first_upstream_lanes": {
+          "unobserved": 22,
+          "2": 114
+        },
+        "first119_lanes": {
+          "1": 136
+        },
+        "vehicles_changed_upstream": 0,
+        "vehicles_changed119": 0,
+        "net_change_events": 0,
+        "stopped_vehicles": 106,
+        "stopped_sample_count": 545,
+        "both_endpoints_stopped_seconds": 1600,
+        "mean_observed_exit_time": 2881.239705882353
+      },
+      "current_known_cohort": {
+        "n": 65,
+        "exit_count": 65,
+        "first_upstream_lanes": {
+          "2": 43,
+          "unobserved": 22
+        },
+        "first119_lanes": {
+          "1": 65
+        },
+        "vehicles_changed_upstream": 0,
+        "vehicles_changed119": 0,
+        "net_change_events": 0,
+        "stopped_vehicles": 53,
+        "stopped_sample_count": 123,
+        "both_endpoints_stopped_seconds": 195,
+        "mean_observed_exit_time": 2759.5615384615385
+      },
+      "upstream_net_movements": {
+        "2->3": 38,
+        "3->4": 36,
+        "4->3": 30,
+        "3->2": 20,
+        "1->2": 5
+      },
+      "link119_net_movements": {
+        "2->1": 34,
+        "3->2": 34,
+        "2->3": 35,
+        "3->1": 1,
+        "1->2": 23,
+        "1->3": 1
+      },
+      "stop_onset_events": 699,
+      "stop_onset_same_lane": 699,
+      "stop_onset_cell_lane": {
+        "17:2": 55,
+        "18:2": 100,
+        "19:1": 88,
+        "20:1": 152,
+        "16:2": 34,
+        "16:4": 52,
+        "17:3": 23,
+        "21:2": 1,
+        "21:1": 9,
+        "20:2": 19,
+        "16:3": 22,
+        "21:3": 3,
+        "18:3": 47,
+        "19:2": 36,
+        "19:3": 17,
+        "18:4": 16,
+        "20:3": 22,
+        "17:4": 3
+      }
+    },
+    "release_vsl90": {
+      "exits": {
+        "n": 150,
+        "exit_count": 150,
+        "first_upstream_lanes": {
+          "unobserved": 22,
+          "2": 128
+        },
+        "first119_lanes": {
+          "1": 150
+        },
+        "vehicles_changed_upstream": 0,
+        "vehicles_changed119": 0,
+        "net_change_events": 0,
+        "stopped_vehicles": 121,
+        "stopped_sample_count": 258,
+        "both_endpoints_stopped_seconds": 400,
+        "mean_observed_exit_time": 2888.833333333333
+      },
+      "current_known_cohort": {
+        "n": 65,
+        "exit_count": 65,
+        "first_upstream_lanes": {
+          "2": 43,
+          "unobserved": 22
+        },
+        "first119_lanes": {
+          "1": 65
+        },
+        "vehicles_changed_upstream": 0,
+        "vehicles_changed119": 0,
+        "net_change_events": 0,
+        "stopped_vehicles": 53,
+        "stopped_sample_count": 123,
+        "both_endpoints_stopped_seconds": 195,
+        "mean_observed_exit_time": 2759.7153846153847
+      },
+      "upstream_net_movements": {
+        "2->3": 34,
+        "3->4": 39,
+        "4->3": 32,
+        "3->2": 18,
+        "2->4": 2,
+        "1->2": 2
+      },
+      "link119_net_movements": {
+        "2->1": 41,
+        "3->2": 29,
+        "2->3": 33,
+        "1->2": 29,
+        "3->1": 1,
+        "1->3": 1
+      },
+      "stop_onset_events": 382,
+      "stop_onset_same_lane": 381,
+      "stop_onset_cell_lane": {
+        "17:2": 28,
+        "18:2": 84,
+        "19:1": 36,
+        "20:1": 117,
+        "16:2": 23,
+        "16:4": 37,
+        "17:3": 6,
+        "17:4": 3,
+        "20:2": 16,
+        "20:3": 1,
+        "21:1": 7,
+        "16:3": 14,
+        "19:2": 7,
+        "18:3": 2,
+        "18:1": 1
+      }
+    },
+    "paired_known": {
+      "n": 65,
+      "both_exited": 65,
+      "mean_exit_difference_s": 0.15384615384615385,
+      "stop_samples_difference": 0
+    }
+  },
+  "common_prefix_frames": 6,
+  "limits": [
+    "5s same-link endpoint lane changes are net changes, not complete event counts.",
+    "Link2lane2 maps to119lane1; these are not counted as lane changes. Link2lane1 also serves10481: not all departing lane1 traffic merges into lane2.",
+    "Posthoc exits and continued travel are descriptive labels only; no model inputs.",
+    "Current-known cohort uses2670.1 explicit route1131:3 only, no future destination labels.",
+    "No capacity or control bonus. A structural correction requires an observed and code-traced defect, then a separate predeclared bounded rollout test."
+  ],
+  "source_pins": {
+    "geometry": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\geometry.json",
+      "sha256": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2"
+    },
+    "routes": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\compiled.json",
+      "sha256": "e8d749d8a3153b099a2f10f1a044e941045f38c309a0b373de290a964a4b5798"
+    },
+    "initial": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\s67_late\\initial_raw.json",
+      "sha256": "36c5d3b657413ce0b435be680b2fdd891e00bc0bc6cc0f2b3e0240d303df3e6c"
+    },
+    "network": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx",
+      "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+    },
+    "release_frames": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz",
+      "sha256": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c"
+    },
+    "release_events": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release\\port_events.csv",
+      "sha256": "411ac2dd6af21ef5d104a02eadcc97a628c9ed7e97857dcc05407d739e102ba5"
+    },
+    "release_vsl90_frames": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz",
+      "sha256": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93"
+    },
+    "release_vsl90_events": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release_vsl90\\port_events.csv",
+      "sha256": "1bceb0c080d71b016352e06bb9f574dae0762ac9813c3387f0ec5f3e212b26d1"
+    }
+  },
+  "new_native": 0,
+  "new_forecasts": 0,
+  "new_fits": 0,
+  "new_FZP": 0
+}

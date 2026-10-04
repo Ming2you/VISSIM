@@ -1,0 +1,47 @@
+{
+  "previous_goal_turn": "NO_PROGRESS: explanation only; now conditional current-route/speed check",
+  "question": "Does velocity-destination covariance improve proportional initial-cohort cell departure allocation?",
+  "native_budget": 0,
+  "forecast_budget": 0,
+  "fit_budget": 0,
+  "fzp_scan_budget": 0,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\entry10682\\audit.py": "b24ff043a518bc7f8f0e526044023a5b4c9b4e00509a6e2c859b52913038f0fb"
+  },
+  "production_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\offramp_routing.py": "4ed3243430761f3ac5eaa517dfefee904418b0d8e252d3d369d4cbe5f4dd07a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec"
+  },
+  "old_stop": {
+    "path": "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "old_function_ast_unchanged": [
+    "read",
+    "main"
+  ],
+  "searched_prior": [
+    "Claude REVIEW_CHECK K3/K4/K5",
+    "offramp_route_reconcile",
+    "entry10682",
+    "lane10682_inlet_flux",
+    "lane10682_target_transport",
+    "branch_response",
+    "route_inventory",
+    "bottleneck_lane67",
+    "vsl_population_response"
+  ],
+  "go_no_go": "Diagnostic promotion only if mean window MAE decreases >=20 percent for both downstream branches18/20 in both29/43 and67 release arms; never adoption, no subsequent fitting specified.",
+  "limitations": [
+    "Only initially observed and still-valid STATIC route identities are carried until first mainline absence; no future route labels, no assignment to new arrivals.",
+    "Both closures receive actual next5s total departures of the labeled subset; conditional representation test, not autonomous prediction or branch-flow capacity.",
+    "Cell departure includes unresolved disappearance; absence is not classified as off-ramp, deletion or normal Omega exit. No TTT or normal TTD is calculated.",
+    "Incomplete labeled subpopulation, overlapping windows and different signal/seed states limit generalization. Distribution of speeds and spatial positions are correlated.",
+    "Spatial speed weights need not equal boundary flow shares; departure total is held fixed and every conditional partition conserves it.",
+    "Initial2670.1 state and firstFZP5s cache use native rounding; bounded precision differences are reported. No continuous2700-state model parity is claimed.",
+    "No71 outcome fitting or further scan. No production change, native simulation, optimizer or push."
+  ]
+}

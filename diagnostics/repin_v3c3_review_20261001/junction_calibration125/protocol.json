@@ -1,0 +1,153 @@
+{
+  "previous_goal_turn": "PROGRESS:124 eight autonomous forecasts; node closure activates but fixed coefficients fail gain sign.",
+  "parameters": [
+    {
+      "cells": [
+        19,
+        20,
+        21
+      ],
+      "key": "rho_crit",
+      "multipliers": [
+        0.8,
+        1.2
+      ]
+    },
+    {
+      "cells": [
+        19,
+        20,
+        21
+      ],
+      "key": "relaxation.acceleration_sec",
+      "multipliers": [
+        0.65,
+        1.35
+      ]
+    },
+    {
+      "cells": [
+        22,
+        23,
+        24,
+        25
+      ],
+      "key": "relaxation.acceleration_sec",
+      "multipliers": [
+        0.65,
+        1.35
+      ]
+    }
+  ],
+  "interpretation": "Current predicted desired>=speed selects acceleration branch. Tau changes existing METANET relaxation and anticipation denominator; not a reward or a seed/control bonus. Critical density changes the same physical FD and node receiving consistently.",
+  "structures": [
+    "aggregate existing production",
+    "shared existing124 lane19..25 + receiving21 + reciprocal10483"
+  ],
+  "train": [
+    {
+      "case": "s29_late",
+      "arm": "hold"
+    },
+    {
+      "case": "s29_late",
+      "arm": "release"
+    },
+    {
+      "case": "s29_late",
+      "arm": "hold_vsl90"
+    },
+    {
+      "case": "s29_late",
+      "arm": "release_vsl90"
+    }
+  ],
+  "validation": [
+    {
+      "case": "s43_early",
+      "arm": "none"
+    },
+    {
+      "case": "s43_early",
+      "arm": "vsl"
+    },
+    {
+      "case": "s43_early",
+      "arm": "rm"
+    },
+    {
+      "case": "s43_early",
+      "arm": "both"
+    },
+    {
+      "case": "s67_late",
+      "arm": "hold"
+    },
+    {
+      "case": "s67_late",
+      "arm": "release"
+    },
+    {
+      "case": "s67_late",
+      "arm": "hold_vsl90"
+    },
+    {
+      "case": "s67_late",
+      "arm": "release_vsl90"
+    },
+    {
+      "case": "s29_early",
+      "arm": "none"
+    }
+  ],
+  "budget": {
+    "max_vectors_per_structure": 9,
+    "training450": 72,
+    "validation450": 36,
+    "parity450": 2,
+    "max_total450": 110
+  },
+  "optimizer": "Baseline+six symmetric one-axis candidates, then combined best individual improving directions and midpoint if distinct. No extension, no validation retuning.",
+  "objective": "Absolute TTT/wait/endN/exits/actualmerge errors +0.25localN/v/q+2all-pair response errors +0.1parameterprior. Same formula/bounds/budget for both structures; controllerOmegaTTT unchanged.",
+  "gate": "Training score>=5% better and response not worse; validation meaningful>=0.5vehh pair signs and best-control rank must hold, paired loss improve>=10%, absolute error not worse>10%. No adoption from training/velocity fit alone.",
+  "scope": "FW_E31cells+4on/4off connectors, not wholeOmegaTTT orOmegaTTD; executed-command autonomous forecast. Known inspected seeds, not pristineblind.",
+  "source_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\initial_raw.json": "054cdeb7b17f4557f5e8597b9df139bef1ec217dd29d8511aaef6b46742ac8fd",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\congested_replay\\hold_input.pickle": "6c20ae0059d8a752f86d828637b30edf676a3410279a2d6fe6399ca46a3fcd07",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\congested_replay\\release_input.pickle": "21a10a710444a46aeb48bf47fc8d45f8c8aeec88156db50779bdced1ad330e16",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\congested_replay\\hold_vsl90_input.pickle": "abfa745c2b7b6a80fd7513444177d08146969a4ac68a19672fcfb8340f048b4c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\congested_replay\\release_vsl90_input.pickle": "4237eff135837217c7ca719c5025fdcf44fe4b1a56deb648c64f9545f8192a4c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\s43_early\\initial_raw.json": "1bf7dfae2ff59a839f9b0612de308f38ea9ecaef4452a6fbd73bd922df648fc7",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\component2220_s43_inputs_v2\\none_input.pickle": "d5bf706d730ea40b77715ffd890dfd6d8f15ea373ff0e9b85ed1031b5849d2c7",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\component2220_s43_inputs_v2\\vsl_input.pickle": "b25845b3f0cf0a51c10cba235479a8e2da362e3340cf6ffddc52f83cfc6a97e0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\component2220_s43_inputs_v2\\rm_input.pickle": "4a7a8a45dbaa4b63ea001e3cfed01b7b09088c43ebd98dbe56f32adda8521851",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\component2220_s43_inputs_v2\\both_input.pickle": "89e6b0aa3620c2467b7397bbd11831d8bbfa13cd3fdc4703fb72fd2d829a68da",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\s67_late\\initial_raw.json": "36c5d3b657413ce0b435be680b2fdd891e00bc0bc6cc0f2b3e0240d303df3e6c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\hold_input.pickle": "e63d538baded3b07ad901d219422eefa3bdffa8d540f1498953c7f8f5a0517c0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\release_input.pickle": "6507023caed7b6d01bb3a6df75f34c20988aca02977f1813d630f5a976d9bec1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\hold_vsl90_input.pickle": "86b94c584b6843526a61ef550a4536db4569a8ecc45ae99536e048432b58792e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\release_vsl90_input.pickle": "e6a8a799aa49f18d649582bd5a8054d3550c71414127959ab7da2c302e7bb137",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\s29_early\\initial_raw.json": "e992dcac3d047e122e9c88981de599def74bea37cf24aca7b6a8ce8c676d3b10",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\component2220_s29_inputs_v2\\none_input.pickle": "3c257655f5b0a352dcc0cf95a167b00beb538b5f887b945d18f3ade350e7e41e"
+  },
+  "protected_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP": {
+    "path": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "helper_sha256": "002533cd7fac74fdba1f898cd8067c4256dccc014a2045f6266ff3f6158be729",
+  "no_future_traffic_states": true,
+  "new_native": 0,
+  "new_FZP": 0,
+  "push": 0
+}

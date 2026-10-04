@@ -1,0 +1,114 @@
+{
+  "status": "ARTIFACTS_VERIFIED_BOUNDARY_CANDIDATE_NOT_GAIN_QUALIFIED",
+  "upstream_commit": "bd39205d7f0b2178ae9cd3be1232e00a84ee666f",
+  "function_changes_from_turn_snapshot": {
+    "evaluation/controllers/lane_offramp_runtime.py": {
+      "before_sha256": "972eca21c43498194d281e87537e7afe80c8675b53358c97cf4bb110f6800b46",
+      "after_sha256": "464a4583bd02d0791470f1ab0adfd5c3bea3a96fe79d19b8a40edc1949c480fd",
+      "changed_functions": [
+        "LaneOfframpRuntime.drain"
+      ],
+      "added_functions": [
+        "SharedSignalApproach.assert_network_mirror",
+        "SharedSignalApproach.capture_ready_city",
+        "SharedSignalApproach.drain_to_network",
+        "initialize_shared_approach"
+      ],
+      "removed_functions": []
+    },
+    "evaluation/controllers/lane_plant_runtime.py": {
+      "before_sha256": "99386fabc599100cbc13dfc0aafa382316acfd37306e545a4d97895ede50fcfc",
+      "after_sha256": "bfba005a3f810e37d10fbf521975036d163c166c742220cb54a13c9be2db7fab",
+      "changed_functions": [
+        "bind_area",
+        "initialize"
+      ],
+      "added_functions": [],
+      "removed_functions": []
+    },
+    "evaluation/controllers/runtime_setup.py": {
+      "before_sha256": "02bc62b6847ffde39afb3bb2eb1b41b694ef14e7b8d4be64c2d3ff9ef85249a0",
+      "after_sha256": "a05af409d2802e87b672f4583f0249d536054cb0a9208961ed385b00cc1d98d7",
+      "changed_functions": [
+        "configure_runtime"
+      ],
+      "added_functions": [],
+      "removed_functions": []
+    },
+    "evaluation/controllers/urban_flow_accounting.py": {
+      "before_sha256": "fc6969f67a119d02f063143b1e5a4ecb567005317767c982734b99264b7a0514",
+      "after_sha256": "6fb379dde64ced8c23743d275b9d36963e02b7950c7469437352cc233a6b6322",
+      "changed_functions": [
+        "urban_substep_accounted"
+      ],
+      "added_functions": [],
+      "removed_functions": []
+    },
+    "evaluation/controllers/physical_ramp_branches.py": {
+      "before_sha256": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2",
+      "after_sha256": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2",
+      "changed_functions": [],
+      "added_functions": [],
+      "removed_functions": []
+    }
+  },
+  "unchanged_core_pins": {
+    "vendor/NumSim-mine/src/models/state.py": "3faddc0fc0b1a003f3ccfaf53c49e74e2b69b768e5324f20dea7985e4878e96a",
+    "evaluation/controllers/area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "evaluation/controllers/freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation/controllers/physical_ramp_branches.py": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\reference_config.json": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\source_sc101\\readiness_candidate\\candidate_config.json": "9b613bfb151a417a6a8f0c131d316f96e839570473aecca2cb841e27361b2883"
+  },
+  "candidate_config_difference": [
+    {
+      "path": "/urban/shared_sc1001_approach",
+      "before_present": false,
+      "after": "boundary_only_v1"
+    }
+  ],
+  "candidate_config_sha256": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+  "executed_source_pins": {
+    "evaluation\\controllers\\lane_offramp_runtime.py": "464a4583bd02d0791470f1ab0adfd5c3bea3a96fe79d19b8a40edc1949c480fd",
+    "evaluation\\controllers\\lane_plant_runtime.py": "bfba005a3f810e37d10fbf521975036d163c166c742220cb54a13c9be2db7fab",
+    "evaluation\\controllers\\runtime_setup.py": "a05af409d2802e87b672f4583f0249d536054cb0a9208961ed385b00cc1d98d7",
+    "evaluation\\controllers\\urban_flow_accounting.py": "6fb379dde64ced8c23743d275b9d36963e02b7950c7469437352cc233a6b6322",
+    "diagnostics\\test_shared_signal_approach.py": "a8bb34d4c753bce9d3937ae4e0f7c1463c8b9b2eee1ac9dda87caf0f5a84ba70",
+    "diagnostics\\repin_v3c3_review_20261001\\sc1001_connection\\check_connection.py": "c73cfbda957405ce1dadacf15d640380b254b73482dd7dc6e8873fb67717a1d7",
+    "diagnostics\\repin_v3c3_review_20261001\\sc1001_connection\\summarize.py": "d434e613d58f146d598730a82ef0a3ddf24cbba903d96dcc266c0a4d140ced67",
+    "diagnostics\\repin_v3c3_review_20261001\\sc1001_connection\\verify_artifacts.py": "2183790a915532c801352d4c00aedd954df5e1f51719a09ac6454f2a6f5e0d76"
+  },
+  "assessment_sha256": "45c6094c62279092db64e545bd05d43c1a1ef80791d40682b32205f3d9a023c7",
+  "saved_unit_tests": {
+    "passed": 16,
+    "log_sha256": "e3bf48f9da72889a4b6424e81f5c3ef0fe1cc373fc3dbbe543416e2a0d4bc843",
+    "rerun_in_this_verifier": false
+  },
+  "execution": {
+    "completed_450s_forecasts": 5,
+    "final_comparison_forecasts": 2,
+    "initial_failure": "Existing downstream ownership at10695; preserved/fixed before successful init2.",
+    "pair2_failure": "After first forecast, diagnostic follower reference absent; fixed in harness, final pair3 passed.",
+    "final_pair": "pair3",
+    "final_pair_status": "CANONICAL_PAIR_FORECAST_PASS",
+    "new_native_runs": 0,
+    "fzp_rescans": 0,
+    "coefficient_fits": 0,
+    "sdmpc_selections": 0,
+    "pushes": 0
+  },
+  "qualification": {
+    "goal": "ACTIVE / NOT_QUALIFIED",
+    "operational_default_enabled": false,
+    "full_rollout_derivative_verified": false,
+    "new_independent_state_or_seed_verified": false,
+    "new_four_arm_vsl_rm_response_verified": false,
+    "remaining": [
+      "Shared head discharge still low (130.28 vs native180–186 vehicles).",
+      "58 initial vehicles lack causal city/off source classification for N_P.",
+      "Future origin-specific routing and upstream city timing remain prior approximations.",
+      "RM rank preserved; no material improvement of RM gain error established."
+    ]
+  }
+}

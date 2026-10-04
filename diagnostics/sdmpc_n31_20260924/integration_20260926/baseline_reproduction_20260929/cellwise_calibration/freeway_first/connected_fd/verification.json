@@ -1,0 +1,67 @@
+{
+  "core_and_STOP_exact": true,
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "old_functions_AST_exact": 65,
+  "added_functions": [
+    "calibrate_connected_recovery_fd",
+    "review_connected_recovery_fd"
+  ],
+  "historical_helper_pins_resolved": [
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py",
+      "archive": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\connected_fd\\helper_executed.txt",
+      "sha256": "17ad60dcc3de1f054fb7ebf6f52441e2d7aeb112264bcdeacccc80498abcf6b4"
+    }
+  ],
+  "actual_forecasts": 153,
+  "train_forecasts": 144,
+  "review_forecasts": 7,
+  "coefficient_fit_variables": 3,
+  "optimizer": {
+    "nfev": 6,
+    "njev": 6,
+    "status": 0,
+    "message": "The maximum number of function evaluations is exceeded.",
+    "success": false
+  },
+  "training_gate": {
+    "total": true,
+    "state": true,
+    "response": false,
+    "significant_signs": true
+  },
+  "selected": false,
+  "production_adopted": false,
+  "serialized_config_physical_max_error": 3.410605131648481e-12,
+  "default_baseline_physical_parity": {
+    "cells": true,
+    "flows": true,
+    "ports": true,
+    "ramps": true
+  },
+  "new_native": 0,
+  "goal_qualified": false,
+  "source_truth_never_used_in_rollout": false,
+  "process_status": "fit98223 and review46690 terminal0; source43 command terminal0; no owned live process",
+  "failures_preserved": [
+    "failure1:missing rho_max in cell record before first forecast; use network.rho_max",
+    "review_failure1:manifest backslash path before forecast",
+    "review/run_failed2.log:tuple/list representation check; saved numeric output exactly reused on resume,no duplicate forecast"
+  ],
+  "conditional_source_forecasts": 2,
+  "parameters_check": {
+    "command": "scripts/verify_parameters.py connected_fd/review/reference_config.json",
+    "exit_code": 0,
+    "result": "PASS with inherited unused-calibration warnings; candidate runtime31-cell FD values separately verified"
+  },
+  "future_source_use_scope": "Only final2 explicitly conditional source43 diagnoses; all144training+7review forecasts use current-only inputs; never qualification of autonomous control.",
+  "modified_existing_functions": [
+    "check_vsl_long_response optional frozen candidate branch"
+  ]
+}

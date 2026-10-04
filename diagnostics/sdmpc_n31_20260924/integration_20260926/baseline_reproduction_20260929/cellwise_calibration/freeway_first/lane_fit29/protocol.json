@@ -1,0 +1,28 @@
+{
+  "previous_goal_turn": "NO_PROGRESS:priority clarification; resumed bounded local calibration.",
+  "hypothesis": "Aggregate-calibrated FD shape and merge coefficient may not transfer to the new per-lane representation: recovery is too slow but later lane accumulation is too small even with joint boundary matching.",
+  "candidates": {
+    "shape": [
+      1.5,
+      1.0
+    ],
+    "merge": [
+      1.0,
+      0.5
+    ],
+    "both": [
+      1.5,
+      0.5
+    ]
+  },
+  "scope": "Common FD-shape multiplier in19-21 and merge multiplier only at21. Critical densities, all other coefficients and lateral hazards frozen.",
+  "train": "Four autonomous450s seed29 late arms only. Select once using local19-21 N/v/q errors plus physically scaled response errors.",
+  "validation": "Selected candidate only: four seed67 late arms and seed29 early NC; no validation-driven retuning. All datasets previously inspected; not pristine holdout.",
+  "loss": "Local mean squared errors: N/5veh, v/15kmh, flow/800vph. Plus mean squared mainline/component TTT response error with max(1vehh,abs(observed delta)) scale.",
+  "gate": "No capacity/reward bonus; matched conservation and explicit coefficient binding. Local training error must improve5%, response not worsen; heldout major gain/loss signs and best choice must hold, state degradation recorded. Passing only a best-choice test is insufficient.",
+  "maximum_new_forecasts": 19,
+  "future_inputs": false,
+  "new_native": 0,
+  "new_fzp": 0,
+  "production_adopted": false
+}

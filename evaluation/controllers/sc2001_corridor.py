@@ -209,7 +209,7 @@ def _speed(state, cfg, observed=None):
     return value
 
 
-def _reserve(local, cfg, origin, amount, index, *, physical_link='78', position=0., before_78_m=0., speed):
+def _reserve(local, cfg, origin, amount, index, *, physical_link='78', position=0., before_78_m=0., speed, state=None):
     spec = cfg.network.sc2001_corridor
     for branch, share in spec['calibration']['priors'][origin]['shares'].items():
         if share == 0:
@@ -219,6 +219,8 @@ def _reserve(local, cfg, origin, amount, index, *, physical_link='78', position=
         bins = local['bins'].setdefault(origin, {}).setdefault(branch, {})
         due = index + delay
         bins[due] = bins.get(due, 0.) + amount*share
+        from evaluation.controllers.omega_distance import record_sc2001
+        record_sc2001(state,cfg,branch,amount*share,physical_link,position,origin,before_78_m,index,due)
 
 
 def initialize(state, cfg, raw, detectors=None):
@@ -240,7 +242,7 @@ def initialize(state, cfg, raw, detectors=None):
     local = {'bins': {}, 'last_step': index-1, 'received_veh': 0., 'departed_veh': 0.}
     for row in records:
         _reserve(local, cfg, 'initial_unknown_origin', 1., index, physical_link=str(row['link_no']),
-                 position=float(row['position_m']), speed=_speed(state, cfg, row['speed_kph']))
+                 position=float(row['position_m']), speed=_speed(state, cfg, row['speed_kph']), state=state)
     state.sc2001_corridor_state = local
     state.urban_arrival_buffer.pop(spec['storage'], None)
     state.urban_storage_release_buffer.pop(spec['storage'], None)
@@ -266,7 +268,7 @@ def receive_accepted(state, cfg, movement, vehicles, urban_step_index):
     if not math.isclose(_occupancy(state, spec), _tracked(local) + vehicles, abs_tol=1e-7):
         raise ValueError('SC2001 accepted inflow was not applied exactly once to physical storage')
     _reserve(local, cfg, row['origin'], vehicles, urban_step_index, position=row['entry_78_position_m'],
-             before_78_m=row['pre_78_distance_m'], speed=_speed(state, cfg))
+             before_78_m=row['pre_78_distance_m'], speed=_speed(state, cfg), state=state)
     local['received_veh'] += vehicles
     return True
 

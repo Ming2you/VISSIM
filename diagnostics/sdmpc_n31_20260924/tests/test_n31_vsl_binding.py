@@ -10,6 +10,7 @@ from __future__ import annotations
 import copy
 import types
 import unittest
+from unittest.mock import patch
 
 import n31_fixtures as fx
 from evaluation.controllers import lane_plant_runtime as lpr
@@ -81,6 +82,62 @@ class BindingTests(unittest.TestCase):
             reads = [st.segment_vsl(control, road, c, conf) for c in range(31)]
             self.assertEqual(reads, [ZONE_VALUES[h] for h in fx.EXPECTED_HEAD_OF_CELL[road]], road)
             self.assertNotIn(SENTINEL, reads)
+
+    def test_controller_ramp_indices_are_parents_while_kernel_indices_stay_refined(self):
+        binding, cfg, state, freeway, _ = self.bind()
+        expected={name:self.context['parents'][r['road']][r['to_cell']]
+                  for name,r in self.component.ramps.items()}
+        self.assertEqual(cfg.network.ramp_merge_segment_index,expected)
+        self.assertEqual(binding['ramp_to_parent'],expected)
+        self.assertTrue(all(0<=i<21 for i in expected.values()))
+        for road,conf in freeway.configs.items():
+            self.assertEqual(len(state.freeway_density[road]),31)
+            for name in conf.network.ramps:
+                self.assertEqual(conf.network.ramp_merge_segment_index[name],self.component.ramps[name]['to_cell'])
+
+    def test_leader_merge_heuristic_reads_physical_cells_and_lengths(self):
+        from src.controllers import leader as lm
+        from n31_guards import strict_index_guards
+        _, cfg, state, freeway, _ = self.bind()
+        state.lane_freeway_runtime = freeway
+        cfg.simulation = types.SimpleNamespace(T_f_h=1./3600.)
+        cfg.leader = types.SimpleNamespace(N_UF_feasible_margin=0.9)
+        net = cfg.network
+        net.ramps = tuple(self.component.ramps)
+        net.ramp_to_freeway = {r:v['road'] for r,v in self.component.ramps.items()}
+        net.ramp_capacity_veh_h = {r:10000. for r in net.ramps}
+        net.freeway_capacity_veh_h = 1.  # Parent placeholder must never be used.
+        state.ramp_queue = {r:1000. for r in net.ramps}
+        control = control_for(freeway.configs['FW_E'], 'FW_E')
+        control.vsl.update(control_for(freeway.configs['FW_W'], 'FW_W').vsl)
+        expected, seen = 0., []
+        original = lm.segment_vsl
+        def spy(action, road, index, conf):
+            self.assertIs(conf, freeway.configs[road])
+            seen.append((road, index))
+            return original(action, road, index, conf)
+        for ramp in net.ramps:
+            road = net.ramp_to_freeway[ramp]; conf = freeway.configs[road]
+            rn = copy.copy(conf.network); index = rn.ramp_merge_segment_index[ramp]
+            row = rn.freeway_segment_params[road][index]
+            rn.rho_crit = row.get('rho_crit', rn.rho_crit)
+            rn.rho_max = row.get('rho_max', rn.rho_max)
+            rho = state.freeway_density[road][index]
+            critical = lm.effective_rho_crit(rn, original(control, road, index, conf))
+            headroom = max(0., critical-rho)*rn.freeway_segment_length_profile_km[road][index]*state.freeway_effective_lanes[road][index]/cfg.simulation.T_f_h
+            receiving = rn.freeway_capacity_veh_h*max(0.,min(1.,(rn.rho_max-rho)/(rn.rho_max-rn.rho_crit)))
+            expected += min(10000., 1000./cfg.simulation.T_f_h, receiving, headroom)
+        saved_density = copy.deepcopy(state.freeway_density)
+        record = {}
+        with strict_index_guards(record), patch.object(lm, 'segment_vsl', side_effect=spy):
+            actual = lm.Leader(cfg)._feasible_nuf_capacity(state, control)
+        self.assertAlmostEqual(actual, expected*0.9, places=10)
+        self.assertEqual(seen, [(v['road'],v['to_cell']) for v in self.component.ramps.values()])
+        self.assertEqual(state.freeway_density, saved_density)
+        self.assertEqual(record['guard_errors'], [])
+        freeway.configs['FW_E'].network.freeway_segment_length_profile_km['FW_E'].pop()
+        with self.assertRaisesRegex(ValueError, 'inconsistent physical cells'):
+            lm.Leader(cfg)._feasible_nuf_capacity(state, control)
 
     def test_component_heads_would_misread(self):
         """Without the binding, 31-index heads read keys the controller never writes."""

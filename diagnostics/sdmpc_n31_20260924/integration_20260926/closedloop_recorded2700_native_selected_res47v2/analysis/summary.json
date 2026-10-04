@@ -1,0 +1,91 @@
+{
+  "scope": "One proposed3150s fixed-command validation against the already completed hold; not a new closed-loop policy, cooperation test or9000 restart",
+  "start_sec": 2700,
+  "end_sec": 3150,
+  "arms": {
+    "hold": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2632.7514861111104,
+      "TTT_2700p1_3150_veh_h": 465.5368888888893,
+      "Omega_TTD_events": 21340,
+      "Omega_end_vehicles": 3672,
+      "native_removals": 83,
+      "uninserted_at_end": 8152,
+      "unresolved_Omega_disappearances": 277,
+      "outside_Omega_residence_veh_h": 985.938611111113,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 4.998000000000093,
+      "native_physical_network_time_veh_h": 3618.775547180833,
+      "native_uninserted_delay_veh_h": 2869.173388888889,
+      "native_total_time_including_uninserted_veh_h": 6487.948936069722,
+      "native_uninserted_at_end": 8152.0,
+      "native_network_end_vehicles": 5040.0,
+      "native_arrived_vehicles": 23937.0
+    },
+    "selected": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2631.663208333331,
+      "TTT_2700p1_3150_veh_h": 464.44861111111004,
+      "Omega_TTD_events": 21300,
+      "Omega_end_vehicles": 3775,
+      "native_removals": 81,
+      "uninserted_at_end": 8083,
+      "unresolved_Omega_disappearances": 271,
+      "outside_Omega_residence_veh_h": 991.4604444444465,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 5.138194444444539,
+      "sampled_TVD_Omega_veh_km": 131283.09524152774,
+      "sampled_TVD_censored_tail_veh_km": 223.6172847222333,
+      "distance_definition": "Integral of sum of observed vehicle speeds inside Omega; trapezoid at actual timestamps.",
+      "native_physical_network_time_veh_h": 3623.2197971641667,
+      "native_uninserted_delay_veh_h": 2866.051722222222,
+      "native_total_time_including_uninserted_veh_h": 6489.271519386389,
+      "native_uninserted_at_end": 8083.0,
+      "native_network_end_vehicles": 5211.0,
+      "native_arrived_vehicles": 23835.0
+    }
+  },
+  "reused_nc_run": null,
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "common_start_vehicle_records_exact": true,
+  "prefixes": {
+    "hold": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    },
+    "selected": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+    "rows": 2141219,
+    "last_time_s": 2695.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_definition": "selected minus hold",
+  "delta_TTT_veh_h": -1.0882777777792398,
+  "delta_outside_Omega_residence_veh_h": 5.521833333333461,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Selected city/RM commands after native urban prefix; baseline metrics reused from the pinned completed hold.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": 1.3225833166670782,
+  "delta_native_uninserted_delay_veh_h": -3.121666666666897,
+  "protocol_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_native_selected_res47v2\\protocol.json",
+  "protocol_sha256": "e9aa470b7623d3f442f0503b1a4aa20fe9f49076d996612bdb2e6e69fb6fc26e",
+  "prediction_source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_res47v2_resv3\\summary.json",
+  "predicted_delta_omega_veh_h": -7.385319361369511,
+  "predicted_delta_tracked_total_veh_h": -0.4422129336147691,
+  "counterfactual_valid": true
+}

@@ -1,0 +1,47 @@
+{
+  "previous_goal_turn": "PROGRESS: scalar equation cause isolation and two rejected phi candidates, report preserved.",
+  "source": "https://arxiv.org/html/2503.17680v1",
+  "equations": [
+    13,
+    14,
+    16
+  ],
+  "hypothesis": "Large opposing velocity terms can lock cell15-20 into slow states; replace this local speed law by bounded virtual-density relaxation without adding capacity.",
+  "scope": "FW_E cells15-20 only, no on-ramp cells. Other cells/actual merge/routing/storage/drainage/receiving/physical conservation and VSL exposure unchanged.",
+  "caveat": "Local hybrid using existing cell FD and VSL exposure, not whole-road reproduction of the paper. Native v_min and outlet receiving-speed cap retained. No convection or original anticipation/lane-drop added in selected cells.",
+  "fit": "seed29 NC2220.1..2970.1 only; N/10,v/20,downstream30s counts/(1000/120); four shared parameters, existing FD frozen.",
+  "initial": [
+    12.0,
+    0.5,
+    150.0,
+    0.5
+  ],
+  "bounds": [
+    [
+      5.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      80.0,
+      1.0,
+      300.0,
+      1.0
+    ]
+  ],
+  "parameter_names": [
+    "tau_sec",
+    "eta",
+    "kappa",
+    "phi"
+  ],
+  "max_optimizer_nfev": 3,
+  "max_fit_rollouts": 15,
+  "max_new_rollouts": 27,
+  "train_gate": "Tail300 local loss >=10% lower, first450 <=10% worse, whole-road speed RMSE <=2km/h worse.",
+  "validation": "Only if train gate passes: frozen29early/43early four arms plus29late four arms; earlyNC/VSL750 and others450. These are previously inspected states, not pristine blind.",
+  "no_future_observations": true,
+  "production_adopted": false,
+  "new_native": 0
+}

@@ -15,6 +15,24 @@ import numpy as np
 from evaluation.controllers.sdmpc_dual import Dual, primal
 
 
+def primal_ramp_cohorts(rows):
+    """Compare sparse ramp state without AD-only, exactly zero-mass packets.
+
+    This is a primal witness only. The prediction keeps these packets and their
+    derivatives. No positive amount, however small, or occupied ETA is omitted.
+    """
+    result = []
+    for row in rows:
+        if not isinstance(row, tuple) or len(row) != 2:
+            raise ValueError('Unknown ramp cohort schema')
+        eta, count = map(primal, row)
+        if not math.isfinite(eta) or eta < 0 or not math.isfinite(count) or count < 0:
+            raise ValueError('Invalid ramp cohort clock or mass')
+        if count != 0.:
+            result.append(row)
+    return result
+
+
 def state_error(a, b, path='states', *, fast_records=False, compact_records=False):
     cache = {}
     unpacked = {}
@@ -110,7 +128,8 @@ def state_error(a, b, path='states', *, fast_records=False, compact_records=Fals
                 raise ValueError('State model-code identity mismatch: '+where)
             return 0.
         # Ledger lists have different semantics from ordinary sequences.
-        mode = ('transfers' if where.endswith('.transfers') else
+        mode = ('ramp_cohorts' if where.endswith(('._upstream','._downstream')) else
+                'transfers' if where.endswith('.transfers') else
                 'packed' if where.endswith('._packed_response_records') else
                 'allocations' if fast_records and where.endswith('.resource_allocations') else
                 'bounds' if fast_records and where.endswith('.state_bounds') else 'state')
@@ -149,6 +168,8 @@ def state_error(a, b, path='states', *, fast_records=False, compact_records=Fals
                 error = max(error, visit(value, y[k], where+'.'+str(k)))
             return error
         if isinstance(x, (tuple, list, deque)) and isinstance(y, tx):
+            if mode == 'ramp_cohorts':
+                return visit(primal_ramp_cohorts(x), primal_ramp_cohorts(y), where+'.primal')
             if mode == 'transfers':
                 xx, yy = grouped(x, where), grouped(y, where)
                 error = 0.

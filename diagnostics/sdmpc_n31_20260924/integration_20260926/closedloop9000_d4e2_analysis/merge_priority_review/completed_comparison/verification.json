@@ -1,0 +1,64 @@
+{
+  "completed_at": "2026-09-28T20:27:16.318346+09:00",
+  "native_runs": [
+    {
+      "arm": "hold",
+      "start": "2026-09-28T19:49:59.7288182+09:00",
+      "end": "2026-09-28T20:06:36.8624280+09:00",
+      "event_readbacks": 1204,
+      "ldp_samples": 1452000,
+      "meter_samples": 19200,
+      "missing_sg": {},
+      "receipt": "D:\\VISSIM_runs\\20260928_merge10484_priority_s47\\hold\\run\\run.json"
+    },
+    {
+      "arm": "release_10484",
+      "start": "2026-09-28T20:06:37.8491195+09:00",
+      "end": "2026-09-28T20:22:52.1405092+09:00",
+      "event_readbacks": 1175,
+      "ldp_samples": 1452000,
+      "meter_samples": 19200,
+      "missing_sg": {},
+      "receipt": "D:\\VISSIM_runs\\20260928_merge10484_priority_s47\\release_10484\\run\\run.json"
+    }
+  ],
+  "new_native_count": 2,
+  "execution_pins_unchanged": true,
+  "old_stop_unchanged": true,
+  "baseline_omega_matches_existing_cache": true,
+  "model_changes": 0,
+  "new_predictions": 0,
+  "new_optimization": 0,
+  "push": false,
+  "priority_adopted": false,
+  "full_goal_qualified": false,
+  "delta_release_minus_hold": {
+    "passive": {
+      "omega_ttt_veh_h": 1.5666666666666629,
+      "outside_omega_veh_h": -0.4395833333332462,
+      "external_latent_veh_h": 0.02758333333349583,
+      "pre_wait_veh_h": -2.9506944444444447,
+      "post_wait_veh_h": 0.5319444444444444,
+      "approach31_veh_h": -0.0347222222222221,
+      "combined_sampled_network_plus_native_latent_delta_veh_h": 1.1546666666669125,
+      "local_cells21_25_delta_veh_h": 3.397222222222222
+    },
+    "priority": {
+      "omega_ttt_veh_h": 0.6291666666666629,
+      "outside_omega_veh_h": -0.2986111111111427,
+      "external_latent_veh_h": 0.21624999997209216,
+      "pre_wait_veh_h": -3.266666666666667,
+      "post_wait_veh_h": 0.6284722222222221,
+      "approach31_veh_h": -0.025694444444444464,
+      "combined_sampled_network_plus_native_latent_delta_veh_h": 0.5468055555276123,
+      "local_cells21_25_delta_veh_h": 2.2534722222222214
+    }
+  },
+  "conclusion": "This seed47 pair does not support priority-only as a remedy for posthead realization. Existing passive RM already changes merge45->94; priority45->97. Keep original canonical network and separate changed-network evidence.",
+  "limits": [
+    "One seed and short450s outcome window; no universal priority/cooperation verdict.",
+    "Different network variants have different initial states.",
+    "Omega removals8 per passive arm and11 per priority arm; removals excluded from merge and not called TTD.",
+    "Cooperation variants remain unrun."
+  ]
+}

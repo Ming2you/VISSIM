@@ -1,0 +1,66 @@
+{
+  "scope": "matched no-control and actual receding-horizon SDMPC3000; not9000 qualification",
+  "start_sec": 900,
+  "end_sec": 3000,
+  "arms": {
+    "nc": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3000_veh_h": 2436.146972222221,
+      "TTT_900p1_3000_veh_h": 1980.5992777777765,
+      "Omega_TTD_events": 19884,
+      "Omega_end_vehicles": 3676,
+      "native_removals": 71,
+      "uninserted_at_end": 7947,
+      "unresolved_Omega_disappearances": 256,
+      "outside_Omega_residence_veh_h": 899.136833333335,
+      "last_fzp_sec": 2995.1,
+      "tail_hold_veh_h": 5.003444444444538
+    },
+    "sdmpc": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3000_veh_h": 2381.0065277777803,
+      "TTT_900p1_3000_veh_h": 1925.4588333333359,
+      "Omega_TTD_events": 19928,
+      "Omega_end_vehicles": 3632,
+      "native_removals": 65,
+      "uninserted_at_end": 7841,
+      "unresolved_Omega_disappearances": 228,
+      "outside_Omega_residence_veh_h": 945.7465000000017,
+      "last_fzp_sec": 2995.1,
+      "tail_hold_veh_h": 4.943555555555648
+    }
+  },
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "prefixes": {
+    "nc": {
+      "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+      "rows": 431233,
+      "last_time_s": 895.1
+    },
+    "sdmpc": {
+      "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+      "rows": 431233,
+      "last_time_s": 895.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "f1a0b040b711e5974615873f334d28395e7aa037de356caeda101fafcc8fbcda",
+    "rows": 431233,
+    "last_time_s": 895.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_definition": "sdmpc minus nc",
+  "delta_TTT_veh_h": -55.14044444444062,
+  "delta_outside_Omega_residence_veh_h": 46.609666666666726,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Uninserted terminal count is not the external input-queue time integral.",
+    "Urban signals and freeway commands are jointly controlled; not VSL-only attribution.",
+    "This bounded comparison does not prove the full9000 objective.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ]
+}

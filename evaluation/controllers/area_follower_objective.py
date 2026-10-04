@@ -1114,7 +1114,7 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
 
 
 def prepare_joint_leader_candidates(controller, state, forecast, previous, *,
-                                    budget_tolerance_veh_h, check_budget=None):
+                                    budget_tolerance_veh_h, check_budget=None, np_only=False):
     """Build a declared realized leader domain before any objective query.
 
     Preserve every NP value from the installed leader proposal generator. Pair
@@ -1143,7 +1143,7 @@ def prepare_joint_leader_candidates(controller, state, forecast, previous, *,
     from evaluation.controllers import physical_ramp_branches
     if physical_ramp_branches.enabled(cfg):
         return physical_ramp_branches.leader_seed_domain(controller, state, forecast, previous,
-            check_budget=check_budget)
+            check_budget=check_budget, np_only=np_only)
     original_inputs = (controller.leader, cfg, follower, state, forecast, previous)
     before = pickle.dumps(original_inputs, protocol=5)
     private_leader, follower, state, forecast, previous = copy.deepcopy(

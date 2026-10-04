@@ -1,0 +1,196 @@
+{
+  "status": "COMPLETE_CACHED_RESIDENCE_DIAGNOSIS",
+  "summary": {
+    "29_none": {
+      "cohorts": 19,
+      "methods": {
+        "uniform": {
+          "mean_abs_restricted_residence_error_sec": 2.922957973314054,
+          "mean_residence_bias_sec": 2.922957973314054,
+          "mean_curve_abs_error": 0.04549408568417884
+        },
+        "fifo": {
+          "mean_abs_restricted_residence_error_sec": 0.15731679740967652,
+          "mean_residence_bias_sec": -0.15731679740967652,
+          "mean_curve_abs_error": 0.0024202584216873333
+        }
+      }
+    },
+    "29_vsl": {
+      "cohorts": 21,
+      "methods": {
+        "uniform": {
+          "mean_abs_restricted_residence_error_sec": 2.9546510240699195,
+          "mean_residence_bias_sec": 2.9546510240699195,
+          "mean_curve_abs_error": 0.04597669227007402
+        },
+        "fifo": {
+          "mean_abs_restricted_residence_error_sec": 0.3424749853321281,
+          "mean_residence_bias_sec": -0.3424749853321281,
+          "mean_curve_abs_error": 0.005268845928186588
+        }
+      }
+    },
+    "43_none": {
+      "cohorts": 21,
+      "methods": {
+        "uniform": {
+          "mean_abs_restricted_residence_error_sec": 2.68142538608308,
+          "mean_residence_bias_sec": 2.68142538608308,
+          "mean_curve_abs_error": 0.04211338884112444
+        },
+        "fifo": {
+          "mean_abs_restricted_residence_error_sec": 0.7064899775680271,
+          "mean_residence_bias_sec": -0.7064899775680271,
+          "mean_curve_abs_error": 0.010869076577969644
+        }
+      }
+    },
+    "43_vsl": {
+      "cohorts": 21,
+      "methods": {
+        "uniform": {
+          "mean_abs_restricted_residence_error_sec": 2.504350472007559,
+          "mean_residence_bias_sec": 2.504350472007559,
+          "mean_curve_abs_error": 0.03920946448195913
+        },
+        "fifo": {
+          "mean_abs_restricted_residence_error_sec": 0.6958186601043744,
+          "mean_residence_bias_sec": -0.6958186601043744,
+          "mean_curve_abs_error": 0.010704902463144221
+        }
+      }
+    },
+    "67_none": {
+      "cohorts": 42,
+      "methods": {
+        "uniform": {
+          "mean_abs_restricted_residence_error_sec": 3.805448612601917,
+          "mean_residence_bias_sec": 3.805448612601917,
+          "mean_curve_abs_error": 0.059669171552821164
+        },
+        "fifo": {
+          "mean_abs_restricted_residence_error_sec": 1.115999726195486,
+          "mean_residence_bias_sec": -1.115999726195486,
+          "mean_curve_abs_error": 0.01721283374331796
+        }
+      }
+    },
+    "67_vsl": {
+      "cohorts": 42,
+      "methods": {
+        "uniform": {
+          "mean_abs_restricted_residence_error_sec": 4.066340177105784,
+          "mean_residence_bias_sec": 4.066340177105784,
+          "mean_curve_abs_error": 0.06301514284838361
+        },
+        "fifo": {
+          "mean_abs_restricted_residence_error_sec": 0.556455967383587,
+          "mean_residence_bias_sec": -0.556455967383587,
+          "mean_curve_abs_error": 0.008560861036670569
+        }
+      }
+    }
+  },
+  "seed43_initial_vsl_minus_nc_residence_seconds": {
+    "16": {
+      "native": 0.0,
+      "uniform": 0.0538346631723865,
+      "fifo": 0.0,
+      "autonomous_uniform": 0.10662865929930643
+    },
+    "17": {
+      "native": 0.0,
+      "uniform": 0.06277856814763272,
+      "fifo": 0.0
+    },
+    "19": {
+      "native": 0.0,
+      "uniform": -0.0383075748070425,
+      "fifo": 0.0,
+      "autonomous_uniform": 0.04505419603823313
+    }
+  },
+  "cohort_count": 166,
+  "exclusions": [
+    {
+      "seed": 29,
+      "arm": "none",
+      "start": 2370,
+      "cell": 17,
+      "reason": "unresolved sampled departure",
+      "details": [
+        {
+          "time": 2410,
+          "missing": [
+            "19286"
+          ],
+          "backward": []
+        }
+      ]
+    },
+    {
+      "seed": 29,
+      "arm": "none",
+      "start": 2400,
+      "cell": 17,
+      "reason": "unresolved sampled departure",
+      "details": [
+        {
+          "time": 2410,
+          "missing": [
+            "19286"
+          ],
+          "backward": []
+        }
+      ]
+    },
+    {
+      "seed": 43,
+      "arm": "none",
+      "start": 2250,
+      "cell": 17,
+      "method": "autonomous_uniform",
+      "reason": "model/native initial stock not equal",
+      "native_initial_stock": 18,
+      "model_initial_stock": 17.0
+    },
+    {
+      "seed": 43,
+      "arm": "vsl",
+      "start": 2250,
+      "cell": 17,
+      "method": "autonomous_uniform",
+      "reason": "model/native initial stock not equal",
+      "native_initial_stock": 18,
+      "model_initial_stock": 17.0
+    }
+  ],
+  "input_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_residence85\\protocol.json": "cac089c2a560887b4a0579be05067b330842dc4a7ab5eba4bbcff8394224cb3e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\geometry.json": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_population_response\\protocol.json": "bf6ceba921b0ee83e0161f115db0962723802e48e703f5b560b466fdadbc09a3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_none_frames.json.gz": "5b05cf5366daf96afc6832118f4c3d8e1273e1c8bcdd1a22c905fca7fd2bc713",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s29_vsl_frames.json.gz": "456db85b5dd98135a4c4cea8309944397709f37478ea731b54d3b71bfdfb0ab1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_none_frames.json.gz": "7646676de2327a018fa7ebebac6439c72962008785c979c3f9ca72701cb18a3d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\cohort_early\\s43_vsl_frames.json.gz": "698418a50715149af32cd50eecaa8734d32083482c80748e3729303cbb086e52",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_current_cells16_20\\freeway_0.json.gz": "52a71d3045594b1b9634708814dbd4823f72a48f4520c29d839c0724e23c853d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_current_cells16_20\\freeway_1.json.gz": "2e6dd4ef95b87786d7ed5d0d0b75291b356d256dcfe295fed878c14ad5165ebe"
+  },
+  "new_native": 0,
+  "new_forecasts": 0,
+  "fit": 0,
+  "fzp_reads": 0,
+  "production_adopted": false,
+  "goal_qualified": false,
+  "limitations": [
+    "Native snapshots are5s. Report interval-censored departure curves and trapezoid60s restricted residence; no exact crossing times or TTT.",
+    "Conditional uniform/FIFO use observed future aggregate occupancies and departures to separate representation; not autonomous forecasts and not production candidates.",
+    "Native sampled occupant departures omit within-bin entrants that also leave; do not equate them with complete detector flux.",
+    "Adjacent cohort starts overlap; no independent-sample significance claim.",
+    "Never equate passive cohort residence mismatch with proof of lost capacity or total-cost causality.",
+    "No compensation to force VSL gains, no fit, no changes to physical source/actuation/observation."
+  ]
+}

@@ -1,0 +1,427 @@
+{
+  "status": "LOCAL_DISCHARGE_IMPROVED_CONTROL_GAIN_NOT_QUALIFIED",
+  "forecasts": 6,
+  "tests_passed": 15,
+  "fit": 0,
+  "new_native": 0,
+  "new_fzp": 0,
+  "cases": {
+    "47_held_actual": {
+      "departure_veh": {
+        "SC1004_S_to_N_SC1003": 56.999999999999915,
+        "SC1004_S_to_E_SC1005": 23.910430839002238,
+        "SC1004_S_to_W": 35.99999999999996
+      },
+      "end_approach_veh": 202.33436916099845,
+      "omega_veh_h": 487.58461319143606,
+      "outside_veh_h": 227.57644717072662,
+      "total_veh_h": 715.1610603621627,
+      "delta_omega_veh_h": 0.0,
+      "delta_total_veh_h": 0.0,
+      "before_omega_veh_h": 485.0216710145654,
+      "before_total_veh_h": 715.1610603621627,
+      "before_departure_veh": {
+        "SC1004_S_to_N_SC1003": 23.751020408163264,
+        "SC1004_S_to_E_SC1005": 23.910430839002267,
+        "SC1004_S_to_W": 36.0
+      },
+      "max_resource_exceedance": 7.771561172376096e-16,
+      "local66_balance_error_veh": 7.176481631177012e-13,
+      "global_saved_stock_witness": "passed",
+      "quantity_constraints": {
+        "schema": "shared-quantity-constraints/v1",
+        "np": {
+          "mode": "cap",
+          "unit": "veh",
+          "actual": 607.4891322597502,
+          "target": 473.5894864517116,
+          "residual": 133.89964580803866,
+          "violation": 133.89964580803866,
+          "tolerance": 1e-07,
+          "constraint_checked": true,
+          "satisfied": false
+        },
+        "nuf": {
+          "mode": "cap",
+          "unit": "veh/h",
+          "actual": 5739.8006768464775,
+          "target": 6013.410248058302,
+          "residual": -273.6095712118249,
+          "violation": 0.0,
+          "tolerance": 1e-07,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "feasible": false,
+        "net_inflow_veh_by_owner": {
+          "SC1": 71.57164045351472,
+          "SC5": 0.0,
+          "SC6": 0.0,
+          "SC7": 0.0,
+          "SC11": 5.0,
+          "SC12": 17.44662131519273,
+          "SC16": 8.073222739420245,
+          "SC101": 0.0,
+          "SC105": 0.0,
+          "SC107": -51.344520599296786,
+          "SC108": 28.676109568683817,
+          "SC109": -83.6637299275226,
+          "SC1001": 505.179939628675,
+          "SC1002": 0.0,
+          "SC1003": 0.0,
+          "SC1004": 106.54984908108307,
+          "SC1005": 0.0
+        },
+        "meter_rate_veh_h_by_owner": {
+          "FW_E": 2460.0399419615524,
+          "FW_W": 3279.7607348849256
+        },
+        "nuf_definition": "predicted_accepted_mainline_merge",
+        "physical_ramp_merge": {
+          "schema": "predicted-physical-ramp-merge/v1",
+          "start_sec": 2700.0,
+          "end_sec": 3150.0,
+          "accepted_vehicles_by_ramp": {
+            "RM_C10480": 26.891143892932725,
+            "RM_C10482": 277.7111960663355,
+            "RM_C10646": 48.387751901347514,
+            "RM_C10644": 56.97999999999997,
+            "RM_C10639": 45.53308316029919,
+            "RM_C10681": 126.20701176634365,
+            "RM_C10490": 90.45769560180105,
+            "RM_C10484": 45.30720221675013
+          },
+          "rate_veh_h_by_ramp": {
+            "RM_C10480": 215.1291511434618,
+            "RM_C10482": 2221.689568530684,
+            "RM_C10646": 387.1020152107801,
+            "RM_C10644": 455.83999999999975,
+            "RM_C10639": 364.26466528239354,
+            "RM_C10681": 1009.6560941307492,
+            "RM_C10490": 723.6615648144084,
+            "RM_C10484": 362.457617734001
+          },
+          "rate_veh_h_by_owner": {
+            "FW_E": 2460.0399419615524,
+            "FW_W": 3279.7607348849256
+          },
+          "total_rate_veh_h": 5739.8006768464775,
+          "boundary": "ramp_to_mainline",
+          "omega_ttd": false,
+          "leader_target_inherited": false
+        },
+        "window": {
+          "start_sec": 2700.0,
+          "end_sec": 3150.0,
+          "horizon_steps": 3,
+          "urban_samples": 450
+        },
+        "nonowner_service_included_in_np": false,
+        "individual_np_quotas_created": false,
+        "directional_nuf_constraints_checked": false,
+        "quantity_constraints_only": true,
+        "physical_feasibility_certified": false,
+        "leader_target_changed": false
+      }
+    },
+    "47_selected": {
+      "departure_veh": {
+        "SC1004_S_to_N_SC1003": 49.5652173913043,
+        "SC1004_S_to_W": 31.304347826086925,
+        "SC1004_S_to_E_SC1005": 23.910430839002238
+      },
+      "end_approach_veh": 214.46480394360685,
+      "omega_veh_h": 479.01626776982044,
+      "outside_veh_h": 235.67481008252815,
+      "total_veh_h": 714.6910778523486,
+      "delta_omega_veh_h": -8.568345421615618,
+      "delta_total_veh_h": -0.4699825098141446,
+      "before_omega_veh_h": 477.44945645495613,
+      "before_total_veh_h": 714.6910778523484,
+      "before_departure_veh": {
+        "SC1004_S_to_N_SC1003": 20.653061224489797,
+        "SC1004_S_to_E_SC1005": 23.910430839002267,
+        "SC1004_S_to_W": 31.304347826086957
+      },
+      "max_resource_exceedance": 1.7763568394002505e-15,
+      "local66_balance_error_veh": 4.263256414560601e-13,
+      "global_saved_stock_witness": "passed",
+      "quantity_constraints": {
+        "schema": "shared-quantity-constraints/v1",
+        "np": {
+          "mode": "cap",
+          "unit": "veh",
+          "actual": 587.5221021842679,
+          "target": 473.5894864517116,
+          "residual": 113.93261573255626,
+          "violation": 113.93261573255626,
+          "tolerance": 1e-07,
+          "constraint_checked": true,
+          "satisfied": false
+        },
+        "nuf": {
+          "mode": "cap",
+          "unit": "veh/h",
+          "actual": 5730.950826419842,
+          "target": 6013.410248058302,
+          "residual": -282.4594216384603,
+          "violation": 0.0,
+          "tolerance": 1e-07,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "feasible": false,
+        "net_inflow_veh_by_owner": {
+          "SC1": 77.70660317460316,
+          "SC5": 0.0,
+          "SC6": 0.0,
+          "SC7": 0.0,
+          "SC11": 5.0,
+          "SC12": 17.455203628117896,
+          "SC16": 4.4101491774139525,
+          "SC101": 0.0,
+          "SC105": 0.0,
+          "SC107": -57.23643602190651,
+          "SC108": 26.82491010866036,
+          "SC109": -105.71914302967971,
+          "SC1001": 507.75090369597166,
+          "SC1002": 0.0,
+          "SC1003": 0.0,
+          "SC1004": 111.32991145108704,
+          "SC1005": 0.0
+        },
+        "meter_rate_veh_h_by_owner": {
+          "FW_E": 2456.4667749384535,
+          "FW_W": 3274.4840514813886
+        },
+        "nuf_definition": "predicted_accepted_mainline_merge",
+        "physical_ramp_merge": {
+          "schema": "predicted-physical-ramp-merge/v1",
+          "start_sec": 2700.0,
+          "end_sec": 3150.0,
+          "accepted_vehicles_by_ramp": {
+            "RM_C10480": 26.20418737119359,
+            "RM_C10482": 277.7111960663355,
+            "RM_C10646": 48.415122997644495,
+            "RM_C10644": 56.97999999999997,
+            "RM_C10639": 45.54242339828906,
+            "RM_C10681": 125.74866220675266,
+            "RM_C10490": 90.45976816539957,
+            "RM_C10484": 45.30749309686541
+          },
+          "rate_veh_h_by_ramp": {
+            "RM_C10480": 209.63349896954873,
+            "RM_C10482": 2221.689568530684,
+            "RM_C10646": 387.32098398115596,
+            "RM_C10644": 455.83999999999975,
+            "RM_C10639": 364.3393871863125,
+            "RM_C10681": 1005.9892976540212,
+            "RM_C10490": 723.6781453231965,
+            "RM_C10484": 362.45994477492326
+          },
+          "rate_veh_h_by_owner": {
+            "FW_E": 2456.4667749384535,
+            "FW_W": 3274.4840514813886
+          },
+          "total_rate_veh_h": 5730.950826419842,
+          "boundary": "ramp_to_mainline",
+          "omega_ttd": false,
+          "leader_target_inherited": false
+        },
+        "window": {
+          "start_sec": 2700.0,
+          "end_sec": 3150.0,
+          "horizon_steps": 3,
+          "urban_samples": 450
+        },
+        "nonowner_service_included_in_np": false,
+        "individual_np_quotas_created": false,
+        "directional_nuf_constraints_checked": false,
+        "quantity_constraints_only": true,
+        "physical_feasibility_certified": false,
+        "leader_target_changed": false
+      }
+    },
+    "43_held_actual": {
+      "departure_veh": {
+        "SC1004_S_to_N_SC1003": 59.99999999999979,
+        "SC1004_S_to_E_SC1005": 23.661904761904744,
+        "SC1004_S_to_W": 35.99999999999996
+      },
+      "end_approach_veh": 209.6236952380963,
+      "omega_veh_h": 482.7525348489413,
+      "outside_veh_h": 246.89987448055194,
+      "total_veh_h": 729.6524093294933,
+      "delta_omega_veh_h": 0.0,
+      "delta_total_veh_h": 0.0,
+      "before_omega_veh_h": 479.95834267207067,
+      "before_total_veh_h": 729.6524093294934,
+      "before_departure_veh": {
+        "SC1004_S_to_N_SC1003": 23.751020408163264,
+        "SC1004_S_to_E_SC1005": 23.66190476190477,
+        "SC1004_S_to_W": 36.0
+      },
+      "max_resource_exceedance": 4.6629367034256575e-15,
+      "local66_balance_error_veh": 1.0871303857129533e-12,
+      "global_saved_stock_witness": "not exported by this existing four-arm probe",
+      "quantity_constraints": null
+    },
+    "43_rm": {
+      "departure_veh": {
+        "SC1004_S_to_N_SC1003": 59.99999999999979,
+        "SC1004_S_to_E_SC1005": 23.661904761904744,
+        "SC1004_S_to_W": 35.99999999999996
+      },
+      "end_approach_veh": 209.6236952380963,
+      "omega_veh_h": 482.6566341918426,
+      "outside_veh_h": 246.89987691981523,
+      "total_veh_h": 729.5565111116579,
+      "delta_omega_veh_h": -0.09590065709869577,
+      "delta_total_veh_h": -0.09589821783538355,
+      "before_omega_veh_h": 479.86244201497163,
+      "before_total_veh_h": 729.5565111116576,
+      "before_departure_veh": {
+        "SC1004_S_to_N_SC1003": 23.751020408163264,
+        "SC1004_S_to_E_SC1005": 23.66190476190477,
+        "SC1004_S_to_W": 36.0
+      },
+      "max_resource_exceedance": 4.6629367034256575e-15,
+      "local66_balance_error_veh": 1.0871303857129533e-12,
+      "global_saved_stock_witness": "not exported by this existing four-arm probe",
+      "quantity_constraints": null
+    },
+    "43_vsl": {
+      "departure_veh": {
+        "SC1004_S_to_N_SC1003": 59.99999999999979,
+        "SC1004_S_to_E_SC1005": 23.661904761904744,
+        "SC1004_S_to_W": 35.99999999999996
+      },
+      "end_approach_veh": 209.6236952380963,
+      "omega_veh_h": 482.3705297267858,
+      "outside_veh_h": 246.89986369179312,
+      "total_veh_h": 729.2703934185789,
+      "delta_omega_veh_h": -0.38200512215553317,
+      "delta_total_veh_h": -0.3820159109143333,
+      "before_omega_veh_h": 479.5763375499148,
+      "before_total_veh_h": 729.2703934185786,
+      "before_departure_veh": {
+        "SC1004_S_to_N_SC1003": 23.751020408163264,
+        "SC1004_S_to_E_SC1005": 23.66190476190477,
+        "SC1004_S_to_W": 36.0
+      },
+      "max_resource_exceedance": 4.6629367034256575e-15,
+      "local66_balance_error_veh": 1.0871303857129533e-12,
+      "global_saved_stock_witness": "not exported by this existing four-arm probe",
+      "quantity_constraints": null
+    },
+    "43_both": {
+      "departure_veh": {
+        "SC1004_S_to_N_SC1003": 59.99999999999979,
+        "SC1004_S_to_E_SC1005": 23.661904761904744,
+        "SC1004_S_to_W": 35.99999999999996
+      },
+      "end_approach_veh": 209.6236952380963,
+      "omega_veh_h": 482.28805037523733,
+      "outside_veh_h": 246.89986576897437,
+      "total_veh_h": 729.1879161442117,
+      "delta_omega_veh_h": -0.46448447370397616,
+      "delta_total_veh_h": -0.46449318528152617,
+      "before_omega_veh_h": 479.493858198366,
+      "before_total_veh_h": 729.1879161442112,
+      "before_departure_veh": {
+        "SC1004_S_to_N_SC1003": 23.751020408163264,
+        "SC1004_S_to_E_SC1005": 23.66190476190477,
+        "SC1004_S_to_W": 36.0
+      },
+      "max_resource_exceedance": 4.6629367034256575e-15,
+      "local66_balance_error_veh": 1.0871303857129533e-12,
+      "global_saved_stock_witness": "not exported by this existing four-arm probe",
+      "quantity_constraints": null
+    }
+  },
+  "wall_sec": 156.11867060000077,
+  "unchanged_commands": true,
+  "native_validation_only": {
+    "47hold": {
+      "head_veh": {
+        "N": 62,
+        "W": 38
+      },
+      "link66_stock": [
+        175,
+        157,
+        160,
+        160
+      ],
+      "N_initial66_by150s": [
+        20,
+        21,
+        4
+      ],
+      "N_all_by150s": [
+        20,
+        21,
+        21
+      ]
+    },
+    "47selected": {
+      "head_veh": {
+        "N": 70,
+        "W": 36
+      },
+      "link66_stock": [
+        175,
+        151,
+        151,
+        154
+      ],
+      "N_initial66_by150s": [
+        28,
+        17,
+        0
+      ],
+      "N_all_by150s": [
+        28,
+        24,
+        18
+      ]
+    },
+    "43nc": {
+      "head_veh": {
+        "N": 76,
+        "W": 42
+      },
+      "link66_stock": [
+        161,
+        167,
+        168,
+        160
+      ]
+    }
+  },
+  "native43_delta_omega": {
+    "rm": -1.5472222222222172,
+    "vsl": 0.7770833333333371,
+    "both": -1.4534722222222172
+  },
+  "findings": [
+    "Other service rates, all compared commands and initial source/tag projection unchanged.",
+    "43 RM/VSL cost differences unchanged to numerical tolerance despite increased N discharge.",
+    "47 N absolute discharge error decreases but selected-minus-held N sign remains wrong.",
+    "Achieved past rate is a measured lower bound, not identified saturation capacity.",
+    "10632 already ungated in route_choice_corridor.intended_departure; phase label alone was insufficient to diagnose signal gating."
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban66_u7\\assessment.json": "f1faf4d0c730ef26c31c5b4f81b23c3ce4bef641fb091780a11d73573f09a481",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban66_u7\\native.json": "3b1758949edd7a6cbd94b3b7385e21535c9f125d5325296d3e32ea1c4e3cfc23",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban66_service\\after47_local.json": "cc52219ddef4dc7febd73b8675b8b4dae474a4449ee31df86be63eba72c3932b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_service66_after47_service66_after47\\held_actual.json": "ee31cefde52b074d857a8a00725f6c0a3d6e8087953227baacfe266fb887a507",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_trace10681_service66_after47_service66_after47\\selected.json": "0ded303c55f6bd02a7781c8692f46e4ef60a84f67ca279f01c716d85502b2ef0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban66_service\\after43_local.json": "b1ebacc3d60dee86e90e7f3c4ee1b905b8ce618d5b19f508d76ebe4fb750c321",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10681_service66_after43\\held_actual.json": "21c04ce62c3ce7308d70a90128de41c7d829949c9f5102f000a83279fe8db01b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10681_service66_after43\\rm.json": "2feb634a92235bb93ed25cea3be28eda90e86c64f7a7b50574f718563b11c6e4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10681_service66_after43\\vsl.json": "a80f1f4a6a88dff63b28dd76e52518e74e6e2dfa8354f5396c5929c4bb348be5",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10681_service66_after43\\both.json": "35f92736bf8d27cc7e7bdb647a824b54a81f545d2fe73b48d55decf501022155",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban66_u7\\after47.json": "2dd45ff357d7317c25a7edd5b12d45fafff28fea3cb0e4b0d38ce1965f46dbc7"
+  }
+}

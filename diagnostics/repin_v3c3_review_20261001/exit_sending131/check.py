@@ -1,0 +1,201 @@
+"""Current-state exit sending audit; existing 5s caches only, no plant mutation."""
+from collections import Counter
+from pathlib import Path
+import gzip
+import hashlib
+import json
+import math
+import time
+import xml.etree.ElementTree as ET
+
+HERE = Path(__file__).resolve().parent / 'attempt2'
+R = HERE.parent.parent
+ROOT = R.parents[1]
+PINS = {}
+WINDOWS = [(2700.1, 2820.1), (2820.1, 2970.1), (2970.1, 3120.1)]
+
+
+def read(path):
+    raw = path.read_bytes()
+    PINS[str(path)] = hashlib.sha256(raw).hexdigest()
+    return json.loads(gzip.decompress(raw) if path.suffix == '.gz' else raw)
+
+
+def dump(name, value):
+    (HERE / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def average(values):
+    return sum(values) / len(values) if values else 0.
+
+
+def main():
+    HERE.mkdir(exist_ok=True)
+    assert not (HERE / 'protocol.json').exists(), 'Preserve previous attempt'
+    started = time.perf_counter()
+    data = read(R / 'lane_interaction110/frames.json.gz')
+    events = read(R / 'boundary_time88/events.json')
+    old = read(R / 'exit_constraints130/protocol.json')
+    protected = old['protected_sha256']
+    for path, expected in protected.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == expected, path
+    stop_path = Path('D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP')
+    stop_hash = hashlib.sha256(stop_path.read_bytes()).hexdigest()
+    network = ROOT / 'diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx'
+    raw = network.read_bytes()
+    PINS[str(network)] = hashlib.sha256(raw).hexdigest()
+    assert PINS[str(network)] == '64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    links = {int(z.get('no')): z for z in ET.fromstring(raw).findall('./links/link')}
+    exit_pt = links[10483].find('fromLinkEndPt')
+    assert exit_pt.get('lane') == '119 1'
+    offsets = data['offsets_m']
+    left, right = data['bounds_m'][20:22]
+    branch = offsets['119'] + float(exit_pt.get('pos'))
+    length = right - left
+    exit_length = branch - left
+    key = 'NEXTLINK\\NO'
+    dump('protocol.json', dict(
+        previous_goal_turn='NO_PROGRESS: user question answered from completed128/130; no new evidence in that answer.',
+        hypothesis='Observed lane mean velocity vs exit-class velocity accounts for missing cell20 exit response.',
+        scope='seed67 RM release VSL110/90; existing current NEXTLINK labels, common2700.1 state; three disjoint windows totaling420s.',
+        windows=WINDOWS, budget=dict(native=0, fzp=0, fits=0, plant_rollouts=0),
+        comparisons=['Native-state N_exit*lane_v/L vs sum(exit_v)/L, with 5s left and trapezoid quadratures.',
+            'Native physical connector transition vs detector1m event with boundary-stock correction.',
+            'Recorded model request with native N and/or native lane v: conditional algebra only, not rollout.',
+            'Exit-class spatial moment ledger: future positions are response labels only.'],
+        prior_failures_reused=['91 mean-speed distance transport', '108 preserve aligned exit lane',
+            '119 two-bin same-speed transport', '106 spatial moment identity'],
+        limitations=['No causal stopped-vehicle classification, no autonomous response qualification.',
+            'Native state is observed every5s, held only in the explicitly conditional formula decomposition.',
+            'Off entry is an internal network transfer, not Omega TTD.',
+            'Current routes identify features; future native events only verify exit labels/mass/moments.'],
+        model_length_m=length, physical_exit_length_m=exit_length,
+        protected_sha256=protected, STOP_sha256=stop_hash, input_sha256=PINS.copy()))
+    all_rows, results, boundary_witnesses = [], {}, []
+    max_residual = 0.
+    for arm in ('release', 'release_vsl90'):
+        frames = {round(f['t'], 1): f['rows'] for f in data['cases'][arm]['frames']}
+        es = [e for e in events if e['case'] == '67_release/' + arm and e['ref'] == 'off_entry:10483']
+        event_by_id = {str(e['vehicle']): e['time_sec'] for e in es}
+        assert len(event_by_id) == len(es)
+        trace = read(R / 'exit_constraints130/attempt2' / ('fixed_' + arm + '_trace.json.gz'))
+        model = {round(z['time_s'], 1): z for z in trace}
+        terms = read(R / 'merge_exit128/both' / (arm + '_speed_terms.json.gz'))
+        speed_terms = {round(z['time_s'], 1): z for z in terms if z['cell'] == 20 and z['lane'] == 1}
+
+        def global_x(row):
+            return offsets.get(str(row['link']), math.nan) + row['pos']
+
+        def feature(rows):
+            lane = {i: z for i, z in rows.items() if z.get('cell') == 20 and z['lane'] == 1}
+            exits = {i: z for i, z in rows.items() if z.get('cell') == 20 and z[key] == '10483'}
+            assert all(z['link'] == 119 and z['lane'] == 1 for z in exits.values())
+            assert all(left - .02 <= global_x(z) <= branch + .02 for z in exits.values())
+            v = average([z['speed'] for z in lane.values()])
+            return dict(lane=lane, exits=exits, n=len(lane), ne=len(exits), lane_v=v,
+                qmean=len(exits) * v * 5 / (3.6 * length),
+                qexit=sum(z['speed'] for z in exits.values()) * 5 / (3.6 * length),
+                moment=sum((global_x(z) - left) / exit_length for z in exits.values()),
+                stopped=sum(z['speed'] < 5 for z in exits.values()),
+                front50=sum(0 <= branch - global_x(z) <= 50 for z in exits.values()))
+
+        def detector_stock(rows, t):
+            # A physical entry can precede the detector1m event; never shift its time silently.
+            return {i for i, z in rows.items() if z['link'] == 10483
+                and i in event_by_id and event_by_id[i] > t}
+
+        rows_out = []
+        for k in range(84):
+            t, end = round(2700.1 + 5 * k, 1), round(2705.1 + 5 * k, 1)
+            current, nxt = frames[t], frames[end]
+            a, b = feature(current), feature(nxt)
+            ai, bi = set(a['exits']), set(b['exits'])
+            departed = ai - bi
+            entered = bi - ai
+            # Every disappearing exit-class vehicle must actually enter10483, not relabel/disappear.
+            assert all(i in event_by_id and event_by_id[i] <= end + 1
+                and (i not in nxt or nxt[i]['link'] != 119) for i in departed), (arm, t, departed)
+            assert all(i in current and global_x(current[i]) < left for i in entered), (arm, t, entered)
+            det = {str(e['vehicle']) for e in es if t < e['time_sec'] <= end}
+            stock0, stock1 = detector_stock(current, t), detector_stock(nxt, end)
+            physical = (det | stock1) - stock0
+            assert departed <= physical, (arm, t, departed - physical)
+            transits = physical - departed
+            assert all(i in current and global_x(current[i]) < left for i in transits), (arm, t, transits)
+            for i in stock0 | stock1:
+                boundary_witnesses.append(dict(case=arm, interval_start=t, vehicle=i,
+                    detector_time=event_by_id[i], position_at_start=current.get(i), position_at_end=nxt.get(i)))
+            travel = sum((global_x(nxt[i]) - global_x(current[i])) / exit_length for i in ai & bi)
+            travel += sum((branch - global_x(current[i])) / exit_length for i in departed)
+            travel += sum((global_x(nxt[i]) - left) / exit_length for i in entered)
+            travel += len(transits)
+            residual = travel - (b['moment'] - a['moment']) - len(physical)
+            max_residual = max(max_residual, abs(residual))
+            assert abs(residual) < 1e-10
+            assert b['ne'] - a['ne'] == len(entered) + len(transits) - len(physical)
+            hybrid = Counter()
+            for j in range(1, 6):
+                z = model[round(t + j, 1)]
+                s = speed_terms[round(t + j, 1)]
+                # Prior130/128 traces describe the same fixed physical model.
+                if round(t + j - 1, 1) in speed_terms:
+                    assert abs(z['old_speed'] - max(5., speed_terms[round(t + j - 1, 1)]['post_exit_kmh'])) < 1e-9
+                nm, vm, no, vo = z['off_n'], z['old_speed'], a['ne'], a['lane_v']
+                scale = 1 / (3.6 * length)
+                assert abs(nm * vm * scale - z['off_request']) < 1e-9
+                hybrid.update(model_request=z['off_request'], observed_n_only=no * vm * scale,
+                    observed_v_only=nm * vo * scale, observed_both=no * vo * scale,
+                    n_contribution=(no - nm) * (vo + vm) * .5 * scale,
+                    v_contribution=(vo - vm) * (no + nm) * .5 * scale,
+                    model_exit=z['accepted_off'], model_reciprocal_cut=z['reciprocal_reduction'],
+                    model_n=nm / 5, model_v=vm / 5,
+                    pre_cap_v=s['pre_merge_kmh'] / 5, post_cap_raw_v=s['post_exit_kmh'] / 5,
+                    final_v=max(5., s['post_exit_kmh']) / 5,
+                    exit_cap_decrement=s['exit_decrement_kmh'] / 5,
+                    floor_active_seconds=int(s['post_exit_kmh'] < 5),
+                    exit_cap_active_seconds=int(s['exit_decrement_kmh'] > 1e-9))
+            assert abs(hybrid['observed_both'] - a['qmean']) < 1e-10
+            assert abs(hybrid['observed_both'] - hybrid['model_request']
+                - hybrid['n_contribution'] - hybrid['v_contribution']) < 1e-10
+            rows_out.append(dict(case=arm, start=t, end=end, physical_exit=len(physical), detector_exit=len(det),
+                detector_stock0=len(stock0), detector_stock1=len(stock1), arrivals=len(entered)+len(transits),
+                transits=len(transits), n0=a['ne'], n1=b['ne'], moment_change=b['moment']-a['moment'],
+                distance_over_length=travel, moment_residual=residual,
+                qmean=a['qmean'], qexit=a['qexit'], qmean_trap=(a['qmean']+b['qmean'])/2,
+                qexit_trap=(a['qexit']+b['qexit'])/2, native_lane_n=a['n'],
+                native_lane_v=a['lane_v'], stopped=a['stopped'], front50=a['front50'], **hybrid))
+        blocks = []
+        mean_keys = {'native_lane_n', 'native_lane_v', 'stopped', 'front50', 'model_n', 'model_v',
+            'pre_cap_v', 'post_cap_raw_v', 'final_v', 'exit_cap_decrement'}
+        for start, end in WINDOWS:
+            zs = [z for z in rows_out if start <= z['start'] < end]
+            out = dict(start=start, end=end, intervals=len(zs), exit_n_start=zs[0]['n0'], exit_n_end=zs[-1]['n1'],
+                native_exit_n=average([z['n0'] for z in zs]))
+            for name in zs[0]:
+                if name not in {'case', 'start', 'end', 'n0', 'n1'}:
+                    out[name] = (average if name in mean_keys else sum)([z[name] for z in zs])
+            assert out['physical_exit'] == out['detector_exit'] + zs[-1]['detector_stock1'] - zs[0]['detector_stock0']
+            blocks.append(out)
+        results[arm] = blocks
+        all_rows.extend(rows_out)
+    initial = {a: {i: z for i, z in data['cases'][a]['frames'][0]['rows'].items()
+        if z.get('cell') is not None and 16 <= z['cell'] <= 25} for a in results}
+    assert initial['release'] == initial['release_vsl90']
+    for path, sha in PINS.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == sha
+    for path, sha in protected.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == sha
+    assert hashlib.sha256(stop_path.read_bytes()).hexdigest() == stop_hash
+    dump('steps.json', all_rows)
+    dump('boundary_witnesses.json', boundary_witnesses)
+    dump('results.json', results)
+    dump('verification.json', dict(source_pins=PINS, protected_unchanged=True, STOP_unchanged=True,
+        common_initial=True, mass_steps=len(all_rows), spatial_moment_max_residual=max_residual,
+        completed_no_fit_no_forecast=True, elapsed_sec=time.perf_counter()-started))
+    dump('completion.json', dict(status='complete_diagnostic_only', goal='ACTIVE_NOT_QUALIFIED',
+        rows=len(all_rows), elapsed_sec=time.perf_counter()-started))
+    print(json.dumps(results, ensure_ascii=False, indent=2))
+
+
+if __name__ == '__main__':
+    main()

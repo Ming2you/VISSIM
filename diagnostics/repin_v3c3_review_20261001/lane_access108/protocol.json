@@ -1,0 +1,86 @@
+{
+  "previous_goal_turn": "PROGRESS: REVIEW107 completed six autonomous forecasts, rejected receiving-only correction; changed next action to lane/destination queue dynamics.",
+  "question": "Do actual10483 exit-bound vehicles need late lane changes after the4-to3lane transition, and does destination-independent exchange spuriously scatter already aligned exit traffic?",
+  "scope": "Same completed seed67 two-arm5s caches2670.1..3120.1. Separate current-known exit cohort from posthoc exit-labelled traffic.",
+  "geometry_checks": {
+    "10613_from": "2 2",
+    "10613_to": "119 1",
+    "10483_from": "119 1"
+  },
+  "inputs": {
+    "geometry": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\port_gain\\geometry.json",
+      "sha256": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2"
+    },
+    "routes": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\compiled.json",
+      "sha256": "e8d749d8a3153b099a2f10f1a044e941045f38c309a0b373de290a964a4b5798"
+    },
+    "initial": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\s67_late\\initial_raw.json",
+      "sha256": "36c5d3b657413ce0b435be680b2fdd891e00bc0bc6cc0f2b3e0240d303df3e6c"
+    },
+    "network": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx",
+      "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+    },
+    "release_frames": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz",
+      "sha256": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c"
+    },
+    "release_events": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release\\port_events.csv",
+      "sha256": "411ac2dd6af21ef5d104a02eadcc97a628c9ed7e97857dcc05407d739e102ba5"
+    },
+    "release_vsl90_frames": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz",
+      "sha256": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93"
+    },
+    "release_vsl90_events": {
+      "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release_vsl90\\port_events.csv",
+      "sha256": "1bceb0c080d71b016352e06bb9f574dae0762ac9813c3387f0ec5f3e212b26d1"
+    }
+  },
+  "old_helper_ast_sha256": {
+    "read": "33b66a28dfd0df775bc603e95071e6fe149bc0e7a4a85f57be312c46d25639f6",
+    "main": "c0a7250700478142b484d4235ee7b671f92de1e304b9609e76e1c82fff9316f9",
+    "assess_destination_speed": "25f4a08b84f35e8ea68af9df881b5fa6efd471f0a8bc6b5df5b6177a37520421",
+    "assess_current_destination_snapshots": "5805e42104e668fcacee8e96ae5437ffe60b825fe3546a69fcc3fc72596d9e7a",
+    "assess_approach10483_90": "e7de0d4239d4e25d6d4cdf8b9062ef910e63533e09b3da485d42d41b12a5628d",
+    "assess_state_information92": "572240b374872d65270cf9633accd75805fa4d3a070ad92f944fdd3f88171d7c",
+    "assess_lane_aggregation99": "6ada7850a5d1cff6ccb7f5486efba90ea16bae0963f29a52a012b2a1280b36d1",
+    "assess_joint_lane_transport100": "804c9e2d240babb1b5d1126469ac5a16fd7a08b3b95614b47d8717ba48431527",
+    "assess_downstream_density101": "b85429e026cc78fda621db7051bb5c0b2f350142e4e332b5c289aef88d8bc755",
+    "assess_stopped_lane106": "7b9c4e680c5c19f07dfbbfb429cb150204d2849b04c8a93b3942d57b84ff64e6",
+    "assess_lane_receiving107": "a2b1e0903776408edadf6c9450272c01c1758ac9910c56a0b1ce946b71519c7e",
+    "run_lane_receiving107": "5fbf9de7acb1ae710224d9859b7c39f25ec021a3a091d469a6ad891b0c2fc142"
+  },
+  "protected_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP": {
+    "path": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "budget": {
+    "fits": 0,
+    "native": 0,
+    "FZP": 0,
+    "forecasts_before_evidence": 0
+  },
+  "limits": [
+    "5s same-link endpoint lane changes are net changes, not complete event counts.",
+    "Link2lane2 maps to119lane1; these are not counted as lane changes. Link2lane1 also serves10481: not all departing lane1 traffic merges into lane2.",
+    "Posthoc exits and continued travel are descriptive labels only; no model inputs.",
+    "Current-known cohort uses2670.1 explicit route1131:3 only, no future destination labels.",
+    "No capacity or control bonus. A structural correction requires an observed and code-traced defect, then a separate predeclared bounded rollout test."
+  ]
+}

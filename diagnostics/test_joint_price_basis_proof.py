@@ -138,6 +138,45 @@ class FixedMeterPriceProofTests(unittest.TestCase):
 
 
 class SparsePriceBasisTests(unittest.TestCase):
+    def test_six_zone_price_basis_keeps_every_free_sign_group(self):
+        from types import MethodType
+        from diagnostics.test_joint_neighbor_callbacks import JointNeighborCallbackTests
+        f = JointNeighborCallbackTests(); f.setUp(); self.addCleanup(f.doCleanups)
+        net = f.cfg.network
+        heads = (0, 2, 5, 10, 13, 15)
+        free_heads = (2, 5, 10, 13)
+        net.freeway_vsl_zone_free = [1, 2, 3, 4]
+        for road in net.freeway_links:
+            aliases = [max(h for h in heads if h <= i) for i in range(21)]
+            net.freeway_vsl_zone_heads[road] = list(heads)
+            net.freeway_vsl_zone_head_of_cell[road] = aliases
+            net.freeway_vsl_zone_of_cell[road] = [heads.index(h) for h in aliases]
+            for i in range(21):
+                f.initial.vsl[f'{road}__seg{i}'] = 120.
+            f.initial.vsl[road] = 120.
+        f.previous = f.historical_reference(f.initial, f.cfg)['previous']
+
+        def source(self, owner, n, state, coupling, snapshot, demand):
+            current = [snapshot.vsl[f'{owner}__seg{i}'] for i in range(n)]
+            return [current] + [[80. if net.freeway_vsl_zone_head_of_cell[owner][i] == h
+                                 else current[i] for i in range(n)] for h in free_heads]
+        f.follower._wu._relaxed_freeway_segment_candidates = MethodType(source, f.follower._wu)
+        limits = {'green_sec': 3., 'offset_sec': 75., 'vsl_kmh': 40., 'meter_veh_h': 300.}
+        cb = f.make(decision_anchor=f.initial, move_limits=limits, price_probe=True,
+                    freeway_joint_pairs=lambda owner, domain: ())
+        for road in net.freeway_links:
+            with self.subTest(road=road):
+                result = cb['neighbor_evidence'](road, f.initial, f.context)
+                changed = [{h for h in free_heads if u.vsl[f'{road}__seg{h}'] != 120.}
+                           for u in result['candidates']]
+                self.assertEqual(len(result['candidates']), 5)
+                for h in free_heads:
+                    self.assertIn({h}, changed)
+                for u in result['candidates']:
+                    self.assertEqual(u.vsl[f'{road}__seg0'], 120.)
+                    self.assertEqual(u.vsl[f'{road}__seg15'], 120.)
+                    self.assertFalse(cb['move_box'].violations(u))
+
     def test_urban_basis_uses_fallback_when_first_requested_basis_is_outside_box(self):
         from diagnostics.test_joint_neighbor_callbacks import JointNeighborCallbackTests
         f = JointNeighborCallbackTests(); f.setUp(); self.addCleanup(f.doCleanups)

@@ -1,0 +1,73 @@
+{
+  "status": "diagnosis_complete_offset_not_qualified",
+  "new_ad_rollouts": 1,
+  "new_scalar_rollouts": 0,
+  "wall_sec": 61.98712870001327,
+  "prior_primal_max_error": 0.0,
+  "prior_gradient_max_change": 0.0,
+  "records": 117803,
+  "dropped": 0,
+  "sites": [
+    {
+      "file": "C:/Users/alsrj/Desktop/\ud559\uc220/\ucc10\ucc10\ub9c9/Codex/VISSIM/.worktrees/sd31-upstream-20260926/evaluation/controllers/sdmpc_continuous.py",
+      "function": "step_integral",
+      "line": 18,
+      "different_tangent": 16,
+      "output_node_connected": 8
+    },
+    {
+      "file": "C:/Users/alsrj/Desktop/\ud559\uc220/\ucc10\ucc10\ub9c9/Codex/VISSIM/.worktrees/sd31-upstream-20260926/evaluation/controllers/sdmpc_continuous.py",
+      "function": "step_integral",
+      "line": 16,
+      "different_tangent": 16,
+      "output_node_connected": 0
+    },
+    {
+      "file": "C:/Users/alsrj/Desktop/\ud559\uc220/\ucc10\ucc10\ub9c9/Codex/VISSIM/.worktrees/sd31-upstream-20260926/evaluation/controllers/lane_offramp_runtime.py",
+      "function": "assert_network_mirror",
+      "line": 257,
+      "different_tangent": 26,
+      "output_node_connected": 0
+    },
+    {
+      "file": "C:/Users/alsrj/Desktop/\ud559\uc220/\ucc10\ucc10\ub9c9/Codex/VISSIM/.worktrees/sd31-upstream-20260926/evaluation/controllers/lane_offramp_runtime.py",
+      "function": "assert_conserved",
+      "line": 252,
+      "different_tangent": 29,
+      "output_node_connected": 0
+    }
+  ],
+  "first_captured_mirror_discrepancy": {
+    "node_order": 1404506,
+    "a_node": 1404505,
+    "b_node": 0,
+    "value": 0.0,
+    "a_derivative": -80.0,
+    "b_derivative": 0.0,
+    "a_output_adjoint": 0.0,
+    "b_output_adjoint": 0.0,
+    "minmax_call": true,
+    "discrete": false,
+    "output_node_connected": false,
+    "site": {
+      "file": "C:/Users/alsrj/Desktop/\ud559\uc220/\ucc10\ucc10\ub9c9/Codex/VISSIM/.worktrees/sd31-upstream-20260926/evaluation/controllers/lane_offramp_runtime.py",
+      "function": "assert_network_mirror",
+      "line": 257
+    },
+    "context": {
+      "state_time_sec": 2790
+    }
+  },
+  "transformed_sources_verified": 98,
+  "selection_started": false,
+  "physical_model_changed": false,
+  "calibration_changed": false,
+  "new_native_runs": 0,
+  "limitations": [
+    "Primal choices and every tape edge unchanged; this observer does not calculate directional derivatives.",
+    "Exact comparisons only; near ties and discrete jumps away from equality are not screened.",
+    "Selected-node aliases can have other output uses; connectivity is not per-call causal attribution.",
+    "Compiled-array operations report their emission location; not every internal branch calls this Python hook.",
+    "Queue-cleanup reproducer demonstrates a derivative-conservation defect but does not prove it accounts for every recorded offset mismatch."
+  ]
+}

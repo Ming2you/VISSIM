@@ -1,0 +1,229 @@
+"""Bounded equal-budget local recalibration of two existing plant structures.
+
+Reuses124 executed canonical functions in-process. No native simulation or new
+production adapter. Validation records never select a coefficient vector.
+"""
+import ast
+import copy
+import gzip
+import hashlib
+import itertools
+import json
+import math
+from pathlib import Path
+import sys
+import time
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[2]
+R=HERE.parent
+I=ROOT/'diagnostics/sdmpc_n31_20260924/integration_20260926'
+C=I/'baseline_reproduction_20260929/cellwise_calibration'
+F=C/'freeway_first'
+
+
+def read(p):
+    data=Path(p).read_bytes()
+    return json.loads(gzip.decompress(data) if str(p).endswith('.gz') else data)
+
+
+def save(p,x):
+    Path(p).write_text(json.dumps(x,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
+
+
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+def losses(rows,z):
+    """Calibration score; the controller's Omega objective is not modified."""
+    absolute=[]; local=[]; response=[]; pairs=[]
+    for row in rows:
+        a,p=row['actual'],row['predicted']
+        terms=[((p[k]-a[k])/s)**2 for k,s in [('ttt',5.),('ramp_ttt',1.),('off_ttt',1.),('end_n',40.),('exits',30.)]]
+        terms += [((p['merges'][r]-a['merges'][r])/20.)**2 for r in a['merges']]
+        absolute.append(sum(terms)/len(terms))
+        local.append(sum((row['local_rmse'][k]/s)**2 for k,s in [('n',8.),('v',20.),('q',800.)])/3)
+    for case in sorted({x['case'] for x in rows}):
+        by={x['arm']:x for x in rows if x['case']==case}
+        # All six contrasts preserve both incremental VSL effects and RM effects.
+        for a,b in itertools.combinations(sorted(by),2):
+            left,right=by[a],by[b]
+            actual={k:right['actual'][k]-left['actual'][k] for k in ('ttt','ramp_ttt','end_n','exits')}
+            pred={k:right['predicted'][k]-left['predicted'][k] for k in actual}
+            terms=[((pred[k]-actual[k])/max(s,abs(actual[k])))**2 for k,s in [('ttt',.5),('ramp_ttt',.5),('end_n',15.),('exits',15.)]]
+            terms += [((right['predicted']['merges'][r]-left['predicted']['merges'][r]-(right['actual']['merges'][r]-left['actual']['merges'][r]))/max(10.,abs(right['actual']['merges'][r]-left['actual']['merges'][r])))**2 for r in left['actual']['merges']]
+            response.append(sum(terms)/len(terms))
+            pairs.append(dict(case=case,left=a,right=b,actual=actual,predicted=pred,
+                              meaningful=abs(actual['ttt'])>=.5,sign_correct=actual['ttt']*pred['ttt']>0))
+    avg=lambda xs:sum(xs)/len(xs) if xs else 0.
+    ans=dict(absolute=avg(absolute),local=avg(local),response=avg(response),pairs=pairs,
+             prior=avg([(v-1.)**2 for v in z]))
+    ans['objective']=ans['absolute']+.25*ans['local']+2*ans['response']+.1*ans['prior']
+    return ans
+
+
+def main():
+    assert not (HERE/'status.json').exists(),'Preserve previous result; no automatic restart'
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    context,replay,Obs=common.setup()
+    from evaluation.controllers import lane_plant_runtime as lpr,physical_lane_groups as lanes,offramp_routing as routing,area_freeway_accounting as area
+    from evaluation.controllers.freeway_fd import cell_state_response
+    protected=read(R/'junction_fifo124/protocol.json')
+    for p,h in protected['protected_sha256'].items():assert sha(p)==h
+    assert sha(protected['STOP']['path'])==protected['STOP']['sha256']
+    document=context['document'];original=read(context['paths']['reference_config'])
+    catalog=read(C/'data_catalog.json')['checked_records']
+    train=[x for x in catalog if x['case']=='s29_late'];assert len(train)==4
+    validation=[x for x in catalog if x['case']=='s43_early']+common.records(False)
+    validation += [x for x in catalog if x['case']=='s29_early' and x['arm']=='none']
+    assert len(validation)==9
+    data={};payload={};pins={}
+    for rec in train+validation:
+        key=(rec['case'],rec['arm']);data[key]=Obs(rec['truth'])
+        args,kw=replay.read_primitive_capture(rec['input'],rec['sha256'])
+        assert kw['horizon_sec']==450 and args[2]==context['parameters']
+        raw=F/'route_inventory'/('initial_raw.json' if rec['case']=='s29_late' else rec['case']+'/initial_raw.json')
+        kw['offramp_inventory']=dict(contract=read(F/'route_inventory/contract.json'),raw=read(raw))
+        kw['port_dynamics']['entry_capacity_mode']='storage'
+        payload[key]=(args,kw);pins[str(raw)]=sha(raw);pins[rec['input']]=rec['sha256']
+    # Current initial states must match across the four intervention candidates.
+    first=payload[('s29_late',train[0]['arm'])][0][0]
+    assert all(payload[('s29_late',r['arm'])][0][0]==first for r in train)
+    axes=[(.8,1.2),(.65,1.35),(.65,1.35)]
+    protocol=dict(previous_goal_turn='PROGRESS:124 eight autonomous forecasts; node closure activates but fixed coefficients fail gain sign.',
+        parameters=[dict(cells=[19,20,21],key='rho_crit',multipliers=axes[0]),
+                    dict(cells=[19,20,21],key='relaxation.acceleration_sec',multipliers=axes[1]),
+                    dict(cells=[22,23,24,25],key='relaxation.acceleration_sec',multipliers=axes[2])],
+        interpretation='Current predicted desired>=speed selects acceleration branch. Tau changes existing METANET relaxation and anticipation denominator; not a reward or a seed/control bonus. Critical density changes the same physical FD and node receiving consistently.',
+        structures=['aggregate existing production','shared existing124 lane19..25 + receiving21 + reciprocal10483'],
+        train=[dict(case=r['case'],arm=r['arm']) for r in train],validation=[dict(case=r['case'],arm=r['arm']) for r in validation],
+        budget=dict(max_vectors_per_structure=9,training450=72,validation450=36,parity450=2,max_total450=110),
+        optimizer='Baseline+six symmetric one-axis candidates, then combined best individual improving directions and midpoint if distinct. No extension, no validation retuning.',
+        objective='Absolute TTT/wait/endN/exits/actualmerge errors +0.25localN/v/q+2all-pair response errors +0.1parameterprior. Same formula/bounds/budget for both structures; controllerOmegaTTT unchanged.',
+        gate='Training score>=5% better and response not worse; validation meaningful>=0.5vehh pair signs and best-control rank must hold, paired loss improve>=10%, absolute error not worse>10%. No adoption from training/velocity fit alone.',
+        scope='FW_E31cells+4on/4off connectors, not wholeOmegaTTT orOmegaTTD; executed-command autonomous forecast. Known inspected seeds, not pristineblind.',
+        source_sha256=pins,protected_sha256=protected['protected_sha256'],STOP=protected['STOP'],
+        helper_sha256=sha(__file__),no_future_traffic_states=True,new_native=0,new_FZP=0,push=0)
+    save(HERE/'protocol.json',protocol)
+    original_model=context['component']; model_class=type(original_model)
+    source=read(R/'junction_fifo124/dynamic/executed_function_sources.json');hooks=[]
+    forecasts=0;started=time.perf_counter();current='prepare';evaluations=[];selections={};validation_rows=[]
+    spec=read(F/'joint_lane_25/protocol.json')['candidate'];spec.update(congested_receiving_cells=[21],reciprocal_off='10483')
+    contexts={};bindings=[]
+    def model_for(z):
+        key=tuple(z)
+        if key in contexts:return contexts[key]
+        config=copy.deepcopy(original)
+        for i in (19,20,21):config['freeway']['physical_cell_fd']['FW_E'][str(i)]['rho_crit']*=z[0]
+        for group,m in ((range(19,22),z[1]),(range(22,26),z[2])):
+            for i in group:config['freeway']['state_response']['FW_E']['cell_overrides'][str(i)]['relaxation']['acceleration_sec']*=m
+        dest=HERE/f'coeff_{len(contexts):02d}';dest.mkdir()
+        path=dest/'reference_config.json';save(path,config)
+        manifest=copy.deepcopy(document);manifest['sources']['reference_config']=dict(path=path.relative_to(ROOT).as_posix(),sha256=sha(path))
+        manifest['qualification']='Unqualified125 limited local coefficients; shared structure requires explicit124 process-local code. No production/native adoption.'
+        save(dest/'manifest.json',manifest);new=lpr.load_sources(dest/'manifest.json')['component']
+        cfg=new._config('FW_E',context['parameters']['by_direction']['FW_E'])
+        old=original_model._config('FW_E',context['parameters']['by_direction']['FW_E'])
+        for i in range(31):
+            row=cfg.network.freeway_segment_params['FW_E'][i]; oldrow=old.network.freeway_segment_params['FW_E'][i]
+            assert row['rho_crit']==oldrow['rho_crit']*(z[0] if i in (19,20,21) else 1.)
+            local=cell_state_response(cfg.network,'FW_E',i); previous=cell_state_response(old.network,'FW_E',i)
+            factor=z[1] if 19<=i<=21 else z[2] if 22<=i<=25 else 1.
+            if 'relaxation' in previous:
+                assert abs(local['relaxation']['acceleration_sec']-previous['relaxation']['acceleration_sec']*factor)<1e-10
+                assert local['relaxation']['deceleration_sec']==previous['relaxation']['deceleration_sec']
+            assert local.get('anticipation')==previous.get('anticipation') and local.get('delta_merge')==previous.get('delta_merge')
+        assert cfg.network.freeway_segment_params['FW_W']==old.network.freeway_segment_params['FW_W']
+        bindings.append(dict(z=z,config=str(path),binding_verified=True,physical_cells=list(range(19,26))))
+        save(HERE/'bindings.json',bindings);contexts[key]=new;return new
+    def execute(model,structure,record,dest):
+        nonlocal forecasts
+        assert forecasts<110
+        key=(record['case'],record['arm']);args,kw=copy.deepcopy(payload[key])
+        if structure=='shared':kw['route_lane_regions']={'FW_E':copy.deepcopy(spec)}
+        pred=model.rollout(*args,**kw);forecasts+=1
+        row=replay._cellwise_measure(model,pred,record,data[key])
+        errors={'n':[],'v':[],'q':[]}
+        for p in pred['cells']:
+            if not 19<=p['cell']<=25:continue
+            a=next(v for v in data[key].cells[round(p['time_s'],6)] if v['road']=='FW_E' and v['cell']==p['cell'])
+            errors['n'].append(p['n_veh']-a['n_veh'])
+            if a['v_kmh'] is not None:errors['v'].append(p['v_kmh']-a['v_kmh'])
+        for p in pred['flows']:
+            if 19<=p['cell']<=25:
+                a=data[key].flows[round(p['window_end_s'],6),'FW_E',p['cell']]
+                errors['q'].append((p['downstream_crossings']-float(a['downstream_crossings']))*120.)
+        row['local_rmse']={k:math.sqrt(sum(x*x for x in xs)/len(xs)) for k,xs in errors.items()}
+        if structure=='shared':
+            reg=pred['diagnostics']['roads'][0]['joint_lane_region'];assert reg['route_marginal_max_error']<1e-7
+            row['route_error']=reg['route_marginal_max_error']
+            row['additional_off_restriction_steps']=sum(x['off_accepted_veh']<x['off_before_veh']-1e-9 for x in reg['junction_rows'])
+        with gzip.open(dest/(record['case']+'_'+record['arm']+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+        save(HERE/'status.json',dict(status='running',stage=current,forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+        return pred,row
+    def evaluate(structure,z,tag):
+        nonlocal current
+        current=structure+'_'+tag
+        folder=HERE/f'eval_{len(evaluations):02d}';folder.mkdir()
+        model=model_for(z);rows=[]
+        for r in train:_,row=execute(model,structure,r,folder);rows.append(row)
+        result=dict(structure=structure,z=z,tag=tag,folder=str(folder),rows=rows,loss=losses(rows,z))
+        evaluations.append(result);save(folder/'result.json',result);save(HERE/'evaluations.json',evaluations)
+        print(json.dumps(dict(stage=current,z=z,loss={k:v for k,v in result['loss'].items() if k!='pairs'},forecasts=forecasts)),flush=True)
+        return result
+    save(HERE/'status.json',dict(status='running',stage=current,forecasts=0))
+    try:
+        assert not hasattr(lanes,'RouteLaneRegion')
+        ns={};exec(compile(source['RouteLaneRegion'],'124class','exec'),lanes.__dict__,ns)
+        lanes.RouteLaneRegion=ns['RouteLaneRegion'];hooks.append((lanes,'RouteLaneRegion',None))
+        for target,name in ((routing,'initialize_inventory'),(routing,'advance_inventory'),(area,'_freeway_substep_events'),(model_class,'rollout')):
+            old=getattr(target,name);ns={};exec(compile(source[name],'124_'+name,'exec'),old.__globals__,ns)
+            hooks.append((target,name,old));setattr(target,name,ns[name])
+        parity=HERE/'parity';parity.mkdir();rec=next(x for x in validation if x['case']=='s67_late' and x['arm']=='release')
+        checks={}
+        for structure,label in (('aggregate','default_before'),('shared','shared_release')):
+            pred,_=execute(original_model,structure,rec,parity)
+            old=read(R/'junction_fifo124/dynamic'/(label+'.json.gz'))
+            checks[structure]=all(json.loads(json.dumps(pred[k]))==old[k] for k in ('cells','flows','ports','ramps'))
+        save(HERE/'parity.json',checks);assert all(checks.values())
+        for structure in ('aggregate','shared'):
+            group=[evaluate(structure,[1.,1.,1.],'fixed')];combined=[1.,1.,1.]
+            for axis,values in enumerate(axes):
+                trials=[]
+                for value in values:
+                    z=[1.,1.,1.];z[axis]=value;trials.append(evaluate(structure,z,f'axis{axis}_{value}'))
+                group.extend(trials)
+                best=min([group[0]]+trials,key=lambda x:x['loss']['objective'])
+                combined[axis]=best['z'][axis]
+            for tag,z in [('combined',combined),('midpoint',[(x+1)/2 for x in combined])]:
+                if any(x['z']==z for x in group):continue
+                group.append(evaluate(structure,z,tag))
+            best=min(group,key=lambda x:x['loss']['objective'])
+            selections[structure]=dict(fixed=group[0],selected=best,selected_before_validation=True,
+                training_improvement=1-best['loss']['objective']/group[0]['loss']['objective'])
+            save(HERE/'selection.json',selections)
+        # Values are frozen before ANY independent outcome is evaluated here.
+        for structure in ('aggregate','shared'):
+            for mode in ('fixed','selected'):
+                selected=selections[structure][mode];model=model_for(selected['z'])
+                current=structure+'_'+mode+'_validation';folder=HERE/current;folder.mkdir()
+                for rec in validation:
+                    _,row=execute(model,structure,rec,folder)
+                    validation_rows.append(dict(structure=structure,mode=mode,**row))
+                save(HERE/'validation.json',validation_rows)
+                print(json.dumps(dict(stage=current,forecasts=forecasts)),flush=True)
+        save(HERE/'status.json',dict(status='complete_pending_assessment',forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+    except BaseException as exc:
+        save(HERE/'status.json',dict(status='failed',stage=current,error=repr(exc),forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+        raise
+    finally:
+        for target,name,old in reversed(hooks):
+            if old is None:delattr(target,name)
+            else:setattr(target,name,old)
+        for p,h in protected['protected_sha256'].items():assert sha(p)==h,p
+        assert sha(protected['STOP']['path'])==protected['STOP']['sha256']
+        for p,h in pins.items():assert sha(p)==h,p
+        save(HERE/'restoration.json',dict(core_unchanged=True,STOP_unchanged=True,input_pins_unchanged=True,process_hooks_restored=True))
+
+
+if __name__=='__main__':main()

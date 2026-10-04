@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\sdmpc_n31_20260924\integration_20260926\probe_selected_arrival_path.py", line 3067, in <module>
+    main()
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\sdmpc_n31_20260924\integration_20260926\probe_selected_arrival_path.py", line 2679, in main
+    adapter.main()
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\evaluation\controllers\vissim_stackelberg_adapter.py", line 13063, in main
+    state, detector_mapping, runtime_patch_metadata = configure_runtime(
+                                                      ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\sdmpc_n31_20260924\integration_20260926\probe_selected_arrival_path.py", line 2491, in capture_runtime
+    result = configure(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\evaluation\controllers\runtime_setup.py", line 259, in configure_runtime
+    metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping,
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\evaluation\controllers\lane_plant_runtime.py", line 448, in initialize
+    _initialize_upstream(local,state,cfg,detectors,provenance,old_provenance,by_link,links,dimensions,context)
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\evaluation\controllers\lane_plant_runtime.py", line 861, in _initialize_upstream
+    raise ValueError('Active upstream route needs the reviewed local continuation')
+ValueError: Active upstream route needs the reviewed local continuation

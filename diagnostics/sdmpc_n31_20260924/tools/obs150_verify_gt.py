@@ -373,8 +373,16 @@ class Engine:
         if pb is not None:
             cands = [c.from_pos for c in out if c.no == pb.link or c.to_link == pb.link]
         else:
-            cands = [c.from_pos for c in out if c.no not in self.tracked]
-            if not any(c.from_pos >= g.length - END_TOL_M for c in out):
+            # A recorded active static route independently identifies its next
+            # connector even when that connector is outside the GT link set.
+            # Unknown/finished/repeated-link routes remain ambiguous; never use
+            # detector counts to choose the exit used to validate those counts.
+            path = self.net.routes.get((pa.rdec, pa.route), ())
+            positions = [i for i, no in enumerate(path) if no == link]
+            next_no = (path[positions[0]+1] if len(positions)==1 and positions[0]+1<len(path) else None)
+            eligible = out if next_no is None else [c for c in out if c.no == next_no]
+            cands = [c.from_pos for c in eligible if c.no not in self.tracked]
+            if next_no is None and not any(c.from_pos >= g.length - END_TOL_M for c in out):
                 cands.append(g.length)                # network exit at the link end
         reach = self._reach(pa, veh)
         cands = [INF if c >= g.length - END_TOL_M else c for c in cands

@@ -1,0 +1,50 @@
+{
+  "previous_goal_turn": "PROGRESS REVIEW90: same initial native84 gain localized to19/20 approach with5s brackets; no model adopted.",
+  "created": "2026-10-03T10:51:03.365111+09:00",
+  "hypothesis": "Uniform within-cell route mixing disperses physical traversal times; an explicit remaining-distance gate in19/20 may improve autonomous queue/release timing without changing speed equations.",
+  "candidate": "Only FW_E19/20: initial packets fromcurrent2700positions/routes, advance remaining distance by current predicted cell speed, accepted outflows bounded by packets reaching face; FIFO within each allowed branch/through stream; classes advected by accepted packet masses. No new capacity, objective reward or coefficient.",
+  "budget": {
+    "autonomous450": 2,
+    "native": 0,
+    "fit": 0,
+    "optimizer": 0
+  },
+  "cases": [
+    "release110",
+    "sameRM_release_VSL90"
+  ],
+  "source_clock": "2700 currentobserved state only; futureactual results evaluation only",
+  "gate": {
+    "omega_effect_error_reduction_min": 0.2,
+    "terminal_effect_error_reduction_min": 0.2,
+    "mass_error_max_veh": 1e-07,
+    "class_error_max_veh": 1e-07
+  },
+  "limitations": [
+    "Local common cell speed is not a microscopic lane-change model.",
+    "Initial/future packets represent expected route masses, not future actual IDs.",
+    "Test67 is development evidence, not independent qualification;71failure retained.",
+    "Failure ends this one-candidate test; no grid of delay multipliers."
+  ],
+  "prior_checked": [
+    "Claudeothernetwork HYBRID_DESIGN not transplanted",
+    "physical joint_lane_fifo regional model rejected",
+    "passive VSL85 FIFO rejected, distinct fromphysicaldistance/route transport here",
+    "destination-speed87 fixedtotal split rejected",
+    "REVIEW82 existing interval stock/flux errors reused"
+  ],
+  "protected_sha256": {
+    "evaluation\\controllers\\offramp_routing.py": "4ed3243430761f3ac5eaa517dfefee904418b0d8e252d3d369d4cbe5f4dd07a4",
+    "evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "input_sha256": {
+    "diagnostics\\repin_v3c3_review_20261001\\approach10483_90\\assessment.json": "610bf6b79348079290e8229df5b160cfe954bbf4c3721024a91e8dbfae14dbce",
+    "diagnostics\\repin_v3c3_review_20261001\\s67_policy_response81\\protocol_path.json": "8b1646606ea3d4d6ee48758448423cce800769045bf23beeddf6f54ba0efce02",
+    "diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "a9e321f2fb98da15ba3fd1e91f9c47547643ede4725596556f2e97a6390365ae"
+  }
+}

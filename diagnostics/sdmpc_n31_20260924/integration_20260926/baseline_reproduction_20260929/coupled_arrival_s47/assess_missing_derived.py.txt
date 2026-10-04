@@ -1,0 +1,140 @@
+"""Read completed two-arm forecasts and past native MER/state records only."""
+from pathlib import Path
+from collections import Counter
+import csv
+import gzip
+import hashlib
+import json
+import sys
+
+HERE = Path(__file__).resolve().parent
+I = HERE.parents[1]
+ROOT = I.parents[2]
+sys.path.insert(0, str(ROOT))
+from evaluation.controllers.obs150_contract import MerRow, assign_window
+
+pins = {}
+def data(path):
+    raw = path.read_bytes()
+    pins[str(path)] = hashlib.sha256(raw).hexdigest()
+    return raw
+
+def read(path):
+    return json.loads(data(path))
+
+forecast = I/'closedloop_recorded2700_lever450_trace10484_coupled_s47_v1'
+summary = read(forecast/'summary.json')
+native = read(I/'closedloop_recorded2700_lever450_rm_pair_s47_cell23_v4/ramp_response_audit.json')
+native_area = read(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json')
+assert native_area['paired_prefix_exact'] and native_area['counterfactual_valid']
+assert summary['future_observation_inputs'] is False and summary['optimizer_iterations'] == 0
+base = Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3')
+rows = {}
+initial_records = {}
+entry_ids = {}
+max_residual = 0.
+for arm, case in [('hold', 'held_actual'), ('release', 'release_actual')]:
+    d = summary['results'][case]
+    trace = json.loads(gzip.decompress(data(forecast/(case+'_RM_C10484_trace.json.gz'))))
+    folder = base/arm/('decisions_sdmpc31_g_2700_'+arm+'_s47')
+    states = {t: read(folder/f'state_{t:06d}.json') for t in (2700,2850,3000,3150)}
+    records = {t: {r['veh_no']:r for r in s['vehicle_records']['records']} for t,s in states.items()}
+    initial_records[arm] = records[2700]
+    detector = states[2700]['obs150']['detector_config']
+    table_path = Path(detector['path'])
+    raw = data(table_path)
+    assert hashlib.sha256(raw).hexdigest() == detector['sha256']
+    table = list(csv.DictReader(raw.decode('utf-8-sig').splitlines()))
+    ds = [r for r in table if r['boundary_ref']=='ramp_arrival:RM_C10484']
+    assert ds and all(float(r['pos']) == 1 and r['orientation']=='down' for r in ds)
+    dcps = [int(r['dcp_no']) for r in ds]
+    windows = []
+    entries = {}
+    snapshots = []
+    for t, rec in records.items():
+        ramp = [r for r in rec.values() if r['link_no']==10484]
+        pre = [r for r in ramp if r['position_m'] < trace['initial_buffer']['head_position_m']]
+        snapshots.append(dict(time=t,total=len(ramp),prehead=len(pre),posthead=len(ramp)-len(pre),
+            min_position=min((r['position_m'] for r in ramp),default=None),
+            stopped_prehead=sum(r['speed_kph'] < 5 for r in pre)))
+    for start,end in [(2700,2850),(2850,3000),(3000,3150)]:
+        mr = [MerRow(*json.loads(line)) for line in data(folder/'obs150'/f'mer_{end:06d}.jsonl').decode().splitlines()]
+        a = assign_window(states[end]['obs150'], mr)
+        assert a.start_s == start and a.end_s == end and all(a.tails[x]==0 for x in dcps)
+        crossings = [r for x in dcps for r in a.entries[x]]
+        ids = {r.veh for r in crossings}
+        assert len(ids) == len(crossings)
+        near = lambda t: {i for i,r in records[t].items() if r['link_no']==10484 and 0<=r['position_m']<1}
+        before,after = near(start),near(end)
+        arrivals = (ids|after)-before
+        derived = read(folder/'obs150'/f'derived_{end:06d}.json')
+        count = derived['boundaries']['ramp_arrival:RM_C10484']['cross']
+        assert len(arrivals) == count
+        assert not (set(entries)&arrivals), 'Re-entry must be represented as an event, not deduplicated'
+        times = {r.veh:r.t_entry for r in crossings}
+        for vid in arrivals:
+            entries[vid] = dict(detector_time=times.get(vid),window=[start,end],
+                initial_link=records[2700].get(vid,{}).get('link_no'),
+                window_start_link=records[start].get(vid,{}).get('link_no'))
+        pred = [r for r in trace['transfers'] if start<=r['start_sec'] and r['end_sec']<=end]
+        by_source = Counter()
+        for r in pred:
+            if r['target']=='ramp:RM_C10484': by_source[r['source']]+=r['vehicles']
+        windows.append(dict(start=start,end=end,actual_arrivals=count,predicted_arrivals=sum(by_source.values()),
+            predicted_by_source=dict(by_source),actual_by_initial_link=dict(Counter(str(entries[x]['initial_link']) for x in arrivals))))
+    entry_ids[arm] = entries
+    assert len(entries)==native['arms'][arm]['RM_C10484']['actual']['arrival']
+    flow = Counter()
+    for r in trace['transfers']: flow[str((r['source'],r['target']))]+=r['vehicles']
+    ramps = {}
+    for ramp, value in d['ramps'].items():
+        actual = native['arms'][arm][ramp]['actual']
+        assert abs(value['residual']) < 1e-7
+        max_residual=max(max_residual,abs(value['residual']))
+        ramps[ramp] = dict(actual=actual,predicted=value)
+    rows[arm] = dict(omega_ttt=d['ttt_omega_veh_h'],outside_ttt=d['tracked_outside_residence_veh_h'],
+        cost_by_stock=d['cost_by_stock'],ramps=ramps,windows=windows,native_snapshots=snapshots,
+        ramp_metadata={k:v for k,v in trace['initial_buffer'].items() if k!='initial_cohorts'},
+        predicted_max_ramp_stock=max(r['ramp_veh'] for r in trace['residence']),
+        predicted_head_count=sum(r['accepted_total_veh'] for r in trace['resources'] if r['kind']=='physical_ramp_head_service'),
+        transfers=dict(flow))
+assert initial_records['hold']==initial_records['release']
+common_ids=set(initial_records['hold'])
+cohorts = {}
+for arm in rows:
+    other = 'release' if arm=='hold' else 'hold'
+    pre = set(entry_ids[arm])&common_ids
+    exclusive=pre-set(entry_ids[other])
+    cohorts[arm]=dict(total_arrivals=len(entry_ids[arm]),from_common_initial=len(pre),
+        absent_initial=len(set(entry_ids[arm])-common_ids),
+        exclusive_common_initial_ids=sorted(exclusive),
+        exclusive_initial_links=dict(Counter(str(initial_records[arm][v]['link_no']) for v in exclusive)))
+paired = set(entry_ids['hold'])&set(entry_ids['release'])&common_ids
+paired_times=[dict(veh=v,initial_link=initial_records['hold'][v]['link_no'],
+    hold=entry_ids['hold'][v]['detector_time'],release=entry_ids['release'][v]['detector_time']) for v in sorted(paired)]
+all_costs=set(rows['hold']['cost_by_stock'])|set(rows['release']['cost_by_stock'])
+cost_delta={k:rows['release']['cost_by_stock'].get(k,0)-rows['hold']['cost_by_stock'].get(k,0) for k in all_costs}
+assert abs(sum(cost_delta.values())-(rows['release']['omega_ttt']-rows['hold']['omega_ttt']))<1e-7
+old=read(I/'closedloop_recorded2700_select_check_native1113_s47/held_actual.json')
+held=summary['results']['held_actual']
+regression = all(held[k]==old[k] for k in ('ttt_omega_veh_h','tracked_outside_residence_veh_h','control_area','cost_by_stock','ramps','commands'))
+assert regression
+protocol=read(HERE/'protocol.json')
+for p,h in protocol['pins'].items(): assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h,p
+result=dict(arms=rows,common_initial_cohorts=cohorts,paired_entry_times=paired_times,
+    entries={a:{str(k):v for k,v in d.items()} for a,d in entry_ids.items()},
+    predicted_cost_delta=cost_delta,actual_delta_omega=native_area['delta_TTT_veh_h'],
+    actual_delta_outside=native_area['delta_outside_Omega_residence_veh_h'],
+    native_counterfactual_prefix_rows=native_area['prefixes']['hold']['rows'],
+    max_ramp_mass_residual=max_residual,hold_physics_exact_to_previous=regression,
+    new_forecasts=2,new_native=0,fit=False,core_pins_unchanged=True,
+    limitations=['MER at1m has a small timing offset from connector entry; near-entry stocks correct counts.',
+      'Post-control newly generated IDs are not paired between policies.',
+      '450s modeled residence uses1s integration; native Omega uses5s sampled residence plus final tail.',
+      'This previously inspected seed47 is not blind validation; no gain qualification.'],source_pins=pins)
+target=HERE/'comparison.json'
+assert not target.exists()
+target.write_text(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
+print(json.dumps(dict(cohorts=cohorts,paired=len(paired),costs={k:v for k,v in cost_delta.items() if k in ('freeway:FW_E','ramp:RM_C10484')},
+    delta_omega=sum(cost_delta.values()),max_mass=max_residual,regression=regression,
+    windows={a:r['windows'] for a,r in rows.items()},snapshots={a:r['native_snapshots'] for a,r in rows.items()}),ensure_ascii=False,indent=2))

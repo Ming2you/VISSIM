@@ -1,0 +1,105 @@
+"""Recorded-state canonical binding check; no native run or parameter fit."""
+import hashlib
+import gzip
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[2]
+I=ROOT/'diagnostics/sdmpc_n31_20260924/integration_20260926'
+from evaluation.controllers import obs150_contract as oc,runtime_setup
+
+def verify_existing(raw,derived):
+    obs=raw[oc.RAW_STATE_KEY];path=oc.resolve(obs,oc.derived_path(obs['sim_sec']))
+    assert path.read_bytes()==oc.derived_bytes(derived)
+    return path
+
+def main():
+    suffix=next(x.split('=',1)[1] for x in sys.argv if x.startswith('--suffix='))
+    forecast='--forecast' in sys.argv
+    target=HERE/(suffix+'.json')
+    if target.exists():raise FileExistsError(target)
+    oc.write_derived=verify_existing
+    base=I/'expanded036_9000_20260930/loss_onset2250/source_sc101/readiness_candidate/candidate_config.json'
+    tuning=json.loads(base.read_bytes())
+    tuning['urban']['shared_sc1001_approach']='boundary_only_v1'
+    config=HERE/'candidate_config.json'
+    serialized=(json.dumps(tuning,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
+    if config.exists():assert config.read_bytes()==serialized
+    else:config.write_bytes(serialized)
+    script=I/'probe_selected_arrival_path.py'
+    spec=importlib.util.spec_from_file_location('sc1001_connection_probe',script)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    if forecast:
+        probe=module.probe_levers
+        def with_trace(*args,**kwargs):
+            from src.controllers import rollout_endpoint as endpoint
+            from evaluation.controllers import area_leader_objective as quantities
+            from evaluation.controllers.area_runtime import model_inventory
+            from evaluation.controllers.control_area_objective import get_ledger
+            captured_probe=args[0];cfg=captured_probe['cfg']
+            from src.controllers.wu_faithful_follower import WuFaithfulFollower
+            follower=WuFaithfulFollower(cfg)  # Real 17-owner catalog, no solve call.
+            evaluate=endpoint.evaluate_price_point;number=0
+            def capture_point(*pos,**kw):
+                nonlocal number
+                point=evaluate(*pos,**kw);response=point.control_area_response
+                assert follower.cfg is cfg
+                q=quantities.shared_urban_quantities(follower,response,start_sec=pos[0].time_sec,horizon_steps=3)
+                states=[]
+                for state in (pos[0],*point.states):
+                    get_ledger(state).assert_stocks(model_inventory(state,cfg))
+                    state.sc1001_approach.assert_network_mirror(state,cfg)
+                    states.append(dict(time_sec=state.time_sec,
+                        ports={off:state.lane_offramp_runtime.stock(off) for off in ('10491','10481')},
+                        shared=state.sc1001_approach.stock(),city_queues={m:state.urban_movement_queue[m]
+                            for m in state.sc1001_approach.city_movements.values()}))
+                relevant=lambda key:any(t in (key or '') for t in ('SC1001','OR_D_W','OR_D_E'))
+                doc=dict(quantities=q,states=states,
+                    transfers=[r for r in response['transfers'] if relevant(r['source']) or relevant(r['target'])],
+                    residence=[{**{k:r[k] for k in ('stage','start_sec','end_sec','dt_h')},
+                        'inside_veh':{k:v for k,v in r['inside_veh'].items() if relevant(k)},
+                        'model_stock_veh':{k:v for k,v in r['model_stock_veh'].items() if relevant(k)}}
+                        for r in response['residence'] if r['stage']=='urban'],
+                    resource_max_exceedance=max(r['exceedance_veh'] for r in response['resource_allocations']))
+                path=HERE/(suffix+'_response_'+str(number)+'.json.gz')
+                assert not path.exists()
+                with gzip.open(path,'wt',encoding='utf-8') as stream:json.dump(doc,stream,ensure_ascii=False)
+                number+=1
+                return point
+            endpoint.evaluate_price_point=capture_point
+            try:return probe(*args,**kwargs)
+            finally:endpoint.evaluate_price_point=evaluate
+        module.probe_levers=with_trace
+    configure=runtime_setup.configure_runtime;captured={}
+    def capture(*args,**kwargs):
+        result=configure(*args,**kwargs)
+        captured.update(cfg=args[1],state=result[0],metadata=result[2],adapter=args[0])
+        return result
+    runtime_setup.configure_runtime=capture
+    recording=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3/hold/decisions_sdmpc31_g_2700_hold_s47')
+    sys.argv=[str(script),'--closedloop-recorded','--at=2700','--warm-head-history',
+        '--replay-vsl-history','--lever-probe450' if forecast else '--initialize-only','--output-suffix='+suffix,
+        '--recording-dir='+str(recording),
+        '--fixed-replay-summary='+str(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json'),
+        '--tuning-json='+str(config)]
+    try:module.main()
+    finally:runtime_setup.configure_runtime=configure
+    from evaluation.controllers.area_runtime import model_inventory
+    from evaluation.controllers.control_area_objective import get_ledger
+    s=captured['state'];cfg=captured['cfg'];a=s.sc1001_approach
+    ledger=get_ledger(s);ledger.assert_stocks(model_inventory(s,cfg));a.assert_network_mirror(s,cfg)
+    result=dict(status='CANONICAL_PAIR_FORECAST_PASS' if forecast else 'CANONICAL_INITIALIZATION_PASS',native_runs=0,forecasts=2 if forecast else 0,
+        candidate_config_sha256=hashlib.sha256(config.read_bytes()).hexdigest(),
+        binding=captured['metadata']['sc1001_shared_approach'],
+        initial_model_total_veh=sum(model_inventory(s,cfg).values()),
+        approach_stock_veh=a.stock(),city_queues={m:s.urban_movement_queue[m] for m in a.city_movements.values()},
+        source_schedule_veh=sum(s.urban_arrival_buffer[a.origin].values()),
+        source_stock_veh=cfg.network.urban_link_storage_veh[a.origin]-s.urban_link_storage[a.origin],
+        mass_ledger_matches=True,area_ttd_veh=ledger.ttd_veh,area_entered_veh=ledger.entered_veh)
+    target.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(result,ensure_ascii=False))
+
+if __name__=='__main__':main()

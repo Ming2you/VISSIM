@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "completed_forecasts": 8,
+  "tests_passed": 5,
+  "source_scope": {
+    "evaluation/controllers/lane_plant_runtime.py": [
+      "initialize",
+      "install_direct_drain_services"
+    ],
+    "evaluation/controllers/lane_offramp_runtime.py": [
+      "drain"
+    ],
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/probe_selected_arrival_path.py": [
+      "probe_levers"
+    ]
+  },
+  "source_pins_verified": true,
+  "protocol_original_bytes_verified": true,
+  "previous_six_pins_unchanged": {
+    "evaluation/controllers/lane_ramp_runtime.py": true,
+    "evaluation/controllers/area_freeway_accounting.py": true,
+    "evaluation/controllers/physical_ramp_boundary.py": true,
+    "evaluation/controllers/freeway_fd.py": true,
+    "evaluation/parameters.json": true,
+    "diagnostics/repin_v3c3_review_20261001/sc105_supply/candidate_config.json": true
+  },
+  "stop_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+  "new_native": 0,
+  "new_fzp_scan": 0,
+  "fit": 0,
+  "goal": "ACTIVE_NOT_QUALIFIED",
+  "reporting_failures": [
+    "Held/selected validation schemas differ; checker corrected only, failure log retained.",
+    "Updated completion protocol excluded from immutable source check; exact original CRLF bytes/SHA archived."
+  ]
+}

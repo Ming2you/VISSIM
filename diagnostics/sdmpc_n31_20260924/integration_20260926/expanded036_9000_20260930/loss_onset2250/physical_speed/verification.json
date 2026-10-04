@@ -1,0 +1,357 @@
+{
+  "status": "bounded_comparison_complete",
+  "previous_goal_turn": "progress",
+  "current_goal_turn": "progress",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "adopted": false,
+  "new_coupled_forecasts": 2,
+  "session29985": "exit0",
+  "model_buffer_replays": 2,
+  "tests_passed": 16,
+  "parameter_check": "PASS with inherited calibration warnings",
+  "physical_path_scalar_forward_ad": "PASS; four fixed-speed outputs only; not full SDMPC AD",
+  "native_runs": 0,
+  "fzp_scans": 0,
+  "coefficient_fits": 0,
+  "live_polls": 0,
+  "push": 0,
+  "states": {
+    "2250": {
+      "native": {
+        "initial_prehead": 13,
+        "initial_posthead": 9,
+        "arrival": 27,
+        "head": 29,
+        "merge_reconstructed": 36,
+        "final_prehead": 11,
+        "final_posthead": 2,
+        "initial_prehead_served": 13,
+        "new_arrival_heads": 16
+      },
+      "before": {
+        "arrival": 29.324704484712125,
+        "head": 40.09293879754929,
+        "merge": 46.935334347656074,
+        "prehead_final": 2.2317656871628415,
+        "posthead_final": 2.1576044498932188,
+        "head_ready_final": 0.0,
+        "upstream_travelling_final": 2.2317656871628415
+      },
+      "after": {
+        "arrival": 28.348912834718792,
+        "head": 34.35669627023533,
+        "merge": 40.80895483502738,
+        "prehead_final": 6.9922165644834635,
+        "posthead_final": 2.5477414352079517,
+        "head_ready_final": 0.0,
+        "upstream_travelling_final": 6.9922165644834635
+      },
+      "bins30": [
+        {
+          "start": 2250,
+          "end": 2280,
+          "model": {
+            "arrival": 7.4347768507482455,
+            "head": 11.100000000000001,
+            "merge": 9.081240640599253
+          },
+          "native": {
+            "start": 2250,
+            "end": 2280,
+            "arrival": 5,
+            "head": 12,
+            "road29_straight_head": 0,
+            "road40_left_head": 4
+          }
+        },
+        {
+          "start": 2280,
+          "end": 2310,
+          "model": {
+            "arrival": 2.963385664936796,
+            "head": 8.945887961859357,
+            "merge": 10.584028884156599
+          },
+          "native": {
+            "start": 2280,
+            "end": 2310,
+            "arrival": 2,
+            "head": 5,
+            "road29_straight_head": 6,
+            "road40_left_head": 9
+          }
+        },
+        {
+          "start": 2310,
+          "end": 2340,
+          "model": {
+            "arrival": 2.1709917573359707,
+            "head": 3.2753277711561384,
+            "merge": 11.827675208391803
+          },
+          "native": {
+            "start": 2310,
+            "end": 2340,
+            "arrival": 7,
+            "head": 2,
+            "road29_straight_head": 16,
+            "road40_left_head": 0
+          }
+        },
+        {
+          "start": 2340,
+          "end": 2370,
+          "model": {
+            "arrival": 9.027061899069011,
+            "head": 1.36188411823681,
+            "merge": 1.7629948201575858
+          },
+          "native": {
+            "start": 2340,
+            "end": 2370,
+            "arrival": 4,
+            "head": 7,
+            "road29_straight_head": 9,
+            "road40_left_head": 0
+          }
+        },
+        {
+          "start": 2370,
+          "end": 2400,
+          "model": {
+            "arrival": 6.752696662628769,
+            "head": 9.673596418983022,
+            "merge": 7.553015281722144
+          },
+          "native": {
+            "start": 2370,
+            "end": 2400,
+            "arrival": 9,
+            "head": 3,
+            "road29_straight_head": 0,
+            "road40_left_head": 0
+          }
+        }
+      ],
+      "delays": {
+        "SC1001_E_SC1002_to_W_RAMP": {
+          "distance_m": 540.6832337034456,
+          "physical_speed_kmh": 40.780464436792734,
+          "seconds": 48
+        },
+        "SC1001_N_SC2002_to_W_RAMP": {
+          "distance_m": 470.92736817966284,
+          "physical_speed_kmh": 27.87722414285714,
+          "seconds": 61
+        },
+        "SC1001_S_SC1003_to_W_RAMP": {
+          "distance_m": 497.4922276748226,
+          "physical_speed_kmh": 27.63407308333333,
+          "seconds": 65
+        }
+      },
+      "head_flows_first150": {
+        "SC1002_E_SC101_to_W_SC1001": 29.060150375939866,
+        "SC1001_E_SC1002_to_W_RAMP": 13.382575757575758
+      },
+      "all8_ramp_mass_max": 4.156675004196586e-13,
+      "omega_ttt450_before": 486.4192612608519,
+      "omega_ttt450_after": 486.1669543991494,
+      "effective_speed_source": "physical_observation"
+    },
+    "3600": {
+      "native": {
+        "initial_prehead": 2,
+        "initial_posthead": 0,
+        "arrival": 23,
+        "head": 23,
+        "merge_reconstructed": 23,
+        "final_prehead": 2,
+        "final_posthead": 0,
+        "initial_prehead_served": 2,
+        "new_arrival_heads": 21
+      },
+      "before": {
+        "arrival": 17.56709242126651,
+        "head": 17.822412481554707,
+        "merge": 17.642215448913756,
+        "prehead_final": 1.744679939711801,
+        "posthead_final": 0.18019703264094952,
+        "head_ready_final": 0.0,
+        "upstream_travelling_final": 1.744679939711801
+      },
+      "after": {
+        "arrival": 17.324853872513675,
+        "head": 17.772395247994616,
+        "merge": 17.419815448913756,
+        "prehead_final": 1.5524586245190573,
+        "posthead_final": 0.35257979908085885,
+        "head_ready_final": 0.0,
+        "upstream_travelling_final": 1.5524586245190573
+      },
+      "bins30": [
+        {
+          "start": 3600,
+          "end": 3630,
+          "model": {
+            "arrival": 2.5576638855780693,
+            "head": 2.0,
+            "merge": 1.0
+          },
+          "native": {
+            "start": 3600,
+            "end": 3630,
+            "arrival": 3,
+            "head": 1,
+            "road29_straight_head": 7,
+            "road40_left_head": 2
+          }
+        },
+        {
+          "start": 3630,
+          "end": 3660,
+          "model": {
+            "arrival": 7.6482153195008635,
+            "head": 1.5917759237187128,
+            "merge": 2.591775923718713
+          },
+          "native": {
+            "start": 3630,
+            "end": 3660,
+            "arrival": 11,
+            "head": 4,
+            "road29_straight_head": 1,
+            "road40_left_head": 0
+          }
+        },
+        {
+          "start": 3660,
+          "end": 3690,
+          "model": {
+            "arrival": 3.6112632252703256,
+            "head": 8.528048859591513,
+            "merge": 5.915395757123165
+          },
+          "native": {
+            "start": 3660,
+            "end": 3690,
+            "arrival": 6,
+            "head": 10,
+            "road29_straight_head": 0,
+            "road40_left_head": 0
+          }
+        },
+        {
+          "start": 3690,
+          "end": 3720,
+          "model": {
+            "arrival": 1.9904474992766654,
+            "head": 3.6112632252703256,
+            "merge": 5.85308837400525
+          },
+          "native": {
+            "start": 3690,
+            "end": 3720,
+            "arrival": 1,
+            "head": 6,
+            "road29_straight_head": 0,
+            "road40_left_head": 0
+          }
+        },
+        {
+          "start": 3720,
+          "end": 3750,
+          "model": {
+            "arrival": 1.51726394288775,
+            "head": 2.0413072394140657,
+            "merge": 2.0595553940666287
+          },
+          "native": {
+            "start": 3720,
+            "end": 3750,
+            "arrival": 2,
+            "head": 2,
+            "road29_straight_head": 0,
+            "road40_left_head": 9
+          }
+        }
+      ],
+      "delays": {
+        "SC1001_E_SC1002_to_W_RAMP": {
+          "distance_m": 540.6832337034456,
+          "physical_speed_kmh": 31.5610465,
+          "seconds": 62
+        },
+        "SC1001_N_SC2002_to_W_RAMP": {
+          "distance_m": 470.92736817966284,
+          "physical_speed_kmh": 44.2055115,
+          "seconds": 39
+        },
+        "SC1001_S_SC1003_to_W_RAMP": {
+          "distance_m": 497.4922276748226,
+          "physical_speed_kmh": 20.0,
+          "seconds": 90
+        }
+      },
+      "head_flows_first150": {
+        "SC1002_E_SC101_to_W_SC1001": 17.472049689441,
+        "SC1001_E_SC1002_to_W_RAMP": 4.381944444444444
+      },
+      "all8_ramp_mass_max": 2.2382096176443156e-13,
+      "omega_ttt450_before": 517.8386873264483,
+      "omega_ttt450_after": 517.5937618325923,
+      "effective_speed_source": "physical_observation"
+    }
+  },
+  "source_check": {
+    "changed_functions": [
+      "_direct_travel_speed",
+      "configure_direct_exit_legsplit",
+      "direct_exit_movement_receive",
+      "direct_exit_receive"
+    ],
+    "unchanged_functions": 53,
+    "all_protocol_pins_unchanged": true,
+    "candidate_config_one_option_only": true
+  },
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\ramp10484_path_v2\\verification.json": "ab3e48bfcd4e58bcc09c4b7ac4138247c575ec5e2c5b5f744b931fee54eb6dc4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\physical_speed\\buffer_audit\\verification.json": "deca16c1029c130fd399a4562b6ef88b88f8d4bbd1333be42f9ff516cf77415b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_svc\\initial.json": "6056558a763f627b654818f3d2e08c91d59e5c2328a1a44099ade18a04581829",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps\\initial.json": "6056558a763f627b654818f3d2e08c91d59e5c2328a1a44099ade18a04581829",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_svc\\projection.json": "a91e8c98e4e7d1a0cf08c70e3ef061939361ac4eb2e56c0f35d36990a59e9c9f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps\\projection.json": "a91e8c98e4e7d1a0cf08c70e3ef061939361ac4eb2e56c0f35d36990a59e9c9f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_svc\\service_projection.json": "2a108c71181f31763e2ac53e8ceb674c0ceed792a8bb797109748773a261c820",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps\\service_projection.json": "2a108c71181f31763e2ac53e8ceb674c0ceed792a8bb797109748773a261c820",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps\\receipt.json": "26c1cd7db5ff1942d93622e4a36e23f4d046b43477c14f9e64ea6b225ddd5a03",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps\\physical_speed.json": "8548f8eac179e3fa506b07b27e767e6e6946480e8e0c6f99a8a750b68d0f7eb0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_RM_C10484_city2250_svc\\held_actual.json": "e6c113766dc7699bc85e8a3342d3fe999f37f359b1e48f7845bca1ce1c066598",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_RM_C10484_city2250_ps\\held_actual.json": "02ad7bfcbaad4fb809c77bd2773b3fceadd67347bcee569938e2682eda695a2f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_ps\\trace.json.gz": "24b2fd6ef59e178910645e2d9bd3d84ddfab97993712d18695b5804981ae3be6",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_svc\\initial.json": "7e0d4e8fa268231534334dff1b66804e01a842b55f4f22f42820d1cac98b9d00",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps\\initial.json": "7e0d4e8fa268231534334dff1b66804e01a842b55f4f22f42820d1cac98b9d00",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_svc\\projection.json": "f736571897c29ab522719215eca976eede07b2442b8467e2b1623b11d3dd887d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps\\projection.json": "f736571897c29ab522719215eca976eede07b2442b8467e2b1623b11d3dd887d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_svc\\service_projection.json": "d629266d9e4b1587b94135d12db964f9bd69149acd17f799f5f5e38e47008da1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps\\service_projection.json": "d629266d9e4b1587b94135d12db964f9bd69149acd17f799f5f5e38e47008da1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps\\receipt.json": "08dbe99ba20230e43a4c30a8ba41f4074035c08285a3201a14081acd087c270a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps\\physical_speed.json": "947bdfd50e3c07c0f420a8069aa4565d698f3f8f95dfd7c78b1ce590020aebc4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded3600_lever450_RM_C10484_city3600_svc\\held_actual.json": "cbc4a5d8e1fef375d4ccbf926c4ca3b31e27082dc6cd6fff2bfcfd44ef72eb48",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded3600_lever450_RM_C10484_city3600_ps\\held_actual.json": "b9b3ded75f7d8c2271038f9368fac9474a5933e7e4838c615a096ff679ea9619",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_ps\\trace.json.gz": "c7f1cc2688d20b262f988018b59590c0371e101c4053ed9a43e28e96b3143647",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\physical_speed\\protocol.json": "09f13b887633b1e19b5bfaec930339c4eac567b767ce916ac11a272df3e1b9b6",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\service329\\candidate_config.json": "049d093281a84eb0675283cf058dd079aefe5e9fae91a1b0b33cb4d36fc67b1a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\physical_speed\\candidate_config.json": "4dad50007e42915e848c1901e725612bab8996881c47f7f90be468248770a762",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\route_choice_corridor.py": "993c269ddc118cbb12fe44e627501250f5a196eb85574a11a8d3c6ae15f63792",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\tests\\test_sc1001_destination_travel.py": "db9ee87d5aa8433b732c016afdf3914d58628be8ebb8c2b871c4379a9bc95848",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\audit_city_arrival.py": "012b911b0d2afeec759a75d12c5c62f40d8e7c267f6bde5bd92ecb2133107b36",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\audit_ramp10484_path.py": "4c0b81d85ed435220aa61f2b839b6dd7599c8a80afda56708dea987a05cf44d3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\check_transport_ad.py": "3ac4940c211919507d394c152daef5b99a8a6b7543da1e7258cad59d45b6af2f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\physical_speed\\source_check.json": "11550fbd56a7677fc539c2a085b0ecdd3c2fb137173d1edb417bed4afea4e97a"
+  },
+  "caveats": [
+    "Same seed29; only first150 seconds match actual future commands.",
+    "Legacy effective speeds, initial states/queues/buffers, capacities and held commands unchanged.",
+    "Improved2250 merge error, slightly worse3600 deficit. Not an adopted calibration or gain validation."
+  ]
+}

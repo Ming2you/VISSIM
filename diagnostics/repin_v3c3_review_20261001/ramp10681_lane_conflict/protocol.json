@@ -1,0 +1,25 @@
+{
+  "previous_goal_turn": "PROGRESS: observed lane handoff and six autonomous forecasts; missing lane-specific gap input isolated",
+  "candidate_count": 1,
+  "max_forecasts": 6,
+  "fit_calls": 0,
+  "change": "Use current predicted upstream through-stock and speed of receiving lanes1/2 for RM_C10681 gap input, excluding route classes exiting upstream; retain physical-space and canonical receiving limits",
+  "fixed": [
+    "gap coefficients",
+    "all cell coefficients",
+    "other7ramps conflict laws",
+    "head commands",
+    "demand",
+    "Omega objective",
+    "off storage/drain",
+    "REVIEW53 geometric lane receipt handoff"
+  ],
+  "limitations": [
+    "Sending-flow estimate at upstream boundary is not an instantaneous accepted merge-site observation",
+    "No future measured lane flows enter predictions",
+    "Existing43/47states are not blind holdouts"
+  ],
+  "new_native": 0,
+  "new_fzp": 0,
+  "push": 0
+}

@@ -1,0 +1,52 @@
+{
+  "created_at": "2026-09-29T03:47:03.228219+09:00",
+  "purpose": "Fill missing causal city/head initial history for the completed independent seed43 NC/RM/VSL/both experiment.",
+  "seed": 43,
+  "new_native_runs_max": 1,
+  "arms": [
+    "nc"
+  ],
+  "sim_period_sec": 2700,
+  "network_sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+  "network_vs_original": "Only saved randSeed differs; COM seed43 will override it",
+  "result_root": "D:/VISSIM_runs/20260929_seed43_observation2700",
+  "frozen_runtime": "D:/VISSIM_runs/20260929_sd31_gate_runtime/sdmpc31_886a014a_202609290307",
+  "frozen_runtime_mutation": false,
+  "selected_production_config_changed": false,
+  "current_driver_seed_override": true,
+  "old_seed29_default_unchanged": true,
+  "reused_results": {
+    "reference": "D:/VISSIM_runs/20260924_bottleneck90_full_s43/none/run",
+    "controlled": "D:/VISSIM_runs/20260924_response2250_s43"
+  },
+  "observation_cutoff_sec": 2250,
+  "forecast_horizon_sec": 450,
+  "forecast_cases": [
+    "nc",
+    "rm",
+    "vsl",
+    "both"
+  ],
+  "forecast_count_max": 4,
+  "coefficient_fit": false,
+  "optimizer_calls": 0,
+  "verification": [
+    "No existing run overwrite",
+    "Initial no-progress300s owned-process watchdog",
+    "Completed native,LDP/VSL readback",
+    "Raw FZP prefix through2250 must equal oldNC before using its held-out responses",
+    "Same seed/network/demand/signals, past head and VSL histories, no future observations as prediction input",
+    "All 8 ramp balance; fullOmega cost and outside/native latent costs separately; candidate rank and material errors"
+  ],
+  "failure_policy": "Preserve failure; no automated retry or more native arms",
+  "old_stop_preserved": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+  "proof_sha256": {
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\run_closedloop3000.ps1": "9341f72fa7a7803941cba033156745ac727fe55be8501d48c0c83d0aeb479305",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\gate_entry_geometry_20260929\\combined_config.json": "cb56b95efeff743c52f2216a90d0c4e648782e3ee430bed2fda4f621525f4541",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\gate_entry_geometry_20260929\\seed43_network_comparison.json": "6a28ba79320083050fbfe19cab79608644cbb2ebb95f9764a2c42bf10a19fe6b",
+    "D:\\VISSIM_runs\\20260924_response2250_s43\\rm.json": "64241d1f1cac53a0590297800753541edfba8d3ef9c81758caed018aed52c522",
+    "D:\\VISSIM_runs\\20260924_response2250_s43\\vsl.json": "db4cb500bc9e08466a25e67cacfa17ac820bfca212eb956ebeb0063e742e4244",
+    "D:\\VISSIM_runs\\20260924_response2250_s43\\both.json": "e69a21d4ec614b17dfb8311db7a99e2be3464a3b9770525bfd809387d5ee4b01"
+  },
+  "goal_complete": false
+}

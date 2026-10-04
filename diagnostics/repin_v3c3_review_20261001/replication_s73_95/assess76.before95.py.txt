@@ -1,0 +1,125 @@
+"""Compare the completed two forecasts to cached residence and native observations."""
+import bisect
+import hashlib
+import json
+from pathlib import Path
+from evaluation.controllers import lane_plant_runtime, obs150_observation
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[2]
+I=ROOT/'diagnostics/sdmpc_n31_20260924/integration_20260926'
+P=I/'closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent'
+RUNS=Path('D:/VISSIM_runs/20261003_s67_vsl_observation2700')
+pins={}
+def read(path):
+    data=path.read_bytes();pins[str(path)]=hashlib.sha256(data).hexdigest()
+    return json.loads(data)
+def save(path,value):path.write_text(json.dumps(value,indent=2,allow_nan=False),encoding='utf-8')
+
+def main():
+    assert not (HERE/'response_assessment76.json').exists()
+    assert read(HERE/'prediction_run76_actuator_equivalent.json')['stage']=='complete'
+    native=read(HERE/'analysis/summary.json'); pred=read(P/'summary.json')
+    assert pred['optimizer_iterations']==0 and not pred['future_observation_inputs']
+    assert pred['replay_pair']['comparison_scope']['paired_native_effect_valid']
+    tuning=read(HERE.parent/'rm47_service66_response/candidate_config.json')
+    context=lane_plant_runtime.load_sources(tuning['freeway']['lane_plant'])
+    g=read(I/'selected/port_gain/geometry.json')
+    assert g['network']['sha256']=='64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    chains={road:{int(v['link']):v for v in chain} for road,chain in g['chains'].items()}
+    ramps={r['connector'] for r in g['boundaries'] if r['kind']=='ramp'}
+    assert len(ramps)==8
+    rows={};snapshot_rows=[]
+    for arm in ('release','release_vsl90'):
+        result=pred['results'][arm+'_actual']
+        metrics=read(HERE/f'analysis/{arm}/area_metrics.json')
+        grouped=dict(FW_E=0.,FW_W=0.,ramps=0.,other_omega=0.)
+        for link,data in metrics['physical_link_residence'].items():
+            if not data['inside']:continue
+            key=next((road for road,links in chains.items() if int(link) in links),None)
+            key=key or ('ramps' if int(link) in ramps else 'other_omega')
+            grouped[key]+=data['ttt_veh_h']
+        assert abs(sum(grouped.values())-metrics['ttt_veh_h'])<1e-7
+        modeled={road:result['cost_by_stock']['freeway:'+road] for road in chains}
+        modeled['ramps']=sum(value for key,value in result['cost_by_stock'].items() if key.startswith('ramp:'))
+        modeled['other_omega']=result['ttt_omega_veh_h']-sum(modeled.values())
+        totals={};sources={r:0 for r in chains};stocks={}
+        folder=RUNS/arm/f'decisions_sdmpc31_g_2700_{arm}_s67'
+        for index,sec in enumerate((2700,2850,3000,3150)):
+            raw=read(folder/f'state_{sec:06d}.json')
+            assert raw['sim_sec']==sec and raw['vehicle_records']['complete']
+            observed=raw['vehicle_records']['records']
+            stocks[sec]={r:sum(int(v['link_no']) in links for v in observed) for r,links in chains.items()}
+            # Snapshot speed/stock evidence is evaluation only, never forecast input.
+            road='FW_E';bins=[[] for _ in range(31)]
+            cells=sorted((c for c in g['cells'] if c['road']==road),key=lambda c:c['cell'])
+            assert len(cells)==31
+            ends=[c['end_m'] for c in cells]
+            for vehicle in observed:
+                link=int(vehicle['link_no'])
+                if link in chains[road]:
+                    pos=chains[road][link]['offset_m']+float(vehicle['position_m'])
+                    cell=min(bisect.bisect_right(ends,pos),30)
+                    bins[cell].append(float(vehicle['speed_kph']))
+            physical=result['physical_cell_states'][index]
+            assert physical['time_sec']==sec
+            for cell,values in enumerate(bins):
+                snapshot_rows.append(dict(arm=arm,time_sec=sec,cell=cell,actual_stock=len(values),
+                    actual_speed_kmh=sum(values)/len(values) if values else None,
+                    predicted_speed_kmh=physical['speed_kmh'][road][cell]))
+            if sec==2700:continue
+            derived=obs150_observation.derive(raw,context['obs150'])
+            assert derived['window']==dict(start_s=sec-150,end_s=sec)
+            for ref,value in derived['boundaries'].items():
+                if ref.startswith(('source:','chain_end:','off_entry:','x10643_exit:')):
+                    totals[ref]=totals.get(ref,0)+value['cross']
+            for road in sources:sources[road]+=derived['source_boundary'][road]['admitted_window']
+        flow=result['control_area']['flow_counts']
+        mainline={}
+        ramp_audit=read(P/'ramp_response_audit.json')['arms'][arm]
+        for road in chains:
+            ports=[b for b in g['boundaries'] if b['road']==road]
+            ramp_ids=[b['id'] for b in ports if b['kind']=='ramp']
+            off_ids=[b['connector'] for b in ports if b['kind']=='offramp']
+            assert len(ramp_ids)==len(off_ids)==4
+            actual=dict(source=totals['source:'+road],admitted_source_counter=sources[road],
+                merge=sum(ramp_audit[r]['actual']['merge'] for r in ramp_ids),
+                off=sum(totals['off_entry:'+str(c)] for c in off_ids),terminal=totals['chain_end:'+road],
+                initial_stock=stocks[2700][road],final_stock=stocks[3150][road])
+            actual['unexplained_balance_veh']=actual['initial_stock']+actual['source']+actual['merge']-actual['off']-actual['terminal']-actual['final_stock']
+            modeled_flow=dict(source=flow['origin:'+road+'->freeway:'+road],
+                merge=sum(result['ramps'][r]['merge'] for r in ramp_ids),
+                off=sum(v for k,v in flow.items() if k.startswith('freeway:'+road+'->storage:')),
+                terminal=flow['freeway:'+road+'->external:terminal:'+road],
+                initial_stock=stocks[2700][road],
+                final_stock=next(x['physical_stock'] for x in result['offramp_route_inventory_checks'] if x['time_sec']==3150 and x['road']==road))
+            mainline[road]=dict(actual=actual,predicted=modeled_flow)
+        rows[arm]=dict(native_full_run_components_veh_h=grouped,prediction450_components_veh_h=modeled,
+                       mainline=mainline,native_boundaries450=totals)
+    a,b=rows['release'],rows['release_vsl90']
+    cost_delta={k:dict(actual=b['native_full_run_components_veh_h'][k]-a['native_full_run_components_veh_h'][k],
+                      predicted=b['prediction450_components_veh_h'][k]-a['prediction450_components_veh_h'][k])
+                for k in a['native_full_run_components_veh_h']}
+    actual=native['delta_TTT_veh_h']
+    modeled=pred['results']['release_vsl90_actual']['ttt_omega_veh_h']-pred['results']['release_actual']['ttt_omega_veh_h']
+    assert abs(sum(x['actual'] for x in cost_delta.values())-actual)<1e-7
+    output=dict(status='MATERIAL_VSL_RESPONSE_UNDERPREDICTED_NOT_QUALIFIED',
+        contrast='Same RM release, VSL90 minus VSL110; autonomous450 from observed2700',
+        actual_delta_omega_veh_h=actual,predicted_delta_omega_veh_h=modeled,
+        predicted_fraction_of_native_effect=modeled/actual,component_delta_veh_h=cost_delta,
+        arms=rows,future_native_states='evaluation labels only, loaded after completed forecasts',
+        paired_comparison_scope=pred['replay_pair']['comparison_scope'],new_calibration=0,new_native=0,
+        extra_fzp_metric_scans=0,forecasts=2,optimizer_iterations=0,
+        limitations=['Native component levels are0..3150, model levels2700..3150. Only deltas cancel the exact common native prefix and are compared.',
+                     '5s native residence includes held4.9s tail; model internal integration1s.',
+                     'Normal exits include approved terminal inference;285 unresolved inside disappearances in each run are not counted as exits.',
+                     'Two conditions at already-used seed67 are neither full factorial nor independent holdout.',
+                     'Source-admission changes and recovery are correlated effects, not a causal decomposition from these totals.',
+                     'Snapshot speeds at150s intervals do not establish recovery onset/duration by themselves.'],
+        input_sha256=pins)
+    save(HERE/'snapshot_errors76.json',snapshot_rows)
+    save(HERE/'response_assessment76.json',output)
+    print(json.dumps({k:output[k] for k in ['status','actual_delta_omega_veh_h','predicted_delta_omega_veh_h','component_delta_veh_h']}))
+    print(json.dumps({arm:v['mainline']['FW_E'] for arm,v in rows.items()}))
+
+if __name__=='__main__':main()

@@ -1,0 +1,32 @@
+{
+  "max_forecasts": 2,
+  "reused_forecasts": 4,
+  "max_wall_sec": 180,
+  "variants": [
+    "aggregate",
+    "local_gap",
+    "local_clearance"
+  ],
+  "arms": [
+    "hold",
+    "release"
+  ],
+  "plant": "Current expanded036 component reference; not full coupled urban SDMPC",
+  "gates": "All conservation; >=20% smaller RM posthead residence error than local_gap; large RM loss sign and component delta error no worse than aggregate; hold stock/flow RMSE at most10% worse and cell24 speed error at most2km/h worse than aggregate.",
+  "candidate": "Archived local lane22/23 dynamics plus existing spacing/nominal-speed clearance on10484; no new fit.",
+  "current_native_poll": 0,
+  "new_native": 0,
+  "full_omega": false,
+  "future_observation_inputs": false,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\local_clearance53\\coupled\\failure.json": "e428b10112fcd9b3741d38e9ec91c60bcc96bba8090db4d60d8efaaf8d5dd03f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\recovery_flow_audit\\local_lane_candidate\\rejected_candidate.patch": "8b2e2f2e66aff509dfe2a2adf53a3a3f3d33d7b6020b5ddb3a17d0521da4da62",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "0b7476f74ac99ec8ae2e89292e1ca0ba18d9bbdd52ca64ef6dc980196c123b87",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\canonical_harness.py": "fbd5c5844f42f1c9be8090c99d35106eac5670788a58e5eff7a036ebb3eb3a2b",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "bd4be0d58e9e50f495225fd4d72d5f97c95c42e9b3f9bc707ef02804780cf859",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\manifest.json": "33dbee600039ceaccbcfa15ed4e7ffbca9ad40ab53a9a52d61e973918593c91b",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\recovery_flow_audit\\local_lane_candidate\\frozen_exchange.json": "2b6c5463663567c7ff5e9e99416dfc9e44b12e20fd338becb10a1ff4242d6df7",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout53_response_v2\\capture.json": "7b282eb922a198bdc4d9f099ddba358e1ef7a08768bab57f1e75eef686e00031"
+  }
+}

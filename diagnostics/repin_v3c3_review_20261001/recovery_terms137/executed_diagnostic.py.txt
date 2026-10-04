@@ -1,0 +1,154 @@
+"""Current-state lane composition versus stayer reaction, cached records only."""
+import collections
+import copy
+import gzip
+import json
+import math
+from pathlib import Path
+import time
+from diagnostics.repin_v3c3_review_20261001.junction_calibration125 import run as h
+
+HERE=Path(__file__).resolve().parent
+
+
+def load_frames(path):
+    data=h.read(path);fields=data['fields'];result={}
+    for t,frame in data['frames'].items():
+        pairs=frame.items() if isinstance(frame,dict) else ((str(x[fields.index('vehicle')]),x) for x in frame)
+        result[round(float(t),6)]={str(vid):dict(zip(fields,row)) for vid,row in pairs}
+    return result
+
+
+def main():
+    assert not (HERE/'status.json').exists(),'Preserve completed or failed evidence; no retry'
+    started=time.perf_counter()
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    from evaluation.controllers import lane_plant_runtime as lpr,area_freeway_accounting as area
+    from evaluation.controllers.freeway_fd import cell_state_response,state_response_coefficients
+    from src.models.state import ControlAction
+    context,_,_=common.setup()
+    manifest=h.R/'lane_state132/eval_01/manifest.json'
+    model=lpr.load_sources(manifest)['component']
+    cfg=model._config('FW_E',context['parameters']['by_direction']['FW_E']);net=cfg.network;mn=area._mn
+    control=ControlAction(vsl={'FW_E':110})
+    protocol=h.read(h.R/'accepted_transport133/protocol.json')
+    pins={str(manifest):h.sha(manifest),str(Path(__file__)):h.sha(__file__)}
+    eventfile=h.F/'merge_speed_audit/events.json';events=h.read(eventfile);pins[str(eventfile)]=h.sha(eventfile)
+    eventmap={(e['arm'],round(e['hi'],6),str(e['vehicle'])):e for e in events if e['road']=='FW_E'}
+    cases=[('s67_late',a,h.F/'flow67'/f'{a}_frames.json.gz') for a in ('release','release_vsl90')]
+    cases += [('s29_late',a,h.F/'vsl_native_exposure'/f's29_late_{a}_frames.json.gz') for a in ('hold','hold_vsl90')]
+    h.save(HERE/'protocol.json',dict(previous_goal_turn='PROGRESS:136 exact VSL target/exposure replays confirmed active approach exposure;135 structural speed cap candidate failed. Current137 is a new downstream native-state diagnostic.',
+        question='Do cells22-25 themselves under-recover at current observed states, or is autonomous slowing primarily propagated through wrong states? Reuse134 population ledger; include actual23 merge only as conditional diagnosis.',
+        budget=dict(cases=4,cells=[22,23,24,25],seconds=450,new_rollouts=0,new_fits=0,new_native=0,new_FZP=0),
+        identity='Delta lane mean = stayer speed change + entering endpoint deviation - leaving initial deviation, divided by finalN; subdivide entries/exits by samecell-lateral, longitudinal and new/missing observations.',
+        limitations=['Endpoint same-cell lateral is an observed net transition over5s, not the exact lane-change initiation time or full path. Longitudinal arrivals can also change lane.',
+            'Future5s membership and merge events are diagnostic labels only; never operational inputs.',
+            'Current-state1s METANET rate is not the same temporal operator as observed5s finite differences. Mean stayer acceleration has population selection.',
+            '110 arms only for model terms. Do not replace VSL exposure history by nominal90. Explicit21 merge loss uses observed5s accepted merges/5 only in67 diagnostic.',
+            'No observed receiving/off-flow cap is inserted. The reported speed equation is BEFORE exit speed cap; a correct unconstrained rate would not qualify the full flow dynamics.'],
+        prior_checked=['local67','merge_population','lane_terms25','joint_lane_rec','face_recovery','accepted_transport133','Claude upstream_worklog/07_fww_sc1001eb/fww-struct/P_PLANT.md'],
+        protected_sha256=protocol['protected_sha256'],STOP=protocol['STOP'],pins=pins))
+    for p,digest in protocol['protected_sha256'].items():assert h.sha(p)==digest
+    rows=[];empty=[];crossings=[];max_error=0.;term_error=0.
+    h.save(HERE/'status.json',dict(status='running',stage='cached_lane_ledgers'))
+    try:
+        for case,arm,path in cases:
+            pins[str(path)]=h.sha(path);frames=load_frames(path)
+            times=sorted(frames);assert times[0]==2670.1 and times[-1]==3120.1 and len(times)==91
+            for lo,hi in zip(times,times[1:]):
+                assert abs(hi-lo-5)<1e-8
+                f0,f1=frames[lo],frames[hi]
+                def category(vid,cell,other):
+                    if vid not in other:return 'unobserved'
+                    return 'samecell_lateral' if other[vid]['cell']==cell else 'longitudinal'
+                for vid in f0.keys()&f1.keys():
+                    a,b=f0[vid],f1[vid]
+                    if a['cell'] in (22,23,24,25) and a['lane']!=b['lane']:
+                        crossings.append(dict(case=case,arm=arm,time_s=lo,cell=a['cell'],next_cell=b['cell'],lane=a['lane'],next_lane=b['lane'],v0=a['speed_kmh'],v1=b['speed_kmh']))
+                for cell in (22,23,24,25):
+                    for lane in (1,2,3):
+                        before={v:z for v,z in f0.items() if z['cell']==cell and z['lane']==lane}
+                        after={v:z for v,z in f1.items() if z['cell']==cell and z['lane']==lane}
+                        if not before or not after:
+                            empty.append(dict(case=case,arm=arm,time_s=lo,cell=cell,lane=lane,n0=len(before),n1=len(after)));continue
+                        v0=sum(z['speed_kmh'] for z in before.values())/len(before)
+                        v1=sum(z['speed_kmh'] for z in after.values())/len(after)
+                        stay=before.keys()&after.keys();enter=after.keys()-before.keys();leave=before.keys()-after.keys()
+                        parts=dict(stayer=sum(after[v]['speed_kmh']-before[v]['speed_kmh'] for v in stay)/(5*len(after)))
+                        counts={};speeds={}
+                        for side,ids,other,samples,sign in [('enter',enter,f0,after,1.),('leave',leave,f1,before,-1.)]:
+                            for kind in ('samecell_lateral','longitudinal','unobserved'):
+                                selected=[v for v in ids if category(v,cell,other)==kind]
+                                key=side+'_'+kind
+                                parts[key]=sign*sum(samples[v]['speed_kmh']-v0 for v in selected)/(5*len(after))
+                                counts[key]=len(selected)
+                                speeds[key]=sum(samples[v]['speed_kmh'] for v in selected)/len(selected) if selected else None
+                        error=abs(sum(parts.values())-(v1-v0)/5);assert error<1e-10;max_error=max(max_error,error)
+                        instantaneous=sum(z['acceleration_mps2']*3.6 for z in before.values())/len(before)
+                        row=dict(case=case,arm=arm,time_s=lo,cell=cell,lane=lane,n0=len(before),n1=len(after),v0=v0,v1=v1,
+                            observed_rate=(v1-v0)/5,parts=parts,counts=counts,moving_speeds=speeds,stayers=len(stay),
+                            instantaneous_mean_acceleration=instantaneous,
+                            stayer_unweighted_rate=sum(after[v]['speed_kmh']-before[v]['speed_kmh'] for v in stay)/(5*len(stay)) if stay else None)
+                        if not arm.endswith('vsl90'):
+                            up=[z['speed_kmh'] for z in f0.values() if z['cell']==cell-1 and z['lane']==lane]
+                            # Region inlet maps native link2 lanes2/3/4 into lanes1/2/3.
+                            if cell==19:
+                                up=[z['speed_kmh'] for z in f0.values() if z['cell']==18 and z['lane']==lane+1]
+                            if not up:
+                                row['model_unavailable']='No current upstream lane vehicles; do not invent mean speed.'
+                            else:
+                                p=net.freeway_segment_params['FW_E'][cell];pd=net.freeway_segment_params['FW_E'][cell+1]
+                                length=p['segment_length_km'];rho=len(before)/length
+                                down=sum(z['cell']==cell+1 and z['lane']==lane for z in f0.values())/pd['segment_length_km']
+                                upstream=sum(up)/len(up);spec=cell_state_response(net,'FW_E',cell)
+                                command=mn.segment_vsl(control,'FW_E',cell,cfg)
+                                desired=mn.effective_desired_speed_kmh(rho,net.v_free,net.rho_crit,command,net.alpha_vsl,False,net.metanet_a_m,False,net.rho_max,0.)
+                                nu0=mn.select_anticipation_nu(rho,net,command)
+                                tau,nu=state_response_coefficients(spec,v0,desired,rho,down,p['rho_crit'],p['metanet_tau_h'],nu0)
+                                relaxation=(desired-v0)/(tau*3600)
+                                convection=v0*(upstream-v0)/(length*3600)
+                                anticipation=-nu*(down-rho)/(tau*length*3600*(rho+p['metanet_kappa_veh_km_lane']))
+                                speed=mn.metanet_speed_update_kmh(v0,upstream,rho,down,desired,1/3600,length,p['metanet_tau_h'],nu0,p['metanet_kappa_veh_km_lane'],net.v_min)
+                                err=abs(speed-max(net.v_min,v0+relaxation+convection+anticipation));term_error=max(term_error,err);assert err<1e-8
+                                merges=0
+                                if cell in (21,23) and lane==1 and case=='s67_late':
+                                    merges=sum(e['cell']==cell and e['road']=='FW_E' and e['arm']==arm and round(e['hi'],6)==hi for e in events)
+                                delta=spec.get('delta_merge',net.metanet_delta_merge)
+                                loss=delta*(merges/5)*v0/(length*(rho+p['metanet_kappa_veh_km_lane']))
+                                row['model']=dict(rho=rho,downstream_rho=down,upstream_speed=upstream,desired=desired,tau_sec=tau*3600,nu=nu,
+                                    relaxation=relaxation,convection=convection,anticipation=anticipation,merge_loss=loss,
+                                    premerge_rate=speed-v0,pre_exit_rate=max(net.v_min,speed-loss)-v0,
+                                    merge_known=(cell not in (21,23) or lane!=1 or case=='s67_late'),merge_count5=merges,
+                                    recovery=(desired>v0 and down<=rho and down<p['rho_crit']))
+                        rows.append(row)
+        def summarize(rr):
+            model=[r for r in rr if 'model' in r and r['model']['merge_known']]
+            answer=dict(samples=len(rr),observed_rate=sum(r['observed_rate'] for r in rr)/len(rr),
+                parts={k:sum(r['parts'][k] for r in rr)/len(rr) for k in rr[0]['parts']},
+                instantaneous_acceleration=sum(r['instantaneous_mean_acceleration'] for r in rr)/len(rr),
+                counts={k:sum(r['counts'][k] for r in rr) for k in rr[0]['counts']})
+            if model:
+                answer['model']=dict(samples=len(model),**{k:sum(r['model'][k] for r in model)/len(model) for k in ('relaxation','convection','anticipation','merge_loss','pre_exit_rate')},
+                    matched_actual_rate=sum(r['observed_rate'] for r in model)/len(model),
+                    matched_acceleration=sum(r['instantaneous_mean_acceleration'] for r in model)/len(model))
+            return answer
+        groups=[]
+        for case,arm,_ in cases:
+            for cell in (22,23,24,25):
+                for lane in (1,2,3):
+                    for end in (30,150,450):
+                        rr=[r for r in rows if (r['case'],r['arm'],r['cell'],r['lane'])==(case,arm,cell,lane) and r['time_s']<2670.1+end-1e-7]
+                        if rr:groups.append(dict(case=case,arm=arm,cell=cell,lane=lane,seconds=end,**summarize(rr)))
+        for p,digest in {**protocol['protected_sha256'],**pins}.items():assert h.sha(p)==digest,p
+        assert h.sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+        with gzip.open(HERE/'rows.json.gz','wt',encoding='utf-8') as f:json.dump(rows,f,allow_nan=False)
+        h.save(HERE/'lane_changes.json',crossings);h.save(HERE/'empty_samples.json',empty)
+        h.save(HERE/'groups.json',groups)
+        h.save(HERE/'verification.json',dict(identities=len(rows),empty_samples=len(empty),all_slots=len(rows)+len(empty),identity_max_error=max_error,term_parity_max_error=term_error,core=True,STOP=True,input_sha256=pins,new_forecasts=0,new_fits=0,new_native=0,new_FZP=0))
+        h.save(HERE/'status.json',dict(status='complete_diagnostic_only',rows=len(rows),elapsed_sec=time.perf_counter()-started,adopted=False,goal='ACTIVE_NOT_QUALIFIED'))
+        print(json.dumps([r for r in groups if r['case']=='s67_late' and r['arm']=='release' and r['lane']==1 and r['seconds'] in (30,150)],ensure_ascii=False))
+    except BaseException as exc:
+        h.save(HERE/'status.json',dict(status='failed',error=repr(exc),rows=len(rows)));raise
+
+
+if __name__=='__main__':main()

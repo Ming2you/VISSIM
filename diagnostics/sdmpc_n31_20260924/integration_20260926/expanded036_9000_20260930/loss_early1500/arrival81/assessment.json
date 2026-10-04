@@ -1,0 +1,875 @@
+{
+  "status": "complete_conditional_diagnosis",
+  "protocol": {
+    "window": [
+      2250,
+      2700
+    ],
+    "cases": [
+      "model_total_model_lanes",
+      "native_total_model_lanes",
+      "model_total_native_lanes",
+      "native_total_native_lanes"
+    ],
+    "max_buffer_replays": 4,
+    "fixed": "Initial cohorts, 1s RG execution, travel, canonical and physical receiving from NC forecast",
+    "native_conditioning": "Future150s entry totals corrected for0-1m stock; lane shares at1m detector; within-bin timing follows model",
+    "no_lane_capacity_borrowing": true,
+    "overflow": "Retain FIFO upstream cohorts with original lane shares; no vehicle deletion",
+    "full_forecasts": 0,
+    "new_native": 0,
+    "fit": 0,
+    "autonomous": false,
+    "control_gain_claim": false
+  },
+  "native": [
+    {
+      "start_sec": 2250,
+      "end_sec": 2400,
+      "arrival": 41,
+      "arrival_by_lane": [
+        9,
+        32
+      ],
+      "head_by_lane": [
+        5,
+        32
+      ],
+      "merge": 40,
+      "start": {
+        "total": 53,
+        "post": 20,
+        "before_arrival_detector": 0,
+        "lanes": [
+          {
+            "total": 5,
+            "prehead": 2,
+            "stopped_lt5": 0
+          },
+          {
+            "total": 48,
+            "prehead": 31,
+            "stopped_lt5": 22
+          }
+        ]
+      },
+      "end": {
+        "total": 54,
+        "post": 17,
+        "before_arrival_detector": 0,
+        "lanes": [
+          {
+            "total": 6,
+            "prehead": 6,
+            "stopped_lt5": 0
+          },
+          {
+            "total": 48,
+            "prehead": 31,
+            "stopped_lt5": 20
+          }
+        ]
+      }
+    },
+    {
+      "start_sec": 2400,
+      "end_sec": 2550,
+      "arrival": 48,
+      "arrival_by_lane": [
+        12,
+        35
+      ],
+      "head_by_lane": [
+        13,
+        34
+      ],
+      "merge": 47,
+      "start": {
+        "total": 54,
+        "post": 17,
+        "before_arrival_detector": 0,
+        "lanes": [
+          {
+            "total": 6,
+            "prehead": 6,
+            "stopped_lt5": 0
+          },
+          {
+            "total": 48,
+            "prehead": 31,
+            "stopped_lt5": 20
+          }
+        ]
+      },
+      "end": {
+        "total": 55,
+        "post": 17,
+        "before_arrival_detector": 1,
+        "lanes": [
+          {
+            "total": 6,
+            "prehead": 6,
+            "stopped_lt5": 0
+          },
+          {
+            "total": 49,
+            "prehead": 32,
+            "stopped_lt5": 19
+          }
+        ]
+      }
+    },
+    {
+      "start_sec": 2550,
+      "end_sec": 2700,
+      "arrival": 48,
+      "arrival_by_lane": [
+        15,
+        34
+      ],
+      "head_by_lane": [
+        12,
+        37
+      ],
+      "merge": 47,
+      "start": {
+        "total": 55,
+        "post": 17,
+        "before_arrival_detector": 1,
+        "lanes": [
+          {
+            "total": 6,
+            "prehead": 6,
+            "stopped_lt5": 0
+          },
+          {
+            "total": 49,
+            "prehead": 32,
+            "stopped_lt5": 19
+          }
+        ]
+      },
+      "end": {
+        "total": 56,
+        "post": 19,
+        "before_arrival_detector": 0,
+        "lanes": [
+          {
+            "total": 8,
+            "prehead": 8,
+            "stopped_lt5": 0
+          },
+          {
+            "total": 48,
+            "prehead": 29,
+            "stopped_lt5": 18
+          }
+        ]
+      }
+    }
+  ],
+  "outcomes": {
+    "model_total_model_lanes": {
+      "blocks": [
+        {
+          "start_sec": 2250,
+          "end_sec": 2400,
+          "arrival": 55.05999999999996,
+          "admitted": 55.05999999999996,
+          "head_by_lane": [
+            8.688019781291363,
+            37.18419800888732
+          ],
+          "merge": 40.040860437309526,
+          "receiving_budget": 59.436022362509135,
+          "end_stock": 68.0191395626906,
+          "end_post": 25.831357352869176,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.556717060813907,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 1.3651705252363753,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 1.9218875860502824,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 7.244736842105251,
+              "cumulative_admitted_veh": 7.244736842105251,
+              "cumulative_head_service_veh": 8.688019781291363,
+              "cumulative_merge_veh": 10.322849256054957,
+              "connector_ttt_veh_h": 0.10935207836925495,
+              "conservation_residual_veh": 1.2434497875801753e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 3.6743326013717867,
+              "head_ready_veh": 37.956732547635724,
+              "downstream_travelling_veh": 2.9137768205644967,
+              "merge_ready_veh": 21.552410007068303,
+              "connector_veh": 66.09725197664031,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 47.81526315789481,
+              "cumulative_admitted_veh": 47.81526315789481,
+              "cumulative_head_service_veh": 37.18419800888732,
+              "cumulative_merge_veh": 29.718011181254568,
+              "connector_ttt_veh_h": 2.346294517563283,
+              "conservation_residual_veh": -7.105427357601002e-14
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2400,
+          "end_sec": 2550,
+          "arrival": 38.79971000624274,
+          "admitted": 38.79971000624274,
+          "head_by_lane": [
+            5.4333673644613665,
+            30.992017847338616
+          ],
+          "merge": 36.683230907379446,
+          "receiving_budget": 61.98403569467729,
+          "end_stock": 70.13561866155402,
+          "end_post": 25.57351165728978,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.22857469717398704,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 1.1073248296569826,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 1.3358995268309697,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 12.349961842926659,
+              "cumulative_admitted_veh": 12.349961842926659,
+              "cumulative_head_service_veh": 14.12138714575273,
+              "cumulative_merge_veh": 16.014062316095718,
+              "connector_ttt_veh_h": 0.17017154319720842,
+              "conservation_residual_veh": -2.842170943040401e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 1.5085930013483146,
+              "head_ready_veh": 42.824939305741935,
+              "downstream_travelling_veh": 2.930342929376419,
+              "merge_ready_veh": 21.53584389825638,
+              "connector_veh": 68.79971913472305,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 81.50974816331625,
+              "cumulative_admitted_veh": 81.50974816331625,
+              "cumulative_head_service_veh": 68.17621585622594,
+              "cumulative_merge_veh": 60.710029028593254,
+              "connector_ttt_veh_h": 4.991810663118105,
+              "conservation_residual_veh": -5.684341886080802e-14
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2550,
+          "end_sec": 2700,
+          "arrival": 29.903105251947746,
+          "admitted": 29.903105251947746,
+          "head_by_lane": [
+            4.15557303867209,
+            31.39011952357579
+          ],
+          "merge": 36.42590545953175,
+          "receiving_budget": 62.780239047151355,
+          "end_stock": 63.61281845397014,
+          "end_post": 24.693298760005785,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.007620770600318447,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 0.22711193237298602,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 0.23473270297330445,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 16.28458095502506,
+              "cumulative_admitted_veh": 16.28458095502506,
+              "cumulative_head_service_veh": 18.27696018442482,
+              "cumulative_merge_veh": 21.049848252051756,
+              "connector_ttt_veh_h": 0.21775734688614384,
+              "conservation_residual_veh": 0.0
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.05029708596210175,
+              "head_ready_veh": 38.861601837401935,
+              "downstream_travelling_veh": 2.995559010451256,
+              "merge_ready_veh": 21.470627817181544,
+              "connector_veh": 63.37808575099684,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 107.47823430316542,
+              "cumulative_admitted_veh": 107.47823430316542,
+              "cumulative_head_service_veh": 99.56633537980173,
+              "cumulative_merge_veh": 92.10014855216896,
+              "connector_ttt_veh_h": 7.663892313454041,
+              "conservation_residual_veh": -3.694822225952521e-13
+            }
+          ],
+          "upstream_backlog": 0
+        }
+      ],
+      "total_arrival": 123.76281525819044,
+      "total_merge": 113.14999680422072,
+      "end_stock": 63.61281845397014,
+      "admitted": 123.76281525819057,
+      "upstream_backlog": 0,
+      "first_blocked_sec": null
+    },
+    "native_total_model_lanes": {
+      "blocks": [
+        {
+          "start_sec": 2250,
+          "end_sec": 2400,
+          "arrival": 40.99999999999999,
+          "admitted": 40.99999999999999,
+          "head_by_lane": [
+            6.980181820431269,
+            37.18419800888732
+          ],
+          "merge": 38.68162940679499,
+          "receiving_budget": 59.436022362509135,
+          "end_stock": 55.31837059320514,
+          "end_post": 25.482750422523672,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.41455502167399544,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 1.0165635948908713,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 1.4311186165648668,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 5.394736842105272,
+              "cumulative_admitted_veh": 5.394736842105272,
+              "cumulative_head_service_veh": 6.980181820431269,
+              "cumulative_merge_veh": 8.963618225540422,
+              "connector_ttt_veh_h": 0.08977455088546334,
+              "conservation_residual_veh": -1.7763568394002505e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 2.73606314304837,
+              "head_ready_veh": 26.6850020059591,
+              "downstream_travelling_veh": 2.9137768205644967,
+              "merge_ready_veh": 21.552410007068303,
+              "connector_veh": 53.88725197664027,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 35.6052631578947,
+              "cumulative_admitted_veh": 35.6052631578947,
+              "cumulative_head_service_veh": 37.18419800888732,
+              "cumulative_merge_veh": 29.718011181254568,
+              "connector_ttt_veh_h": 2.102458590146862,
+              "conservation_residual_veh": -1.4210854715202004e-13
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2400,
+          "end_sec": 2550,
+          "arrival": 47.99999999999998,
+          "admitted": 47.99999999999998,
+          "head_by_lane": [
+            6.447569560633531,
+            30.992017847338616
+          ],
+          "merge": 37.08625437696089,
+          "receiving_budget": 61.98403569467729,
+          "end_stock": 66.23211621624424,
+          "end_post": 25.836083453534986,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.282774934724669,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 1.369896625902185,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 1.652671560626854,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 11.710526315789476,
+              "cumulative_admitted_veh": 11.710526315789476,
+              "cumulative_head_service_veh": 13.4277513810648,
+              "cumulative_merge_veh": 15.057854755162625,
+              "connector_ttt_veh_h": 0.16213839240888772,
+              "conservation_residual_veh": -3.552713678800501e-15
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 1.8663145691828158,
+              "head_ready_veh": 38.246943258801764,
+              "downstream_travelling_veh": 2.930342929376419,
+              "merge_ready_veh": 21.53584389825638,
+              "connector_veh": 64.57944465561738,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 77.28947368421058,
+              "cumulative_admitted_veh": 77.28947368421058,
+              "cumulative_head_service_veh": 68.17621585622594,
+              "cumulative_merge_veh": 60.710029028593254,
+              "connector_ttt_veh_h": 4.366251785662653,
+              "conservation_residual_veh": -5.684341886080802e-14
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2550,
+          "end_sec": 2700,
+          "arrival": 48.000000000000036,
+          "admitted": 45.7499275769214,
+          "head_by_lane": [
+            5.431054275302051,
+            31.39011952357579
+          ],
+          "merge": 37.74335843298398,
+          "receiving_budget": 62.780239047151355,
+          "end_stock": 74.23868536018169,
+          "end_post": 24.913898819428763,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.8714479721754697,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 0.4477119917959634,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 1.319159963971433,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 17.73025362854231,
+              "cumulative_admitted_veh": 17.73025362854231,
+              "cumulative_head_service_veh": 18.85880565636685,
+              "cumulative_merge_veh": 21.4110936645709,
+              "connector_ttt_veh_h": 0.22689281485273832,
+              "conservation_residual_veh": -2.1316282072803006e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 5.7515566163581004,
+              "head_ready_veh": 42.70178195221936,
+              "downstream_travelling_veh": 2.995559010451256,
+              "merge_ready_veh": 21.470627817181544,
+              "connector_veh": 72.91952539621026,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 117.0196739483791,
+              "cumulative_admitted_veh": 117.0196739483791,
+              "cumulative_head_service_veh": 99.56633537980173,
+              "cumulative_merge_veh": 92.10014855216896,
+              "connector_ttt_veh_h": 7.054872000532682,
+              "conservation_residual_veh": -1.4210854715202004e-13
+            }
+          ],
+          "upstream_backlog": 2.250072423078632
+        }
+      ],
+      "total_arrival": 137.0,
+      "total_merge": 113.51124221673986,
+      "end_stock": 74.23868536018169,
+      "admitted": 134.7499275769214,
+      "upstream_backlog": 2.250072423078632,
+      "first_blocked_sec": 2646
+    },
+    "model_total_native_lanes": {
+      "blocks": [
+        {
+          "start_sec": 2250,
+          "end_sec": 2400,
+          "arrival": 55.05999999999996,
+          "admitted": 55.05999999999996,
+          "head_by_lane": [
+            13.157574464398278,
+            37.18419800888732
+          ],
+          "merge": 43.598081647453604,
+          "receiving_budget": 59.436022362509135,
+          "end_stock": 64.4619183525465,
+          "end_post": 26.743690825832022,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.9287669990163718,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 2.2775039981992213,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 3.206270997215593,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 12.086341463414634,
+              "cumulative_admitted_veh": 12.086341463414634,
+              "cumulative_head_service_veh": 13.157574464398278,
+              "cumulative_merge_veh": 13.880070466199038,
+              "connector_ttt_veh_h": 0.1606213849551929,
+              "conservation_residual_veh": 3.552713678800501e-15
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 3.302282663169322,
+              "head_ready_veh": 33.48717786452879,
+              "downstream_travelling_veh": 2.9137768205644967,
+              "merge_ready_veh": 21.552410007068303,
+              "connector_veh": 61.25564735533091,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 42.9736585365853,
+              "cumulative_admitted_veh": 42.9736585365853,
+              "cumulative_head_service_veh": 37.18419800888732,
+              "cumulative_merge_veh": 29.718011181254568,
+              "connector_ttt_veh_h": 2.2496067900431695,
+              "conservation_residual_veh": -1.7053025658242404e-13
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2400,
+          "end_sec": 2550,
+          "arrival": 38.79971000624274,
+          "admitted": 38.79971000624274,
+          "head_by_lane": [
+            10.391543758434308,
+            30.992017847338616
+          ],
+          "merge": 41.51238423238261,
+          "receiving_budget": 61.98403569467729,
+          "end_stock": 61.74924412640667,
+          "end_post": 26.61486819922252,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.4435321783461195,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 2.1486813715897197,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 2.592213549935839,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 21.992650401178704,
+              "cumulative_admitted_veh": 21.992650401178704,
+              "cumulative_head_service_veh": 23.549118222832586,
+              "cumulative_merge_veh": 24.400436851242958,
+              "connector_ttt_veh_h": 0.277047102829152,
+              "conservation_residual_veh": -9.237055564881302e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 1.293635520176182,
+              "head_ready_veh": 33.397208228661846,
+              "downstream_travelling_veh": 2.930342929376419,
+              "merge_ready_veh": 21.53584389825638,
+              "connector_veh": 59.15703057647083,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 71.8670596050639,
+              "cumulative_admitted_veh": 71.8670596050639,
+              "cumulative_head_service_veh": 68.17621585622594,
+              "cumulative_merge_veh": 60.710029028593254,
+              "connector_ttt_veh_h": 4.6170579353021255,
+              "conservation_residual_veh": -1.8474111129762605e-13
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2550,
+          "end_sec": 2700,
+          "arrival": 29.903105251947746,
+          "admitted": 29.903105251947746,
+          "head_by_lane": [
+            9.57981403407629,
+            31.39011952357579
+          ],
+          "merge": 42.58828318697449,
+          "receiving_budget": 62.780239047151355,
+          "end_stock": 49.064066191379936,
+          "end_post": 24.99651856990002,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.017729956090536795,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 0.5283828630718451,
+              "merge_ready_veh": 0.0019488791953762297,
+              "connector_veh": 0.5480616983577582,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 31.146662212999427,
+              "cumulative_admitted_veh": 31.146662212999427,
+              "cumulative_head_service_veh": 33.128932256908875,
+              "cumulative_merge_veh": 35.59860051464174,
+              "connector_ttt_veh_h": 0.3871913577995408,
+              "conservation_residual_veh": -6.394884621840902e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.0401879004718834,
+              "head_ready_veh": 24.0096297649175,
+              "downstream_travelling_veh": 2.995559010451256,
+              "merge_ready_veh": 21.470627817181544,
+              "connector_veh": 48.51600449302218,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 92.61615304519094,
+              "cumulative_admitted_veh": 92.61615304519094,
+              "cumulative_head_service_veh": 99.56633537980173,
+              "cumulative_merge_veh": 92.10014855216896,
+              "connector_ttt_veh_h": 6.796429073696772,
+              "conservation_residual_veh": -1.9895196601282805e-13
+            }
+          ],
+          "upstream_backlog": 0
+        }
+      ],
+      "total_arrival": 123.76281525819044,
+      "total_merge": 127.6987490668107,
+      "end_stock": 49.064066191379936,
+      "admitted": 123.76281525819057,
+      "upstream_backlog": 0,
+      "first_blocked_sec": null
+    },
+    "native_total_native_lanes": {
+      "blocks": [
+        {
+          "start_sec": 2250,
+          "end_sec": 2400,
+          "arrival": 40.99999999999999,
+          "admitted": 40.99999999999999,
+          "head_by_lane": [
+            10.308400890670695,
+            37.18419800888732
+          ],
+          "merge": 41.33048646483901,
+          "receiving_budget": 59.436022362509135,
+          "end_stock": 52.669513535160924,
+          "end_post": 26.162112434719035,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.6915991093292997,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 1.6959256070862345,
+              "merge_ready_veh": 0.0,
+              "connector_veh": 2.387524716415534,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 8.999999999999991,
+              "cumulative_admitted_veh": 8.999999999999991,
+              "cumulative_head_service_veh": 10.308400890670695,
+              "cumulative_merge_veh": 11.612475283584443,
+              "connector_ttt_veh_h": 0.1279270582151852,
+              "conservation_residual_veh": 1.4210854715202004e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2400.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 2.4590190553930658,
+              "head_ready_veh": 23.356782935719526,
+              "downstream_travelling_veh": 2.9137768205644967,
+              "merge_ready_veh": 21.552410007068303,
+              "connector_veh": 50.28198881874539,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 31.999999999999968,
+              "cumulative_admitted_veh": 31.999999999999968,
+              "cumulative_head_service_veh": 37.18419800888732,
+              "cumulative_merge_veh": 29.718011181254568,
+              "connector_ttt_veh_h": 2.030460827191452,
+              "conservation_residual_veh": 1.4210854715202004e-14
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2400,
+          "end_sec": 2550,
+          "arrival": 47.99999999999998,
+          "admitted": 47.99999999999998,
+          "head_by_lane": [
+            12.398214555140138,
+            30.992017847338616
+          ],
+          "merge": 42.189257348804006,
+          "receiving_budget": 61.98403569467729,
+          "end_stock": 58.48025618635693,
+          "end_post": 27.36308748839386,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.5487037031253152,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 2.658182388984665,
+              "merge_ready_veh": 0.23871827177639135,
+              "connector_veh": 3.4456043638863716,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 21.25531914893615,
+              "cumulative_admitted_veh": 21.25531914893615,
+              "cumulative_head_service_veh": 22.706615445810833,
+              "cumulative_merge_veh": 22.809714785049763,
+              "connector_ttt_veh_h": 0.26877150469011823,
+              "conservation_residual_veh": 1.4210854715202004e-14
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2550.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 1.6003858007821694,
+              "head_ready_veh": 28.968079194055587,
+              "downstream_travelling_veh": 2.930342929376419,
+              "merge_ready_veh": 21.53584389825638,
+              "connector_veh": 55.03465182247056,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 67.74468085106385,
+              "cumulative_admitted_veh": 67.74468085106385,
+              "cumulative_head_service_veh": 68.17621585622594,
+              "cumulative_merge_veh": 60.710029028593254,
+              "connector_ttt_veh_h": 4.049603328685907,
+              "conservation_residual_veh": 4.263256414560601e-14
+            }
+          ],
+          "upstream_backlog": 0
+        },
+        {
+          "start_sec": 2550,
+          "end_sec": 2700,
+          "arrival": 48.000000000000036,
+          "admitted": 48.000000000000036,
+          "head_by_lane": [
+            15.214121404067448,
+            31.39011952357579
+          ],
+          "merge": 45.37923278572542,
+          "receiving_budget": 62.780239047151355,
+          "end_stock": 61.10102340063153,
+          "end_post": 28.5880956303116,
+          "lane_stocks": [
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.028459850078290223,
+              "head_ready_veh": 0.0,
+              "downstream_travelling_veh": 0.8481519632746692,
+              "merge_ready_veh": 3.273756839404129,
+              "connector_veh": 4.150368652757089,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 35.94919669995655,
+              "cumulative_admitted_veh": 35.94919669995655,
+              "cumulative_head_service_veh": 37.92073684987828,
+              "cumulative_merge_veh": 36.798828047199464,
+              "connector_ttt_veh_h": 0.455917125374524,
+              "conservation_residual_veh": 0.0
+            },
+            {
+              "connector_id": "10681",
+              "time_sec": 2700.0,
+              "phase": "idle",
+              "upstream_travelling_veh": 0.06450899351079117,
+              "head_ready_veh": 32.41995892673086,
+              "downstream_travelling_veh": 2.995559010451256,
+              "merge_ready_veh": 21.470627817181544,
+              "connector_veh": 56.950654747874445,
+              "capacity_veh": 72.91952539621026,
+              "outside_component_backlog_veh": 0.0,
+              "cumulative_requested_veh": 101.05080330004333,
+              "cumulative_admitted_veh": 101.05080330004333,
+              "cumulative_head_service_veh": 99.56633537980173,
+              "cumulative_merge_veh": 92.10014855216896,
+              "connector_ttt_veh_h": 6.275976192258986,
+              "conservation_residual_veh": -8.526512829121202e-14
+            }
+          ],
+          "upstream_backlog": 0
+        }
+      ],
+      "total_arrival": 137.0,
+      "total_merge": 128.89897659936844,
+      "end_stock": 61.10102340063153,
+      "admitted": 137.0000000000001,
+      "upstream_backlog": 0,
+      "first_blocked_sec": null
+    }
+  },
+  "instrumented_forecasts_exact": true,
+  "per_second_nc_replay_exact": true,
+  "native_mer_and_conservation_pass": true,
+  "runtime_pin_count": 115,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\arrival81\\execution_pins.json": "91d4aed75aa7fa8abc16a44938fe87d6a3f99dd74d32229d10c013b7d2b5985e",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\arrival81\\run_completion.json": "4e6c23e149e66d8da238f02a1d375e99e1f785c1b29077f06dfe4754915ba3b8",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_early1500\\arrival81\\output.json": "cc06493472802ed85e90891bac829cb051286d2bf7ac1983b2779567b4e2228c",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10681_arrival81_r2\\held_actual.json": "34bfda66b0a86a9385bfd5867cf84715d74fe70c8b09a1d8c4bfafbdd1040c9b",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10484_allocation84_four43_base\\held_actual.json": "4e0e8c9d79a361414bbe236cf0d6c91f86da51c512fa69502e0961c12a4902a9",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10681_arrival81_r2\\rm.json": "20739cad4545d15093041dc60f40e6d3c7e2c8574fee7ef61f2699cf72cc6514",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10484_allocation84_four43_base\\rm.json": "1c15feb445ec525975d3e9ee6133822d849d6665940dc09df3e38f4ccfd1a9bc",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_trace10681_arrival81_r2\\held_actual_RM_C10681_trace.json.gz": "882a4a9218fff91ae01941a1d8db650c9b6b78303bc772a92a8bda01ab32cfda",
+    "D:\\VISSIM_runs\\20260929_seed43_observation2700\\nc\\decisions_sdmpc31_nc2700_s43\\state_002250.json": "bee149a1a2bb2245be4e787887eac3bdbca7e3e454b6ac5c23c15f6fd888d134",
+    "D:\\VISSIM_runs\\20260929_seed43_observation2700\\nc\\decisions_sdmpc31_nc2700_s43\\state_002400.json": "7acddd13f8ee521ab85c5992b828e0d11bf044324bc04d04a684cf65edd54387",
+    "D:\\VISSIM_runs\\20260929_seed43_observation2700\\nc\\decisions_sdmpc31_nc2700_s43\\state_002550.json": "1dd6531ad87cfa81b84d8856c0290f13f74274564f0d635d9a7945d921a8508c",
+    "D:\\VISSIM_runs\\20260929_seed43_observation2700\\nc\\decisions_sdmpc31_nc2700_s43\\state_002700.json": "830b201b59d4e5092995c40b5dedccd866c4303de641f1a0f3b8782d23df15c5",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\obs150\\obs150_detectors_v2.csv": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "D:\\VISSIM_runs\\20260929_seed43_observation2700\\nc\\decisions_sdmpc31_nc2700_s43\\obs150\\mer_002400.jsonl": "c081cbf290a0d7101e3fb8935cd2902f05b4247292c9c8ab0d5651167d619fd6",
+    "D:\\VISSIM_runs\\20260929_seed43_observation2700\\nc\\decisions_sdmpc31_nc2700_s43\\obs150\\mer_002550.jsonl": "5e48d722f7369a877f2a4272b845976389acb1d1156a54ba833a7c7ef0bebc6b",
+    "D:\\VISSIM_runs\\20260929_seed43_observation2700\\nc\\decisions_sdmpc31_nc2700_s43\\obs150\\mer_002700.jsonl": "f19abfe3976036e8a3e3e44e017b6f80ab300eb0c776c87529085531f590494e"
+  },
+  "adopted": false,
+  "goal_qualified": false,
+  "clock_caveat": "Integer NC starts with53; legacy2250.1 FZP starts52. Compare integer MER/states here.",
+  "limitation": "Future arrival bins and frozen freeway supply isolate errors; not autonomous prediction or control benefit."
+}

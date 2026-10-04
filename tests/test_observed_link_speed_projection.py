@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from evaluation.controllers import vissim_stackelberg_adapter as adapter
 
@@ -35,8 +36,13 @@ def _cfg() -> SimpleNamespace:
         freeway_segment_length_km=0.5,
         freeway_lanes=3.0,
         v_free=100.0,
+        cycle_length=150.,
+        urban_avg_speed_km_h=50.,
+        urban_avg_vehicle_length_m=6.,
+        boundary_queue_max_veh=100.,
     )
-    return SimpleNamespace(network=network)
+    return SimpleNamespace(network=network, mpc=SimpleNamespace(horizon_steps=3),
+                           simulation=SimpleNamespace(T_u_h=1/3600,T_c_h=150/3600))
 
 
 def _state_json() -> dict:
@@ -135,6 +141,41 @@ class ObservedLinkSpeedProjectionTests(unittest.TestCase):
             calibration=None,
         )
         self.assertFalse(hasattr(state, "urban_link_speed_kph"))
+
+
+class MovingOnlyStorageSpeedTests(unittest.TestCase):
+    def project(self, counts, speeds, stopped, enabled):
+        raw = {'local_observation': {'link_counts': counts,
+               'link_speeds_kph': speeds, 'link_stopped_counts': stopped}}
+        mapping = {'link_to_origins': {k:['S1'] for k in counts}, 'link_to_movements': {}}
+        with patch.dict(adapter._CFG_SWITCHES, {'moving_speed': enabled}, clear=True), \
+                patch.dict(adapter._CFG_STRINGS, {}, clear=True):
+            return adapter.build_local_observation_summary(raw, _cfg(), mapping, None)
+
+    def test_stopped_approach_cannot_slow_a_separate_moving_cohort(self):
+        # Same physical pattern as road29 (two stopped) + its incoming turn
+        # (three moving); counts and occupancy must not disappear with speed.
+        off = self.project({'road':2,'turn':3}, {'road':0,'turn':40}, {'road':2,'turn':0}, False)
+        on = self.project({'road':2,'turn':3}, {'road':0,'turn':40}, {'road':2,'turn':0}, True)
+        self.assertAlmostEqual(off['urban_link_speed_kph']['S1'],24)
+        self.assertAlmostEqual(on['urban_link_speed_kph']['S1'],40)
+        self.assertEqual(off['urban_link_storage_occupancy'],on['urban_link_storage_occupancy'])
+        self.assertEqual(off['urban_movement_queue'],on['urban_movement_queue'])
+
+    def test_mixed_links_use_their_moving_population(self):
+        result = self.project({'a':10,'b':30}, {'a':30,'b':10}, {'a':5,'b':20}, True)
+        # Five at60 plus ten at30; the aggregate moving mean is40.
+        self.assertAlmostEqual(result['urban_link_speed_kph']['S1'],40)
+
+    def test_all_stopped_has_no_moving_speed_sample(self):
+        result = self.project({'a':2}, {'a':0}, {'a':2}, True)
+        self.assertNotIn('S1',result['urban_link_speed_kph'])
+        self.assertEqual(result['urban_link_storage_occupancy']['S1'],2)
+
+    def test_no_stopped_observations_preserves_weighted_mean(self):
+        off = self.project({'a':10,'b':30}, {'a':30,'b':10}, {}, False)
+        on = self.project({'a':10,'b':30}, {'a':30,'b':10}, {}, True)
+        self.assertEqual(off['urban_link_speed_kph'],on['urban_link_speed_kph'])
 
 
 if __name__ == "__main__":

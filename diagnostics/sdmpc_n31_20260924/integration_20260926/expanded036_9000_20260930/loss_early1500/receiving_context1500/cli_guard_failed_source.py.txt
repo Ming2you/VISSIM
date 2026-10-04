@@ -1,0 +1,143 @@
+"""Four bounded fixed-city predictions; no native execution or fitting."""
+import copy
+import ctypes
+import hashlib
+import importlib.util
+import json
+import pickle
+import sys
+import time
+from pathlib import Path
+
+O = Path(__file__).resolve().parent
+I = O.parents[2]
+U = I.parents[2]
+early = '--early1500' in sys.argv[1:]
+receiving_trace = '--receiving-trace1500' in sys.argv[1:]
+assert not (early and receiving_trace)
+at = 1500 if early or receiving_trace else 2250
+if early:
+    O = I/'expanded036_9000_20260930/loss_early1500'
+if receiving_trace:
+    O = I/'expanded036_9000_20260930/loss_early1500/receiving_context1500'
+    assert not (O/'run_completion.json').exists(), 'Preserve completed trace'
+script = I / 'probe_selected_arrival_path.py'
+protocol = json.loads((O/'protocol.json').read_bytes())
+ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x4000)
+from evaluation.controllers import obs150_contract as oc
+
+
+def readonly(raw, derived):
+    obs = raw[oc.RAW_STATE_KEY]
+    path = oc.resolve(obs, oc.derived_path(obs['sim_sec']))
+    assert path.read_bytes() == oc.derived_bytes(derived)
+    return path
+
+
+oc.write_derived = readonly
+spec = importlib.util.spec_from_file_location('onset_probe', script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+original = module.probe_levers
+D = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+native_action = json.loads((D/f'action_{at:06d}.json').read_bytes())
+caps = native_action['metadata']['sdmpc_constraints']
+old_dir = I/'closedloop_recorded2250_lever450_RM_C10484_city2250_after'
+old = None if early or receiving_trace else json.loads((old_dir/'held_actual.json').read_bytes())
+rows = []
+
+
+def audited(captured, reference, output, **kwargs):
+    from evaluation.controllers import area_leader_objective as constraints
+    from src.controllers import rollout_endpoint as endpoint
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower
+    cfg = captured['cfg']
+    cfg_bytes = pickle.dumps(cfg, protocol=5)
+    quantity_cfg = copy.deepcopy(cfg)
+    follower = LinkAgentWuFollower(quantity_cfg)
+    assert pickle.dumps(cfg, protocol=5) == cfg_bytes
+    assert len(follower.cfg.network.signals) == 17
+    evaluate = endpoint.evaluate_price_point
+    from evaluation.controllers import lane_ramp_runtime as ramp_runtime
+    gap_original = ramp_runtime.gap_acceptance_supply_vph
+    gap_rows = []
+    def gap_observer(conflict, critical, followup):
+        local = sys._getframe(1).f_locals
+        result = gap_original(conflict, critical, followup)
+        if local['name']=='RM_C10484':
+            state, net = local['state'],local['cfg'].network
+            road = local['road']
+            cell = net.ramp_merge_segment_index[local['name']]
+            assert local['mapping'] is None and local['plant'] is None
+            assert local['i']==cell-1 and local['split']==0
+            assert cell==23 and critical==2 and followup==1.5
+            gap_rows.append(dict(time_sec=local['freeway'].time_sec,
+                q_conflict_vph=conflict,gap_supply_vph=result,
+                canonical_supply_vph=local['canonical_rate'],
+                upstream_cell=cell-1,upstream_density=state.freeway_density[road][cell-1],
+                upstream_speed=state.freeway_speed[road][cell-1],
+                merge_cell=cell,merge_density=state.freeway_density[road][cell],
+                merge_speed=state.freeway_speed[road][cell],
+                jam_density=net.rho_max,
+                ramp_stock_veh=state.ramp_queue[local['name']],
+                lane_resolved_mainline=False))
+        return result
+    if receiving_trace:
+        ramp_runtime.gap_acceptance_supply_vph=gap_observer
+
+    def checked(state, action, *args, **kw):
+        assert len(rows) < (1 if receiving_trace else 4)
+        point = evaluate(state, action, *args, **kw)
+        if not rows and old is not None:
+            assert abs(point.ttt-old['ttt_omega_veh_h']) < 1e-9, (point.ttt, old['ttt_omega_veh_h'])
+        q = constraints.shared_urban_quantities(follower, point.control_area_response,
+            start_sec=state.time_sec, horizon_steps=3)
+        budget = constraints.shared_quantity_constraints(follower, action, q,
+            start_sec=state.time_sec, horizon_steps=3,
+            np_mode=caps['np']['mode'], target_np_veh=caps['np']['target'],
+            np_tolerance_veh=caps['np']['tolerance'], nuf_mode=caps['nuf']['mode'],
+            target_nuf_veh_h=caps['nuf']['target'], nuf_tolerance_veh_h=caps['nuf']['tolerance'])
+        name = list(protocol['conditions'])[len(rows)]
+        rows.append(dict(case=name, ttt=point.ttt, resource=budget, quantities=q))
+        (O/'quantities.json').write_text(json.dumps(rows,indent=2)+'\n',encoding='utf8')
+        return point
+
+    endpoint.evaluate_price_point = checked
+    try:
+        original(captured, reference, output, **dict(kwargs,
+            onset_factorial=not early and not receiving_trace,
+            early_ramp_factorial=early, first_interval_audit=True,
+            only_reference=True if receiving_trace else kwargs.get('only_reference',False)))
+    finally:
+        endpoint.evaluate_price_point = evaluate
+        ramp_runtime.gap_acceptance_supply_vph=gap_original
+    assert len(rows) == (1 if receiving_trace else 4)
+    if receiving_trace:
+        assert len(gap_rows)==450 and [r['time_sec'] for r in gap_rows]==list(range(1500,1950))
+        (O/'receiving_trace.json').write_text(json.dumps(gap_rows,indent=2)+'\n',encoding='utf8')
+        saved=json.loads((I/'closedloop_recorded1500_lever450_RM_C10484_trace10484_early1500/held_actual.json').read_bytes())
+        current=json.loads((output/'held_actual.json').read_bytes())
+        saved.pop('wall_sec');current.pop('wall_sec')
+        assert saved==current, 'Instrumentation must preserve all saved forecast values'
+    (O/'output.json').write_text(json.dumps(dict(output=str(output)),indent=2),encoding='utf8')
+
+
+module.probe_levers = audited
+sys.argv = [str(script),'--closedloop-recorded',f'--at={at}','--lever-probe450',
+    '--meter-ramp=RM_C10484','--trace-ramp=RM_C10484','--warm-head-history','--replay-vsl-history',
+    '--recording-dir='+str(D),
+    '--tuning-json='+str(I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_config.json'),
+    '--probe-label=receiving1500' if receiving_trace else '--probe-label=early1500' if early else '--probe-label=of2']
+if early:
+    sys.argv.append('--early-ramp-factorial')
+pins = {p:h for p,h in protocol['pins_before'].items()
+        if Path(p).resolve() not in {script.resolve(),Path(__file__).resolve()}}
+pins[str(script)] = hashlib.sha256(script.read_bytes()).hexdigest()
+pins[str(Path(__file__))] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+(O/'execution_pins.json').write_text(json.dumps(pins,indent=2),encoding='utf8')
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+started = time.perf_counter()
+module.main()
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+(O/'run_completion.json').write_text(json.dumps(dict(status='complete',forecasts=len(rows),
+    wall_sec=time.perf_counter()-started,optimizer=0,fit=0,new_native=0,pins_unchanged=True),indent=2),encoding='utf8')

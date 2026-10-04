@@ -34,6 +34,7 @@ def parse_args(argv):
     parser.add_argument('--sim-sec', required=True)
     parser.add_argument('--detectors', required=True)
     parser.add_argument('--detectors-sha256', required=True)
+    parser.add_argument('--err-barrier', help='Live runner NOTE token; require its complete flushed line before capture')
     return parser.parse_args(argv)
 
 
@@ -45,6 +46,8 @@ def main(argv=None):
             raise oc.ObsContractError('--sim-sec must be an integer decision time')
         sim_sec = int(text)
         rows, _ = oc.read_detector_csv(args.detectors, args.detectors_sha256)
+        if args.err_barrier is not None:
+            obs150_capture.require_err_barrier(args.err, Path(args.out_dir).parent, sim_sec, args.err_barrier)
         obs150_capture.capture(args.eval_dir, args.err, args.out_dir, sim_sec, rows)
         digest = obs150_capture.capture_file_sha256(args.out_dir, sim_sec)
     except Exception as error:  # the runner needs one line and a nonzero exit, never a traceback on stdout

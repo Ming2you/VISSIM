@@ -1,0 +1,91 @@
+$ErrorActionPreference='Stop'
+$taskRoot=(Get-Location).Path
+$reviewRoot=Join-Path $taskRoot 'diagnostics/repin_v3c3_review_20261001/independent_s71_84'
+$protocolRoot=Join-Path $taskRoot 'diagnostics/sdmpc_n31_20260924/integration_20260926/native_rm_observation2700_s71_four84'
+$runRoot='D:/VISSIM_runs/20261003_independent_s71_four84'
+$planPath=Join-Path $reviewRoot 'postprocess_plan.json'
+$plan=Get-Content -Raw -LiteralPath $planPath | ConvertFrom-Json
+$taskCreated=(Get-Process -Id $PID).StartTime
+$taskStatus=Join-Path $reviewRoot 'postprocess_status.json'
+if(Test-Path -LiteralPath $taskStatus){throw 'Existing postprocessor status is preserved; no duplicate launch'}
+function Save-Post([string]$phase,[string]$detail){
+ [ordered]@{phase=$phase;time=[DateTimeOffset]::Now.ToString('o');pid=$PID;creation=$taskCreated.ToString('o');native_owner_pid=14508;detail=$detail} |
+  ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskStatus -Encoding utf8
+}
+function Check-Stop {
+ foreach($folder in @($runRoot,$reviewRoot,$protocolRoot)){
+  if(Test-Path -LiteralPath (Join-Path $folder 'STOP')){throw ('STOP exists: '+$folder)}
+ }
+}
+function Verify-Sources {
+ foreach($pin in $plan.source_pins.PSObject.Properties){
+  if((Get-FileHash -LiteralPath $pin.Name -Algorithm SHA256).Hash.ToLowerInvariant() -cne $pin.Value){throw ('Postprocess source changed: '+$pin.Name)}
+ }
+ if((Get-FileHash -LiteralPath (Join-Path $reviewRoot 'candidate_config.json') -Algorithm SHA256).Hash.ToLowerInvariant() -cne $plan.config_sha256){throw 'Candidate configuration changed'}
+ $original=Get-Content -Raw -LiteralPath (Join-Path $reviewRoot 'plan.json') | ConvertFrom-Json
+ foreach($pin in $original.model_pins.PSObject.Properties){
+  $expected=$pin.Value
+  $override=$plan.source_pins.PSObject.Properties[$pin.Name]
+  if($null -ne $override){$expected=$override.Value}
+  if((Get-FileHash -LiteralPath $pin.Name -Algorithm SHA256).Hash.ToLowerInvariant() -cne $expected){throw ('Original pinned source changed: '+$pin.Name)}
+ }
+}
+try{
+ Check-Stop
+ Verify-Sources
+ $owner=Get-Process -Id 14508 -ErrorAction Stop
+ $expected=[DateTimeOffset]'2026-10-03T06:53:24.6268638+09:00'
+ if([Math]::Abs(($owner.StartTime.ToUniversalTime()-$expected.UtcDateTime).TotalMilliseconds) -gt 1){throw 'Native owner identity changed'}
+ $null=$owner.Handle
+ Save-Post 'waiting_native' 'Same finite four-arm queue; no analysis until owner exits normally'
+ while(-not $owner.WaitForExit(30000)){Check-Stop}
+ $owner.Refresh()
+ if($owner.ExitCode -ne 0){throw ('Native owner failed, exit='+$owner.ExitCode)}
+ Check-Stop
+ $chain=Get-Content -Raw -LiteralPath (Join-Path $runRoot 'chain_status.json') | ConvertFrom-Json
+ $queue=Get-Content -Raw -LiteralPath (Join-Path $protocolRoot 'status.json') | ConvertFrom-Json
+ if($chain.phase -ne 'native_four_complete_unanalyzed' -or $queue.stage -ne 'requested_native_arms_complete_unanalyzed'){throw 'Native terminal status is not complete'}
+ $evidence=@()
+ foreach($arm in @('nc','rm','vsl','both')){
+  $folder=Join-Path $runRoot $arm
+  $name='sdmpc31_g_2250_'+$arm+'_s71'
+  $logPath=Join-Path $folder ('runlog_'+$name+'.txt')
+  $log=[IO.File]::ReadAllText($logPath)
+  foreach($marker in @('STAGE=SIM_DONE','SIM_SEC=2700','DECISIONS_FAILED=0','OBSERVATION_FAILURES=0','SIGNAL_FAILURES=0','ACTION_FORMAT_FAILURES=0','COM_FAILURES=0')){
+   if($log -notmatch ('(?m)^'+[regex]::Escape($marker)+'\r?$')){throw ('Incomplete native '+$arm+': '+$marker)}
+  }
+  $watchPath=Join-Path $folder 'WATCHDOG_PROGRESS.txt'
+  $watch=[IO.File]::ReadAllText($watchPath)
+  if($watch -notmatch (' OK '+[regex]::Escape($name)+' attempt=1 ')){throw ('Missing successful watchdog '+$arm)}
+  $runnerMatch=[regex]::Match($watch,'KILL_POLICY [^\r\n]*runner_pid=(\d+)')
+  $vissimMatch=[regex]::Match($watch,'VISSIM_PROCESS [^\r\n]*pid=(\d+)')
+  if(-not $runnerMatch.Success -or -not $vissimMatch.Success){throw ('Missing ownership '+$arm)}
+  $owned=@([int]$runnerMatch.Groups[1].Value,[int]$vissimMatch.Groups[1].Value)
+  foreach($ownedId in $owned){if(Get-Process -Id $ownedId -ErrorAction SilentlyContinue){throw ('Owned PID still present or reused; preserve '+$ownedId)}}
+  $evidence+=@{arm=$arm;closed_pids=$owned;log_sha256=(Get-FileHash -LiteralPath $logPath -Algorithm SHA256).Hash.ToLowerInvariant();watchdog_sha256=(Get-FileHash -LiteralPath $watchPath -Algorithm SHA256).Hash.ToLowerInvariant()}
+ }
+ $analysisRoot=Join-Path $protocolRoot 'analysis'
+ if(Test-Path -LiteralPath (Join-Path $analysisRoot 'summary.json')){throw 'Completed analysis exists; no repetition'}
+ $null=New-Item -ItemType Directory -Path $analysisRoot -Force
+ [ordered]@{all_owned_processes_closed=$true;owner_exit_code=$owner.ExitCode;runs_root=$runRoot;owner_pid=14508;owner_creation=$expected.ToString('o');verified_at=[DateTimeOffset]::Now.ToString('o');arms=$evidence} |
+  ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $analysisRoot 'runtime_closure.json') -Encoding utf8
+ $env:PYTHONUTF8='1';$env:PYTHONDONTWRITEBYTECODE='1'
+ $env:PYTHONPATH='C:/Users/alsrj/Desktop/학술/찐찐막/Codex/VISSIM/.review-deps/sdmpc;.;vendor/NumSim-mine'
+ $env:OMP_NUM_THREADS='1';$env:OPENBLAS_NUM_THREADS='1';$env:MKL_NUM_THREADS='1'
+ foreach($phase in @('native_analysis','forecast','ramp_audit')){
+  Check-Stop
+  Verify-Sources
+  $argv=$plan.($phase+'_argv')
+  if($null -eq $argv -or $argv.Count -eq 0){throw ('Missing arguments '+$phase)}
+  Save-Post $phase ('One attempt; log '+$phase+'_84.log')
+  & $plan.python -B @argv *> (Join-Path $reviewRoot ($phase+'_84.log'))
+  if($LASTEXITCODE -ne 0){throw ('Failed '+$phase+' exit='+$LASTEXITCODE+'; preserve '+$phase+'_84.log')}
+ }
+ Save-Post 'complete_pending_assessment' 'Native execution, four frozen-model predictions and eight-ramp audit complete; assess predefined material effects and ranks next'
+ 'Postprocessing completed; gain qualification remains pending'
+}catch{
+ $reason=[string]$_
+ Save-Post $(if($reason -like 'STOP exists:*'){'stopped'}else{'failed'}) $reason
+ Write-Error $_
+ exit 1
+}

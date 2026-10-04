@@ -1,0 +1,2695 @@
+"""Causal wiring probe using the canonical adapter and endpoint; no VISSIM/fitting.
+
+Intercept after runtime/SDMPC configuration and forecast construction, before
+optimization. Perturb only the redundant exogenous ramp-arrival field. This
+does not perturb physical urban route arrivals or prove their accuracy.
+"""
+from __future__ import annotations
+
+import copy
+import csv
+import gzip
+import hashlib
+import json
+import os
+from contextlib import contextmanager, nullcontext
+import sys
+import time
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[3]
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+
+
+def probe_controller_derivatives(captured, reference, coord, evaluate, derivative, quantities,
+                                 output, sources, resume=None):
+    """One actual-controller AD and nine independent continuous scalar checks.
+
+    Infinitesimal FD commands bypass native quantization, exactly like the AD
+    seeding. They diagnose two columns, not feasible commands or a new optimum.
+    """
+    import pickle
+    import numpy as np
+    from evaluation.controllers import sdmpc_sequence as sequence
+    from evaluation.controllers.sdmpc_tangent import checked_matrices
+    from evaluation.controllers.sdmpc_tangent_surrogate import Query, token
+
+    protocol_path = HERE/'closedloop9000_d4e2_analysis/controller_derivative_check/protocol.json'
+    protocol = json.loads(protocol_path.read_bytes())
+    query = derivative.__self__
+    assert isinstance(query, Query) and query.stats()['total_rollouts'] == 0
+    cfg = captured['cfg']
+    assert captured['state'].time_sec == 4500 and cfg.mpc.horizon_steps == 3
+    z = coord.encode(reference)
+    for j,axis in enumerate(coord.axes):
+        if axis['kind']=='meter' and axis['key']=='RM_C10484':
+            z[j] = ((8.,6.,4.)[axis['block']]-axis['reference_value'])/axis['scale']
+    anchor = coord.decode(z, reference)
+    coord.validate(anchor)
+    for k,action in enumerate(sequence.actions(anchor,3)):
+        assert action.green_times == reference.green_times and action.offsets == reference.offsets
+        assert action.vsl == reference.vsl
+        for ramp in cfg.network.ramps:
+            key = 'rw_meter_green_'+ramp
+            expected = (8.,6.,4.)[k] if ramp=='RM_C10484' else reference.diagnostics[key]
+            assert action.diagnostics[key] == expected
+    source_pins = {str(p):hashlib.sha256(p.read_bytes()).hexdigest()
+                   for p in (*sources,protocol_path,Path(__file__))}
+    history_receipt = output/'vsl_history_replay.json'
+    source_pins.update(json.loads(history_receipt.read_bytes())['original_files'])
+    selected_axes = []
+    trials = [anchor]
+    trial_names = ['independent_anchor']
+    # Physical units: seconds of meter GREEN and km/h of the VSL command.
+    # Jacobians are w.r.t. normalized z, so h_z = h_physical / axis.scale.
+    for spec in protocol['axes']:
+        matches = [(j,a) for j,a in enumerate(coord.axes)
+                   if all(a[key]==spec[key] for key in ('kind','key','block'))]
+        assert len(matches)==1
+        j,axis = matches[0]
+        row = dict(axis, index=j, steps=spec['steps'],
+                   step_unit='green_sec' if axis['kind']=='meter' else 'km_h', trials=[])
+        for step in spec['steps']:
+            indices=[]
+            for sign in (-1,1):
+                controls=sequence.actions(anchor,3)
+                control=controls[axis['block']]
+                if axis['kind']=='meter':
+                    control.diagnostics['rw_meter_green_'+axis['key']] += sign*step
+                else:
+                    speed=control.vsl[axis['key']]+sign*step
+                    for cell,head in enumerate(cfg.network.freeway_vsl_zone_head_of_cell[axis['owner']]):
+                        if head==axis['head']:
+                            control.vsl[f"{axis['owner']}__seg{cell}"]=speed
+                    control.vsl[axis['owner']]=min(control.vsl[f"{axis['owner']}__seg{i}"]
+                        for i in range(len(cfg.network.freeway_vsl_zone_head_of_cell[axis['owner']])))
+                action=sequence.pack(controls)
+                delta=coord.encode(action)-coord.encode(anchor)
+                expected=np.zeros(len(coord.axes));expected[j]=sign*step/axis['scale']
+                assert np.max(abs(delta-expected))<1e-12
+                indices.append(len(trials));trials.append(action)
+                trial_names.append(f"{axis['key']}_block{axis['block']}_{sign*step:+g}")
+            row['trials'].append(dict(step_physical=step,step_z=step/axis['scale'],indices=indices))
+        selected_axes.append(row)
+    assert len(trials)==protocol['max_independent_scalar_rollouts']==9
+    def write(name,value):
+        (output/name).write_text(json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+    write('protocol.json',dict(protocol,files=source_pins,axes=selected_axes,
+        command_scope='Native-valid anchor only; FD points are continuous diagnostics, never applied',
+        scalar_workers=3,optimizer_iterations=0,native_started=False))
+    started=time.perf_counter()
+    owners=(*coord.owners,'PASSIVE_OMEGA')
+    def costs(item):return np.array([item['sdmpc_omega_partition']['costs'][p] for p in owners])
+    if resume is None:
+        item=evaluate([anchor],derivatives=True)[0]
+        receipt=derivative(anchor)
+        gradient,resource_gradient,fallback=checked_matrices(receipt,costs(item),quantities(anchor,item),
+            coord.axes,protocol['primal_abs_tolerance'],allow_surrogate=True)
+        assert not fallback and query.stats()['tangent_rollouts']==protocol['max_ad_rollouts']==1
+        ad_data=dict(owners=owners,resources=['NP_veh','NUF_veh_h'],
+            columns=[dict(axis=a,costs=gradient[:,a['index']].tolist(),
+                          resources=resource_gradient[:,a['index']].tolist()) for a in selected_axes],
+            costs=costs(item).tolist(),resource_values=quantities(anchor,item).tolist(),
+            trace=receipt['trace'],derivative_scope=receipt['derivative_scope'],
+            transformed_source_sha256=receipt['transformed_source_sha256'])
+        ad_stats=query.stats()
+    else:
+        old=json.loads((resume/'protocol.json').read_bytes())
+        ad_data=json.loads((resume/'ad_columns.json').read_bytes())
+        failed=json.loads((resume/'unused_action.joint.json').read_bytes())
+        ad_stats=failed['physical_response_cache']
+        assert not failed['completed'] and ad_stats['tangent_rollouts']==1 and ad_stats['scalar_rollouts']==0
+        assert ad_stats['rows'][0]['action_token']==token(anchor)
+        assert old['axes']==selected_axes and ad_data['owners']==list(owners)
+        # The only changed source is this harness's failed witness setup; all
+        # input/model/AD sources must retain their original bytes.
+        for path,sha in {**old['files'],**ad_data['transformed_source_sha256']}.items():
+            p=Path(path)
+            if p.resolve()==Path(__file__).resolve():
+                p=HERE/'executed_sources'/('probe_selected_arrival_path_'+sha+'.py')
+            assert hashlib.sha256(p.read_bytes()).hexdigest()==sha,path
+        gradient=np.full((len(owners),len(coord.axes)),np.nan)
+        resource_gradient=np.full((2,len(coord.axes)),np.nan)
+        for column in ad_data['columns']:
+            j=column['axis']['index']
+            gradient[:,j]=column['costs'];resource_gradient[:,j]=column['resources']
+    write('ad_columns.json',ad_data)
+    # A fresh query cannot reuse the AD primal as an alleged scalar witness.
+    independent=Query(pickle.loads(query.template),query.check_budget,query.emit,runner=query.runner)
+    # pickle's alias memo may change on load/repack despite equal operands.
+    # Retain the exact original request bytes and their original context token.
+    independent.template=query.template
+    independent.context_token=query.context_token
+    scalar=[]
+    try:
+        for begin in range(0,len(trials),3):
+            scalar.extend(independent.evaluate(trials[begin:begin+3],derivatives=False))
+            write('scalar_responses.json',dict(names=trial_names[:len(scalar)],results=scalar))
+    finally:
+        independent.close()
+    f0=costs(scalar[0]);q0=quantities(anchor,scalar[0])
+    primal_cost_error=float(np.max(abs(np.asarray(ad_data['costs'])-f0)))
+    primal_resource_error=float(np.max(abs(np.asarray(ad_data['resource_values'])-q0)))
+    rows=[]
+    for axis in selected_axes:
+        j=axis['index']
+        comparisons=[]
+        for trial in axis['trials']:
+            minus,plus=trial['indices'];h=trial['step_z']
+            fm,fp=costs(scalar[minus]),costs(scalar[plus])
+            qm,qp=(quantities(trials[idx],scalar[idx]) for idx in (minus,plus))
+            dc,dq=(fp-fm)/(2*h),(qp-qm)/(2*h)
+            close_c=np.isclose(dc,gradient[:,j],atol=protocol['cost_gradient_atol'],rtol=protocol['gradient_rtol'])
+            close_q=np.isclose(dq,resource_gradient[:,j],atol=protocol['resource_gradient_atol'],rtol=protocol['gradient_rtol'])
+            comparisons.append(dict(step_physical=trial['step_physical'],step_z=h,
+                central_costs=dc.tolist(),left_costs=((f0-fm)/h).tolist(),right_costs=((fp-f0)/h).tolist(),
+                central_resources=dq.tolist(),left_resources=((q0-qm)/h).tolist(),right_resources=((qp-q0)/h).tolist(),
+                omega_ad_per_z=float(sum(gradient[:,j])),omega_fd_per_z=float(sum(dc)),
+                max_cost_error=float(np.max(abs(dc-gradient[:,j]))),
+                max_resource_error=float(np.max(abs(dq-resource_gradient[:,j]))),
+                cost_matches=close_c.tolist(),resource_matches=close_q.tolist(),
+                all_match=bool(np.all(close_c) and np.all(close_q))))
+        rows.append(dict(axis=axis,comparisons=comparisons))
+    pins_unchanged=all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==sha for p,sha in source_pins.items())
+    assert pins_unchanged
+    stats=independent.stats()
+    assert stats['scalar_rollouts']==9 and stats['tangent_rollouts']==0
+    report=dict(status='complete',start_sec=4500,horizon_sec=450,files=source_pins,
+        primal_cost_max_error=primal_cost_error,primal_resource_max_error=primal_resource_error,
+        primal_outputs_match=max(primal_cost_error,primal_resource_error)<=protocol['primal_abs_tolerance'],
+        full_primal_trajectory_audited=False,rows=rows,
+        all_checked_gradients_match=all(c['all_match'] for row in rows for c in row['comparisons']),
+        ad_query=ad_stats,independent_scalar_query=stats,wall_sec=time.perf_counter()-started,
+        reused_ad_from=str(resume) if resume else None,new_ad_rollouts=query.stats()['tangent_rollouts'],
+        optimizer_iterations=0,native_started=False,calibration_changed=False,files_unchanged=pins_unchanged,
+        scope='Two continuous columns at one anchor; not all-axis AD certification, an optimizer result, or native gain validation')
+    write('summary.json',report)
+    print(json.dumps({k:report[k] for k in ('status','primal_outputs_match','all_checked_gradients_match','wall_sec')}),flush=True)
+
+
+def diagnostic_source_forecast(forecast, case, document):
+    """Future-input ablation only. Never used by an optimizer or native runner."""
+    import math
+    result = copy.deepcopy(forecast[:3])
+    if document is None:
+        return result
+    pair = document.get('schema') == 'diagnostic-native-mainline-pair/v1'
+    if (document.get('schema') not in ('diagnostic-native-mainline/v1', 'diagnostic-native-mainline-pair/v1')
+            or document.get('road') != 'FW_E' or document.get('start_sec') != (2700. if pair else 2250.)
+            or document.get('interval_sec') != 150. or document.get('blocks') != 3
+            or document.get('future_observation_inputs') is not True
+            or document.get('optimizer_allowed') is not False
+            or document.get('mode') not in ('common_nc', 'per_arm')):
+        raise ValueError('Invalid future-source diagnostic contract')
+    if pair and (document.get('autonomous_prediction') is not False
+            or document.get('calibration_allowed') is not False
+            or document.get('forecast_budget') != 2 or document.get('new_native_runs') != 0
+            or document.get('fit') != 0 or document.get('mode') != 'per_arm'):
+        raise ValueError('The saved pair is conditional diagnosis only, with two fixed forecasts')
+    profiles = document['profiles_veh_h']
+    expected = {'held_actual', 'selected'} if pair else {'held_actual', 'rm', 'vsl', 'both'}
+    if set(profiles) != expected or len(result) != 3:
+        raise ValueError('Future-source diagnostic needs exactly its fixed command cases')
+    if document['mode'] == 'common_nc' and any(v != profiles['held_actual'] for v in profiles.values()):
+        raise ValueError('Common-source diagnostic must hold the same input in every case')
+    rates = profiles[case]
+    if len(rates) != 3 or any(not math.isfinite(float(q)) or q < 0 for q in rates):
+        raise ValueError('Invalid diagnostic source rates')
+    for step, rate in zip(result, rates):
+        step.freeway_mainline['FW_E'] = float(rate)
+    return result
+
+
+@contextmanager
+def observe_first_interval_speed_terms(start, rows, *, horizon_sec=150):
+    """Observe the installed scalar equations; restore all hooks on exit."""
+    if type(horizon_sec) is not int or not 0 < horizon_sec <= 750:
+        raise ValueError('Diagnostic observation horizon must be1..750seconds')
+    from evaluation.controllers import area_freeway_accounting as accounting
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from evaluation.controllers.freeway_fd import state_response_coefficients
+    mn = accounting._mn
+    step, segment, update = accounting._freeway_substep_events, mn.segment_vsl, mn.metanet_speed_update_kmh
+    active = {}
+
+    def observe_segment(control, road, cell, cfg, **kwargs):
+        result = segment(control,road,cell,cfg,**kwargs)
+        active['address'] = (road,cell)
+        return result
+
+    def observe_update(speed, upstream, rho, down, desired, dt, length, tau, nu, kappa, minimum):
+        ctx = copy.deepcopy(adapter._FW_SEG_CTX)
+        address = active.get('address')
+        result = update(speed,upstream,rho,down,desired,dt,length,tau,nu,kappa,minimum)
+        if (active.get('time',start+horizon_sec) >= start+horizon_sec or address is None or address[0]!='FW_E'
+                or address[1] not in (0,4,*range(9,26))):
+            return result
+        assert ctx['armed']
+        p = ctx['p']
+        length = p.get('segment_length_km',length)
+        tau = p.get('metanet_tau_h',tau)
+        kappa = p.get('metanet_kappa_veh_km_lane',kappa)
+        tau,nu = state_response_coefficients(ctx.get('state_response',{}),speed,desired,rho,down,
+                                             ctx['response_rho_crit'],tau,nu)
+        relaxation = dt/max(tau,1e-9)*(desired-speed)
+        convection = dt/max(length,1e-9)*speed*(upstream-speed)
+        anticipation = -nu*dt/(max(tau,1e-9)*max(length,1e-9))*(down-rho)/max(rho+kappa,1e-9)
+        before_drop = max(minimum,speed+relaxation+convection+anticipation)
+        drop = (ctx['phi']*dt*ctx['dlam']*max(rho,0.)*speed**2 /
+                (max(length,1e-9)*max(ctx['lanes'],1e-9)*max(p.get('rho_crit',ctx['rho_crit_link']),1e-9)))
+        assert abs(max(minimum,before_drop-drop)-result) < 1e-8
+        rows.append(dict(time_sec=active['time'],cell=address[1],speed_before=speed,rho=rho,
+            downstream_rho=down,desired=desired,relaxation=relaxation,convection=convection,
+            anticipation=anticipation,lane_drop_raw=drop,after_speed_equation=result,
+            phi=ctx['phi'],delta_lanes=ctx['dlam'],length_km=length,tau_sec=tau*3600,nu=nu))
+        return result
+
+    def observe_step(state, control, demand, cfg, *args, **kwargs):
+        active['time'] = state.time_sec
+        mark = len(rows)
+        result = step(state,control,demand,cfg,*args,**kwargs)
+        for row in rows[mark:]:
+            row['speed_final'] = state.freeway_speed['FW_E'][row['cell']]
+            row['post_equation_change'] = row['speed_final']-row['after_speed_equation']
+        return result
+
+    mn.segment_vsl, mn.metanet_speed_update_kmh = observe_segment,observe_update
+    accounting._freeway_substep_events = observe_step
+    try:
+        yield
+    finally:
+        mn.segment_vsl, mn.metanet_speed_update_kmh = segment,update
+        accounting._freeway_substep_events = step
+
+
+def first_interval_response(state, point, cfg):
+    """Export an existing rollout's executed 150s prefix; no future inputs."""
+    end = point.states[0]
+    t0, t1 = state.time_sec, end.time_sec
+    assert t1-t0 == 150
+    response = point.control_area_response
+
+    def prefix(rows):
+        assert not any(r['start_sec'] < t1 < r['end_sec'] for r in rows)
+        return [r for r in rows if t0 <= r['start_sec'] and r['end_sec'] <= t1]
+
+    residence = prefix(response['residence'])
+    transfers = prefix(response['transfers'])
+    resources = prefix(response['resource_allocations'])
+    assert residence and min(r['start_sec'] for r in residence) == t0
+    assert max(r['end_sec'] for r in residence) == t1
+    costs, outside = {}, {}
+    for row in residence:
+        for key, n in row['inside_veh'].items():
+            costs[key] = costs.get(key, 0.) + n*row['dt_h']
+            extra = row['model_stock_veh'][key]-n
+            assert extra >= -1e-7
+            outside[key] = outside.get(key, 0.) + max(0., extra)*row['dt_h']
+    flows = {}
+    for row in transfers:
+        key = (row['source'], row['target'], row['route_key'])
+        flows[key] = flows.get(key, 0.) + row['vehicles']
+    ramps = {}
+    for ramp in cfg.network.ramps:
+        arrival = sum(r['vehicles'] for r in transfers if r['target']=='ramp:'+ramp)
+        merge = sum(r['vehicles'] for r in transfers
+                    if r['source']=='ramp:'+ramp and r['target']=='merge_pending:'+ramp)
+        initial, final = state.ramp_queue[ramp], end.ramp_queue[ramp]
+        assert abs(initial+arrival-merge-final) < 1e-7
+        head = sum(r['accepted_total_veh'] for r in resources
+                   if r['kind']=='physical_ramp_head_service' and r['resource'].startswith(ramp+':'))
+        ramps[ramp] = dict(initial_stock=initial, arrival=arrival, head=head,
+                           merge=merge, final_stock=final)
+    offramps = {}
+    for off, spec in state.lane_offramp_runtime.descriptions.items():
+        key = 'storage:'+spec['storage']
+        arrival = sum(r['vehicles'] for r in transfers if r['target']==key)
+        drain = sum(r['vehicles'] for r in transfers if r['source']==key)
+        initial = state.lane_offramp_runtime.stock(off)
+        final = end.lane_offramp_runtime.stock(off)
+        assert abs(initial+arrival-drain-final) < 1e-7, (off,initial,arrival,drain,final)
+        offramps[off] = dict(storage=spec['storage'], connector=spec['connector'],
+                            initial_stock=initial, arrival=arrival, drain=drain, final_stock=final)
+    cells = []
+    for s in (state, end):
+        counts = {road: [d*l*n for d,l,n in zip(s.freeway_density[road],
+                         cfg.network.freeway_segment_length_profile_km[road],s.freeway_effective_lanes[road])]
+                  for road in s.freeway_density}
+        assert all(len(v)==31 for v in counts.values())
+        cells.append(dict(time_sec=s.time_sec, vehicle_count=counts,
+                          speed_kmh=s.freeway_speed, density=s.freeway_density))
+    return dict(start_sec=t0,end_sec=t1,future_observation_inputs=False,
+                ttt_omega_veh_h=sum(costs.values()),cost_by_stock=costs,
+                tracked_outside_veh_h=sum(outside.values()),ramps=ramps,offramps=offramps,
+                physical_cell_states=cells,transfers=[dict(source=k[0],target=k[1],route_key=k[2],vehicles=v)
+                    for k,v in flows.items()])
+
+
+def probe_levers(captured, reference, output, *, only_reference=False, selected_path=None,
+                 meter_only=False, signal_exchange=False, meter_ramp=None, vsl_zone=None,
+                 trace_response=False, replay_pair=None, trace_ramp=None, signal_owner='SC1001',
+                 four_arm_receipt=None, diagnostic_sources=None, first_interval_audit=False,
+                 first_interval_terms=False, onset_factorial=False, candidate_names=None,
+                 early_ramp_factorial=False):
+    """Small legal one-lever sequences, using the installed SDMPC decoder.
+
+    This is sensitivity diagnosis, not selection, calibration, or a native
+    counterfactual: all candidates hold the last actually applied city action.
+    """
+    from evaluation.controllers import joint_owner_game as owners
+    from evaluation.controllers import joint_owner_neighbors as neighbors
+    from evaluation.controllers import sdmpc_sequence as sequence
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from src.controllers import rollout_endpoint as endpoint
+    cfg, state = captured['cfg'], captured['state']
+    source_document = None
+    if diagnostic_sources is not None:
+        source_document = json.loads(diagnostic_sources.read_bytes())
+        if source_document.get('schema') == 'diagnostic-native-mainline-pair/v1':
+            assert state.time_sec == 2700 and selected_path is not None and four_arm_receipt is None
+            assert not any((only_reference, meter_only, signal_exchange, meter_ramp, vsl_zone,
+                           trace_response, onset_factorial, candidate_names, early_ramp_factorial))
+        else:
+            assert four_arm_receipt is not None and state.time_sec == 2250 and selected_path is None
+        assert replay_pair is None and trace_ramp is None
+        diagnostic_source_forecast(captured['forecast'], 'held_actual', source_document)
+        assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest() == h
+                   for p,h in source_document['source_pins'].items())
+        source_document['contract_sha256'] = hashlib.sha256(diagnostic_sources.read_bytes()).hexdigest()
+        (output/'diagnostic_future_sources.json').write_text(json.dumps(source_document,indent=2),encoding='utf-8')
+    if trace_ramp is not None:
+        assert trace_ramp in cfg.network.ramps and (selected_path is not None or four_arm_receipt is not None or replay_pair is not None
+                                                   or meter_only and meter_ramp == trace_ramp)
+    # Previous prediction blocks were never applied. Match SDMPC.solve's
+    # first_action handling before constructing this decision's reference.
+    reference = sequence.first_action(reference)
+    if replay_pair is not None or four_arm_receipt is not None:
+        from evaluation.controllers.area_follower_objective import expand_shared_vsl_action
+        segment_vsl=adapter.repo_imports(ROOT/'vendor/NumSim-mine')[-1]
+        reference,expansion=expand_shared_vsl_action(reference,cfg,segment_vsl_func=segment_vsl)
+        if replay_pair is not None:replay_pair['previous_vsl_expansion']=expansion
+        else:(output/'previous_vsl_expansion.json').write_text(json.dumps(expansion,indent=2),encoding='utf-8')
+    plan = {'controllers': {s[2:]: n for s,n in cfg.network.signal_actuation_contract['nodes'].items()}}
+    ownership = owners.build_ownership(cfg,captured['mapping'],plan,
+                                      segment_dsd_controls=adapter._segment_dsd_controls)
+    # City coordinates are fixed only for this isolated response probe.
+    limits = dict(green_sec=0.,offset_sec=0.,vsl_kmh=cfg.freeway_follower.max_vsl_step,
+                  meter_green_sec=cfg.network.physical_ramp_branches['max_green_change_sec'])
+    if signal_exchange:
+        from types import SimpleNamespace
+        from evaluation.controllers.area_follower_objective import joint_decision_move_limits
+        assert selected_path is None
+        # Reuse the controller's actual move bound; keep offsets fixed here.
+        limits=joint_decision_move_limits(SimpleNamespace(cfg=cfg,offset_marginal_price_trust_sec=0.))
+    box = neighbors.build_fixed_move_box(ownership,reference,cfg,limits)
+    coord = sequence.SequenceCoordinates(cfg,reference,box,cfg.network.sdmpc_options)
+    anchor = coord.encode(reference)
+    candidates = {'held_actual': coord.decode(anchor,reference)}
+    if early_ramp_factorial:
+        assert state.time_sec == 1500 and meter_only and meter_ramp == 'RM_C10484'
+        assert not any((onset_factorial, only_reference, selected_path, signal_exchange,
+                        vsl_zone, replay_pair, four_arm_receipt, diagnostic_sources, candidate_names))
+        assert all(reference.diagnostics['rw_meter_green_'+r] == 10. for r in cfg.network.ramps)
+        assert all(v == 110. for v in reference.vsl.values())
+        for name, targets in (('rm10490', ('RM_C10490',)), ('rm10484', ('RM_C10484',)),
+                              ('both_ramps', ('RM_C10490','RM_C10484'))):
+            z = anchor.copy()
+            changed = 0
+            for j, axis in enumerate(coord.axes):
+                if axis['kind'] == 'meter' and axis['key'] in targets:
+                    value = 10.-(axis['block']+1)*limits['meter_green_sec']
+                    assert value in axis['allowed']
+                    z[j] = (value-10.)/axis['scale']
+                    changed += 1
+            assert changed == 3*len(targets)
+            candidates[name] = coord.decode(z, reference)
+            coord.validate(candidates[name])
+    if onset_factorial:
+        assert state.time_sec == 2250 and meter_only and meter_ramp == 'RM_C10484'
+        assert not any((only_reference, selected_path, signal_exchange, vsl_zone,
+                        replay_pair, four_arm_receipt, diagnostic_sources))
+        assert reference.diagnostics['rw_meter_green_RM_C10484'] == 10.
+        assert reference.vsl['FW_E__seg13'] == 90.
+        for name, change_rm, release_vsl in (
+                ('rm_only', True, False), ('vsl_release', False, True), ('both', True, True)):
+            z = anchor.copy()
+            changed = []
+            for j, axis in enumerate(coord.axes):
+                if change_rm and axis['kind'] == 'meter' and axis['key'] == meter_ramp:
+                    initial = 10.
+                    value = initial - (axis['block']+1)*limits['meter_green_sec']
+                elif release_vsl and axis['kind'] == 'vsl' and axis['key'] == 'FW_E__seg13':
+                    initial, value = 90., 110.
+                else:
+                    continue
+                assert value in axis['allowed']
+                z[j] = (value-initial)/axis['scale']
+                changed.append((axis['kind'], axis['block']))
+            assert len(changed) == 3*(int(change_rm)+int(release_vsl))
+            candidates[name] = coord.decode(z, reference)
+            coord.validate(candidates[name])
+    profile_pins={}
+    if four_arm_receipt is not None:
+        receipt=json.loads(four_arm_receipt.read_bytes())
+        assert receipt['passed'] and receipt['seed']==43 and receipt['prefix_cutoff_sec']==2250
+        assert state.time_sec==2250 and receipt['precontrol_prefix_exact']
+        assert not any((selected_path,meter_only,signal_exchange,meter_ramp,vsl_zone,replay_pair))
+        dsd_keys={int(no):key for kind,no,owner,key in ownership.writes if kind=='dsd'}
+        meter_keys={int(row['sc_no']):key for key,row in cfg.network.physical_ramp_branches['ramps'].items()}
+        for arm in ('rm','vsl','both'):
+            pin=receipt['profiles'][arm];path=Path(pin['path'])
+            assert hashlib.sha256(path.read_bytes()).hexdigest()==pin['sha256']
+            profile_pins[str(path)]=pin['sha256']
+            profile=json.loads(path.read_bytes())
+            assert profile['seed']==43 and profile['control_start_sec']==2250
+            assert profile['vehicle_record_interval_sec']==5 and profile['native_resolution_probe']==10
+            assert profile['native_off_service_anchor_green_sec']==10
+            z=anchor.copy()
+            for block in range(3):
+                at=2250+150*block;changes={};vsl_rows={}
+                for row in profile['meter_commands']:
+                    assert row['time_s'] in (2250,2400,2550)
+                    if row['time_s']<=at:changes[('meter',meter_keys[row['sc_no']])]=float(row['green_sec'])
+                for row in profile['vsl_commands']:
+                    assert row['time_s']==2250
+                    if row['time_s']<=at:vsl_rows[int(row['dsd_no'])]=float(row['speed_id'])
+                for key in {dsd_keys[no] for no in vsl_rows}:
+                    sites={no for no,head in dsd_keys.items() if head==key}
+                    assert sites <= vsl_rows.keys(), 'Native profile updates only part of a shared VSL strategy'
+                    speeds={vsl_rows[no] for no in sites};assert len(speeds)==1
+                    changes[('vsl',key)]=speeds.pop()
+                applied=set()
+                for j,a in enumerate(coord.axes):
+                    address=(a['kind'],a['key'])
+                    if a['block']!=block or address not in changes:continue
+                    value=changes[address];assert value in a['allowed'],(arm,a,value)
+                    initial=(reference.diagnostics['rw_meter_green_'+a['key']]
+                             if a['kind']=='meter' else reference.vsl[a['key']])
+                    z[j]=(value-initial)/a['scale'];applied.add(address)
+                assert applied==set(changes), 'Native command has no legal model strategy address'
+            candidates[arm]=coord.decode(z,reference)
+            coord.validate(candidates[arm])
+        profile_pins[str(four_arm_receipt)]=hashlib.sha256(four_arm_receipt.read_bytes()).hexdigest()
+    skipped_exchanges = []
+    if replay_pair is not None:
+        from src.models.state import ControlAction
+        assert state.time_sec==2700 and selected_path is None
+        for arm, paths in replay_pair['candidate_actions'].items():
+            blocks=[expand_shared_vsl_action(adapter.control_from_json(Path(path),cfg,ControlAction),cfg,
+                    segment_vsl_func=segment_vsl)[0] for path in paths]
+            action=sequence.pack(blocks)
+            coord.validate(action)
+            if arm=='hold':
+                for block in blocks:
+                    assert block.green_times==reference.green_times and block.offsets==reference.offsets
+                    assert block.vsl==reference.vsl
+                    assert all(block.diagnostics['rw_meter_green_'+r]==reference.diagnostics['rw_meter_green_'+r]
+                               for r in cfg.network.ramps)
+            else:
+                candidates['release_actual']=action
+    if signal_exchange and not only_reference:
+        exchanges = (
+                ('SC1001_p1_from_p4', {'p1':1.,'p4':-1.}),
+                ('SC1001_p2_from_p4', {'p2':1.,'p4':-1.}),
+                ('SC1001_p2_from_p3', {'p2':1.,'p3':-1.}),
+                ('SC1001_p1p2_from_p4', {'p1':.5,'p2':.5,'p4':-1.}))
+        if signal_owner=='SC109':
+            exchanges=(('SC109_p3_from_p4',{'p3':1.,'p4':-1.}),
+                       ('SC109_p4_from_p3',{'p4':1.,'p3':-1.}))
+        elif signal_owner!='SC1001':
+            raise ValueError('Unreviewed isolated signal exchange')
+        for name,changes in exchanges:
+            action=reference.copy()
+            amount=limits['green_sec']
+            if signal_owner=='SC109':
+                from evaluation.controllers.signal_actuation_contract import phase_bounds
+                physical_bounds=phase_bounds(cfg.network,signal_owner)
+                for phase,fraction in changes.items():
+                    value=reference.green_times[signal_owner+'_'+phase]
+                    low,high=physical_bounds[phase]
+                    amount=min(amount,(high-value)/fraction if fraction>0 else (low-value)/fraction)
+                amount=max(0.,round(amount,3))
+                if amount==0.:
+                    skipped_exchanges.append(dict(candidate=name,reason='Reference at physical green bound'))
+                    continue
+            for phase,fraction in changes.items():
+                key=signal_owner+'_'+phase
+                action.green_times[key]+=fraction*amount
+            candidates[name]=sequence.pack([action.copy() for _ in range(3)])
+            coord.validate(candidates[name])
+    east_axes = [(j,a) for j,a in enumerate(coord.axes) if a['owner']=='FW_E']
+    for kind in (() if early_ramp_factorial or onset_factorial or four_arm_receipt is not None or replay_pair is not None or only_reference or selected_path is not None or signal_exchange else
+                 ('vsl',) if vsl_zone is not None else ('meter',) if meter_only else ('meter','vsl')):
+        keys = list(dict.fromkeys(a['key'] for j,a in east_axes if a['kind']==kind))
+        if meter_ramp is not None:
+            assert meter_only and kind=='meter' and meter_ramp in keys
+            keys=[meter_ramp]
+        if vsl_zone is not None:
+            assert not meter_only and meter_ramp is None and kind=='vsl' and vsl_zone in keys
+            keys=[vsl_zone]
+        for key in keys:
+            for profile in (('restrict', 'release') if vsl_zone is not None else
+                            ('flat8', 'progressive') if meter_only else ('progressive',)):
+                z = anchor.copy()
+                for j,a in east_axes:
+                    if a['kind']!=kind or a['key']!=key:
+                        continue
+                    if kind=='meter':
+                        initial=reference.diagnostics['rw_meter_green_'+key]
+                        blocks = 1 if profile == 'flat8' else a['block']+1
+                        value=max(cfg.network.physical_ramp_branches['minimum_green_sec'],
+                                  initial-blocks*limits['meter_green_sec'])
+                    else:
+                        initial=reference.vsl[key]
+                        value=(min(max(cfg.freeway_follower.vsl_set),initial+20.)
+                               if profile=='release' else
+                               max(min(cfg.freeway_follower.vsl_set),initial-20.))
+                    assert value in a['allowed'], (key,value,a['allowed'])
+                    z[j]=(value-initial)/a['scale']
+                suffix = '_'+profile if meter_only or vsl_zone is not None else ''
+                candidates[kind+'_'+key+suffix]=coord.decode(z,reference)
+    selected_proof=None
+    if selected_path is not None:
+        from src.models.state import ControlAction
+        receipt_path=selected_path.with_suffix('.joint_written.json')
+        selected_proof=json.loads(receipt_path.read_bytes())
+        assert selected_proof['written_command_binding_passed']
+        assert selected_proof['action_json']['sha256']==hashlib.sha256(selected_path.read_bytes()).hexdigest()
+        candidates['selected']=adapter.control_from_json(selected_path,cfg,ControlAction)
+        if sequence.KEY not in candidates['selected'].diagnostics:
+            # Selecting original held is valid: absent future payload means
+            # the same command in all three blocks, not a truncated horizon.
+            candidates['selected']=sequence.pack(sequence.actions(candidates['selected'],3))
+    if candidate_names is not None:
+        # Diagnostic budget only: retain the same decoded commands and physics.
+        names = tuple(candidate_names)
+        assert names and names[0] == 'held_actual' and len(set(names)) == len(names)
+        assert set(names) <= candidates.keys()
+        candidates = {name: candidates[name] for name in names}
+    results={}
+    initial_gate_stats=copy.deepcopy(getattr(state,'gate_future_accounting',None))
+    for name,action in candidates.items():
+        # Selected urban commands were checked by the actual SDMPC writer;
+        # this isolated-lever coordinate box intentionally freezes the city.
+        receipt=selected_proof if name=='selected' else coord.validate(action)
+        started=time.perf_counter()
+        forecast = diagnostic_source_forecast(captured['forecast'], name, source_document)
+        speed_terms = []
+        scope = (observe_first_interval_speed_terms(state.time_sec,speed_terms)
+                 if first_interval_terms and name=='selected' else nullcontext())
+        with scope:
+            with sequence.prediction_scope(action,cfg,state.time_sec,3) as visits:
+                point=endpoint.evaluate_price_point(state,action,forecast,(),
+                    endpoint.ObjectiveSpec(cfg,depth_override=3,box_walk=False,score_mode='raw'),capture_response=True)
+        assert visits == [0,1,2], 'Each explicit control block must actually be evaluated'
+        assert not point.aborted and len(point.states)==3
+        assert getattr(state,'gate_future_accounting',None)==initial_gate_stats
+        response=point.control_area_response
+        costs={};outside={}
+        for row in response['residence']:
+            for key,n in row['inside_veh'].items():
+                costs[key]=costs.get(key,0.)+row['dt_h']*n
+                out=row['model_stock_veh'][key]-n
+                assert out>=-1e-7
+                outside[key]=outside.get(key,0.)+row['dt_h']*max(0.,out)
+        assert abs(sum(costs.values())-point.ttt)<1e-7
+        ramp_rows={}
+        for ramp in cfg.network.ramps:
+            arrivals=sum(t['vehicles'] for t in response['transfers'] if t['target']=='ramp:'+ramp)
+            merges=sum(t['vehicles'] for t in response['transfers']
+                       if t['source']=='ramp:'+ramp and t['target']=='merge_pending:'+ramp)
+            ending=point.states[-1].ramp_queue[ramp]
+            residual=state.ramp_queue[ramp]+arrivals-merges-ending
+            assert abs(residual)<1e-7
+            ramp_rows[ramp]=dict(arrival=arrivals,merge=merges,final_stock=ending,residual=residual)
+        item=dict(wall_sec=time.perf_counter()-started,executed_control_blocks=visits,ttt_omega_veh_h=point.ttt,
+                  tracked_outside_residence_veh_h=sum(outside.values()),
+                  ttt_with_tracked_outside_veh_h=point.ttt+sum(outside.values()),
+                  control_area=point.control_area,cost_by_stock=costs,
+                  outside_cost_by_stock={k:v for k,v in outside.items() if v},ramps=ramp_rows,
+                  validation=receipt,commands=[dict(vsl=c.vsl,green_times=c.green_times,offsets=c.offsets,
+                      meters={r:c.diagnostics['rw_meter_green_'+r] for r in cfg.network.ramps})
+                      for c in sequence.actions(action,3)])
+        if first_interval_audit:
+            item['first_interval'] = first_interval_response(state, point, cfg)
+        if hasattr(state, 'offramp_route_inventory_state'):
+            from evaluation.controllers import area_freeway_accounting as accounting, offramp_routing
+            checks = []
+            for final in point.states:
+                for road, kernel in final.lane_freeway_runtime.configs.items():
+                    counts = accounting.continuity_vehicle_counts(final, kernel)
+                    offramp_routing.assert_inventory(final, kernel, counts)
+                    partition = final.offramp_route_inventory_state['cells'][road]
+                    checks.append(dict(time_sec=final.time_sec, road=road,
+                        max_cell_residual=max(abs(sum(row.values())-n)
+                            for row,n in zip(partition,counts[road])),
+                        physical_stock=sum(counts[road]), route_stock=sum(sum(row.values()) for row in partition)))
+            item['offramp_route_inventory_checks'] = checks
+        if speed_terms:
+            assert len(speed_terms)==19*150
+            with gzip.open(output/(name+'_first150_speed_terms.json.gz'),'wt',encoding='utf-8') as stream:
+                json.dump(speed_terms,stream,allow_nan=False)
+        if initial_gate_stats is not None:
+            item['gate_future_final_accounting']=point.states[-1].gate_future_accounting
+        if hasattr(point.states[-1], 'direct_exit_route_state'):
+            item['direct_exit_final_accounting']=point.states[-1].direct_exit_route_state
+        if source_document is not None:
+            item['diagnostic_future_source'] = dict(road='FW_E',
+                rates_veh_h=source_document['profiles_veh_h'][name],future_observation_inputs=True,
+                admitted_veh=sum(t['vehicles'] for t in response['transfers']
+                    if t['source']=='origin:FW_E' and t['target']=='freeway:FW_E'),
+                final_origin_queue_veh=point.states[-1].mainline_origin_queue['FW_E'])
+        if trace_ramp is not None:
+            # Save already-captured transfers; do not change physics or use
+            # later native observations in this autonomous replay.
+            upstream=[k for k,v in cfg.network.boundary_out_ramp_split.items() if trace_ramp in v['ramps']]
+            corridor=getattr(cfg.network,'sc2001_corridor',None)
+            if corridor and any(v.get('target')==trace_ramp for v in corridor['branches'].values()):
+                upstream.append(corridor['storage'])
+            incoming={m:s for m,s in cfg.network.urban_movements.items() if s.get('receiving_link') in upstream}
+            traced_stocks={'ramp:'+trace_ramp,*('storage:'+k for k in upstream)}
+            trace=dict(ramp=trace_ramp,start_sec=state.time_sec,end_sec=point.states[-1].time_sec,
+                future_observation_inputs=False,
+                upstream_storage={k:dict(initial_stock=cfg.network.urban_link_storage_veh[k]-state.urban_link_storage[k],
+                    split=cfg.network.boundary_out_ramp_split.get(k),
+                    initial_release_buffer=state.urban_storage_release_buffer.get(k,{})) for k in upstream},
+                incoming_movements={m:dict(spec=s,capacity=cfg.network.movement_capacity_by_movement_veh_h.get(m),
+                    initial_queue=state.urban_movement_queue.get(m,0),
+                    route=cfg.network.control_area_routes.get('movement:'+m),
+                    forecast_boundary=[d.urban_boundary.get(s.get('origin'),0.) for d in captured['forecast']])
+                    for m,s in incoming.items()},
+                initial_buffer=state.lane_ramp_runtime.buffers[trace_ramp].metadata(),
+                initial_stock=state.lane_ramp_runtime.buffers[trace_ramp].snapshot(),
+                head_service_by_green=cfg.network.physical_ramp_branches['ramps'][trace_ramp]['service_by_green_veh_h'],
+                transfers=[r for r in response['transfers']
+                    if any(trace_ramp in (r.get(k) or '') or r.get(k) in traced_stocks for k in ('source','target'))],
+                resources=[r for r in response['resource_allocations']
+                    if r['resource'].split(':')[0]==trace_ramp],
+                residence=[dict(start_sec=r['start_sec'],end_sec=r['end_sec'],
+                    ramp_veh=r['model_stock_veh']['ramp:'+trace_ramp],
+                    upstream_veh={k:r['model_stock_veh'].get('storage:'+k,0.) for k in upstream}) for r in response['residence']])
+            with gzip.open(output/(name+'_'+trace_ramp+'_trace.json.gz'),'wt',encoding='utf-8') as stream:
+                json.dump(trace,stream,ensure_ascii=False,allow_nan=False)
+        if replay_pair is not None or four_arm_receipt is not None or meter_ramp is not None:
+            item['physical_cell_states']=[dict(time_sec=s.time_sec,density=s.freeway_density,
+                speed_kmh=s.freeway_speed,effective_lanes=s.freeway_effective_lanes,
+                ramp_queue=s.ramp_queue) for s in (state,*point.states)]
+        if trace_response:
+            movements={k:v for k,v in cfg.network.urban_movements.items() if k.startswith('SC1004_')}
+            origins=set(['SC1004_W_out']) | {v['origin'] for v in movements.values()}
+            storage=origins & cfg.network.urban_link_storage_veh.keys()
+            trace=dict(start_sec=state.time_sec,forecast_boundary=[d.urban_boundary for d in captured['forecast'][:3]],
+                origins_without_urban_storage=sorted(origins-storage),
+                movements=movements,capacities_veh_h={k:cfg.network.movement_capacity_by_movement_veh_h[k] for k in movements},
+                green={k:v for k,v in reference.green_times.items() if k.startswith('SC1004_')},
+                offsets={k:v for k,v in reference.offsets.items() if '1004' in k},
+                states=[dict(time_sec=s.time_sec,queue={k:s.urban_movement_queue.get(k,0.) for k in movements},
+                    storage={k:cfg.network.urban_link_storage_veh[k]-s.urban_link_storage[k] for k in storage})
+                    for s in (state,*point.states)],
+                transfers=[r for r in response['transfers']
+                    if any('SC1004' in (r.get(k) or '') or 'RM_C10681' in (r.get(k) or '') for k in ('source','target'))],
+                resources=[r for r in response['resource_allocations'] if 'SC1004' in r['resource']])
+            with gzip.open(output/(name+'_arrival_trace.json.gz'),'wt',encoding='utf-8') as stream:
+                json.dump(trace,stream,ensure_ascii=False,allow_nan=False)
+        if signal_exchange:
+            movements={k:v for k,v in cfg.network.urban_movements.items() if k.startswith(signal_owner+'_')}
+            transfers={}
+            for row in response['transfers']:
+                if not any(signal_owner in (row[key] or '') for key in ('source','target')):
+                    continue
+                key=(row['source'],row['target'],row['route_key'])
+                transfers[key]=transfers.get(key,0.)+row['vehicles']
+            item['signal_audit']=dict(movement_specs=movements,
+                movement_capacity_veh_h={m:cfg.network.movement_capacity_by_movement_veh_h[m] for m in movements},
+                movement_queues_by_time={str(s.time_sec):{k:v for k,v in s.urban_movement_queue.items()
+                    if k.startswith(signal_owner+'_')} for s in (state,*point.states)},
+                transfers=[dict(source=k[0],target=k[1],route_key=k[2],vehicles=v)
+                           for k,v in sorted(transfers.items(),key=lambda pair:tuple(x or '' for x in pair[0]))])
+        if results:
+            baseline=results['held_actual']
+            item['delta_ttt_omega_veh_h']=item['ttt_omega_veh_h']-baseline['ttt_omega_veh_h']
+            item['delta_with_tracked_outside_veh_h']=item['ttt_with_tracked_outside_veh_h']-baseline['ttt_with_tracked_outside_veh_h']
+            item['delta_merge_by_ramp']={r:v['merge']-baseline['ramps'][r]['merge'] for r,v in ramp_rows.items()}
+        results[name]=item
+        (output/(name+'.json')).write_text(json.dumps(item,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+        print(json.dumps(dict(case=name,wall_sec=item['wall_sec'],ttt=point.ttt,
+                              delta=item.get('delta_ttt_omega_veh_h'))),flush=True)
+        del point,response
+    report=dict(purpose='Legal one-lever 450s predicted response; native gain NOT validated',
+                only_held_reference=only_reference,
+                start_sec=state.time_sec,duration_sec=450,actual_reference_only=True,
+                city_signals_held=not signal_exchange,limits=limits,results=results,optimizer_iterations=0,
+                skipped_signal_exchanges=skipped_exchanges,
+                native_started=False,future_observation_inputs=False,
+                outside_cost_scope='Only outside cohorts in sampled model stocks; not a native uninserted-vehicle audit',
+                quantity_constraints='Physical/writer/inter-block checks only; NP/NUF budget selection not evaluated')
+    if onset_factorial:
+        assert len(results) == (4 if candidate_names is None else len(candidate_names))
+        report.update(purpose='Fixed-city onset2250 RM10484/VSL13 factorial; model response only',
+                      onset_factorial=True, native_counterfactual=False)
+    if early_ramp_factorial:
+        assert len(results) == 4
+        report.update(purpose='Fixed-city pre-VSL1500 RM10490/RM10484 factorial; model response only',
+                      early_ramp_factorial=True, native_counterfactual=False)
+    if signal_exchange:
+        report.update(purpose=signal_owner+' finite green exchanges, other signals/offsets/RM/VSL held; model response only',
+                      isolated_signal=signal_owner)
+    if selected_path is not None:
+        source=json.loads(selected_path.with_suffix('.joint.json').read_bytes())['selection']
+        report.update(purpose='Two fixed sequences in the canonical execution model; compare selected surrogate gain, no refit or VISSIM',
+            city_signals_held=False,selected_path=str(selected_path),selection_completed_before_validation=True,
+            surrogate=dict(held_ttt=source['held_objective'],selected_ttt=source['selected_objective'],
+                           delta_ttt=source['selected_objective']-source['held_objective']))
+        if any(key in source['policy'] for key in ('terminal_cost_sha256','distance_reward_sha256')):
+            near=source['omega_partition']['near_ttt_veh_h']
+            report['surrogate']=dict(held_objective=source['held_objective'],
+                selected_objective=source['selected_objective'],
+                delta_objective=source['selected_objective']-source['held_objective'],
+                held_ttt=near+source['prediction_ttt_reduction'],selected_ttt=near,
+                delta_ttt=-source['prediction_ttt_reduction'],
+                purpose='Keep augmented objective separate from physical Omega residence')
+    if replay_pair is not None:
+        assert all(hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest
+                   for path,digest in replay_pair['files'].items()), 'Fixed replay evidence changed during prediction'
+        report.update(purpose=('Autonomous450s fixed RM forecasts with additional unexecuted signal exchanges' if signal_exchange else
+                              'Autonomous450s forecast of two verified fixed native RM sequences; no fitting or optimization'),
+                      replay_pair=replay_pair)
+    if four_arm_receipt is not None:
+        assert len(results)==(4 if candidate_names is None else len(candidate_names))
+        assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in profile_pins.items())
+        report.update(purpose='Four previously executed seed43 command profiles, current full coupled plant, no fit or optimization',
+                      native_profile_inputs=profile_pins,reference_arm='held_actual',native_reference_arm='none',
+                      prediction_conditioned_on_executed_commands=True)
+    if source_document is not None:
+        report.update(purpose='Future observed FW_E source ablation, conditional diagnosis only; NOT autonomous gain validation',
+                      future_observation_inputs=True,diagnostic_source_contract=source_document,
+                      autonomous_prediction=False)
+    (output/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+
+
+def probe_selected_meter(captured, reference, coord, options, evaluate, selected_path, output, *, vsl_zone=None, components=False,
+                         local_neighbors=False, execution_reference=None, east_flat8=False, ramp_key=None,
+                         local_factorial=False):
+    """Three fixed candidates around a completed selection; never optimize or apply."""
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from evaluation.controllers import sdmpc_sequence as sequence, sdmpc_pfo
+    from evaluation.controllers import area_leader_objective as constraints
+    from src.models.state import ControlAction
+    from src.controllers import rollout_endpoint as endpoint
+    cfg, state = captured['cfg'], captured['state']
+    saved = json.loads(selected_path.with_suffix('.joint.json').read_bytes())['selection']
+    binding = json.loads(selected_path.with_suffix('.joint_written.json').read_bytes())
+    assert binding['written_command_binding_passed']
+    assert binding['action_json']['sha256'] == hashlib.sha256(selected_path.read_bytes()).hexdigest()
+    selected = adapter.control_from_json(selected_path, cfg, ControlAction)
+    if sequence.KEY not in selected.diagnostics:
+        selected = sequence.pack(sequence.actions(selected,3))
+    coord.validate(selected)
+    ramp = ramp_key or 'RM_C10484'
+    assert ramp in cfg.network.ramps
+    if ramp_key is not None:
+        assert not (east_flat8 or local_neighbors or components or vsl_zone)
+    original = sequence.actions(selected, 3)
+    if east_flat8:
+        assert state.time_sec in (2250,2700,4500) and not components and not local_neighbors and vsl_zone is None
+        assert all(c.diagnostics['rw_meter_green_'+r] == 10. for c in original for r in cfg.network.ramps)
+    elif local_neighbors:
+        assert not components and vsl_zone is None and state.time_sec == 2700
+        assert [c.vsl['FW_E__seg13'] for c in original] in ([100.,110.,110.],[110.,110.,110.])
+        assert all(c.diagnostics['rw_meter_green_'+ramp] == 2. for c in original)
+        assert execution_reference is not None
+    elif components:
+        assert vsl_zone is None
+        assert all(c.vsl == reference.vsl for c in original)
+    elif vsl_zone is None:
+        assert reference.diagnostics['rw_meter_green_'+ramp] == 10
+        assert all(c.diagnostics['rw_meter_green_'+ramp] == 10 for c in original)
+    else:
+        assert vsl_zone=='FW_E__seg13' and reference.vsl[vsl_zone]==110
+        assert all(c.vsl[vsl_zone]==110 for c in original)
+    candidates = {'selected': selected}
+    if east_flat8:
+        east_ramps = ('RM_C10639','RM_C10681','RM_C10490','RM_C10484')
+        groups = {r+'_flat8': (r,) for r in east_ramps}
+        groups['east_all_flat8'] = east_ramps
+        for name, ramps in groups.items():
+            z = coord.encode(selected)
+            changed = []
+            for j, axis in enumerate(coord.axes):
+                if axis['kind'] != 'meter' or axis['key'] not in ramps:
+                    continue
+                assert axis['owner'] == 'FW_E' and 8. in axis['allowed']
+                z[j] = (8.-reference.diagnostics['rw_meter_green_'+axis['key']])/axis['scale']
+                changed.append((axis['block'],axis['key']))
+            assert set(changed) == {(b,r) for b in range(3) for r in ramps}
+            trial = coord.decode(z, selected)
+            coord.validate(trial)
+            for before, after in zip(original, sequence.actions(trial,3)):
+                assert before.green_times == after.green_times and before.offsets == after.offsets
+                assert before.vsl == after.vsl
+                assert before.N_P_star == after.N_P_star and before.N_UF_star == after.N_UF_star
+                for r in cfg.network.ramps:
+                    assert after.diagnostics['rw_meter_green_'+r] == (8. if r in ramps else 10.)
+                    if r not in ramps: assert before.ramp_metering[r] == after.ramp_metering[r]
+            candidates[name] = trial
+    if local_factorial:
+        assert local_neighbors and execution_reference is not None
+        assert all(c.vsl['FW_E__seg13'] == 110. for c in original)
+        held_z, selected_z = coord.encode(reference), coord.encode(selected)
+        held_blocks = sequence.actions(reference,3)
+        affected = {'FW_E'} | {f'FW_E__seg{i}' for i,h in enumerate(
+            cfg.network.freeway_vsl_zone_head_of_cell['FW_E']) if h == 13}
+        for name, revert_rm, first_vsl in (
+                ('city_only', True, False),
+                ('selected_vsl100_first', False, True),
+                ('city_only_vsl100_first', True, True)):
+            z = selected_z.copy()
+            vsl_changes = 0
+            for j,axis in enumerate(coord.axes):
+                if revert_rm and axis['kind'] == 'meter':
+                    z[j] = held_z[j]
+                if first_vsl and axis['kind'] == 'vsl' and axis['key'] == 'FW_E__seg13' and axis['block'] == 0:
+                    assert 100. in axis['allowed']
+                    z[j] = (100.-reference.vsl[axis['key']])/axis['scale']
+                    vsl_changes += 1
+            assert vsl_changes == int(first_vsl)
+            trial = coord.decode(z,selected); coord.validate(trial)
+            for block,(before,held,after) in enumerate(zip(original,held_blocks,sequence.actions(trial,3))):
+                assert before.green_times == after.green_times and before.offsets == after.offsets
+                assert before.N_P_star == after.N_P_star and before.N_UF_star == after.N_UF_star
+                wanted = held if revert_rm else before
+                assert after.ramp_metering == wanted.ramp_metering
+                assert all(after.diagnostics['rw_meter_green_'+r] == wanted.diagnostics['rw_meter_green_'+r]
+                           for r in cfg.network.ramps)
+                if first_vsl and block == 0:
+                    assert after.vsl['FW_E__seg13'] == 100.
+                    assert all(before.vsl[k] == after.vsl[k] for k in before.vsl if k not in affected)
+                else:
+                    assert before.vsl == after.vsl
+            candidates[name] = trial
+    if local_neighbors and not local_factorial:
+        local_trials=([('vsl_held110','vsl','FW_E__seg13',110.)]
+                      if original[0].vsl['FW_E__seg13']!=110. else [])
+        local_trials += [('rm_first3','meter',ramp,3.),('rm_first4','meter',ramp,4.)]
+        for name,kind,key,value in local_trials:
+            z = coord.encode(selected)
+            matches = [(j,a) for j,a in enumerate(coord.axes)
+                       if a['block']==0 and a['kind']==kind and a['key']==key]
+            assert len(matches)==1
+            j,axis = matches[0]; assert value in axis['allowed']
+            initial = reference.vsl[key] if kind=='vsl' else reference.diagnostics['rw_meter_green_'+key]
+            z[j] = (value-initial)/axis['scale']
+            trial = coord.decode(z,selected); coord.validate(trial)
+            for block,(before,after) in enumerate(zip(original,sequence.actions(trial,3))):
+                assert before.green_times==after.green_times and before.offsets==after.offsets
+                if block or kind=='meter': assert before.vsl==after.vsl
+                else:
+                    affected={'FW_E'}|{f'FW_E__seg{i}' for i,h in enumerate(cfg.network.freeway_vsl_zone_head_of_cell['FW_E']) if h==13}
+                    assert all(before.vsl[k]==after.vsl[k] for k in before.vsl if k not in affected)
+                assert all(before.ramp_metering[r]==after.ramp_metering[r]
+                           for r in cfg.network.ramps if block or kind=='vsl' or r!=ramp)
+            candidates[name] = trial
+    if components:
+        # Mix actual selected and held coordinates; do not invent a new command.
+        held_z, selected_z = coord.encode(reference), coord.encode(selected)
+        held_blocks = sequence.actions(reference, 3)
+        for name in ('city_only', 'rm_only'):
+            z = selected_z.copy()
+            for j, axis in enumerate(coord.axes):
+                use_selected = (axis['kind'] == 'meter') == (name == 'rm_only')
+                z[j] = selected_z[j] if use_selected else held_z[j]
+            trial = coord.decode(z, selected)
+            coord.validate(trial)
+            for joint, held, action in zip(original, held_blocks, sequence.actions(trial, 3)):
+                city, meter = (joint, held) if name == 'city_only' else (held, joint)
+                assert action.green_times == city.green_times and action.offsets == city.offsets
+                assert action.vsl == reference.vsl
+                assert action.ramp_metering == meter.ramp_metering
+                assert all(action.diagnostics['rw_meter_green_'+r] == meter.diagnostics['rw_meter_green_'+r]
+                           for r in cfg.network.ramps)
+            candidates[name] = trial
+    for profile in (() if components or local_neighbors or east_flat8 else ('vsl100','vsl90') if vsl_zone else ('flat8', 'progressive')):
+        z = coord.encode(selected)
+        for j, axis in enumerate(coord.axes):
+            if axis['kind'] != ('vsl' if vsl_zone else 'meter') or axis['key'] != (vsl_zone or ramp):
+                continue
+            value = float(profile.removeprefix('vsl')) if vsl_zone else 8 if profile == 'flat8' else 8-2*axis['block']
+            assert value in axis['allowed']
+            initial=reference.vsl[vsl_zone] if vsl_zone else reference.diagnostics['rw_meter_green_'+ramp]
+            z[j] = (value-initial)/axis['scale']
+        trial = coord.decode(z, selected)
+        coord.validate(trial)
+        for before, after in zip(original, sequence.actions(trial, 3)):
+            assert before.green_times == after.green_times and before.offsets == after.offsets
+            if vsl_zone:
+                assert before.ramp_metering==after.ramp_metering
+                affected={'FW_E'}|{f'FW_E__seg{i}' for i,h in enumerate(cfg.network.freeway_vsl_zone_head_of_cell['FW_E']) if h==13}
+                assert all(before.vsl[k]==after.vsl[k] for k in before.vsl if k not in affected)
+            else:
+                assert before.vsl == after.vsl
+                assert all(before.ramp_metering[r] == after.ramp_metering[r] for r in cfg.network.ramps if r != ramp)
+        candidates[profile] = trial
+    items = evaluate(list(candidates.values()), derivatives=False)
+    follower = adapter._PHASE_VECTOR_FOLLOWER['ref']
+    def budget(action, quantities):
+        return constraints.shared_quantity_constraints(follower, action, quantities,
+            start_sec=state.time_sec, horizon_steps=3,
+            np_mode='cap', target_np_veh=saved['final_constraints']['np']['target'],
+            np_tolerance_veh=saved['final_constraints']['np']['tolerance'],
+            nuf_mode='cap', target_nuf_veh_h=saved['final_constraints']['nuf']['target'],
+            nuf_tolerance_veh_h=saved['final_constraints']['nuf']['tolerance'])
+    results = {}
+    for (name, action), item in zip(candidates.items(), items):
+        model = dict(ttt_omega_veh_h=item['objective_veh_h'],
+            quantities=budget(action, item['quantities']),
+            physical_model_feasible=sdmpc_pfo.model_feasible(item, options['shared_tolerance']))
+        started = time.perf_counter()
+        with sequence.prediction_scope(action, cfg, state.time_sec, 3) as visits:
+            point = endpoint.evaluate_price_point(state, action, copy.deepcopy(captured['forecast'][:3]), (),
+                endpoint.ObjectiveSpec(cfg, depth_override=3, box_walk=False, score_mode='raw'), capture_response=True)
+        assert visits == [0,1,2] and not point.aborted and len(point.states) == 3
+        response = point.control_area_response
+        physical_quantities = constraints.shared_urban_quantities(follower, response, start_sec=state.time_sec, horizon_steps=3)
+        outside = sum(row['dt_h']*sum(max(0.,row['model_stock_veh'][key]-n) for key,n in row['inside_veh'].items()) for row in response['residence'])
+        ramps = {}
+        for r in cfg.network.ramps:
+            arrivals = sum(x['vehicles'] for x in response['transfers'] if x['target']=='ramp:'+r)
+            merges = sum(x['vehicles'] for x in response['transfers'] if x['source']=='ramp:'+r and x['target']=='merge_pending:'+r)
+            final = point.states[-1].ramp_queue[r]
+            residual = state.ramp_queue[r]+arrivals-merges-final
+            assert abs(residual)<1e-7
+            ramps[r] = dict(arrivals=arrivals,merges=merges,final_stock=final,residual=residual)
+        execution = dict(ttt_omega_veh_h=point.ttt, tracked_outside_veh_h=outside,
+            quantities=budget(action,physical_quantities), ramps=ramps,
+            conditional_model_feasibility_witness=response.get('conditional_model_feasibility_witness'),
+            model_constraint_coverage=response.get('model_constraint_coverage'),
+            resource_max_exceedance=max((x['exceedance_veh'] for x in response['resource_allocations']),default=0.),
+            wall_sec=time.perf_counter()-started)
+        if local_factorial or east_flat8 or (vsl_zone is None and not components and not local_neighbors):
+            costs = {}
+            for row in response['residence']:
+                for key,n in row['inside_veh'].items():
+                    costs[key] = costs.get(key,0.)+row['dt_h']*n
+            assert abs(sum(costs.values())-point.ttt)<1e-7
+            execution['cost_by_stock'] = costs
+            execution['executed_control_blocks'] = visits
+        results[name] = dict(surrogate=model,execution=execution,commands=[
+            dict(vsl=c.vsl,green_times=c.green_times,offsets=c.offsets,
+                meters={r:c.diagnostics['rw_meter_green_'+r] for r in cfg.network.ramps}) for c in sequence.actions(action,3)])
+        (output/(name+'.json')).write_text(json.dumps(results[name],ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+        print(json.dumps(dict(case=name,surrogate=model['ttt_omega_veh_h'],execution=point.ttt,
+                             quantity_feasible=execution['quantities']['feasible'])),flush=True)
+    assert abs(results['selected']['surrogate']['ttt_omega_veh_h']-saved['selected_objective'])<1e-7
+    execution_path = (execution_reference or selected_path.parent.with_name(selected_path.parent.name.replace('_select_','_select_check_')))/'summary.json'
+    old = json.loads(execution_path.read_bytes())
+    if execution_reference is not None:
+        assert Path(old['selected_path']).resolve()==selected_path.resolve()
+        assert old['future_observation_inputs'] is False and old['optimizer_iterations']==0
+    assert abs(results['selected']['execution']['ttt_omega_veh_h']-old['results']['selected']['ttt_omega_veh_h'])<1e-7
+    for name, result in results.items():
+        for kind in ('surrogate','execution'):
+            result[kind]['delta_ttt_omega_veh_h']=result[kind]['ttt_omega_veh_h']-results['selected'][kind]['ttt_omega_veh_h']
+    report=dict(start_sec=state.time_sec,horizon_sec=450,results=results,
+        selected_surrogate_and_execution_reproduced=True,selected_city_vsl_unchanged=vsl_zone is None and not components,
+        selected_city_rm_unchanged=vsl_zone is not None,vsl_zone=vsl_zone,
+        selected_budget_caps_frozen=True,surrogate_rollouts=len(results),execution_rollouts=len(results),
+        optimizer_iterations=0,native_started=False,gain_qualified=False,
+        scope=('FW_E__seg13 at100/90 only; selected city/RM sequence and current PFO caps fixed; no calibration/native'
+               if vsl_zone else ramp+' only at the already selected city/VSL sequence; compare real actuator sequence and fixed current PFO caps, no calibration/native'))
+    if local_neighbors:
+        report.update(scope='First-block VSL110 orRM10484 GREEN3/4 around selected VSL100/GREEN2; later blocks, selected city and fixed caps unchanged',
+                      first_block_neighbors=True,selected_city_vsl_unchanged=False,
+                      future_observation_inputs=False,completed_selection_check_sha256=hashlib.sha256(execution_path.read_bytes()).hexdigest())
+    if local_factorial:
+        report.update(scope='Selected city sequence held fixed: actual previous versus selected RM, crossed with VSL110 or FW_E__seg13 VSL100 in block0 only. Later VSL blocks remain110; fixed NP/NUF caps; no optimization, refit or native.',
+                      first_block_lever_factorial=True, selected_city_unchanged=True,
+                      selected_city_rm_unchanged=False, selected_city_vsl_unchanged=False)
+    if east_flat8:
+        report.update(scope='Four individual east meters GREEN8/8/8 and all four together around the saved selection; selected city, VSL, west meters and NP/NUF caps fixed.',
+                      future_observation_inputs=False,completed_selection_check_sha256=hashlib.sha256(execution_path.read_bytes()).hexdigest(),
+                      targeted_ramps=list(east_ramps),native_execution_passed=False)
+    if components:
+        held = old['results']['held_actual']
+        report['scope'] = 'Selected city-only and RM-only ablations; held/joint initial state, VSL and coefficients fixed. Predicted effects only, no native or fitting.'
+        report['components'] = {}
+        for kind, baseline in (('surrogate', saved['held_objective']), ('execution', held['ttt_omega_veh_h'])):
+            costs = {k: v[kind]['ttt_omega_veh_h'] for k, v in results.items()}
+            report['components'][kind] = dict(held_omega_veh_h=baseline,
+                delta_city_only=costs['city_only']-baseline, delta_rm_only=costs['rm_only']-baseline,
+                delta_joint=costs['selected']-baseline,
+                incremental_rm_at_selected_city=costs['selected']-costs['city_only'],
+                interaction=costs['selected']-costs['city_only']-costs['rm_only']+baseline)
+        report['components']['execution']['held_tracked_outside_veh_h'] = held['tracked_outside_residence_veh_h']
+        report['completed_selection_check_sha256'] = hashlib.sha256(
+            (selected_path.parent.with_name(selected_path.parent.name.replace('_select_','_select_check_'))/'summary.json').read_bytes()).hexdigest()
+    (output/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+
+
+def probe_meter_tail(captured, reference, output, *, ramp='RM_C10484', reference_dir=None):
+    """Two fixed legal paths past450s; diagnostic only, no MPC horizon change."""
+    from src.controllers import rollout_endpoint as endpoint
+    from evaluation.controllers import physical_ramp_branches as branches
+    from evaluation.controllers import sdmpc_sequence as sequence
+    original_cfg,initial=captured['cfg'],captured['state'];reference=sequence.first_action(reference)
+    assert original_cfg.mpc.horizon_steps==3 and original_cfg.simulation.T_c_sec==150
+    # TimeBins collapse all arrivals beyond their declared end into one final
+    # slot. Allocate the diagnostic horizon BEFORE the first rollout; never
+    # extend or reuse a state whose future due times were already collapsed.
+    for name in ('native_input_route_state','native_input_prehead_state'):
+        assert 'aggregate' not in getattr(initial,name,{}), 'Need the original uncollapsed observation state'
+    cfg=copy.deepcopy(original_cfg)
+    cfg.mpc.horizon_steps=6
+    spec=cfg.network.physical_ramp_branches['ramps'][ramp]
+    reference_dir=reference_dir or HERE/'closedloop3000_meter2700_sequence_v1'
+    paths={'held':[10]*6,'progressive':[8,6,4,2,2,2]}
+    protocol=dict(ramp=ramp,paths=paths,initial_time=initial.time_sec,
+        existing_mpc_horizon_sec=450,diagnostic_duration_sec=900,
+        demand='Original three causal forecast intervals; repeat interval3 thereafter, no future observed inputs.',
+        purpose='Does the legal green change sequence enter an effective metering range only after the current horizon?',
+        caveat='Fixed-command sensitivity only; later demand is uncertain. No optimizer, NP/NUF candidate-feasibility or native-gain qualification.',
+        service_by_green_vph=spec['service_by_green_veh_h'],new_native_runs=0,production_changed=False,
+        diagnostic_route_bin_horizon_sec=900,source_files={str(p):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (Path(__file__),reference_dir/'held_actual.json',reference_dir/('meter_'+ramp+'_progressive.json'))})
+    (output/'tail_protocol.json').write_text(json.dumps(protocol,indent=2),encoding='utf-8')
+    results={}
+    for name,greens in paths.items():
+        state=initial;previous=reference;rows=[]
+        for block,green in enumerate(greens):
+            wanted={r:previous.diagnostics['rw_meter_green_'+r] for r in cfg.network.ramps}
+            wanted[ramp]=green
+            action=branches.candidate_from_greens(previous,previous,cfg,wanted)
+            assert action.vsl==reference.vsl and action.green_times==reference.green_times and action.offsets==reference.offsets
+            before=state.time_sec;started=time.perf_counter()
+            demand=copy.deepcopy(captured['forecast'][min(block,2)])
+            point=endpoint.evaluate_price_point(state,action,[demand],(),
+                endpoint.ObjectiveSpec(cfg,depth_override=1,box_walk=False,score_mode='raw'),capture_response=True)
+            assert not point.aborted and len(point.states)==1 and abs(point.states[0].time_sec-before-150)<1e-8
+            response=point.control_area_response;outside=0.;inside=0.
+            for residence in response['residence']:
+                inside+=sum(residence['inside_veh'].values())*residence['dt_h']
+                for key,n in residence['inside_veh'].items():
+                    extra=residence['model_stock_veh'][key]-n
+                    assert extra>=-1e-7
+                    outside+=max(0.,extra)*residence['dt_h']
+            assert abs(inside-point.ttt)<1e-7
+            arrivals=sum(t['vehicles'] for t in response['transfers'] if t['target']=='ramp:'+ramp)
+            merges=sum(t['vehicles'] for t in response['transfers']
+                       if t['source']=='ramp:'+ramp and t['target']=='merge_pending:'+ramp)
+            ending=point.states[0].ramp_queue[ramp]
+            residual=state.ramp_queue[ramp]+arrivals-merges-ending
+            assert abs(residual)<1e-7
+            row=dict(block=block,start_sec=before,end_sec=before+150,green_sec=green,
+                ttt_omega_veh_h=point.ttt,tracked_outside_veh_h=outside,
+                target_arrivals_veh=arrivals,target_merges_veh=merges,target_end_stock=ending,
+                conservation_residual=residual,wall_sec=time.perf_counter()-started)
+            rows.append(row);state=point.states[0];previous=action
+            (output/(name+'_progress.json')).write_text(json.dumps(rows,indent=2),encoding='utf-8')
+            print(json.dumps(dict(arm=name,block=block,green=green,ttt=point.ttt,merge=merges)),flush=True)
+            del point,response
+        old_name='held_actual' if name=='held' else 'meter_'+ramp+'_progressive'
+        old=json.loads((reference_dir/(old_name+'.json')).read_text())
+        assert abs(sum(r['ttt_omega_veh_h'] for r in rows[:3])-old['ttt_omega_veh_h'])<1e-7,'First450s must match the prior three-block evaluation'
+        assert abs(sum(r['target_merges_veh'] for r in rows[:3])-old['ramps'][ramp]['merge'])<1e-7
+        results[name]=rows
+    comparisons=[]
+    for count in (3,4,5,6):
+        delta=lambda key:sum(r[key] for r in results['progressive'][:count])-sum(r[key] for r in results['held'][:count])
+        comparisons.append(dict(duration_sec=count*150,delta_omega_ttt_veh_h=delta('ttt_omega_veh_h'),
+            delta_tracked_outside_veh_h=delta('tracked_outside_veh_h'),delta_target_merges_veh=delta('target_merges_veh')))
+    assert original_cfg.mpc.horizon_steps==3
+    (output/'summary.json').write_text(json.dumps(dict(protocol=protocol,results=results,comparisons=comparisons,
+        first450_parity_passed=True,new_native_runs=0,production_changed=False),indent=2),encoding='utf-8')
+
+
+def replay_head_history(observe_heads, original, cfg, raw, caps, plan, distribute, options,
+                        *, folder, sim_sec, output, history_inputs, derived_directory=None):
+    """Rebuild only causal observation metadata; never rewrite native actions."""
+    from evaluation.controllers.obs150_observation import merge_into_state
+    from evaluation.controllers import obs150_contract as oc
+    prior=None; prototype=copy.deepcopy(cfg)
+    history_dir=output/'head_history';history_dir.mkdir(exist_ok=True)
+    for end in range(150,sim_sec,150):
+        state_file=folder/f'state_{end:06d}.json'
+        derived_file=(derived_directory or folder/'obs150')/f'derived_{end:06d}.json'
+        source=json.loads(state_file.read_bytes());derived=json.loads(derived_file.read_bytes())
+        assert derived['window']==dict(start_s=end-150,end_s=end)
+        assert end<=sim_sec-150
+        historical=merge_into_state(source,derived)
+        assert derived['inputs']['raw_sha256']==oc.canonical_sha256(source['obs150'])
+        meta=observe_heads(original,copy.deepcopy(prototype),historical,prior,caps,plan,distribute,options)
+        meta['sim_sec']=end
+        prior=history_dir/f'head_prior_{end:06d}.json'
+        prior.write_text(json.dumps(dict(run_provenance=historical['run_provenance'],metadata=meta,
+            diagnostic_observation_only=True,actual_commands_rewritten=False),
+            ensure_ascii=False,allow_nan=False),encoding='utf-8')
+        history_inputs.append({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (state_file,derived_file)})
+    return observe_heads(original,cfg,raw,prior,caps,plan,distribute,options)
+
+
+def probe_closedloop_meters(*, tail=False, selected_sec=None, signal_probe=False, head_phase=False,
+                           head_service=False, service_reference=False):
+    """Bounded response audit on a completed native state; no optimizer."""
+    from evaluation.controllers import runtime_setup
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    if selected_sec is not None:
+        assert not tail and selected_sec in (4500,6000)
+    assert not signal_probe or selected_sec is not None
+    assert not head_phase or signal_probe
+    assert not head_service or signal_probe and not head_phase
+    assert not service_reference or signal_probe and not (head_service or head_phase)
+    period,sim_sec=(9000,selected_sec) if selected_sec is not None else (3000,2700)
+    runs=Path('D:/VISSIM_runs/20260927_sd31_closedloop9000' if period==9000 else
+              'D:/VISSIM_runs/20260926_sd31_closedloop3000_v2')
+    status=json.loads((HERE/f'closedloop{period}_status.json').read_text(encoding='utf-8-sig'))
+    assert status['stage'] in ('both_native_complete_unanalyzed', 'complete_analyzed_gain_not_qualified',
+                               'requested_native_arms_complete_unanalyzed')
+    assert not (runs/'STOP').exists()
+    folder=runs/f'sdmpc/decisions_sdmpc31_sdmpc{period}_s29'
+    state_path,previous=folder/f'state_{sim_sec:06d}.json',folder/f'action_{sim_sec-150:06d}.json'
+    selected_path=folder/f'action_{sim_sec:06d}.json' if selected_sec is not None and not signal_probe else None
+    output=HERE/(f'closedloop9000_SC1001_{sim_sec}_response' if signal_probe else
+                 f'closedloop9000_selected{sim_sec}_response' if selected_sec is not None else
+                 'closedloop3000_meter2700_tail_diagnostic_v2' if tail else 'closedloop3000_meter2700_sequence_v1')
+    if head_phase:
+        output=output.with_name(output.name+'_head_phase')
+    if head_service:
+        output=output.with_name(output.name+'_service10698')
+    if service_reference:
+        output=output.with_name(output.name+'_service_reference')
+    assert not output.exists(), 'Preserve completed or failed probe; inspect before rerunning'
+    output.mkdir()
+    tuning_path=HERE/'selected/config_n31_v2.json'
+    if head_phase or head_service:
+        tuning=json.loads(tuning_path.read_bytes())
+        if head_phase:tuning['urban']['queue']['attribution']='head_phase'
+        if head_service:
+            tuning['urban']['capacity']['head_resource_contract']=str((HERE/'head_service_resource_10698.json').relative_to(ROOT))
+        tuning_path=output/'tuning_candidate.json'
+        tuning_path.write_text(json.dumps(tuning,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    paths=(state_path,previous,tuning_path)+((selected_path,selected_path.with_suffix('.joint.json'),
+                                           selected_path.with_suffix('.joint_written.json'))
+                                          if selected_path is not None else ())
+    hashes={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+    captured={}
+    configure,forecast_fn=runtime_setup.configure_runtime,adapter.demand_from_state
+    class Ready(BaseException):
+        pass
+    def capture_runtime(*args,**kwargs):
+        result=configure(*args,**kwargs)
+        captured.update(state=result[0],cfg=args[1],mapping=args[3],metadata=result[2])
+        return result
+    def capture_forecast(*args,**kwargs):
+        captured['forecast']=forecast_fn(*args,**kwargs)
+        raise Ready()
+    sys.argv=[str(Path(adapter.__file__)), '--state-json',str(state_path),
+        '--previous-action-json',str(previous),'--out-action-json',str(output/'unused.json'),
+        '--out-action-csv',str(output/'unused.csv'),
+        '--mapping-json',str(ROOT/'evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json'),
+        '--detector-mapping-json',str(ROOT/'evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json'),
+        '--calibration-json',str(ROOT/'evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json'),
+        '--tuning-json',str(tuning_path),'--controller','wu-link']
+    for key,value in dict(RW_DECISION_FAIL_FAST='1',RW_MAINLINE_SG_ONLY='1',
+                         RW_OFFSET_WRITER='experiment',RW_RAMP_AMBER_SEC='0').items():
+        os.environ[key]=value
+    runtime_setup.configure_runtime,adapter.demand_from_state=capture_runtime,capture_forecast
+    from evaluation.controllers import head_service_resources
+    observe_heads=head_service_resources.observe
+    history_inputs=[]
+    def warm_observer(original,cfg,raw,previous_path,caps,plan,distribute,options):
+        return replay_head_history(observe_heads,original,cfg,raw,caps,plan,distribute,options,
+            folder=folder,sim_sec=sim_sec,output=output,history_inputs=history_inputs)
+    if head_service:head_service_resources.observe=warm_observer
+    try:
+        adapter.main()
+        raise AssertionError('Adapter did not reach forecast capture')
+    except Ready:
+        pass
+    finally:
+        runtime_setup.configure_runtime,adapter.demand_from_state=configure,forecast_fn
+        head_service_resources.observe=observe_heads
+    assert captured['state'].time_sec==sim_sec
+    assert hashes=={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+    if head_service or service_reference:
+        (output/'head_service_receipt.json').write_text(json.dumps(dict(history_inputs=history_inputs,
+            current_sec=sim_sec,metadata=captured['metadata'],
+            movement_capacity_veh_h=captured['cfg'].network.movement_capacity_by_movement_veh_h,
+            resources=captured['cfg'].network.head_service_resources,
+            files={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in [
+                HERE/'head_service_resource_10698.json',Path(__file__),
+                ROOT/'evaluation/controllers/head_service_resources.py',
+                ROOT/'evaluation/controllers/signal_head_observation.py']}),ensure_ascii=False,indent=2),encoding='utf-8')
+    (output/'source_receipt.json').write_text(json.dumps(dict(files=hashes,
+        actual_previous_command=str(previous),native_started=False,optimizer_iterations=0,
+        purpose=('SC1001 four finite green exchanges versus held; no new optimization.' if signal_probe else
+                 'Held versus previously selected450s sequence; no new optimization.' if selected_path else
+                 'Two fixed900s paths for10484 only; original450s MPC unchanged.' if tail else
+                 'Held versus each east meter8/8/8 and8/6/4. All other commands held; no coefficient fit.')),indent=2),encoding='utf-8')
+    from src.models.state import ControlAction
+    action=adapter.control_from_json(previous,captured['cfg'],ControlAction)
+    if tail:probe_meter_tail(captured,action,output)
+    else:probe_levers(captured,action,output,meter_only=True,selected_path=selected_path,
+                     signal_exchange=signal_probe,only_reference=service_reference)
+
+
+def replay_vsl_history(initialize, context, raw, state, cfg, output, *, derived_directory=None,
+                       compare_online=True):
+    """Rebuild a trial model's past cohorts without changing native evidence."""
+    from types import SimpleNamespace as NS
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.lane_plant_runtime import bin_frame
+    obs=raw[oc.RAW_STATE_KEY];cutoff=int(obs['sim_sec']);directory=Path(obs['directory'])
+    history=output/'vsl_history';history.mkdir(exist_ok=False)
+    pins={};checks=[]
+    def read(path):
+        data=path.read_bytes();pins[str(path)]=hashlib.sha256(data).hexdigest()
+        return json.loads(data)
+    readback=directory/'vsl_readback.csv';pins[str(readback)]=hashlib.sha256(readback.read_bytes()).hexdigest()
+    for end in range(150,cutoff+1,150):
+        source=read(directory/f'state_{end:06d}.json')
+        observed=source[oc.RAW_STATE_KEY]
+        assert observed['run_id']==obs['run_id'] and Path(observed['directory']).resolve()==directory.resolve()
+        derived=read((derived_directory or directory/'obs150')/f'derived_{end:06d}.json')
+        assert derived['window']==dict(start_s=end-150,end_s=end)
+        assert derived['inputs']['raw_sha256']==oc.canonical_sha256(observed)
+        if end==cutoff:
+            target_state=state;inputs=raw
+        else:
+            frame=oc.load_frame(oc.resolve(observed,observed['frames']['current']['path']),
+                                observed['frames']['current']['sha256'],end)
+            target_state=NS(lane_freeway_runtime=state.lane_freeway_runtime,
+                            freeway_density={},freeway_effective_lanes={})
+            for road in state.lane_freeway_runtime.configs:
+                cells,rows,dropped=bin_frame(context['geometry'],frame['vehicles'],road,drop_before_start=True)
+                assert not dropped
+                lanes=[cell['lane_km']/cell['length_km'] for cell in cells]
+                target_state.freeway_effective_lanes[road]=lanes
+                target_state.freeway_density[road]=[len(row)/(cell['length_km']*lane)
+                                                   for row,cell,lane in zip(rows,cells,lanes)]
+            inputs={oc.RAW_STATE_KEY:observed,oc.MERGED_DERIVED_KEY:derived}
+        metadata=initialize(context,inputs,target_state,cfg,history_directory=history)
+        actual=json.loads((history/f'vsl_cohorts_{end:06d}.json').read_bytes())
+        if compare_online:
+            expected=read(directory/'obs150'/f'vsl_cohorts_{end:06d}.json')
+            for key in ('run_id','cutoff','frame_sha256','derived_sha256','applied_readbacks_sha256','cohorts','audit'):
+                assert actual[key]==expected[key], ('Rebuilt physical VSL history differs',end,key)
+        else:
+            # This finite replay kept110 throughout. The canonical observer must
+            # recover that fact from actual readbacks and conserved past frames.
+            assert all(float(cmd)==110. for rows in actual['cohorts'].values() for row in rows for cmd in row)
+            assert all(abs(row['conservation_max'])<1e-7 for row in actual['audit'].values())
+        checks.append(dict(cutoff=end,online_cache_compared=compare_online,
+                           cohorts_exact=True if compare_online else None,audit_exact=True if compare_online else None))
+    for path,digest in pins.items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest
+    receipt=dict(cutoff=cutoff,manifest_sha256=context['manifest_sha256'],checks=checks,
+                 original_files_unchanged=True,original_files=pins,
+                 scope='Measured past replay only; no model rollout, relabelled old cache or future observations')
+    (output/'vsl_history_replay.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    return metadata
+
+
+def prepare_fixed_replay_history(summary_path, folder, tuning_path, output):
+    """Accept native execution proof, not fabricated optimizer/price markers."""
+    from evaluation.controllers import lane_plant_runtime, obs150_observation, obs150_contract as oc
+    pins={}
+    def read(path):
+        data=Path(path).read_bytes();pins[str(path)]=hashlib.sha256(data).hexdigest()
+        return json.loads(data)
+    summary_path=summary_path.resolve();folder=folder.resolve()
+    summary=read(summary_path);protocol_path=Path(summary['protocol_path']).resolve();protocol=read(protocol_path)
+    assert pins[str(protocol_path)]==summary['protocol_sha256']
+    assert summary['paired_prefix_exact'] and summary['counterfactual_valid']
+    assert (summary['start_sec'],summary['end_sec'],protocol['seed'])==(2700,3150,47)
+    assert protocol['controller']=='diagnostic-ramp-profile'
+    assert protocol['network_sha256']=='64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    assert folder.name=='decisions_sdmpc31_g_2700_hold_s47'
+    runs=folder.parent.parent;candidate_actions={}
+    for arm in ('hold','release'):
+        assert summary['arms'][arm]['native_execution_passed']
+        execution=read(summary_path.parent/arm/'execution.json')
+        assert execution['native_execution_passed']
+        assert Path(execution['run_directory']).resolve()==(runs/arm).resolve()
+        assert execution['terminal_sec']==3150
+        directory=runs/arm/f'decisions_sdmpc31_g_2700_{arm}_s47'
+        provenance_path=runs/arm/f'run_provenance_sdmpc31_g_2700_{arm}_s47.json'
+        provenance=read(provenance_path)
+        assert execution['run_id']==provenance['run_id']
+        assert execution['checks']['sources_and_terminal_log']['provenance']['sha256']==pins[str(provenance_path)]
+        assert provenance['seed']==47 and provenance['sim_period_sec']==3150
+        assert provenance['files']['network']['sha256']==protocol['network_sha256']
+        for sec in (1,*range(150,3151,150)):
+            for suffix in ('.json','.csv'):
+                actual=directory/f'action_{sec:06d}{suffix}'
+                planned=protocol_path.parent/arm/'commands'/actual.name
+                digest=hashlib.sha256(actual.read_bytes()).hexdigest()
+                assert digest==protocol['command_pins'][str(planned)]==hashlib.sha256(planned.read_bytes()).hexdigest()
+                pins[str(actual)]=digest
+        candidate_actions[arm]=[str(directory/f'action_{sec:06d}.json') for sec in (2700,2850,3000)]
+    context=lane_plant_runtime.load_sources(read(tuning_path)['freeway']['lane_plant'])
+    directory=output/'derived_history';directory.mkdir()
+    for sec in range(150,2701,150):
+        raw=read(folder/f'state_{sec:06d}.json')
+        assert raw['sim_sec']==sec and raw['run_provenance']['run_id']==raw['obs150']['run_id']
+        derived=obs150_observation.derive(raw,context['obs150'])
+        assert derived['window']==dict(start_s=sec-150,end_s=sec)
+        (directory/f'derived_{sec:06d}.json').write_bytes(oc.derived_bytes(derived))
+    receipt=dict(native_summary=str(summary_path),candidate_actions=candidate_actions,files=pins,
+                 observation_cutoff_sec=2700,future_states_used=False,price_markers_fabricated=False,
+                 online_cohort_cache_available=False,derived_directory=str(directory))
+    (output/'fixed_replay_receipt.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8')
+    return receipt
+
+
+def bind_fixed_replay_reference(receipt, folder, output):
+    """Offline provenance view of a verified command, with identical physical fields.
+
+    This does not claim SDMPC generated the original command and creates no
+    applied/price markers. Native JSON/CSV remain at their original paths.
+    """
+    original=folder/'action_002550.json';csv_path=original.with_suffix('.csv')
+    state_path=folder/'state_002700.json'
+    for path in (original,csv_path,state_path):
+        assert hashlib.sha256(path.read_bytes()).hexdigest()==receipt['files'][str(path.resolve())]
+    native=json.loads(original.read_bytes());raw=json.loads(state_path.read_bytes())
+    assert native['metadata']['sim_sec']==2550 and raw['sim_sec']==2700
+    assert native.get('run_provenance') is None
+    provenance=raw['run_provenance']
+    assert provenance['run_id']==raw['obs150']['run_id']
+    bound=copy.deepcopy(native)
+    bound['run_provenance']=copy.deepcopy(provenance)
+    bound['metadata']['run_provenance']=copy.deepcopy(provenance)
+    bound['metadata']['offline_fixed_replay_execution_binding']={
+        'native_summary':receipt['native_summary'],
+        'source_json':str(original.resolve()),'source_csv':str(csv_path.resolve()),
+        'json_sha256':receipt['files'][str(original.resolve())],
+        'csv_sha256':receipt['files'][str(csv_path.resolve())],
+        'native_sdmpc_selection_claimed':False}
+    assert {k:v for k,v in native.items() if k!='metadata'}=={
+        k:v for k,v in bound.items() if k not in ('metadata','run_provenance')}
+    directory=output/'verified_previous';directory.mkdir()
+    target=directory/original.name
+    target.write_text(json.dumps(bound,ensure_ascii=False,indent=2),encoding='utf-8')
+    target.with_suffix('.csv').write_bytes(csv_path.read_bytes())
+    assert target.with_suffix('.csv').read_bytes()==csv_path.read_bytes()
+    receipt['offline_previous_reference']=str(target)
+    receipt['native_previous_physical_fields_unchanged']=True
+    return target
+
+
+def prepare_vsl_release_commands(captured, previous, output):
+    """Replay one actual history, then hold/release only the saved S13 VSL."""
+    import shutil
+    from src.models.state import ControlAction
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from evaluation.controllers import sdmpc_sequence as sequence
+    cfg=captured['cfg']; start=6000; end=6450
+    assert captured['state'].time_sec==start
+    source=HERE/'closedloop_recorded6000_lever450_VSL_FW_E__seg13_detached/summary.json'
+    prediction=json.loads(source.read_bytes())
+    assert prediction['start_sec']==start and prediction['duration_sec']==450
+    payload=json.loads(previous.read_bytes())
+    reference=sequence.first_action(adapter.control_from_json(previous,cfg,ControlAction))
+    assert reference.vsl['FW_E__seg13']==90
+    actuation=adapter.adapter_actuation_settings(captured['calibration'],captured['tuning'])
+    segment=adapter.repo_imports(ROOT/'vendor/NumSim-mine')[-1]
+    plan=adapter.load_signal_group_actuation_plan()
+    pins={str(source):hashlib.sha256(source.read_bytes()).hexdigest()}
+    def rows(path):
+        with path.open(encoding='utf-8-sig',newline='') as stream:
+            return [{k:v for k,v in row.items() if k!='metadata'} for row in csv.DictReader(stream)]
+    original_rows=rows(previous.with_suffix('.csv'))
+    for arm,key in (('hold','held_actual'),('release','vsl_FW_E__seg13_release')):
+        dest=output/arm/'commands';dest.mkdir(parents=True)
+        predicted=prediction['results'][key]
+        assert predicted['validation']['all_actuator_and_step_constraints_checked']
+        for sec in (1,*range(150,start,150)):
+            src=previous.parent/f'action_{sec:06d}'
+            if sec>=900:
+                assert src.with_suffix('.json.applied').is_file(), src
+            for suffix in ('.json','.csv'):
+                p=src.with_suffix(suffix);pins[str(p)]=hashlib.sha256(p.read_bytes()).hexdigest()
+                shutil.copy2(p,dest/p.name)
+        for block,sec in enumerate(range(start,end+1,150)):
+            command=predicted['commands'][min(block,2)]
+            assert command['green_times']==reference.green_times and command['offsets']==reference.offsets
+            assert command['meters']=={r:reference.diagnostics['rw_meter_green_'+r] for r in cfg.network.ramps}
+            current=reference.copy();current.vsl=command['vsl']
+            stem=dest/f'action_{sec:06d}'
+            adapter.write_action_csv(stem.with_suffix('.csv'),current,cfg,captured['mapping'],segment,
+                payload['metadata'],actuation,signal_group_plan_table=plan,offset_writer='experiment')
+            stem.with_suffix('.json').write_text(json.dumps(adapter.control_to_json_dict(current,payload['metadata']),
+                ensure_ascii=False),encoding='utf-8')
+            actual=rows(stem.with_suffix('.csv'));assert len(actual)==len(original_rows)
+            changed=[]
+            for old,new in zip(original_rows,actual):
+                if old!=new:
+                    assert old['kind']==new['kind']=='vsl' and old['id']==new['id']=='RW_FW_E_S13'
+                    assert float(old['speed_kph'])==90 and float(new['speed_kph'])==110
+                    assert {k:v for k,v in old.items() if k!='speed_kph'}=={k:v for k,v in new.items() if k!='speed_kph'}
+                    changed.append(int(new['dsd_no']))
+            assert bool(changed)==(arm=='release')
+        pins.update({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in dest.iterdir()})
+    network=HERE/'selected/network/native_seed29.inpx'
+    digest=hashlib.sha256(network.read_bytes()).hexdigest()
+    assert digest=='64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    protocol=dict(start_sec=start,end_sec=end,seed=29,arms=['hold','release'],network=str(network),
+        network_sha256=digest,command_pins=pins,original_run=str(previous.parent.parent),
+        prediction_source=str(source),prediction_sha256=pins[str(source)],
+        predicted_delta_omega_veh_h=prediction['results']['vsl_FW_E__seg13_release']['delta_ttt_omega_veh_h'],
+        predicted_delta_tracked_total_veh_h=prediction['results']['vsl_FW_E__seg13_release']['delta_with_tracked_outside_veh_h'],
+        controls='Replay actual1..5850; hold all commands or release only RW_FW_E_S13 from90 to110 during6000..6450.',
+        warmup_application_proof='Warmup has no Python .applied marker; require native readback/LDP and exact original FZP prefix.',
+        native_started=False,controller_optimization=False,future_observation_inputs=False,
+        scope='Common actual SDMPC history,450s VSL-only hold/release response; not a new closed-loop policy or NC comparison')
+    (output/'protocol.json').write_text(json.dumps(protocol,ensure_ascii=False,indent=2),encoding='utf-8')
+    print(json.dumps(dict(prepared=str(output),native_started=False,rollouts=0)),flush=True)
+
+
+def verify_rm_replay_csvs(output):
+    """Run the actual VBS row validators over every prepared command, without VISSIM."""
+    import re
+    import subprocess
+    source_path=ROOT/'scripts/run_real_world_stackelberg_controller.vbs'
+    config_path=HERE/'selected/scenario/lane_native_b110.vbs'
+    source=source_path.read_text(encoding='utf-8-sig')
+    config=re.sub(r'&\s*_\r?\n\s*','&',config_path.read_text(encoding='utf-8-sig'))
+    names=('ActionCsvHeaderValid','ExperimentMetadataValid','VslActionKeyValid','RampActionValid',
+           'IsCanonicalNonNegativeInt','IsCanonicalCsvInt','IsFiniteNumberInRange',
+           'IsCsvFiniteNumber','InCsvInt','InDelimitedText')
+    functions=[re.search(r'(?ms)^Function '+name+r'\(.*?^End Function\s*$',source).group(0) for name in names]
+    variables=('RW_ALLOWED_VSL_SPEEDS','RW_EXPECTED_VSL_DSD_IDS','RW_EXPECTED_VSL_ACTION_KEYS',
+               'RW_RAMP_METER_IDS','RW_RAMP_METER_SCS','RW_RAMP_METER_CAPACITIES_VPH')
+    assignments=[re.search(r'(?m)^'+name+r'\s*=.*$',config).group(0) for name in variables]
+    cycle=re.search(r'(?m)^Const RAMP_CYCLE_SEC = .*$',source).group(0)
+    files=sorted(output.glob('*/commands/action_*.csv')); assert len(files)==44
+    quoted=lambda p:'"'+str(p).replace('"','""')+'"'
+    script='\n'.join(['Option Explicit',cycle,'Dim '+','.join(variables),
+        'Dim RW_OFFSET_WRITER,fso,ts,p,line,parts,bad,rows,files',
+        'RW_OFFSET_WRITER="experiment"',*assignments,
+        'Set fso=CreateObject("Scripting.FileSystemObject")','bad=0:rows=0',
+        'If ExperimentMetadataValid("") Then WScript.Quit 3',
+        'files=Array('+','.join(map(quoted,files))+')',
+        'For Each p In files', 'Set ts=fso.OpenTextFile(p,1,False)',
+        'If Not ActionCsvHeaderValid(Split(ts.ReadLine,",")) Then bad=bad+1',
+        'Do Until ts.AtEndOfStream','line=ts.ReadLine','parts=Split(line,",")','rows=rows+1',
+        'If UBound(parts)<>14 Then','bad=bad+1','Else',
+        'If Not ExperimentMetadataValid(parts(14)) Then bad=bad+1',
+        'If parts(0)="vsl" Then',
+        'If Not VslActionKeyValid(parts(1),parts(2),parts(4),parts(5)) Then bad=bad+1',
+        'If Not IsCsvFiniteNumber(parts(6),RW_ALLOWED_VSL_SPEEDS) Then bad=bad+1',
+        'ElseIf parts(0)="ramp_meter" Then',
+        'If Not RampActionValid(parts(1),parts(3),parts(12),parts(13)) Then bad=bad+1',
+        'Else','bad=bad+1','End If','End If','Loop','ts.Close','Next',
+        'WScript.Echo CStr(rows) & "," & CStr(bad)','If bad>0 Then WScript.Quit 1',*functions])
+    path=output/'csv_validation.vbs';path.write_text(script,encoding='utf-16')
+    result=subprocess.run(['cscript.exe','//Nologo',str(path)],capture_output=True,text=True,encoding='mbcs',timeout=15)
+    report=dict(returncode=result.returncode,stdout=result.stdout,stderr=result.stderr,files=len(files),
+        source_pins={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (source_path,config_path,path)},
+        empty_experiment_metadata_rejected=True,native_started=False)
+    (output/'csv_validation.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    assert result.returncode==0 and result.stdout.strip()=='3256,0',report
+
+
+def prepare_rm_observation_commands(captured, previous, output):
+    """Prepare two old passive RM profiles with obs150; never launch native."""
+    from src.models.state import ControlAction
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from evaluation.controllers import physical_ramp_branches as ramps
+    from evaluation.controllers import signal_actuation_contract, offset_promotion
+    from evaluation.controllers import sdmpc_sequence as sequence
+    cfg=captured['cfg']; start=2700; end=3150
+    source_root=Path('D:/VISSIM_runs/20260924_release2670_s47')
+    warmup=previous.parent/'action_000750.json'
+    network=HERE/'selected/network/native_seed29.inpx'
+    old_stop=Path('D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP')
+    digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+    assert digest(network)=='64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    assert digest(old_stop)=='91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3'
+    reference=sequence.first_action(adapter.control_from_json(warmup,cfg,ControlAction))
+    assert set(reference.vsl.values())=={110.0}
+    assert all(reference.diagnostics['rw_meter_green_'+r]==10 for r in cfg.network.ramps)
+    native_reference=reference.diagnostics['no_control_native_signal_reference']
+    actuation=adapter.adapter_actuation_settings(captured['calibration'],captured['tuning'])
+    segment=adapter.repo_imports(ROOT/'vendor/NumSim-mine')[-1]
+    plan=adapter.load_signal_group_actuation_plan()
+    meter_by_sc={int(m['sc_no']):str(m['id']) for m in captured['mapping']['ramp_meters']}
+    assert len(meter_by_sc)==8 and meter_by_sc[9108]=='RM_C10484'
+    pins={str(p):digest(p) for p in (warmup,network)}
+    physical={}; schedule=[]
+    for arm,folder in (('hold','prepared_hold'),('release','prepared_release_10484')):
+        src=source_root/folder/'fixed_profile.json'
+        profile=json.loads(src.read_bytes()); pins[str(src)]=digest(src)
+        assert profile['seed']==47 and profile['control_start_sec']==900
+        assert profile['vsl_commands']==[] and profile['vehicle_record_interval_sec']==5
+        events={}
+        for row in profile['meter_commands']:
+            sec=int(row['time_s']); mid=meter_by_sc[int(row['sc_no'])]
+            assert mid not in events.setdefault(sec,{})
+            events[sec][mid]=int(row['green_sec'])
+        dest=output/arm/'commands'; dest.mkdir(parents=True)
+        current=reference.copy(); physical[arm]={}
+        for sec in (1,*range(150,end+1,150)):
+            greens={r:current.diagnostics['rw_meter_green_'+r] for r in cfg.network.ramps}
+            if sec>=900:
+                assert set(events[sec])==set(cfg.network.ramps)
+                greens=events[sec]
+            current=ramps.candidate_from_greens(current,current,cfg,greens)
+            assert current.green_times==reference.green_times and current.offsets==reference.offsets
+            assert current.vsl==reference.vsl
+            # Fresh metadata: this is a plan, not an executed action from the
+            # saved seed29 bootstrap state. Native city ownership stays explicit.
+            metadata=dict(controller='Fixed command replay',controller_variant='diagnostic-ramp-profile',
+                suppress_signal_rows=True,sim_sec=sec,seed=47,prepared_only=True,
+                native_city_reference=native_reference,source_profile_sha256=pins[str(src)] if sec>=start else None)
+            assert signal_actuation_contract.enabled(cfg.network)
+            writer=offset_promotion.resolve_writer(captured['tuning']['actuation'],physical_signal_contract=True)
+            signal_actuation_contract.validate_writer(current,cfg,plan,writer)
+            metadata.update(offset_promotion.action_metadata(current,writer))
+            metadata.update(controller_status='fixed_command_replay',physical_signal_contract_enabled=1.0)
+            stem=dest/f'action_{sec:06d}'
+            adapter.write_action_csv(stem.with_suffix('.csv'),current,cfg,captured['mapping'],segment,
+                metadata,actuation,signal_group_plan_table=plan,offset_writer='experiment')
+            stem.with_suffix('.json').write_text(json.dumps(adapter.control_to_json_dict(current,metadata),
+                ensure_ascii=False),encoding='utf-8')
+            with stem.with_suffix('.csv').open(encoding='utf-8-sig',newline='') as stream:
+                rows=list(csv.DictReader(stream))
+            assert {r['kind'] for r in rows}=={'ramp_meter','vsl'}
+            meters=[r for r in rows if r['kind']=='ramp_meter']
+            assert len(meters)==8 and all(float(r['green_sec'])==greens[r['id']] for r in meters)
+            assert all(float(r['speed_kph'])==110 for r in rows if r['kind']=='vsl')
+            physical[arm][sec]=[{k:v for k,v in r.items() if k!='metadata'} for r in rows]
+            schedule.append(dict(arm=arm,time_s=sec,greens=greens))
+        pins.update({str(p):digest(p) for p in dest.iterdir()})
+    changed=[]
+    for sec,left in physical['hold'].items():
+        right=physical['release'][sec]; assert len(left)==len(right)
+        for a,b in zip(left,right):
+            if a!=b:
+                assert sec>=start and a['kind']==b['kind']=='ramp_meter' and a['id']==b['id']=='RM_C10484'
+                changed.append(dict(time_s=sec,hold_green=float(a['green_sec']),release_green=float(b['green_sec'])))
+        if sec<start:
+            for suffix in ('.json','.csv'):
+                assert digest(output/'hold/commands'/f'action_{sec:06d}{suffix}')==digest(output/'release/commands'/f'action_{sec:06d}{suffix}')
+    assert [x['release_green'] for x in changed]==[4,6,8,10]
+    verify_rm_replay_csvs(output)
+    protocol=dict(start_sec=start,end_sec=end,seed=47,arms=['hold','release'],network=str(network),
+        network_sha256=digest(network),command_pins=pins,controller='diagnostic-ramp-profile',
+        native_started=False,native_authorization_pending=True,prior_stop=str(old_stop),prior_stop_sha256=digest(old_stop),
+        sim_resolution=10,vehicle_record_interval_sec=5,observation_interval_sec=150,
+        optimizer_calls=0,forecast_rollouts=0,future_observation_inputs=False,
+        controls='Original passive network; same recorded RM schedule until2550; 10484g2 hold vs4/6/8 at2700/2850/3000.3150g10 is terminal only. Native urban signals; all VSL110.',
+        bootstrap_scope='Seed29 state initializes writer/config only. No seed47 state, forecast, gain or execution is claimed.',
+        required_validation=['native LDP+meter readback','VSL apply readback110','17 urban controllers retain native ownership',
+            'FZP common prefix exact before2700','obs150 complete state/head/actual-command history',
+            'ramp arrival/head/merge and pre/post stock conservation','Omega TTT and outside costs separately'],
+        scope='Two3150s native runs proposed for full-observation common2700s RM response; not a9000s restart or new policy')
+    (output/'protocol.json').write_text(json.dumps(protocol,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (output/'command_audit.json').write_text(json.dumps(dict(schedule=schedule,differences=changed,
+        common_prefix_files_exact=True,signal_csv_rows=0,all_meter_steps_within_two_sec=True,
+        native_started=False,optimizer_calls=0,forecast_rollouts=0),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(prepared=str(output),native_started=False,rollouts=0,commands_per_arm=len(physical['hold']))),flush=True)
+
+
+def prepare_native_commands(captured, previous, output, *, selected_path=None, baseline_summary=None,
+                            component_reference=None, execution_reference=None, execution_resource_reference=None):
+    """Freeze a finite paired replay using the canonical command writer."""
+    if captured['state'].time_sec==6000:
+        return prepare_vsl_release_commands(captured,previous,output)
+    import shutil
+    from src.models.state import ControlAction
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from evaluation.controllers import sdmpc_sequence as sequence
+    if captured['state'].time_sec==2700:
+        cfg=captured['cfg'];start=2700;end=3150
+        assert selected_path is not None and baseline_summary is not None
+        baseline=json.loads(baseline_summary.read_bytes())
+        assert baseline['counterfactual_valid'] and baseline['paired_prefix_exact']
+        component_path=selected_path.parent.with_name(selected_path.parent.name.replace(
+            '_select_','_budget_check_selected_components_'))/'summary.json'
+        canonical_path=selected_path.parent.with_name(selected_path.parent.name.replace(
+            '_select_','_select_check_'))/'summary.json'
+        if component_reference is not None:
+            assert execution_reference is not None
+            component_path=component_reference/'summary.json'
+            canonical_path=execution_reference/'summary.json'
+            assert component_path.is_file() and canonical_path.is_file()
+        if execution_resource_reference is not None:
+            assert execution_reference is not None and component_reference is None
+            canonical_path=execution_reference/'summary.json'
+            check=json.loads(canonical_path.read_bytes())
+            proof=json.loads(execution_resource_reference.read_bytes())
+            assert proof['status']=='selection_and_execution_check_complete'
+            assert proof['future_prediction_inputs'] is False and proof['new_native']==0
+            assert proof['exact_held_reproduction'] and proof['all8_mass_pass']
+            for source,h in proof['source_pins'].items():
+                assert hashlib.sha256(Path(source).read_bytes()).hexdigest()==h,source
+            assert proof['source_pins'][str(canonical_path)]==hashlib.sha256(canonical_path.read_bytes()).hexdigest()
+            assert Path(check['selected_path']).resolve()==selected_path.resolve()
+            assert check['start_sec']==start and check['duration_sec']==450
+            assert check['native_started'] is False and check['future_observation_inputs'] is False
+            selected_check=check['results']['selected']
+            assert selected_check['validation']['written_command_binding_passed']
+            resources={r['case']:r for r in proof['quantities']}
+            assert set(resources)=={'held_actual','selected'}
+            for arm,row in resources.items():
+                assert row['resource']['feasible']
+                assert abs(row['ttt']-check['results'][arm]['ttt_omega_veh_h'])<1e-8
+            selected_report=json.loads(selected_path.with_suffix('.joint.json').read_bytes())['selection']
+            for key in ('np','nuf'):
+                assert resources['selected']['resource'][key]['target']==selected_report['final_constraints'][key]['target']
+            assert abs(proof['execution_delta_omega']-selected_check['delta_ttt_omega_veh_h'])<1e-8
+            prior_protocol=json.loads((baseline_summary.parent.parent/'protocol.json').read_bytes())
+            verified=execution_resource_reference
+            evidence=dict(start_sec=start,horizon_sec=450,
+                rows={'components/selected':dict(np_nuf_feasible=True,
+                    delta_with_tracked_outside=selected_check['delta_with_tracked_outside_veh_h'])},
+                selected_plan=selected_check['commands'],execution_delta=proof['execution_delta_omega'],
+                stop_sha256=prior_protocol['prior_stop_sha256'])
+        elif component_path.is_file():
+            parts=json.loads(component_path.read_bytes())
+            check=json.loads(canonical_path.read_bytes())
+            if component_reference is not None:
+                assert parts['future_observation_inputs'] is False
+                assert parts['completed_selection_check_sha256']==hashlib.sha256(canonical_path.read_bytes()).hexdigest()
+                assert Path(check['selected_path']).resolve()==selected_path.resolve()
+            assert parts['selected_surrogate_and_execution_reproduced'] and parts['selected_budget_caps_frozen']
+            selected_part=parts['results']['selected']['execution']
+            assert selected_part['quantities']['feasible'] and selected_part['resource_max_exceedance']<1e-7
+            assert abs(selected_part['ttt_omega_veh_h']-check['results']['selected']['ttt_omega_veh_h'])<1e-7
+            verified=component_path
+            evidence=dict(start_sec=parts['start_sec'],horizon_sec=parts['horizon_sec'],
+                rows={'components/selected':dict(np_nuf_feasible=True,
+                    delta_with_tracked_outside=check['results']['selected']['delta_with_tracked_outside_veh_h'])},
+                selected_plan=parts['results']['selected']['commands'],
+                execution_delta=check['results']['selected']['delta_ttt_omega_veh_h'],
+                stop_sha256=hashlib.sha256(Path('D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP').read_bytes()).hexdigest())
+        else:
+            verified=HERE/'native_rm_observation2700_writerfix_v3/controller_comparison.json'
+            evidence=json.loads(verified.read_bytes())
+        assert evidence['start_sec']==start and evidence['horizon_sec']==450
+        assert evidence['rows']['components/selected']['np_nuf_feasible']
+        payload=json.loads(selected_path.read_bytes())
+        action=adapter.control_from_json(selected_path,cfg,ControlAction)
+        controls=sequence.actions(action,3)
+        source_previous=Path(json.loads(previous.read_bytes())['metadata']['offline_fixed_replay_execution_binding']['source_json'])
+        dest=output/'selected/commands';dest.mkdir(parents=True)
+        digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+        pins={str(p):digest(p) for p in (selected_path,selected_path.with_suffix('.csv'),baseline_summary,verified)}
+        assert canonical_path.is_file(), 'Native analysis requires the completed canonical prediction'
+        pins[str(canonical_path)]=digest(canonical_path)
+        for sec in (1,*range(150,start,150)):
+            for suffix in ('.json','.csv'):
+                src=source_previous.parent/f'action_{sec:06d}{suffix}'
+                pins[str(src)]=digest(src);shutil.copy2(src,dest/src.name)
+                assert digest(dest/src.name)==pins[str(src)]
+        actuation=adapter.adapter_actuation_settings(captured['calibration'],captured['tuning'])
+        segment=adapter.repo_imports(ROOT/'vendor/NumSim-mine')[-1]
+        plan=adapter.load_signal_group_actuation_plan()
+        rows=lambda p:[{k:v for k,v in row.items() if k!='metadata'} for row in csv.DictReader(p.read_text(encoding='utf-8-sig').splitlines())]
+        for block,sec in enumerate(range(start,end+1,150)):
+            current=controls[min(block,2)];expected=evidence['selected_plan'][min(block,2)]
+            assert current.green_times==expected['green_times'] and current.offsets==expected['offsets']
+            assert current.vsl==expected['vsl']
+            assert {r:current.diagnostics['rw_meter_green_'+r] for r in cfg.network.ramps}==expected['meters']
+            metadata=copy.deepcopy(payload['metadata']);metadata['sim_sec']=sec
+            stem=dest/f'action_{sec:06d}'
+            adapter.write_action_csv(stem.with_suffix('.csv'),current,cfg,captured['mapping'],segment,
+                metadata,actuation,signal_group_plan_table=plan,offset_writer='experiment')
+            stem.with_suffix('.json').write_text(json.dumps(adapter.control_to_json_dict(current,metadata),ensure_ascii=False),encoding='utf-8')
+            actual=rows(stem.with_suffix('.csv'))
+            assert {r['kind'] for r in actual}=={'vsl','ramp_meter','signal','signal_sg'}
+            if block==0:assert actual==rows(selected_path.with_suffix('.csv'))
+        pins.update({str(p):digest(p) for p in dest.iterdir()})
+        network=HERE/'selected/network/native_seed29.inpx'
+        assert digest(network)=='64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+        old_stop=Path('D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP')
+        assert digest(old_stop)==evidence['stop_sha256']
+        protocol=dict(start_sec=start,end_sec=end,seed=47,arms=['selected'],controller='wu-link',
+            control_start_sec=start,network=str(network),network_sha256=digest(network),command_pins=pins,
+            reuse_native_baseline=dict(run=str(source_previous.parent.parent),summary=str(baseline_summary),sha256=digest(baseline_summary)),
+            prediction_source=str(canonical_path),prediction_sha256=digest(canonical_path),
+            predicted_delta_omega_veh_h=evidence['execution_delta'],
+            predicted_delta_tracked_total_veh_h=evidence['rows']['components/selected']['delta_with_tracked_outside'],
+            native_started=False,native_authorization_pending=False,
+            native_authorization='User2026-09-29: necessary VISSIM runs may proceed without repeated permission',
+            prior_stop=str(old_stop),prior_stop_sha256=digest(old_stop),
+            optimizer_calls=0,forecast_rollouts=0,future_observation_inputs=False,
+            sim_resolution=10,vehicle_record_interval_sec=5,observation_interval_sec=150,
+            controls='Exact original1..2550 RM/VSL CSV replay with native urban signals; from2700 apply precisely the verified saved SDMPC three-block city/RM/VSL sequence.',
+            required_validation=['Complete runtime closure and LDP/readback','Exact FZP prefix vs existing hold before2700',
+                'Urban ownership remains native before2700','All selected signal/SG windows and transitions after2700',
+                '8-ramp arrival/head/merge/stock and Omega TTT/outside costs'],
+            scope='One proposed3150s fixed-command validation against the already completed hold; not a new closed-loop policy, cooperation test or9000 restart')
+        (output/'protocol.json').write_text(json.dumps(protocol,ensure_ascii=False,indent=2),encoding='utf-8')
+        print(json.dumps(dict(prepared=str(output),native_started=False,commands=22,baseline_reused=True)),flush=True)
+        return
+    cfg=captured['cfg'];start=1200;end=1650
+    selected=HERE/'select1200v3/unused_action.json'
+    action=adapter.control_from_json(selected,cfg,ControlAction)
+    payload=json.loads(selected.read_bytes())
+    tuning=captured['tuning']
+    actuation=adapter.adapter_actuation_settings(captured['calibration'],tuning)
+    segment=adapter.repo_imports(ROOT/'vendor/NumSim-mine')[-1]
+    plan=adapter.load_signal_group_actuation_plan()
+    pins={}
+    for arm in ('hold','selected'):
+        dest=output/arm/'commands';dest.mkdir(parents=True)
+        for sec in (1,150,300,450,600,750,900,1050):
+            for suffix in ('.json','.csv'):
+                src=previous.parent/f'action_{sec:06d}{suffix}'
+                pins[str(src)]=hashlib.sha256(src.read_bytes()).hexdigest()
+                shutil.copy2(src,dest/src.name)
+        controls=sequence.actions(action,3)
+        for block,sec in enumerate((1200,1350,1500,1650)):
+            stem=dest/f'action_{sec:06d}'
+            if arm=='hold':
+                for suffix in ('.json','.csv'):
+                    shutil.copy2(previous.with_suffix(suffix),stem.with_suffix(suffix))
+            else:
+                current=controls[min(block,2)]
+                adapter.write_action_csv(stem.with_suffix('.csv'),current,cfg,captured['mapping'],segment,
+                    payload['metadata'],actuation,signal_group_plan_table=plan,offset_writer='experiment')
+                stem.with_suffix('.json').write_text(json.dumps(
+                    adapter.control_to_json_dict(current,payload['metadata']),ensure_ascii=False),encoding='utf-8')
+        def physical_rows(path):
+            with path.open(encoding='utf-8-sig',newline='') as f:
+                return [{k:v for k,v in row.items() if k!='metadata'} for row in csv.DictReader(f)]
+        if arm=='selected':
+            assert physical_rows(dest/'action_001200.csv')==physical_rows(selected.with_suffix('.csv'))
+        pins.update({str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in dest.iterdir()})
+    network=HERE/'selected/network/native_seed29.inpx'
+    assert hashlib.sha256(network.read_bytes()).hexdigest()=='64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    protocol=dict(start_sec=start,end_sec=end,seed=29,arms=['hold','selected'],network=str(network),
+        network_sha256=hashlib.sha256(network.read_bytes()).hexdigest(),command_pins=pins,
+        selected_action=str(selected),selected_action_sha256=hashlib.sha256(selected.read_bytes()).hexdigest(),
+        controls='Replay actual1..1050; hold1050 or execute preselected3blocks from1200. The1650 command affects no evaluated future interval.',
+        native_started=False,controller_optimization=False,future_observation_inputs=False,
+        scope='Matched native response check of a completed SDMPC decision, not closed-loop performance')
+    (output/'protocol.json').write_text(json.dumps(protocol,ensure_ascii=False,indent=2),encoding='utf-8')
+    print(json.dumps(dict(prepared=str(output),native_started=False,rollouts=0)),flush=True)
+
+
+def main():
+    signal_probe=next((x.split('=',1)[1] for x in sys.argv[1:]
+                      if x.startswith('--closedloop-signal-probe=')),None)
+    if signal_probe is not None:
+        probe_closedloop_meters(selected_sec=int(signal_probe),signal_probe=True,
+                               head_phase='--head-phase-queues' in sys.argv[1:],
+                               head_service='--head-service10698' in sys.argv[1:],
+                               service_reference='--head-service-reference' in sys.argv[1:])
+        return
+    selected_probe=next((x.split('=',1)[1] for x in sys.argv[1:]
+                         if x.startswith('--closedloop-selected-probe=')),None)
+    if selected_probe is not None:
+        probe_closedloop_meters(selected_sec=int(selected_probe))
+        return
+    if '--closedloop-meter-tail' in sys.argv[1:]:
+        probe_closedloop_meters(tail=True)
+        return
+    if '--closedloop-meter-probe' in sys.argv[1:]:
+        probe_closedloop_meters()
+        return
+    sim_sec = int(next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--at=')), '900'))
+    closedloop_recorded = '--closedloop-recorded' in sys.argv[1:]
+    four_arm_receipt=next((Path(x.split('=',1)[1]).resolve() for x in sys.argv[1:]
+                           if x.startswith('--four-arm-receipt=')),None)
+    selected_vsl_check = '--selected-vsl-check' in sys.argv[1:]
+    selected_components = '--selected-components' in sys.argv[1:]
+    selected_local = '--selected-local-neighbors' in sys.argv[1:]
+    selected_local_factorial = '--selected-local-factorial' in sys.argv[1:]
+    if selected_local_factorial and not selected_local:
+        raise ValueError('The bounded lever factorial requires the existing saved-selection local-neighbor check')
+    selected_east_flat8 = '--selected-rm-flat8' in sys.argv[1:]
+    if selected_east_flat8 and ((four_arm_receipt is None and '--recorded-selection-check' not in sys.argv[1:]) or selected_vsl_check or selected_components or selected_local
+                              or '--selected-meter-check' in sys.argv[1:]):
+        raise ValueError('The east GREEN8 check requires verified four-arm observations or an actually written native selection')
+    selected_meter_check = '--selected-meter-check' in sys.argv[1:] or selected_vsl_check or selected_components or selected_local or selected_east_flat8
+    selected_meter_ramp=next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--selected-meter-ramp=')),None)
+    if selected_meter_ramp is not None and ('--selected-meter-check' not in sys.argv[1:]
+            or any((selected_vsl_check,selected_components,selected_local,selected_east_flat8))):
+        raise ValueError('A selected meter focus requires the plain saved-selection meter diagnostic')
+    derivative_check = '--derivative-check' in sys.argv[1:]
+    derivative_resume=next((Path(x.split('=',1)[1]) for x in sys.argv[1:]
+                            if x.startswith('--derivative-resume=')),None)
+    if derivative_resume is not None and not derivative_check:raise ValueError('Resume only the derivative diagnostic')
+    if derivative_check and selected_meter_check:raise ValueError('Choose one controller diagnostic')
+    held_budget_check = '--held-budget-check' in sys.argv[1:] or selected_meter_check or derivative_check
+    recording_dir=next((Path(x.split('=',1)[1]) for x in sys.argv[1:]
+                        if x.startswith('--recording-dir=')),None)
+    fixed_replay_summary=next((Path(x.split('=',1)[1]) for x in sys.argv[1:]
+                              if x.startswith('--fixed-replay-summary=')),None)
+    if selected_vsl_check and (fixed_replay_summary is None or '--selected-meter-check' in sys.argv[1:]):
+        raise ValueError('The two VSL neighbors belong only to the verified2700s fixed-replay selection')
+    if selected_components and (fixed_replay_summary is None or selected_vsl_check or '--selected-meter-check' in sys.argv[1:]):
+        raise ValueError('Selected component attribution requires only the verified2700s fixed-replay selection')
+    execution_reference=next((Path(x.split('=',1)[1]).resolve() for x in sys.argv[1:]
+                              if x.startswith('--selection-execution-reference=')),None)
+    native_prepare_requested='--prepare-native-commands' in sys.argv[1:]
+    component_reference=next((Path(x.split('=',1)[1]).resolve() for x in sys.argv[1:]
+                              if x.startswith('--selection-component-reference=')),None)
+    execution_resource_reference=next((Path(x.split('=',1)[1]).resolve() for x in sys.argv[1:]
+                              if x.startswith('--selection-execution-resource-proof=')),None)
+    if execution_resource_reference is not None and not (native_prepare_requested and execution_reference is not None
+                                                         and component_reference is None and fixed_replay_summary is not None):
+        raise ValueError('An execution resource proof requires native preparation, its execution result and fixed replay baseline')
+    if component_reference is not None and not (native_prepare_requested and execution_reference is not None):
+        raise ValueError('Explicit component evidence requires native preparation and its execution reference')
+    if selected_local and (fixed_replay_summary is None or selected_vsl_check or selected_components
+                           or '--selected-meter-check' in sys.argv[1:] or execution_reference is None):
+        raise ValueError('Local neighbors require the verified fixed-replay selection and its explicit execution check')
+    if execution_reference is not None and not (selected_local or native_prepare_requested and
+                                              (component_reference is not None or execution_resource_reference is not None)
+                                              or (selected_east_flat8 or '--selected-meter-check' in sys.argv[1:])
+                                              and '--recorded-selection-check' in sys.argv[1:]):
+        raise ValueError('Explicit execution reference requires local neighbors or evidenced native preparation')
+    tuning_override=next((Path(x.split('=',1)[1]) for x in sys.argv[1:]
+                         if x.startswith('--tuning-json=')),None)
+    if recording_dir is not None and not closedloop_recorded:
+        raise ValueError('An explicit recording directory requires closedloop recorded mode')
+    recorded_times = (2250,) if four_arm_receipt is not None else (2700,) if fixed_replay_summary is not None else (4500,) if selected_meter_check or derivative_check else (2700,3750,6000,8400) if held_budget_check else (1950,3600,3750,4500,6000)
+    if '--recorded-selection-check' in sys.argv[1:]:
+        recorded_times=tuple(sorted(set(recorded_times)|{2700,3600}))
+    if '--initialize-only' in sys.argv[1:] and recording_dir is not None:
+        recorded_times=tuple(sorted(set(recorded_times)|{7500}))
+    if (recording_dir is not None and tuning_override is not None
+            and all(flag in sys.argv[1:] for flag in ('--lever-probe450', '--meter-ramp=RM_C10484',
+                                                    '--warm-head-history', '--replay-vsl-history'))):
+        # Completed seed29 loss-onset diagnostic; no new execution or optimizer path.
+        recorded_times=tuple(sorted(set(recorded_times)|{2250}))
+        if '--early-ramp-factorial' in sys.argv[1:]:
+            assert sim_sec == 1500 and closedloop_recorded
+            recorded_times=tuple(sorted(set(recorded_times)|{1500}))
+    if sim_sec not in (recorded_times if closedloop_recorded else (900,1050,1200)):
+        raise ValueError('Only the existing recorded decision times are supported')
+    trace_mode = '--trace' in sys.argv[1:]
+    initialize_only = '--initialize-only' in sys.argv[1:]
+    gate_audit = '--gate-audit' in sys.argv[1:]
+    gate_initial = '--gate-initial' in sys.argv[1:]
+    gate_future = '--gate-future' in sys.argv[1:]
+    gate_lanes = '--gate-lanes' in sys.argv[1:]
+    if gate_lanes and not gate_initial:raise ValueError('Gate lane capacity requires reviewed gate initialization')
+    if gate_future and not gate_initial:raise ValueError('Future gate requires initial route preservation')
+    gate_default = '--gate-default' in sys.argv[1:]
+    if gate_initial and gate_default:raise ValueError('Choose enabled or disabled gate comparison')
+    pooled_green = '--pooled-green' in sys.argv[1:]
+    warm_heads = '--warm-head-history' in sys.argv[1:]
+    warm_vsl = '--replay-vsl-history' in sys.argv[1:]
+    if warm_vsl and not closedloop_recorded:raise ValueError('VSL replay requires a closed native recording')
+    unique_head = '--head-turn-10633' in sys.argv[1:]
+    lever_probe = '--lever-probe450' in sys.argv[1:]
+    early_ramp_factorial = '--early-ramp-factorial' in sys.argv[1:]
+    if early_ramp_factorial and not (closedloop_recorded and sim_sec == 1500 and lever_probe
+            and recording_dir is not None and tuning_override is not None and warm_heads and warm_vsl):
+        raise ValueError('Early RM factorial requires the recorded1500 state and both causal histories')
+    signal_exchange_owner=next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--signal-exchange=')),None)
+    if signal_exchange_owner is not None and (signal_exchange_owner!='SC109' or not lever_probe):
+        raise ValueError('The SC109 signal exchange requires the existing lever probe')
+    east_meters_only = '--east-meters-only' in sys.argv[1:]
+    meter_tail = '--meter-tail900' in sys.argv[1:]
+    tail_reference_dir=next((Path(x.split('=',1)[1]) for x in sys.argv[1:]
+                            if x.startswith('--tail-reference-dir=')),None)
+    if tail_reference_dir is not None and not meter_tail:
+        raise ValueError('A tail reference belongs only to the fixed900s diagnostic')
+    meter_ramp=next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--meter-ramp=')),None)
+    if meter_ramp is not None and not (lever_probe or meter_tail):raise ValueError('A focused meter requires the existing lever or tail probe')
+    vsl_zone=next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--vsl-zone=')),None)
+    if vsl_zone is not None and (not lever_probe or meter_ramp is not None):
+        raise ValueError('A focused VSL requires the lever probe and cannot be combined with a focused meter')
+    if east_meters_only and (not lever_probe or meter_ramp is not None or vsl_zone is not None):
+        raise ValueError('The four east-meter probe requires only --lever-probe450')
+    held_probe = '--held450' in sys.argv[1:]
+    lever_probe = lever_probe or held_probe
+    select_mode = '--select' in sys.argv[1:]
+    meter_activation_ablation = '--meter-activation-ablation' in sys.argv[1:]
+    if meter_activation_ablation and not (select_mode and closedloop_recorded
+            and tuning_override is not None and warm_heads and warm_vsl):
+        raise ValueError('Meter activation ablation requires an explicit saved-state selection with causal histories')
+    selection_check = '--selection-check' in sys.argv[1:]
+    selection_reference=next((Path(x.split('=',1)[1]).resolve() for x in sys.argv[1:]
+                              if x.startswith('--selection-reference=')),None)
+    if selection_reference is not None and not (
+            (selection_check or selected_local or native_prepare_requested) and closedloop_recorded and fixed_replay_summary is not None
+            and tuning_override is not None and warm_heads and warm_vsl):
+        raise ValueError('Cross-model selection replay requires fixed native history and an explicit evaluation model')
+    trace_ramp=next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--trace-ramp=')),None)
+    diagnostic_sources=next((Path(x.split('=',1)[1]).resolve() for x in sys.argv[1:]
+                             if x.startswith('--diagnostic-sources=')),None)
+    if trace_ramp is not None and not (
+            selection_check and trace_ramp=='RM_C10490' and fixed_replay_summary is not None
+            or trace_ramp=='RM_C10681' and four_arm_receipt is not None and recording_dir is not None
+                and tuning_override is not None and warm_heads and warm_vsl
+            or trace_ramp=='RM_C10484' and (four_arm_receipt is not None or fixed_replay_summary is not None and lever_probe
+                or meter_ramp==trace_ramp and lever_probe and recording_dir is not None and tuning_override is not None
+                and warm_heads and warm_vsl)):
+        raise ValueError('Focused ramp trace requires its verified saved-selection history')
+    recorded_selection_check = '--recorded-selection-check' in sys.argv[1:]
+    if recorded_selection_check and not (closedloop_recorded and (selection_check or selected_meter_check)):
+        raise ValueError('A native recorded selection requires a closedloop selection or selected-meter check')
+    first_interval_audit = '--first-interval-audit' in sys.argv[1:]
+    if first_interval_audit and not (recorded_selection_check and warm_heads and warm_vsl):
+        raise ValueError('First-interval audit requires verified executed commands and causal histories')
+    first_interval_terms = '--first-interval-terms' in sys.argv[1:]
+    if first_interval_terms and not first_interval_audit:
+        raise ValueError('Speed terms require the first-interval audit')
+    prepare_rm = '--prepare-rm-observation-pair' in sys.argv[1:]
+    prepare_native = '--prepare-native-commands' in sys.argv[1:] or prepare_rm
+    if diagnostic_sources is not None:
+        source_schema = json.loads(diagnostic_sources.read_bytes()).get('schema')
+        fixed_pair = (source_schema == 'diagnostic-native-mainline-pair/v1'
+            and selection_check and closedloop_recorded and sim_sec == 2700
+            and fixed_replay_summary is not None and recording_dir is not None
+            and tuning_override is not None and warm_heads and warm_vsl
+            and four_arm_receipt is None and not lever_probe)
+        fixed_four = (source_schema == 'diagnostic-native-mainline/v1'
+            and four_arm_receipt is not None and not selection_check)
+        if (not (fixed_pair or fixed_four) or select_mode or trace_mode or trace_ramp is not None
+                or initialize_only or gate_audit or prepare_native or held_budget_check):
+            raise ValueError('Future-source ablation requires a verified fixed pair or four-arm diagnostic')
+    if four_arm_receipt is not None:
+        if (not closedloop_recorded or recording_dir is None or tuning_override is None or not (warm_heads and warm_vsl)
+                or select_mode and selection_check
+                or any((fixed_replay_summary,lever_probe,held_probe,
+                        held_budget_check and not selected_east_flat8,trace_mode,gate_audit,meter_tail,prepare_native))):
+            raise ValueError('Verified2250 NC history supports the four fixed responses or one normal SDMPC selection')
+        lever_probe=not (select_mode or selection_check or initialize_only or selected_east_flat8)
+        four_arm_proof=json.loads(four_arm_receipt.read_bytes())
+        assert recording_dir.resolve()==Path(four_arm_proof['recording_dir']).resolve()
+        state_pin=four_arm_proof['state']
+        assert Path(state_pin['path']).resolve()==(recording_dir/'state_002250.json').resolve()
+        assert hashlib.sha256(Path(state_pin['path']).read_bytes()).hexdigest()==state_pin['sha256']
+    if fixed_replay_summary is not None:
+        if (not closedloop_recorded or recording_dir is None or tuning_override is None
+                or not (warm_heads and warm_vsl) or sum(map(bool,(lever_probe,initialize_only,select_mode,selection_check,selected_vsl_check,selected_components,selected_local,prepare_native)))!=1
+                or any((prepare_rm,held_budget_check and not (selected_vsl_check or selected_components or selected_local),meter_tail,
+                        meter_ramp,vsl_zone,east_meters_only,held_probe,trace_mode,gate_audit))):
+            raise ValueError('Verified fixed replay requires one initialization, response probe, offline selection or saved-selection check with full causal histories')
+    if meter_tail and (not closedloop_recorded or sim_sec not in (3600,4500,6000) or meter_ramp not in ('RM_C10681','RM_C10484')
+                       or lever_probe or held_probe or select_mode or selection_check or prepare_native
+                       or trace_mode or initialize_only or gate_audit or held_budget_check):
+        raise ValueError('The tail check uses only a recorded3600/4500/6000s10681/10484 state and its matching450s reference')
+    if meter_tail and (sim_sec != 6000 or tuning_override is not None) and tail_reference_dir is None:
+        raise ValueError('An explicit matching450s reference is required for this tail diagnostic')
+    if held_budget_check and (not closedloop_recorded or select_mode or selection_check or
+                              prepare_native or lever_probe or trace_mode or initialize_only or gate_audit):
+        raise ValueError('Held-budget check requires one recorded state and no other probe mode')
+    if prepare_rm and (not closedloop_recorded or sim_sec!=4500):
+        raise ValueError('RM observation preparation uses only the recorded4500 writer bootstrap')
+    if prepare_native and not prepare_rm and (sim_sec not in (1200,2700,6000) or select_mode or selection_check or lever_probe
+                           or (sim_sec==6000 and not closedloop_recorded) or (sim_sec==2700 and fixed_replay_summary is None)):
+        raise ValueError('Prepare only the1200s selection, verified2700s selection or saved6000s VSL release')
+    if selection_check and (select_mode or trace_mode or initialize_only or gate_audit or lever_probe):
+        raise ValueError('Selection check evaluates only the saved held and selected sequences')
+    if select_mode and (trace_mode or initialize_only or gate_audit or lever_probe):
+        raise ValueError('Select runs the actual controller; do not combine with intercepted prediction modes')
+    canonical_prior = '--canonical-prior' in sys.argv[1:]
+    physical_travel = '--physical-travel' in sys.argv[1:]
+    if physical_travel and not canonical_prior:
+        raise ValueError('Physical travel comparison requires canonical native priors')
+    ready_only = '--ready-arrivals' in sys.argv[1:]
+    north_modes=[mode for flag,mode in (('--native-north','both'),('--north-bypass-only','bypass'),
+                                       ('--north-prior-only','prior')) if flag in sys.argv[1:]]
+    if len(north_modes)>1:raise ValueError('Choose one north-path diagnostic intervention')
+    north_mode=north_modes[0] if north_modes else None
+    native_north = north_mode is not None
+    north_authority = '--north-authority' in sys.argv[1:]
+    north_past_floor = '--north-past-floor' in sys.argv[1:]
+    if north_authority and native_north:
+        raise ValueError('Canonical authority and post-initialization north interventions are separate probes')
+    if north_past_floor and (not north_authority or sim_sec != 1200):
+        raise ValueError('Past-only service evidence is reviewed for north authority at1200 only')
+    native_priors = '--native-priors' in sys.argv[1:]
+    recorded_mode = closedloop_recorded or '--recorded' in sys.argv[1:] or native_priors or canonical_prior or pooled_green or warm_heads
+    from evaluation.controllers import runtime_setup
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+
+    name = 'recorded_ramp_native_prior900' if native_priors else 'recorded_ramp_response900' if recorded_mode else 'arrival_path_probe'
+    if canonical_prior:
+        name='recorded_ramp_canonical_prior900'
+    if ready_only:
+        name+='_ready'
+    if physical_travel:
+        name+='_travel'
+    if native_north:
+        name+='_north'
+        if north_mode!='both':name+='_'+north_mode
+    if north_authority:
+        name+='_north_authority'
+    if north_past_floor:
+        # Keep Windows history paths below MAX_PATH; this flag requires authority.
+        name=name.replace('_north_authority','_north_floor')
+    if pooled_green:
+        name+='_pool4'
+    if unique_head:
+        name+='_head10633'
+    if warm_heads:
+        name+='_history'
+    name=name.replace('900',str(sim_sec))
+    if trace_mode:
+        name += '_trace'
+    if initialize_only:
+        name += '_init'
+    if lever_probe:
+        name += '_lever450'
+    if gate_audit:
+        name='gate_audit'+str(sim_sec)
+    if gate_initial or gate_default:
+        if not (canonical_prior and physical_travel and north_authority and pooled_green and unique_head and warm_heads):
+            raise ValueError('Gate comparison requires the reviewed full diagnostic baseline')
+        name=('gate_initial' if gate_initial else 'gate_default')+str(sim_sec)+('_init' if initialize_only else '_trace' if trace_mode else '')
+        if gate_future:name=name.replace('gate_initial','gate_future')
+        if gate_lanes:name=name.replace(str(sim_sec),'_lanes'+str(sim_sec))
+        if held_probe:name+='_held450'
+    if select_mode:name='select'+str(sim_sec)
+    if select_mode and '--activation-restored' in sys.argv[1:]:name+='v2'
+    if select_mode and '--np-domain-restored' in sys.argv[1:]:name='select'+str(sim_sec)+'v3'
+    if selection_check:name='select'+str(sim_sec)+'v3_check'
+    if prepare_native:name='native_pair'+str(sim_sec)
+    if closedloop_recorded:
+        name='closedloop_recorded'+str(sim_sec)+('_prior' if canonical_prior else '')
+        if physical_travel:name+='_travel'
+        if trace_mode:name+='_trace'
+        if initialize_only:name+='_init'
+        if lever_probe:name+='_lever450'+('_'+meter_ramp if meter_ramp else '_VSL_'+vsl_zone if vsl_zone else '')
+        if select_mode:name+='_select'
+        if selection_check:name+='_select_check'
+        if held_budget_check:name+='_budget_check'
+        if selected_meter_check:name+='_selected_flat8' if selected_east_flat8 else '_selected_local' if selected_local else '_selected_components' if selected_components else '_selected_vsl13' if selected_vsl_check else '_selected_meter'
+        if derivative_check:name+='_derivatives'
+        if prepare_native:name+='_native_selected' if sim_sec==2700 else '_native_vsl_release'
+        if meter_tail:name+='_meter900_'+meter_ramp
+    if prepare_rm:name='native_rm_observation2700'
+    if trace_ramp is not None:name+='_trace'+trace_ramp.removeprefix('RM_C')
+    label = next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--probe-label=')), '')
+    if label and not all(c.isalnum() or c in '_-' for c in label):
+        raise ValueError('Probe label must be a simple directory suffix')
+    output_suffix=next((x.split('=',1)[1] for x in sys.argv[1:] if x.startswith('--output-suffix=')), '')
+    if output_suffix and (not all(c.isalnum() or c in '_-' for c in output_suffix)
+                          or not (selection_check or initialize_only or lever_probe)):
+        raise ValueError('Output suffix requires a read-only state or response check')
+    output = HERE / (name + ('_' + label if label else '') + ('_' + output_suffix if output_suffix else ''))
+    if (label or select_mode or selection_check or prepare_native or closedloop_recorded) and output.exists():
+        raise ValueError('Preserve the previous selection attempt; inspect it before another decision')
+    output.mkdir(exist_ok=True)
+    captured = {}
+    configure = runtime_setup.configure_runtime
+    forecast_fn = adapter.demand_from_state
+
+    class Ready(BaseException):
+        pass
+
+    def capture_runtime(*args, **kwargs):
+        if canonical_prior or pooled_green or unique_head or north_authority:
+            args=list(args)
+            args[2]=copy.deepcopy(args[2])
+        if canonical_prior:
+            args[2]['urban']['known_wout_native_choice_prior']=True
+            args[2]['urban']['known_wout_physical_travel']=physical_travel
+        if pooled_green:
+            args[2]['urban']['capacity']['head_green_exposure_windows']=4
+        if unique_head:
+            args[2]['urban']['capacity']['head_resource_contract']=str((HERE/'head_service_resource_10633.json').relative_to(ROOT))
+        if north_authority:
+            args[2]['urban']['movements']['physical_phase_authority']=str((HERE/'physical_phase_authority_10625.json').relative_to(ROOT))
+        if gate_initial:
+            args[2]['urban'].setdefault('ramp',{})['initial_native_gate_routes']=True
+            args[2]['urban']['ramp']['native_gate_travel']=gate_future
+            if gate_lanes:
+                # Existing1-lane nominal1800 is explicit; this changes the
+                # connector lane multiplier, not a fitted saturation rate.
+                args[2]['urban']['ramp']['gate_entry_capacity_per_lane_veh_h']=1800.
+        result = configure(*args, **kwargs)
+        captured.update(state=result[0], cfg=args[1], tuning=args[2], mapping=args[3], raw=args[4],calibration=args[7],
+                        detector=result[1], metadata=result[2])
+        return result
+
+    def capture_forecast(*args, **kwargs):
+        result = forecast_fn(*args, **kwargs)
+        captured['forecast'] = result
+        if select_mode and replay_pair is not None:
+            from src.models.state import ControlAction
+            cfg=captured['cfg']
+            control=adapter.control_from_json(previous,cfg,ControlAction)
+            run_id=captured['raw']['run_provenance']['run_id']
+            _,pins=adapter.load_joint_historical_reference(previous,control,cfg,
+                expected_run_id=run_id,expected_previous_sim_sec=sim_sec-150)
+            native=adapter.represent_native_no_control_signals(control.copy(),cfg)
+            assert control.green_times==native.green_times and control.offsets==native.offsets
+            replay_pair['native_city_reference_verified']=True
+            replay_pair['historical_reference_contract_passed']=True
+            replay_pair['offline_previous_pins']=pins
+            (output/'fixed_replay_receipt.json').write_text(json.dumps(replay_pair,indent=2),encoding='utf-8')
+        if select_mode or held_budget_check:
+            return result
+        raise Ready()
+
+    previous = Path('D:/VISSIM_runs/20260924_sd31_gain/sdmpc31_g_gain_s29_r3/'
+                    'decisions_sdmpc31_g_gain_s29_r3') / f'action_{sim_sec-150:06d}.json'
+    state_path = HERE / f'selected_init{sim_sec}_final/state_{sim_sec:06d}.json'
+    if closedloop_recorded:
+        folder=recording_dir or Path('D:/VISSIM_runs/20260927_sd31_closedloop9000/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+        previous=folder/f'action_{sim_sec-150:06d}.json'
+        state_path=folder/f'state_{sim_sec:06d}.json'
+        assert state_path.is_file()
+        if fixed_replay_summary is None and four_arm_receipt is None:
+            assert previous.with_suffix('.json.applied').is_file()
+        if four_arm_receipt is not None:
+            assert four_arm_proof['passed'] and four_arm_proof['native_execution_passed']
+            native_previous=json.loads(previous.read_bytes())
+            assert native_previous['diagnostics']['no_control_active']
+            assert native_previous['metadata']['sim_sec']==sim_sec-150
+    tuning_path = tuning_override or HERE / 'selected/config_n31_v2.json'
+    replay_pair=(prepare_fixed_replay_history(fixed_replay_summary,folder,tuning_path,output)
+                 if fixed_replay_summary is not None else None)
+    derived_directory=Path(replay_pair['derived_directory']) if replay_pair is not None else None
+    if replay_pair is not None and (select_mode or selection_check or selected_vsl_check or selected_components or selected_local or prepare_native):
+        previous=bind_fixed_replay_reference(replay_pair,folder,output)
+    selected_path = HERE / (f'closedloop_recorded{sim_sec}_select' if closedloop_recorded
+                            else f'select{sim_sec}v3') / 'unused_action.json'
+    if label:
+        selected_path = selected_path.parent.with_name(selected_path.parent.name+'_'+label)/selected_path.name
+    if selection_reference is not None:
+        if not label or recorded_selection_check or (selected_meter_check and not selected_local):
+            raise ValueError('Cross-model replay needs a separate output label and a selection check or local-neighbor diagnosis')
+        selected_path=selection_reference/'unused_action.json'
+    if recorded_selection_check:
+        selected_path = folder/f'action_{sim_sec:06d}.json'
+        assert selected_path.with_suffix('.json.applied').is_file()
+        provenance = json.loads(next(folder.parent.glob('run_provenance_*.json')).read_bytes())
+        assert hashlib.sha256(tuning_path.read_bytes()).hexdigest() == provenance['files']['tuning']['sha256']
+        assert provenance['files']['network']['sha256'] == '64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    elif selection_check or selected_meter_check or (prepare_native and sim_sec==2700):
+        pins=json.loads((selected_path.parent/'summary.json').read_bytes())['files']
+        if selection_reference is not None:
+            # Preserve every original selection input/output pin. The new
+            # tuning is a separate evaluation model, never a forged old pin.
+            for source,digest in pins.items():
+                assert hashlib.sha256(Path(source).read_bytes()).hexdigest()==digest, source
+            (output/'selection_reference.json').write_text(json.dumps(dict(
+                source_selection=str(selected_path.parent),source_pins=pins,
+                evaluation_tuning=str(tuning_path),
+                evaluation_tuning_sha256=hashlib.sha256(tuning_path.read_bytes()).hexdigest(),
+                new_optimization=False,commands_changed=False),indent=2),encoding='utf-8')
+        for source in ((state_path,selected_path) if selection_reference is not None
+                       else (state_path,tuning_path,selected_path)):
+            assert hashlib.sha256(source.read_bytes()).hexdigest()==pins[str(source)], source
+        if replay_pair is not None:
+            saved_previous=selected_path.parent/'verified_previous'/previous.name
+            assert hashlib.sha256(saved_previous.read_bytes()).hexdigest()==pins[str(saved_previous)]
+            assert previous.read_bytes()==saved_previous.read_bytes()
+            assert previous.with_suffix('.csv').read_bytes()==saved_previous.with_suffix('.csv').read_bytes()
+        else:
+            assert hashlib.sha256(previous.read_bytes()).hexdigest()==pins[str(previous)]
+    sys.argv = [str(Path(adapter.__file__)),
+                '--state-json', str(state_path),
+                '--previous-action-json', str(previous),
+                '--out-action-json', str(output/'unused_action.json'),
+                '--out-action-csv', str(output/'unused_action.csv'),
+                '--mapping-json', str(ROOT/'evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json'),
+                '--detector-mapping-json', str(ROOT/'evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json'),
+                '--calibration-json', str(ROOT/'evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json'),
+                '--tuning-json', str(tuning_path), '--controller', 'wu-link']
+    for key, value in dict(RW_DECISION_FAIL_FAST='1', RW_MAINLINE_SG_ONLY='1',
+                           RW_OFFSET_WRITER='experiment', RW_RAMP_AMBER_SEC='0').items():
+        os.environ[key] = value
+    from evaluation.controllers import head_service_resources
+    observe_heads=head_service_resources.observe
+    history_inputs=[]
+    def warm_observer(original,cfg,raw,previous_path,caps,plan,distribute,options):
+        return replay_head_history(observe_heads,original,cfg,raw,caps,plan,distribute,options,
+            folder=folder if replay_pair is not None else previous.parent,sim_sec=sim_sec,output=output,history_inputs=history_inputs,
+            derived_directory=derived_directory)
+    if warm_heads:
+        head_service_resources.observe=warm_observer
+    from evaluation.controllers import vsl_exposure_history
+    initialize_vsl=vsl_exposure_history.initialize
+    if warm_vsl:
+        vsl_exposure_history.initialize=lambda context,raw,state,cfg: replay_vsl_history(
+            initialize_vsl,context,raw,state,cfg,output,derived_directory=derived_directory,
+            compare_online=replay_pair is None)
+    runtime_setup.configure_runtime = capture_runtime
+    adapter.demand_from_state = capture_forecast
+    from evaluation.controllers import sdmpc_pfo, sdmpc
+    pfo_solve = sdmpc_pfo.solve
+    original_load_prices = sdmpc.load_prices
+    def prior_prices_for_meter_ablation(previous_path, state, policy):
+        # Offline search-only ablation: retain the actually committed prices.
+        # Validate their original FULL policy and native application receipt;
+        # do not weaken the production loader or rewrite the prior command.
+        if policy.get('meter_activation_secant') is not True:
+            raise ValueError('Meter ablation requires its sole new policy option')
+        old_policy = dict(policy)
+        del old_policy['meter_activation_secant']
+        prices, receipt = original_load_prices(previous_path, state, old_policy)
+        if not receipt['committed']:
+            raise ValueError('Meter ablation requires verified committed prior prices')
+        audit = dict(original_policy_sha256=sdmpc.token(old_policy),
+                     comparison_policy_sha256=sdmpc.token(policy),
+                     only_policy_change={'meter_activation_secant': True},
+                     committed_prices_scaled=prices.tolist(), original_receipt=receipt,
+                     offline_only=True, production_price_guard_unchanged=True)
+        (output/'prior_policy_ablation.json').write_text(json.dumps(audit,indent=2)+'\n',encoding='utf-8')
+        return prices, dict(receipt, offline_meter_activation_ablation=audit)
+    if meter_activation_ablation:
+        sdmpc.load_prices = prior_prices_for_meter_ablation
+    def capture_held_budget(reference, coord, policy, options, evaluate, derivative,
+                            quantities, check_budget, emit):
+        if derivative_check:
+            assert warm_heads and warm_vsl and tuning_override is not None
+            probe_controller_derivatives(captured,reference,coord,evaluate,derivative,quantities,
+                output,(state_path,previous,tuning_path,
+                        *(Path(p) for row in history_inputs for p in row)),resume=derivative_resume)
+            captured['held_budget_checked']=True
+            raise Ready()
+        if selected_meter_check:
+            probe_selected_meter(captured,reference,coord,options,evaluate,selected_path,output,
+                                 vsl_zone='FW_E__seg13' if selected_vsl_check else None,components=selected_components,
+                                 local_neighbors=selected_local,execution_reference=execution_reference,east_flat8=selected_east_flat8,
+                                 ramp_key=selected_meter_ramp,local_factorial=selected_local_factorial)
+            captured['held_budget_checked']=True
+            raise Ready()
+        # Evaluate precisely the controller's original held action, then stop
+        # before PFO or SDMPC optimization. No actuator or coefficient changes.
+        source = previous.parent / f'action_{sim_sec:06d}.joint.json'
+        saved = json.loads(source.read_bytes())['selection']
+        item = evaluate([reference], derivatives=False)[0]
+        actual = quantities(reference, item)
+        caps = [saved['final_constraints'][key]['target'] for key in ('np','nuf')]
+        tolerances = [saved['final_constraints'][key]['tolerance'] for key in ('np','nuf')]
+        coord.validate(reference)
+        physical = sdmpc_pfo.model_feasible(item, options['shared_tolerance'])
+        checked = {key:dict(actual=float(value), cap=cap, tolerance=tol,
+                           satisfied=bool(value <= cap+tol))
+                   for key,value,cap,tol in zip(('np','nuf'),actual,caps,tolerances)}
+        error = item['objective_veh_h'] - saved['held_objective']
+        report = dict(start_sec=sim_sec, model=item['prediction_model'],
+            original_held_objective=saved['held_objective'], reproduced_held_objective=item['objective_veh_h'],
+            held_objective_error=error, objective_reproduced=abs(error)<1e-7,
+            selected_objective=saved['selected_objective'],
+            selected_minus_held=saved['selected_objective']-item['objective_veh_h'],
+            held_omega_partition=item['sdmpc_omega_partition']['costs'],
+            selected_omega_partition=saved['omega_partition']['costs'],
+            quantities_at_selected_caps=checked, physical_model_feasible=physical,
+            held_feasible_at_selected_caps=physical and all(q['satisfied'] for q in checked.values()),
+            controller_iterations=0, scalar_rollouts=1, native_started=False,
+            files={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in
+                   (state_path,previous,tuning_path,source)},
+            scope='Saved original held command tested against the actually selected NP/NUF caps; no new optimum or native-gain claim')
+        (output/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+        print(json.dumps({k:report[k] for k in ('start_sec','held_objective_error',
+            'selected_minus_held','held_feasible_at_selected_caps','quantities_at_selected_caps')}),flush=True)
+        captured['held_budget_checked']=True
+        raise Ready()
+    if held_budget_check:
+        sdmpc_pfo.solve = capture_held_budget
+    started = time.perf_counter()
+    try:
+        adapter.main()
+        if not select_mode:
+            raise AssertionError('Adapter did not reach forecast capture')
+    except Ready:
+        pass
+    finally:
+        runtime_setup.configure_runtime = configure
+        adapter.demand_from_state = forecast_fn
+        head_service_resources.observe=observe_heads
+        vsl_exposure_history.initialize=initialize_vsl
+        sdmpc_pfo.solve = pfo_solve
+        sdmpc.load_prices = original_load_prices
+    initialization_sec = time.perf_counter()-started
+
+    if held_budget_check:
+        assert captured.get('held_budget_checked'), 'Original PFO entry was not reached'
+        return
+
+    if select_mode:
+        action_path=output/'unused_action.json'
+        report_path=output/'unused_action.joint.json'
+        budget_path=output/'unused_action.decision_budget.json'
+        report=json.loads(report_path.read_bytes())
+        budget=json.loads(budget_path.read_bytes())
+        assert report['completed'] and budget['output_completed']
+        receipt=dict(purpose='One actual SDMPC decision on a saved state; no VISSIM command applied',
+            start_sec=sim_sec,controller_wall_sec=initialization_sec,
+            native_started=False,gain_qualified=False,
+            physics='Plant specified by the pinned tuning file; see plant_manifest',
+            plant_manifest=captured['tuning']['freeway']['lane_plant'],
+            options='Existing solver horizon, iterations, prices, constraints and action ranges unchanged',
+            files={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in
+                   (state_path,tuning_path,previous,action_path,report_path,budget_path)})
+        if replay_pair is not None:
+            assert all(hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest
+                       for path,digest in replay_pair['files'].items())
+            receipt['fixed_replay_execution_binding']=replay_pair
+        if four_arm_receipt is not None:
+            receipt['native_no_control_initialization']={'receipt':str(four_arm_receipt),
+                'sha256':hashlib.sha256(four_arm_receipt.read_bytes()).hexdigest(),
+                'common_native_prefix_verified':True,'executed_future_profiles_used_for_selection':False}
+        (output/'summary.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2),encoding='utf-8')
+        print(json.dumps(receipt,ensure_ascii=False),flush=True)
+        return
+
+    from src.models.state import ControlAction
+    from src.controllers import rollout_endpoint as endpoint
+    from evaluation.controllers import area_meter_finalization as meters
+    from evaluation.controllers.sdmpc_tangent_worker import state_error
+    cfg, state = captured['cfg'], captured['state']
+    assert cfg.network.sdmpc_options is not None
+    if prepare_native:
+        if prepare_rm:prepare_rm_observation_commands(captured,previous,output)
+        else:prepare_native_commands(captured,previous,output,selected_path=selected_path,baseline_summary=fixed_replay_summary,
+                                    component_reference=component_reference,execution_reference=execution_reference,
+                                    execution_resource_reference=execution_resource_reference)
+        return
+    if gate_audit or initialize_only:
+        from src.models import urban_queue_model as uqm
+        names=[m for m,s in cfg.network.urban_movements.items() if s.get('origin')=='in_SC1001_W']
+        audit=dict(start_sec=sim_sec,
+            runtime_movement_capacity={m:dict(
+                kind=s.get('kind'), origin=s.get('origin'), signal=s.get('signal'),
+                phase=s.get('phase'), beta=s.get('beta'), unsignalized=s.get('unsignalized',False),
+                destination=s.get('destination'), receiving_link=s.get('receiving_link'),
+                capacity_veh_h=cfg.network.movement_capacity_by_movement_veh_h.get(m),
+                queue_veh=state.urban_movement_queue.get(m,0.))
+                for m,s in cfg.network.urban_movements.items()},
+            capacity_metadata={k:v for k,v in captured['metadata'].items()
+                if k.startswith(('head_','movement_capacity_by_lanes','movement_capacity_perimeter'))},
+            source_specs={m:cfg.network.urban_movements[m] for m in names},
+            cached_specs={m:uqm.movement_specs(cfg)[m] for m in names},
+            capacities={m:cfg.network.movement_capacity_by_movement_veh_h[m] for m in names},
+            gate_metadata={k:v for k,v in adapter._LEGSPLIT_LAST.items() if k.startswith('gate_onramp_beta_')},
+            forecast_urban_boundary=[d.urban_boundary for d in captured['forecast']],
+            raw_demand=captured['raw'].get('demand'),
+            raw_far=captured['raw'].get('local_observation',{}).get('far_measurement'),
+            urban_movement_queue={m:state.urban_movement_queue[m] for m in names},
+            urban_link_storage=state.urban_link_storage,
+            storage_release_buffer=state.urban_storage_release_buffer,
+            urban_boundary_buffer=getattr(state,'urban_boundary_release_buffer',None),
+            boundary_queue=state.boundary_queue,
+            projection=state.local_observation_summary,
+            native_ramp_regions=captured['metadata'].get('physical_ramp_observed_regions'),
+            current_routes=captured['raw'].get('vehicle_routes'),
+            current_vehicles=[r for r in captured['raw']['vehicle_records']['records']
+                              if str(r['link_no']) in ('32','10778','129','127','10482','10490')],
+            source_hashes={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (state_path,tuning_path,previous)})
+        (output/'audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+        if gate_audit:
+            print(json.dumps(dict(audit=str(output),forecasts_run=0,initialization_sec=initialization_sec)))
+            return
+    runtime_evidence=dict(
+        initial_sec=state.time_sec,
+        initial_source_sha256=hashlib.sha256(state_path.read_bytes()).hexdigest(),
+        unresolved_movement_routes={m:dict(spec=s,initial_queue=state.urban_movement_queue.get(m,0.),
+            route=cfg.network.control_area_routes.get('movement:'+m),
+            forecast_boundary=[d.urban_boundary.get(s.get('origin'),0.) for d in captured['forecast']])
+            for m,s in cfg.network.urban_movements.items()
+            if cfg.network.control_area_routes.get('movement:'+m,{}).get('inside_to_inside') is None
+            and cfg.network.control_area_routes.get('movement:'+m,{}).get('outside_to_inside') is None
+            and type(cfg.network.control_area_routes.get('movement:'+m,{}).get('target_inside')) is not bool},
+        gate_future_travel=captured['metadata'].get('gate_future_travel'),
+        gate_entry_capacity_veh_h=captured['metadata'].get('gate_entry_capacity_veh_h'),
+        gate_initial_route_metadata={k:v for k,v in captured['metadata'].items() if k.startswith('gate_initial_')},
+        gate_initial_route_evidence=getattr(state,'gate_initial_route_evidence',None),
+        gate_initial_route_tags=getattr(state,'gate_initial_route_tags',None),
+        posthead_receiving=getattr(state.lane_ramp_runtime,'receiving_observations',{}),
+        movement_capacity_veh_h={k:v for k,v in cfg.network.movement_capacity_by_movement_veh_h.items() if k.startswith('SC1004_')},
+        head_resources=getattr(cfg.network,'head_service_resources',None),
+        diagnostic_head_history_inputs=history_inputs,
+        metadata={k:v for k,v in captured['metadata'].items() if k.startswith(('head_','movement_capacity_by_lanes','movement_capacity_perimeter','physical_unsignalized_authority','native_choice_'))},
+        capacity_configuration=captured['tuning']['urban'].get('capacity',{}))
+    runtime_evidence['offramp_route_inventory'] = dict(
+        enabled=hasattr(state, 'offramp_route_inventory_state'),
+        metadata={k:v for k,v in captured['metadata'].items() if k.startswith('offramp_route_inventory_')},
+        state=getattr(state, 'offramp_route_inventory_state', None))
+    runtime_evidence['unresolved_projection_sources']={link:allocation
+        for link,allocation in state.local_observation_summary['projection_diagnostics']['physical_stock_assignment_by_link'].items()
+        if any(stock.startswith('movement:') and stock.removeprefix('movement:') in runtime_evidence['unresolved_movement_routes']
+               and count for stock,count in allocation.items())}
+    (output/'runtime.json').write_text(json.dumps(runtime_evidence,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+    if initialize_only:
+        print(json.dumps({'initialized':str(output),'wall_sec':initialization_sec}))
+        return
+    if ready_only:
+        # Diagnostic only: quantify the second travel-rate gate after the
+        # existing release buffer has already declared a vehicle arrived.
+        old_rate=adapter._legsplit_wout_rate
+        adapter._legsplit_wout_rate=lambda net,link,speed: (3600./cfg.simulation.T_u_sec
+            if link=='SC1004_W_out' else old_rate(net,link,speed))
+    prior_comparison = None
+    north_proof = None
+    north_service = None
+    if north_authority:
+        spec=cfg.network.urban_movements['SC1004_N_SC1003_to_W']
+        assert spec['unsignalized'] is True and spec['phase']=='SC1004_p1'
+    if north_past_floor:
+        evidence_path=HERE/'north_past_crossings1200.json'
+        evidence=json.loads(evidence_path.read_bytes())
+        assert evidence['cutoff_sec']==sim_sec and evidence['max_observed_sec']<=sim_sec
+        pin=cfg.network.physical_ramp_branches['network']
+        assert evidence['network']['sha256']==pin['sha256']
+        rates=[evidence['windows'][str(t)]['10625']['achieved_lower_bound_vph'] for t in (1050,1200)]
+        assert all(x>0 for x in rates)
+        movement='SC1004_N_SC1003_to_W'
+        before=cfg.network.movement_capacity_by_movement_veh_h[movement]
+        floor=min(rates)
+        cfg.network.movement_capacity_by_movement_veh_h[movement]=max(before,floor)
+        north_service=dict(source=str(evidence_path.relative_to(ROOT)),sha256=hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
+            before_vph=before,after_vph=max(before,floor),past_windows=[(900,1050),(1050,1200)],
+            observed_only_lower_bound_vph=floor,saturation_identified=False,
+            online_observation_channel_available=False,production_enabled=False)
+    if native_north:
+        from evaluation.controllers.offramp_routing import _weight
+        pin=cfg.network.physical_ramp_branches['network']
+        network=ROOT/pin['path']
+        assert hashlib.sha256(network.read_bytes()).hexdigest()==pin['sha256']
+        tree=ET.parse(network).getroot()
+        choice=tree.find(".//vehicleRoutingDecisionStatic[@no='1125']")
+        assert choice.get('link')=='46' and choice.get('allVehTypes')=='true' and choice.get('routeChoiceMeth')=='STATIC'
+        targets={'1':('SC1004_N_SC1003_to_W','10625'),
+                 '2':('SC1004_N_SC1003_to_S','10626'),
+                 '3':('SC1004_N_SC1003_to_E_SC1005','10627')}
+        routes=choice.findall('./vehRoutSta/vehicleRouteStatic')
+        assert {r.get('no') for r in routes}==set(targets)
+        weights={r.get('no'):_weight(r) for r in routes}
+        for r in routes:
+            assert r.find('./linkSeq/intObjectRef').get('key')==targets[r.get('no')][1]
+        edge=tree.find("./links/link[@no='10625']/fromLinkEndPt")
+        assert edge.get('lane')=='46 1'
+        heads=[h.attrib for h in tree.findall('./signalHeads/signalHead')
+               if h.get('lane')=='46 1']
+        assert heads and all(float(h['pos'])>float(edge.get('pos')) for h in heads)
+        assert not [h for h in tree.findall('./signalHeads/signalHead') if h.get('lane','').startswith('10625 ')]
+        north_proof=dict(before={m:dict(cfg.network.urban_movements[m]) for m,c in targets.values()},
+                         native_weights=weights,connector=10625,source_position_m=float(edge.get('pos')),heads=heads)
+        if north_mode in ('both','prior'):
+            for k,(m,c) in targets.items():cfg.network.urban_movements[m]['beta']=weights[k]/sum(weights.values())
+        if north_mode in ('both','bypass'):
+            cfg.network.urban_movements['SC1004_N_SC1003_to_W']['phase']=''
+        north_proof['capacity_vph_unchanged']=cfg.network.movement_capacity_by_movement_veh_h['SC1004_N_SC1003_to_W']
+        north_proof['mode']=north_mode
+        north_proof['scope']='Diagnostic single-factor or combined future turn weights/pre-head bypass; original projected queue and service capacity held; not production calibration'
+    if native_priors:
+        from evaluation.controllers.offramp_routing import _weight
+        assert cfg.network.known_legsplit_routes['storage']=='SC1004_W_out'
+        pin=cfg.network.physical_ramp_branches['network']
+        network=ROOT/pin['path']
+        assert hashlib.sha256(network.read_bytes()).hexdigest()==pin['sha256']
+        tree=ET.parse(network).getroot()
+        assert [float(x.get('start')) for x in tree.findall(".//timeIntervalSet[@no='VEHICLEROUTESTATIC']/timeInts/timeInterval")]==[0.]
+        decision=tree.find(".//vehicleRoutingDecisionStatic[@no='1135']")
+        assert decision.get('link')=='68' and decision.get('allVehTypes')=='true' and decision.get('routeChoiceMeth')=='STATIC'
+        routes=decision.findall('./vehRoutSta/vehicleRouteStatic')
+        assert {r.get('no') for r in routes}=={'2','3','4'}
+        weights={r.get('no'):_weight(r) for r in routes}
+        total=sum(weights.values())
+        before=copy.deepcopy(cfg.network.boundary_out_ramp_split['SC1004_W_out'])
+        after=dict(free=weights['3']/total,ramps=dict(RM_C10646=weights['2']/total,RM_C10681=weights['4']/total))
+        cfg.network.boundary_out_ramp_split['SC1004_W_out']=after
+        prior_comparison=dict(network=pin,decision=1135,weights=weights,before=before,after=after,
+                              scope='Future eligible1135 choices only; existing known destinations and1130:3 free cohort unchanged',
+                              production_configuration_changed=False)
+    parsed_previous=adapter.control_from_json(previous,cfg,ControlAction)
+    if four_arm_receipt is not None:
+        _,native_pins=adapter.load_joint_historical_reference(previous,parsed_previous,cfg,
+            expected_run_id=captured['raw']['run_provenance']['run_id'],expected_previous_sim_sec=sim_sec-150)
+        assert all(v==110 for v in parsed_previous.vsl.values())
+        assert all(parsed_previous.diagnostics['rw_meter_green_'+r]==10 for r in cfg.network.ramps)
+        (output/'native_reference.json').write_text(json.dumps(dict(
+            source_pins=native_pins,recorded_no_control=True,COM_action_applied_marker_required=False,
+            verification='Native source clocks, LDP, VSL readback and shared raw prefix'),indent=2),encoding='utf-8')
+    action = meters.prepare_held_actual_reference(parsed_previous,cfg)
+    if meter_tail:
+        reference_dir=tail_reference_dir or HERE/'closedloop_recorded6000_lever450_RM_C10681_detached'
+        source_paths=(state_path,previous,tuning_path)
+        receipt=dict(files={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in source_paths},
+                     actual_reference=str(previous),new_native_runs=0,optimizer_iterations=0)
+        (output/'source_receipt.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8')
+        probe_meter_tail(captured,action,output,ramp=meter_ramp,reference_dir=reference_dir)
+        assert receipt['files']=={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in source_paths}
+        return
+    if selection_check:
+        if replay_pair is not None or four_arm_receipt is not None:
+            from evaluation.controllers.area_follower_objective import expand_shared_vsl_action
+            action,_=expand_shared_vsl_action(action,cfg,
+                segment_vsl_func=adapter.repo_imports(ROOT/'vendor/NumSim-mine')[-1])
+        probe_levers(captured,action,output,selected_path=selected_path,trace_ramp=trace_ramp,
+                     first_interval_audit=first_interval_audit,first_interval_terms=first_interval_terms,
+                     diagnostic_sources=diagnostic_sources)
+        return
+    if lever_probe:
+        probe_levers(captured,action,output,only_reference=held_probe,
+                     meter_only=meter_ramp is not None or east_meters_only,meter_ramp=meter_ramp,vsl_zone=vsl_zone,
+                     trace_response=trace_mode,replay_pair=replay_pair,
+                     signal_exchange=signal_exchange_owner is not None,signal_owner=signal_exchange_owner or 'SC1001',
+                     four_arm_receipt=four_arm_receipt,trace_ramp=trace_ramp,diagnostic_sources=diagnostic_sources,
+                     early_ramp_factorial=early_ramp_factorial)
+        return
+    if recorded_mode:
+        previous = previous.with_name(f'action_{sim_sec:06d}.json')
+        assert previous.with_suffix('.json.applied').is_file()
+        action = meters.prepare_held_actual_reference(
+            adapter.control_from_json(previous, cfg, ControlAction), cfg)
+    keys = list(cfg.network.ramps)
+    assert len(keys) == 8
+    masked = list(cfg.network.gate_onramp_queue_ramps)
+    report = dict(purpose='Field-consumption probe, not gain qualification or forecast calibration',
+                  controller_configuration='wu-link/SDMPC', simulation_started=False,
+                  initialization_sec=initialization_sec, start_sec=state.time_sec,
+                  duration_sec=cfg.simulation.T_c_sec,
+                  physical_ramps=keys, zeroed_exogenous_ramps=masked,
+                  exogenous_movement_receivers=cfg.network.on_ramp_to_movement,
+                  actual_urban_routes_unchanged=True,
+                  diagnostic_native_prior=prior_comparison,
+                  canonical_native_prior=cfg.network.known_legsplit_routes.get('future_choice_weights'),
+                  canonical_physical_travel=cfg.network.known_legsplit_routes.get('physical_travel'),
+                  pooled_green_windows=getattr(cfg.network,'head_green_exposure_windows',0),
+                  diagnostic_head_history_inputs=history_inputs,
+                  diagnostic_native_north=north_proof,
+                  canonical_north_authority=north_authority,
+                  diagnostic_north_past_service=north_service,
+                  diagnostic_remove_second_travel_gate=ready_only,
+                  inputs={str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p):
+                          hashlib.sha256(p.read_bytes()).hexdigest()
+                          for p in (state_path,tuning_path,previous)}, cases={})
+    points = {}
+    cases = (('recorded',1.),) if recorded_mode else (('original',1.),('zero_proxy',0.),('hundredfold_proxy',100.))
+    for name, factor in cases:
+        demand = copy.deepcopy(captured['forecast'][:1])
+        demand[0].ramp_arrival = {k:v*factor for k,v in demand[0].ramp_arrival.items()}
+        started = time.perf_counter()
+        point = endpoint.evaluate_price_point(state, action, demand, (),
+            endpoint.ObjectiveSpec(cfg, depth_override=1, box_walk=False, score_mode='raw'),
+            capture_response=True)
+        assert not point.aborted and len(point.states)==1
+        points[name] = point
+        report['cases'][name] = dict(wall_sec=time.perf_counter()-started,
+            ramp_arrival_vph=demand[0].ramp_arrival,
+            ttt_omega_veh_h=point.ttt, objective=point.objective,
+            control_area=point.control_area,
+            final_ramp_queue=point.states[-1].ramp_queue)
+        print(json.dumps(dict(case=name,wall_sec=report['cases'][name]['wall_sec'],
+                              ttt_omega_veh_h=point.ttt)),flush=True)
+    if recorded_mode:
+        point = points['recorded']
+        # Future observations are opened ONLY after prediction, as targets.
+        future_path = previous.with_name(f'state_{sim_sec+150:06d}.json')
+        derived_path = previous.parent/f'obs150/derived_{sim_sec+150:06d}.json'
+        future = json.loads(future_path.read_bytes())
+        derived = json.loads(derived_path.read_bytes())
+        assert derived['window']==dict(start_s=sim_sec,end_s=sim_sec+150)
+        assert derived['removals']['window_total']==len(derived['removals']['rows'])
+        raw = captured['raw']
+        for source in (raw,future):
+            assert source['vehicle_records']['complete']
+        with (HERE/'selected/obs150/obs150_detectors_v2.csv').open(encoding='utf-8-sig',newline='') as f:
+            detectors = list(csv.DictReader(f))
+        response = point.control_area_response
+        if trace_mode:
+            storage='SC1004_W_out'
+            moves={m:v for m,v in cfg.network.urban_movements.items() if m.startswith('SC1004_')}
+            def local_snapshot(s):
+                return dict(movement_queue={m:s.urban_movement_queue.get(m,0.) for m in moves},
+                    storage_free=s.urban_link_storage[storage],
+                    pending=s.urban_storage_release_buffer.get(storage,{}),
+                    known_routes=s.known_legsplit_route_state)
+            trace=dict(movements=moves,initial=local_snapshot(state),final=local_snapshot(point.states[-1]),
+                **({'gate_future_final_accounting':point.states[-1].gate_future_accounting}
+                   if hasattr(point.states[-1],'gate_future_accounting') else {}),
+                physical_initial_owners={p:a for p,a in state.local_observation_summary['projection_diagnostics']['physical_stock_assignment_by_link'].items()
+                                        if a.get('storage:'+storage,0)>0},
+                storage_capacity=cfg.network.urban_link_storage_veh[storage],
+                greens={k:v for k,v in action.green_times.items() if 'SC1004' in k},
+                offsets={k:v for k,v in action.offsets.items() if 'SC1004' in k},
+                actual_head_window=[h for h in derived['head_window']['heads'] if h['sc']=='1004'],
+                initial_model_observation_summary=state.local_observation_summary,
+                response=response)
+            if getattr(state.lane_ramp_runtime,'conflict_snapshot',{}):
+                trace['ramp_conflict_snapshot']=state.lane_ramp_runtime.conflict_snapshot
+            if hasattr(state,'gate_initial_route_evidence'):
+                trace['gate_initial_route_evidence']=state.gate_initial_route_evidence
+            with gzip.open(output/'trace.json.gz','wt',encoding='utf-8') as f:
+                json.dump(trace,f,ensure_ascii=False,allow_nan=False)
+        rows = {}
+        for ramp in keys:
+            link = int(ramp.removeprefix('RM_C'))
+            def stock(source):
+                return sum(int(v['link_no'])==link for v in source['vehicle_records']['records'])
+            observed_start,observed_end = stock(raw),stock(future)
+            assert abs(state.ramp_queue[ramp]-observed_start)<1e-7
+            observed_arrival = derived['boundaries']['ramp_arrival:'+ramp]['cross']
+            head_refs = {r['boundary_ref'] for r in detectors
+                         if r['role']=='meter_head' and int(r['link'])==link}
+            observed_head = sum(derived['boundaries'][ref]['cross'] for ref in head_refs)
+            removed=sum(int(row['link'])==link for row in derived['removals']['rows'])
+            observed_merge = observed_start+observed_arrival-observed_end-removed
+            transfers = response['transfers']
+            predicted_arrival = sum(r['vehicles'] for r in transfers if r['target']=='ramp:'+ramp)
+            predicted_merge = sum(r['vehicles'] for r in transfers
+                                  if r['source']=='ramp:'+ramp and r['target']=='merge_pending:'+ramp)
+            predicted_head = sum(r['accepted_total_veh'] for r in response['resource_allocations']
+                                 if r['kind']=='physical_ramp_head_service' and r['resource'].split(':')[0]==ramp)
+            predicted_end = point.states[-1].ramp_queue[ramp]
+            residual=observed_start+predicted_arrival-predicted_merge-predicted_end
+            assert abs(residual)<1e-7, (ramp,residual)
+            rows[ramp]=dict(initial_stock_veh=observed_start,
+                actual=dict(arrival=observed_arrival,head=observed_head,merge=observed_merge,final_stock=observed_end),
+                native_ramp_removals_veh=removed,
+                predicted=dict(arrival=predicted_arrival,head=predicted_head,merge=predicted_merge,final_stock=predicted_end),
+                stock_conservation_residual_veh=residual)
+            sources={r['source'] for r in transfers if r['target']=='ramp:'+ramp}
+            rows[ramp]['predicted_arrival_by_source']={str(source):sum(r['vehicles'] for r in transfers
+                if r['target']=='ramp:'+ramp and r['source']==source) for source in sorted(sources)}
+            rows[ramp]['prediction_minus_actual_veh']={k:rows[ramp]['predicted'][k]-v for k,v in rows[ramp]['actual'].items()}
+        report.update(purpose='Recorded-command one-step response validation, not causal control-gain validation',
+                      ramps=rows, future_target_only=True, removals=derived['removals'],
+                      actual_merge_method='Initial connector stock + corrected entry crossings - final connector stock - native connector removals',
+                      limitations=[f'Single recorded seed29 window{sim_sec}-{sim_sec+150}; no independent seed or prevention/recovery result.',
+                                   'Recorded action includes urban green/offset and VSL changes; no lever-isolated inference.',
+                                   'Native applied receipt checked; LDP/readback verification is reused from the prior run audit.'])
+        report['target_inputs']={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (future_path,derived_path)}
+        (output/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        print(json.dumps(dict(summary=str(output/'summary.json'),ramps=rows)),flush=True)
+        return
+    baseline = points['original']
+    for name in ('zero_proxy','hundredfold_proxy'):
+        point = points[name]
+        error = state_error(baseline.states,point.states)
+        report['cases'][name]['all_stored_state_max_error'] = error
+        report['cases'][name]['ttt_difference_veh_h'] = point.ttt-baseline.ttt
+        report['cases'][name]['objective_difference'] = point.objective-baseline.objective
+    report['proxy_has_no_physical_effect_in_this_probe'] = all(
+        report['cases'][n]['all_stored_state_max_error']==0. and
+        report['cases'][n]['objective_difference']==0.
+        for n in ('zero_proxy','hundredfold_proxy'))
+    report['limitations'] = [
+        f'One recorded state at {sim_sec}s and one held 150s interval; not congestion/gain validation.',
+        'Does not prove endogenous urban-to-ramp demand is correct.',
+        'Leader proposal/initialization may still consume the unmasked proxy forecast.',
+        'No parameter, demand configuration, physical model or controller search changed.']
+    (output/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(summary=str(output/'summary.json'),
+                          proxy_invariant=report['proxy_has_no_physical_effect_in_this_probe'])),flush=True)
+
+
+if __name__ == '__main__':
+    main()

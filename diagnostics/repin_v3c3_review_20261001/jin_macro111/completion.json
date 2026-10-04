@@ -1,0 +1,38 @@
+{
+  "status": "complete_rejected",
+  "goal_status": "ACTIVE_NOT_QUALIFIED",
+  "unique_parameter_combinations": 9,
+  "pre_edit150": 1,
+  "disabled_parity150": 1,
+  "training150": 72,
+  "initial_validation450": 8,
+  "corrected_training450": 72,
+  "corrected_validation450_new": 4,
+  "corrected_validation450_reused": 4,
+  "total_forecast_calls": 158,
+  "new_native": 0,
+  "new_FZP_scans": 0,
+  "push": false,
+  "production_files_restored_exact": {
+    "evaluation/controllers/freeway_fd.py": true,
+    "evaluation/controllers/area_freeway_accounting.py": true
+  },
+  "new_test_archived_and_removed": true,
+  "unit_checks": {
+    "tests_passed": 33,
+    "source": "executed before restoration; tested_sources/test_jin_lane_intensity.py.txt + existing27"
+  },
+  "old_STOP": {
+    "path": "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "result": "Training macro loss23.27% better, other-state VSL gain sign worse; reject simple exit-share/traversal proxy, no additional grid.",
+  "artifacts": {
+    "candidate.patch": "839b6d053432a8a1ea1a2426e92fcca9e25ea2ecc033e7ebbef65cd01127cbac",
+    "README.md": "f29606c97d72f09d2148689952a1410f518e0ddf00a856f9c55d82f8309d9e14",
+    "assessment.json": "95e07012b572e96123694228ddf5e97c5d37d48fc62e8aa8c6c5ed332aad3f79",
+    "three_blocks\\assessment.json": "154d0695027dd41571f9ae17cd0a178d423feb876f46919bc0f532fc2e9a30e9",
+    "three_blocks\\selection.json": "2fde6da0f8e359b55f585be7e591d0567dff1f0b57e0bd129ae687609bc91235"
+  },
+  "patch_check": "git apply --check PASS after normalizing patch container CRLF to LF; failed formatted copy preserved. No patch applied."
+}

@@ -1,0 +1,88 @@
+{
+  "scope": "One proposed3150s fixed-command validation against the already completed hold; not a new closed-loop policy, cooperation test or9000 restart",
+  "start_sec": 2700,
+  "end_sec": 3150,
+  "arms": {
+    "hold": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2632.7514861111104,
+      "TTT_2700p1_3150_veh_h": 465.5368888888893,
+      "Omega_TTD_events": 21340,
+      "Omega_end_vehicles": 3672,
+      "native_removals": 83,
+      "uninserted_at_end": 8152,
+      "unresolved_Omega_disappearances": 277,
+      "outside_Omega_residence_veh_h": 985.938611111113,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 4.998000000000093,
+      "native_physical_network_time_veh_h": 3618.775547180833,
+      "native_uninserted_delay_veh_h": 2869.173388888889,
+      "native_total_time_including_uninserted_veh_h": 6487.948936069722,
+      "native_uninserted_at_end": 8152.0,
+      "native_network_end_vehicles": 5040.0,
+      "native_arrived_vehicles": 23937.0
+    },
+    "selected": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_3150_veh_h": 2626.0585972222207,
+      "TTT_2700p1_3150_veh_h": 458.8439999999996,
+      "Omega_TTD_events": 21401,
+      "Omega_end_vehicles": 3616,
+      "native_removals": 73,
+      "uninserted_at_end": 8120,
+      "unresolved_Omega_disappearances": 272,
+      "outside_Omega_residence_veh_h": 995.3030555555574,
+      "last_fzp_sec": 3145.1,
+      "tail_hold_veh_h": 4.921777777777869,
+      "native_physical_network_time_veh_h": 3621.470741615278,
+      "native_uninserted_delay_veh_h": 2867.0580555555557,
+      "native_total_time_including_uninserted_veh_h": 6488.528797170833,
+      "native_uninserted_at_end": 8120.0,
+      "native_network_end_vehicles": 5102.0,
+      "native_arrived_vehicles": 23907.0
+    }
+  },
+  "reused_nc_run": null,
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "common_start_vehicle_records_exact": true,
+  "prefixes": {
+    "hold": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    },
+    "selected": {
+      "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+      "rows": 2141219,
+      "last_time_s": 2695.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "1efe89d283dde14a42a4f25e6beeb05589decad61a1426d9e517420003904867",
+    "rows": 2141219,
+    "last_time_s": 2695.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_definition": "selected minus hold",
+  "delta_TTT_veh_h": -6.692888888889684,
+  "delta_outside_Omega_residence_veh_h": 9.364444444444416,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Selected city/RM commands after native urban prefix; baseline metrics reused from the pinned completed hold.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": 0.579861101111419,
+  "delta_native_uninserted_delay_veh_h": -2.115333333333183,
+  "protocol_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_native_selected_sc109_pool4_v2\\protocol.json",
+  "protocol_sha256": "1011331bb5b0d72b68887037f133347a53d4fb5c17a38f81ef836825b04b3047",
+  "prediction_source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2700_select_check_sc109_pool4_v2\\summary.json",
+  "predicted_delta_omega_veh_h": -10.537241048827582,
+  "predicted_delta_tracked_total_veh_h": -1.8636907871137964,
+  "counterfactual_valid": true
+}

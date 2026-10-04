@@ -1,0 +1,195 @@
+{
+  "previous_goal_turn": "no_progress: existing-result explanation only; no new evidence or state change",
+  "base_config": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\ramp_entry_space\\peeloff10121\\candidate_config.json",
+  "base_config_sha256": "aeb6a9193f350e48afcae1e928a15b336b656772c6c3e89a90e290958e19f64e",
+  "previous_evidence": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\sc1002_route_choice_20260929\\physical_routes.json",
+  "previous_evidence_sha256": "0fe6301f735f4b49cc82aa264152c4f627fb1434b1c14b8230b86182e94e8692",
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "source_audit": {
+    "N_SC2002": {
+      "native_decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "37",
+        "name": "",
+        "no": "1116",
+        "pos": "258.67559761936769",
+        "routeChoiceMeth": "STATIC"
+      },
+      "entries": [
+        {
+          "connector": "10731",
+          "lane": "37 1",
+          "pos": "1.1413347542056926"
+        },
+        {
+          "connector": "10733",
+          "lane": "37 3",
+          "pos": "1.976004615074759"
+        },
+        {
+          "connector": "10737",
+          "lane": "37 1",
+          "pos": "2.1591936741883067"
+        }
+      ],
+      "inputs": [],
+      "empty_other_decisions": [],
+      "route_rows": [
+        {
+          "destLink": "30",
+          "destPos": "13.756346030137177",
+          "formula": "",
+          "name": "",
+          "no": "1",
+          "relFlow": ""
+        },
+        {
+          "destLink": "39",
+          "destPos": "21.491149525801195",
+          "formula": "",
+          "name": "",
+          "no": "2",
+          "relFlow": "2 0:5"
+        },
+        {
+          "destLink": "31",
+          "destPos": "19.472161647798654",
+          "formula": "",
+          "name": "",
+          "no": "3",
+          "relFlow": "2 0:4"
+        }
+      ]
+    },
+    "E_SC1002": {
+      "native_decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "29",
+        "name": "",
+        "no": "1118",
+        "pos": "10.829723073261189",
+        "routeChoiceMeth": "STATIC"
+      },
+      "entries": [
+        {
+          "connector": "10684",
+          "lane": "29 1",
+          "pos": "1.8581370087320521"
+        },
+        {
+          "connector": "10690",
+          "lane": "29 4",
+          "pos": "4.240556986342007"
+        },
+        {
+          "connector": "10691",
+          "lane": "29 2",
+          "pos": "0.6015349851283186"
+        }
+      ],
+      "inputs": [],
+      "empty_other_decisions": [
+        "1114"
+      ],
+      "route_rows": [
+        {
+          "destLink": "39",
+          "destPos": "17.164739376494001",
+          "formula": "",
+          "name": "",
+          "no": "1",
+          "relFlow": ""
+        },
+        {
+          "destLink": "31",
+          "destPos": "21.219509596307709",
+          "formula": "",
+          "name": "",
+          "no": "2",
+          "relFlow": "2 0:10"
+        },
+        {
+          "destLink": "38",
+          "destPos": "52.856202470395601",
+          "formula": "",
+          "name": "",
+          "no": "3",
+          "relFlow": "2 0:5"
+        }
+      ]
+    },
+    "S_SC1003": {
+      "native_decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "40",
+        "name": "",
+        "no": "1119",
+        "pos": "25.779105041881785",
+        "routeChoiceMeth": "STATIC"
+      },
+      "entries": [
+        {
+          "connector": "10492",
+          "lane": "40 1",
+          "pos": "4.5643487960646638"
+        },
+        {
+          "connector": "10493",
+          "lane": "40 2",
+          "pos": "2.3782850831517885"
+        }
+      ],
+      "inputs": [],
+      "empty_other_decisions": [],
+      "route_rows": [
+        {
+          "destLink": "31",
+          "destPos": "17.252691234579331",
+          "formula": "",
+          "name": "",
+          "no": "1",
+          "relFlow": "2 0:10"
+        },
+        {
+          "destLink": "38",
+          "destPos": "52.194532621743498",
+          "formula": "",
+          "name": "",
+          "no": "2",
+          "relFlow": ""
+        },
+        {
+          "destLink": "30",
+          "destPos": "10.94653444911382",
+          "formula": "",
+          "name": "",
+          "no": "3",
+          "relFlow": ""
+        }
+      ]
+    }
+  },
+  "core_sha256": {
+    "evaluation/controllers/physical_movement_routes.py": "621efa1911ee4eac3a4cf8e2beeab3a4553f03d446f50ca57bcd041f4ad7d270",
+    "evaluation/controllers/runtime_setup.py": "1d1d9568e2083a9c7eb5b50e554f35e1b33228fede5e2aead0a69005d555a8c9",
+    "evaluation/controllers/lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "evaluation/controllers/area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "evaluation/controllers/freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "27480f9c0a236f9d157ba561b6d77904743b92f949899af5b51998a4cfe60ca4"
+  },
+  "planned_forecasts": 6,
+  "new_native": 0,
+  "coefficient_fit": false,
+  "production_adopted": false,
+  "future_observation_input": false,
+  "comparison": "same seed47@2700 hold/release and seed43@2250 NC/RM/VSL/both commands, 450s; full Omega plus tracked outside diagnostic"
+}

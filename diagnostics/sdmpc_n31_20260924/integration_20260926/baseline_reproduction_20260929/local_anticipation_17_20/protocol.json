@@ -1,0 +1,33 @@
+{
+  "hypothesis": "Excess pressure response in cells17--20 contributes to pre-control false congestion and weak VSL discharge response.",
+  "train": "seed29 NC first150s from2220.1; observed states score forecasts only",
+  "candidate_multipliers": [
+    0.5,
+    0.25
+  ],
+  "changed": "Only downstream_ge_local anticipation in cells17--20, one common multiplier of existing values",
+  "unchanged": [
+    "downstream_lt_local response",
+    "FD/E",
+    "lane-drop phi",
+    "merge delta",
+    "cell23 correction",
+    "port dynamics",
+    "controls/demand/geometry"
+  ],
+  "score": "mean(speed_error^2)/20^2 + mean(stock_error^2)/10^2 + mean(boundary_crossing_error^2)/10^2, cells17--20",
+  "selection": "Lowest finite local score; require >=20% reduction before frozen action checks. No further candidates after failure.",
+  "max_training_rollouts": 2,
+  "max_frozen450_rollouts": 12,
+  "frozen_cases": [
+    "s29_early four arms",
+    "s43_early four arms",
+    "s29_late hold/release +/-VSL"
+  ],
+  "gain_acceptance": "Do not adopt on speed improvement: retain correct meaningful loss/gain directions, improve discharge and stock, preserve costs and conservation. Previously inspected states, not pristine holdout.",
+  "manifest": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\local_merge_cell23\\candidate_manifest.json",
+  "manifest_sha256": "45ec8b73f8d55e275d55b3f3f60152b9270188931d73a9af48b383e0ea724429",
+  "config_sha256": "e068b8506296151b1ec57c2d3cdc661ed5071ba17979127f5c2df8bf77f99587",
+  "new_native": 0,
+  "production_adoption": false
+}

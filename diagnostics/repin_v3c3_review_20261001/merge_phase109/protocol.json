@@ -1,0 +1,63 @@
+{
+  "previous_goal_turn": "PROGRESS: REVIEW108 rejected destination-alignment candidate despite better absolute discharge; now isolate sub5s merge timing without refitting.",
+  "question": "Does uniformly spreading known5s actual merges hide the METANET VSL response?",
+  "method": "Same current parameters, initial route inventory, VSL history and dynamic off-ramp. Same observed30s source in all phases. Compare uniform5s vs all mass in first1s vs last1s of each5s bin, all4on-ramps. No within-bin timestamps are claimed measured.",
+  "arms": [
+    "release",
+    "release_vsl90"
+  ],
+  "phases": [
+    "uniform",
+    "front",
+    "back"
+  ],
+  "maximum450_calls": 6,
+  "new_fits": 0,
+  "new_native": 0,
+  "new_FZP": 0,
+  "parity": "First two uniform calls must match archived conditional cells/flows/ports exactly before4phase cases.",
+  "scope": "FW_E31cells ONLY, no ramp wait/wholeOmega qualification. Future observed boundaries used solely for cause isolation.",
+  "interpretation": "Two illustrative timing stresses, not mathematical extrema or a bound over all schedules. Report both, never select best phase as calibration. Record receiving/gap envelope exceedance without clipping.",
+  "predeclared_small_sensitivity": "If pair deltaTTT span is below0.1vehh and no phase removes20percent of baseline response error, do not pursue a new burst model based on this test. Otherwise exact timing remains unresolved, not proven causal.",
+  "inputs_sha256": {
+    "diagnostics\\repin_v3c3_review_20261001\\retained10638\\candidate_manifest.json": "2df69af43f596f2728978a1b03c409c46cb089e7398868b129835e94dc841248",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\capture.json": "13bd902b7de23d6acf654457b16758f3feb358f4fc32a1b6e63b3b7075a572b2",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\contract.json": "18fb6aefcaca2c9159f4388728f4488057571486acb5345517fb56569c8b4ded",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\s67_late\\initial_raw.json": "36c5d3b657413ce0b435be680b2fdd891e00bc0bc6cc0f2b3e0240d303df3e6c",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release\\port_events.csv": "411ac2dd6af21ef5d104a02eadcc97a628c9ed7e97857dcc05407d739e102ba5",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release\\flows_30s.csv": "9dbbfd5182908302f5f3bc060c64ab063b3c77ffc92f618d6172db2512c27cc6",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\conditional_boundary67\\obs_release.json.gz": "21e7cd3edb4e23bc62fd094fd7ed4f9510f2d713a09657decd1a2832681337e3",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\conditional_boundary67\\obs_release_result.json": "4d52053043b62da1375f8e131c28d9aa0aa286ea5dec589de6c6e34948c8fb99",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release_vsl90\\port_events.csv": "1bceb0c080d71b016352e06bb9f574dae0762ac9813c3387f0ec5f3e212b26d1",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\heldout67_freeway_20260930\\observations\\release_vsl90\\flows_30s.csv": "e60b112f3d7dca0d9d981b4429e6da3339af3aad850f4c5d9103806a672accc9",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\conditional_boundary67\\obs_release_vsl90.json.gz": "4b81733644d0688a4e706ae1c20af1a46956ac24a86d1a1f814a538091dd86bb",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\conditional_boundary67\\obs_release_vsl90_result.json": "3d3c07ec4870d2d5eea926069197120194e868240c1847f61ce312057c812357"
+  },
+  "protected_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_contract.py": "92bb589708a9cd0a0419abdac279850db17af6fb094bd28a55435b1903976d2a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\obs150_observation.py": "957a9a2fe87626925fd56d2b1f69ac0626ef555d336cca07c478ca4d12aed81a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_freeway_runtime.py": "20a3c9ba250ea3f48330d26b9cac728fc425e2ea61a81d5a43ce418792426945",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "abfa7f9c19a4d7d9beaf1256982c578301beb68ad09d14b2a387fac18e8eee0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_branches.py": "e91bb33da9a6d735432a3b2671990782232eefc03deacf9471d751dd0bca932c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "6dfe6dd0db4ac900845190a081d9be0c329bfce4534715b160b95832261d70d8"
+  },
+  "STOP": {
+    "path": "D:/VISSIM_runs/20260928_sd31_d4e2_9000/STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "prior_completed": [
+    "conditional_boundary67:actual5s merges stillmissVSL",
+    "conditional_merge_boundary",
+    "merge_population",
+    "merge_speed_audit",
+    "ramp_timing103",
+    "recovery_arrival_history/summary.json"
+  ],
+  "prior_Claude_checked": [
+    "upstream_worklog/03_codex_review/REVIEW_CHECK.md",
+    "upstream_worklog/08_repin_v3c3/k1k6/K1K6_IMPLEMENT.md"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "max_forecasts": 4,
+  "new_native": 0,
+  "fitting": 0,
+  "optimizer": 0,
+  "previous_goal_turn": "PROGRESS",
+  "source_pins": {
+    "vendor/NumSim-mine/src/models/state.py": "3faddc0fc0b1a003f3ccfaf53c49e74e2b69b768e5324f20dea7985e4878e96a",
+    "evaluation/controllers/area_freeway_accounting.py": "53614306fb1a2111ffcb9c4cd5be29ddbf735cf23006b337b9444f6253ac0482",
+    "evaluation/controllers/freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation/controllers/physical_ramp_branches.py": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2",
+    "evaluation/controllers/lane_offramp_runtime.py": "72f7a27e9a70814bee4c1ddb0b4fb7e53ac87e5e8e8d833c2e967ae6f1b11607",
+    "evaluation/controllers/signal_head_observation.py": "836435b4c46b96778d88de1dff133263582899589cf5ff85ff81d32393ddec91",
+    "evaluation/controllers/runtime_setup.py": "5c9736f831ab146cd42659403af4fa13d831d093c66e21adcf5a5f375e93e350",
+    "evaluation/controllers/offramp_routing.py": "8707423499605d70f1585663aa42d1f973d70590748efceba34bbfefc232169d",
+    "evaluation/controllers/lane_freeway_runtime.py": "db7074787d48120a1e7987b264f0335079b9e564cccd7289f7a66ca3e0a35452",
+    "diagnostics\\repin_v3c3_review_20261001\\sc1001_connection\\candidate_config.json": "f319982bba1baab0d1104af45d48d31bfd5748771fac1e0eb2bb073d61c7e23f",
+    "diagnostics/repin_v3c3_review_20261001/sc1001_connection/check_connection.py": "6c67652d7b771177dc55990f329afcc68fc38d5b90234f6d6f99fb04ba950968"
+  },
+  "base_config": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\sc1001_connection\\candidate_config.json",
+  "hypothesis": "Retain actual current and future eligible destination classes with corrected shared SC1001 receiving/drainage. Off-flow conservation improvement is necessary evidence, not sufficient gain qualification.",
+  "preexisting_evidence": "Earlier route coupling reduced direct off errors but failed VSL gain; this combination changes downstream ownership/head observations since that test, not a refit or repeated parameter grid.",
+  "acceptance": [
+    "No current destination redraw or aggregate mass change.",
+    "All command profiles and initial physical stocks exactly match saved SC1001 four-arm.",
+    "Preserve initial/cell/source route inventory mass and port/urban receiving.",
+    "Report all four gain signs/ranks, including failures; no production adoption by absolute accuracy alone."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "previous_goal_turn": "PROGRESS:111 implemented/calibrated minimal literature proxy, rejected on other-state gain; production restored.",
+  "source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\lane_interaction110\\frames.json.gz",
+  "sha256": "a2e50e661e39fd58b511afbc1ab33d57216b81ef0ca6c0131b611f141a8a6ffa",
+  "thresholds_kmh": [
+    1,
+    5
+  ],
+  "regions": {
+    "approach16_20": [
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "merge21_23": [
+      21,
+      22,
+      23
+    ],
+    "recovery24_25": [
+      24,
+      25
+    ],
+    "all16_25": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25
+    ]
+  },
+  "balance": "B_next=B+new_stops-restarts+stopped_entries-stopped_exits",
+  "observation": "5second frames2700.1..3145.1;445seconds. Final block145s, not450s complete.",
+  "exposures": "Common-vehicle starting status times5s; observed five-second transition probabilities, not continuous hazard or exact dwell time.",
+  "limitations": [
+    "May miss multiple state transitions within5s.",
+    "Stopping is not proof of mandatory lane changing.",
+    "Integral decomposition is bookkeeping, not a causal allocation or future predictor.",
+    "No future observations are introduced into the plant.",
+    "No new fitted coefficients or native runs."
+  ]
+}

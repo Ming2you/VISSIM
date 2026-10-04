@@ -1,0 +1,58 @@
+{
+  "paper": "Jin2010 equations5/6/12, https://arxiv.org/html/math/0503036",
+  "transfer": "Effective density in METANET relaxation target only; actual rho, mass, q=rho*v*lanes, queues and costs conserved.",
+  "proxy": "Current exit-intent stock in fixed cells16..20 / all stock; not actual departures or stopped-count ground truth.",
+  "geometry": "FW_E physical zero-based16..20, from upstream VSL through10483 exit. No cell-specific coefficients.",
+  "cells": [
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "c_seconds": [
+    0.0,
+    10.0,
+    30.0
+  ],
+  "critical_multipliers": [
+    1.0,
+    1.1,
+    1.2
+  ],
+  "training": "29/43early2220.1 all4arms450s, score150-second block costs/flows and endstocks.",
+  "validation": "67 late2670.1 all four arms450s. Previously inspected, not blind; never used for selection.",
+  "selection": "Mean squared normalized absolute and policy-difference TTT/endN/exits/merge errors, equally weighted; no speed RMSE fitting.",
+  "absolute_scales": {
+    "ttt": 2.0,
+    "end_n": 40.0,
+    "exits": 30.0,
+    "ramp_ttt": 1.0,
+    "merge": 20.0
+  },
+  "response_scales": {
+    "ttt": 0.5,
+    "end_n": 15.0,
+    "exits": 15.0,
+    "ramp_ttt": 0.5,
+    "merge": 10.0
+  },
+  "gate": "Training objective>=5% better; validation meaningful |deltaTTT|>=0.5vehh signs preserved and response loss>=10% better, absolute loss<=110%baseline. No adoption from component success alone.",
+  "budget": {
+    "grid_candidates": 9,
+    "training450": 72,
+    "validation450_max_new": 4,
+    "previous_validation_reuse": true
+  },
+  "scope": "FW_E mainline + four on-ramp and four off-ramp connectors; NOT wholeOmega. Exits are mainline departures, NOT Omega TTD.",
+  "no_future_truth_inputs": true,
+  "new_native_runs": 0,
+  "automatic_grid_extension": false,
+  "before_sha256": {
+    "evaluation/controllers/freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation/controllers/area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80"
+  },
+  "correction_reason": "Initial150 training differences were only0..1 mainline departures and |deltaTTT|<=0.04584vehh. Insufficient response excitation. Same9 parameter choices now scored on3 separate150s blocks of450 autonomous predictions. No future state resets, no new parameter range.",
+  "validation_disclosure": "67 has already been inspected in the initial150 trial and earlier work. This is a non-blind diagnostic, not independent final qualification. No promotion from this test.",
+  "prior_trial_assessment_sha256": "95e07012b572e96123694228ddf5e97c5d37d48fc62e8aa8c6c5ed332aad3f79"
+}

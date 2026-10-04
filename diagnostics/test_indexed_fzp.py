@@ -23,5 +23,22 @@ class IndexedFzpTests(unittest.TestCase):
             reader.handle.close()
 
 
+    def test_explicit_extra_columns_preserve_blanks_and_original_default(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'extras.fzp'
+            path.write_text('$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;SPEED;DESTLANE;LNCHG\n'
+                            '5.1;9;119;1;230;16;;None\n5.1;10;119;2;231;20;1;Right\n',encoding='utf-8')
+            reader = IndexedFzp(path)
+            try:
+                base = reader.snapshot(5.1)
+                full = reader.snapshot(5.1, extra_columns=('DESTLANE','LNCHG'))
+                self.assertEqual({k:v[:4] for k,v in full.items()},base)
+                self.assertEqual(full[9][4],{'DESTLANE':'','LNCHG':'None'})
+                self.assertEqual(full[10][4],{'DESTLANE':'1','LNCHG':'Right'})
+                with self.assertRaises(ValueError):reader.snapshot(5.1,extra_columns=('NOT_RECORDED',))
+                with self.assertRaises(ValueError):reader.snapshot(5.1,extra_columns=('LNCHG','LNCHG'))
+            finally:reader.handle.close()
+
+
 if __name__ == "__main__":
     unittest.main()

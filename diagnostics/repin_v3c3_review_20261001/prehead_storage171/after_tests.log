@@ -1,0 +1,32 @@
+test_01_passed_head_is_unaffected_by_new_red (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_01_passed_head_is_unaffected_by_new_red) ... ok
+test_02_full_storage_holds_unadmitted_demand (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_02_full_storage_holds_unadmitted_demand) ... ok
+test_03_positive_post_head_travel_prevents_early_merge (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_03_positive_post_head_travel_prevents_early_merge) ... ok
+test_04_receiving_acceptance_not_eligibility_drives_transfers (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_04_receiving_acceptance_not_eligibility_drives_transfers) ... ok
+test_05_arrivals_do_not_teleport_through_head (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_05_arrivals_do_not_teleport_through_head) ... ok
+test_06_invalid_values_sequence_and_overacceptance_fail_closed (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_06_invalid_values_sequence_and_overacceptance_fail_closed) ... ok
+test_07_fractional_storage_conservation_and_connector_cost (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_07_fractional_storage_conservation_and_connector_cost) ... ok
+test_08_actual_c10490_geometry_initial_cohort_smoke (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_08_actual_c10490_geometry_initial_cohort_smoke) ... ERROR
+test_coupled_transfer_rejects_full_prehead_without_duplicate_backlog (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_coupled_transfer_rejects_full_prehead_without_duplicate_backlog) ... ok
+test_full_prehead_cannot_borrow_empty_posthead_storage (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_full_prehead_cannot_borrow_empty_posthead_storage) ... ok
+test_head_service_frees_prehead_space_without_requiring_merge (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_head_service_frees_prehead_space_without_requiring_merge) ... ok
+test_zero_distance_head_keeps_point_queue_storage (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_zero_distance_head_keeps_point_queue_storage) ... ok
+
+======================================================================
+ERROR: test_08_actual_c10490_geometry_initial_cohort_smoke (diagnostics.demand_sweep.user_native_20260914.metanet_terms_implementation_v2.test_physical_ramp_boundary.RampBoundaryTests.test_08_actual_c10490_geometry_initial_cohort_smoke)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\sd31-upstream-20260926\diagnostics\demand_sweep\user_native_20260914\metanet_terms_implementation_v2\test_physical_ramp_boundary.py", line 176, in test_08_actual_c10490_geometry_initial_cohort_smoke
+    profile = json.loads((HERE/"port_profile.json").read_text(encoding="utf-8"))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_terms_implementation_v2\\port_profile.json'
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.024s
+
+FAILED (errors=1)

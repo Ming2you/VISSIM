@@ -1,0 +1,23 @@
+{
+  "candidate_count": 1,
+  "fit_calls": 0,
+  "max_conditional_replays": 2,
+  "max_full_forecasts": 6,
+  "change": "Commit remaining source-cell destination mass after accepted mandatory lateral transfer; no longitudinal advance until completion. Preserve receiving/sending budgets and all mass.",
+  "fixed": [
+    "FD/METANET coefficients",
+    "speed/wave",
+    "all actuator clocks and commands",
+    "demand",
+    "Omega objective"
+  ],
+  "limitations": [
+    "Conservative within-cell approximation of lane-change completion, not microscopic lateral trajectory",
+    "Per-label cell commitment can include aggregate future cohorts; autonomous validation required",
+    "No partial-FIFO or mass threshold relaxation",
+    "Compiled AD must fail explicitly until implemented and checked"
+  ],
+  "new_native": 0,
+  "new_fzp": 0,
+  "push": 0
+}

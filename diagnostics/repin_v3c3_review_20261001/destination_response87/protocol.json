@@ -1,0 +1,55 @@
+{
+  "previous_goal_turn": "PROGRESS: review86 completed two saved-data diagnostics; no production change",
+  "question": "Does supplying observed target/through speed ratio at10483 relieve current VSL effect error with conserved source sending?",
+  "scope": "Conditional causal-mechanism diagnostic only. Not autonomous validation, controller prediction, fitting or adoption.",
+  "maximum_conditional_rollouts": 2,
+  "autonomous_rollouts": 0,
+  "native_runs": 0,
+  "fitting": 0,
+  "fzp_scans": 0,
+  "seed": 67,
+  "start_sec": 2700,
+  "duration_sec": 450,
+  "formula": "Original total source20 sending is split by model Ntarget * observed speed ratio versus model Nthrough; both class stocks bound allocations. Original total sending and all other branch/cell sending requests are preserved at the same state.",
+  "temporal": "Observed ratios at2700,2850,3000 held150s, no interpolation and no state/flow reset. Data after2700 are future observations; label every output accordingly.",
+  "promotion": "No production adoption possible from an oracle diagnostic. Only consider mechanism follow-up if BOTH Omega effect and terminal effect absolute errors shrink at least20%; otherwise no grid/AD/controller/9000 extension.",
+  "searched_prior": [
+    "Claude REVIEW_CHECK K1/K3/K4/K5",
+    "joint_lane_fifo failed autonomous19..21",
+    "lane_dn67 successful conditional boundary, failed autonomous19..25",
+    "REVIEW86 destination_speed audit"
+  ],
+  "input_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\vsl_current_cells16_20\\assess.py": "300d1855f8da7c20e7954f72cef8b782383d441a16038cafeea7ace8aeb984a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\current_snapshots.json": "bf6dae4e5afce2c2fc1497e1955a64e279c86291c1e2f4513a04a2031cefcf8b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\s67_policy_response81\\protocol_path.json": "8b1646606ea3d4d6ee48758448423cce800769045bf23beeddf6f54ba0efce02",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "a9e321f2fb98da15ba3fd1e91f9c47547643ede4725596556f2e97a6390365ae"
+  },
+  "production_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\offramp_routing.py": "4ed3243430761f3ac5eaa517dfefee904418b0d8e252d3d369d4cbe5f4dd07a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec"
+  },
+  "old_stop": {
+    "path": "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "old_functions_unchanged": [
+    "data",
+    "load",
+    "csvrows",
+    "save",
+    "main",
+    "assess_prefix",
+    "assess_population_response",
+    "assess_flux_position",
+    "assess_density_reconstruction",
+    "assess_density_rollout",
+    "assess_current_position_flux",
+    "assess_cohort_residence",
+    "run_fifo_residence_candidate"
+  ]
+}

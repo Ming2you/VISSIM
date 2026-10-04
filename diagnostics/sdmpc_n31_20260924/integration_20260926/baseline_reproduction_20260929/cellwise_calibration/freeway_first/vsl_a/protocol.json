@@ -1,0 +1,51 @@
+{
+  "candidates": [
+    0.25,
+    0.0
+  ],
+  "unchanged_E": 2.0,
+  "specs": [
+    [
+      "s29_early",
+      "vsl",
+      "none",
+      750
+    ],
+    [
+      "s29_late",
+      "hold_vsl90",
+      "hold",
+      450
+    ],
+    [
+      "s29_late",
+      "release_vsl90",
+      "release",
+      450
+    ]
+  ],
+  "max_new_rollouts": 7,
+  "changes": "Only the existing Carlson critical-density response A, throughout the active VSL region; no extra physical term.",
+  "cause_hypothesis": "Existing A=.5 may overstate persistent high-density VSL throughput; term audit is motivation, not proof.",
+  "train_seed": 29,
+  "not_used_for_fitting": [
+    43,
+    61
+  ],
+  "future_inputs": false,
+  "new_native": 0,
+  "acceptance": {
+    "flow_and_stock_response_loss_ratio_max": 0.9,
+    "per_case_delta_cost_error_increase_max_veh_h": 0.5,
+    "per_case_speed_rmse_increase_max_kmh": 2.0,
+    "conservation_and_inactive_exact": true
+  },
+  "loss": "Mean squared VSL-NC/hold/release150s flow response error/20veh and end-stock response error/5veh, cells15-20. No cost reward.",
+  "stop": "No new coefficient search after these two. Freeze a qualifying candidate before any independent-state validation.",
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\manifest.json": "33dbee600039ceaccbcfa15ed4e7ffbca9ad40ab53a9a52d61e973918593c91b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\eval_036\\reference_config.json": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "aab79f783192a7b60910cf7f8064da5f81fb0b5ad47964a86566253804ebd26f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\contract.json": "18fb6aefcaca2c9159f4388728f4488057571486acb5345517fb56569c8b4ded"
+  }
+}

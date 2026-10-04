@@ -1,0 +1,41 @@
+{
+  "previous_goal_turn": "PROGRESS: observed passing speed improved conditional local recovery, but is not an autonomous input.",
+  "faces": [
+    23,
+    24,
+    25
+  ],
+  "cases": [
+    "s29_none",
+    "s29_vsl",
+    "s43_none",
+    "s43_vsl",
+    "s67_release",
+    "s67_release_vsl90"
+  ],
+  "fit": false,
+  "candidate": "Face between centers: v_face=(L_next*v_cell + L_cell*v_next)/(L_cell+L_next), convex in two CURRENT spatial mean speeds.",
+  "hypothesis": "Recovery gradient can produce faster boundary traffic than the donor spatial average without a new coefficient or lever bonus.",
+  "labels": "5s matched passing vehicles: before.cell<=face<after.cell, previous/next sample speeds. Previous-sample mean is primary; neither endpoint is exact crossing speed.",
+  "limitations": [
+    "Matched populations exclude same5s new ramp entrants lacking a previous mainline record; counts/coverage are reported.",
+    "Observed current states are used to assess a closure, not an autonomous forecast.",
+    "Do not treat simultaneous native current-state results as final gain validation.",
+    "If used in dynamics, the same interface moment correction must leave the donor and enter the receiver; no recipient-only acceleration."
+  ],
+  "gate": "Per face, pooled passing-count-weighted mean-speed RMSE improves at least5%; no case worsens >10%. No fitting or selecting a different coefficient after results.",
+  "further_budget": "Only if a face passes, one frozen shared-interface moment candidate may be evaluated; no full lane-group expansion.",
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "f7a600e37ec71bb6edfa8cf4e038db81d99122dffa63e74b380599ba853de7ba",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\compiled.json": "e8d749d8a3153b099a2f10f1a044e941045f38c309a0b373de290a964a4b5798",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\recovery_transport\\closure_summary.json": "e338f564d57f74963077be5e2163faf28d658feff84140e9e26696507566b8fb",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\verification.json": "0c2dc678621b4ce8b5933ccf05e20643692cf2d9e176a926f6b633cbbaaa265d",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\recovery_transport\\s29_none_frames.json.gz": "32c0384de4e9180521e08b12eacd710abaa38f761234945a2dd522e726c82fe5",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\recovery_transport\\s29_vsl_frames.json.gz": "4dc8daa0786388ba2b35fd2762fdd07548b545ee426a71eb7b29537aacf093c4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\recovery_transport\\s43_none_frames.json.gz": "fb33431040d9196fa739e16152c7818de348b9c0bf0dd906597e7c321b9e8b1a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\recovery_transport\\s43_vsl_frames.json.gz": "514d811fdafa2f679280b93c3d723e08dccfc80023465664f9978f61cb0abcc6",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_frames.json.gz": "faf062d347bc85242e746f8586f66ed0bf05c59e4e0c62da652c4781d04c022c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\flow67\\release_vsl90_frames.json.gz": "54f92d1cbd21c3342dac118647f3a61a0df5c92ed84e3e6aca9a6be137a06e93"
+  }
+}

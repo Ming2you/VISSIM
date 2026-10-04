@@ -103,6 +103,8 @@ def configure_input(cfg,row,tree,links,physical,contract,raw):
     if not math.isfinite(cap) or cap<=0:raise ValueError('Native head capacity reference is invalid')
     return {'source_contract_validated':True,'minimum_approach_distance_m':sum(s['stop']-s['start'] for s in segments)+first_stop-float(decision.get('pos')),
             'prehead_spec':{'origin':origin,'decision':document['decision'],'branches':branches,'segments_to_decision':segments,
+                'segments_decision_to_head':[dict(link=path[-1],start=float(decision.get('pos')),stop=first_stop)],
+                'segments_interhead':between,
                 'decision_to_head_m':first_stop-float(decision.get('pos')),'left_movement':left,
                 'wn_movements':[b['movement'] for b in branches.values() if b['movement']!=left],
                 'first_phase':first_phase,'capacity_reference_movement':reference,'physical_head_lanes':document['first_head_lanes'],
@@ -176,8 +178,10 @@ def receive_generated(state,cfg,no,vehicles,step):
     local=state.native_input_prehead_state;spec=inputs[no]['prehead_spec']
     if local['last_step']!=step:raise ValueError('Native pre-head generation requires current advance')
     distance=sum(s['stop']-s['start'] for s in spec['segments_to_decision'])
-    local['cohorts'].append({'input':no,'vehicles':vehicles,'stage':'decision','route':None,
-                            'due':_due(state,cfg,spec['origin'],step,distance)})
+    due=_due(state,cfg,spec['origin'],step,distance)
+    local['cohorts'].append({'input':no,'vehicles':vehicles,'stage':'decision','route':None,'due':due})
+    from evaluation.controllers.omega_distance import record_native_prehead
+    record_native_prehead(state,cfg,no,'decision',vehicles,step,due)
     local['generated_veh']+=vehicles;_check(state,cfg);return True
 
 
@@ -198,8 +202,11 @@ def advance(state,cfg,step):
         spec=inputs[cohort['input']]['prehead_spec']
         if cohort['stage']=='decision':
             for tag,branch in spec['branches'].items():
-                additions.append(dict(cohort,vehicles=cohort['vehicles']*branch['probability'],stage='approach',route=tag,
-                    due=_due(state,cfg,spec['origin'],step,spec['decision_to_head_m'])))
+                due=_due(state,cfg,spec['origin'],step,spec['decision_to_head_m'])
+                n=cohort['vehicles']*branch['probability']
+                additions.append(dict(cohort,vehicles=n,stage='approach',route=tag,due=due))
+                from evaluation.controllers.omega_distance import record_native_prehead
+                record_native_prehead(state,cfg,cohort['input'],'approach',n,step,due)
             cohort['vehicles']=0.;continue
         movement=spec['branches'][cohort['route']]['movement'];queue=state.urban_movement_queue.get(movement,0.)
         available=max(0.,uqm._queue_max(cfg,movement,cfg.network.urban_movements[movement])-queue)
@@ -277,8 +284,10 @@ def finish_step(state,control,cfg,step):
                 key='input:'+no+':movement:'+spec['left_movement']
                 accepted_sources[key]=accepted_sources.get(key,0.)+n
             if not n:continue
-            cohort['vehicles']-=n;additions.append(dict(cohort,vehicles=n,passed_first=True,
-                ready=_due(state,cfg,spec['origin'],step,spec['interhead_distance_m'])))
+            due=_due(state,cfg,spec['origin'],step,spec['interhead_distance_m'])
+            cohort['vehicles']-=n;additions.append(dict(cohort,vehicles=n,passed_first=True,ready=due))
+            from evaluation.controllers.omega_distance import record_native_prehead
+            record_native_prehead(state,cfg,no,'release',n,step,due)
         served+=accepted
         if capture:
             # Only the left subset is constrained by this residual allocator.

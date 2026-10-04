@@ -1,0 +1,13 @@
+{
+  "hypothesis": "Isolate the cell21 merge-loss coefficient from other calibrated terms; receiving never binds in the saved tail, local observed states expose excessive negative drift.",
+  "evidence": "merge_recovery_balance/summary.json",
+  "candidate": "delta_merge21 multiplied by0.5; all other coefficients/physical flow/route/VSL/port/source settings unchanged.",
+  "factor": 0.5,
+  "coefficient_fit": false,
+  "scope": "mechanism ablation, not an estimated optimum",
+  "max_new_forecasts": 13,
+  "new_native": 0,
+  "train_gate": "NC750 cell21-25 first450 normalized N/v/q loss<=110%,last300<=90%; whole speed RMSE<=baseline+2.",
+  "validation": "Only if training gate passes: seed29late4 arms,29earlyRM/both,43early4; significant response signs and masses; never adopt based on NC recovery alone.",
+  "limitations": "Previously inspected seeds; no pristine blind holdout. Future measurements enter scoring only. Existing 450s MPC unchanged."
+}

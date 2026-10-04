@@ -169,6 +169,29 @@ print(json.dumps({'actual_canonical_import': True, 'model_bootstrap': False}))
         self.assertEqual([x['alias'] for x in result['candidates'][0]['aliases']], ['incumbent', 'meter:a', 'meter:b'])
         self.assertEqual(result['candidates'][0]['aliases'][1]['request']['ramp_metering'][r1], 1001.0)
 
+    def test_six_zone_neighbors_never_change_fixed_entry(self):
+        fixture = copy.deepcopy(self.fixture)
+        self.cfg = fixture.cfg
+        net = self.cfg.network; heads = [0,2,5,10,13,15]
+        net.freeway_vsl_zone_free = [1,2,3,4]
+        for road in net.freeway_links:
+            net.freeway_vsl_zone_heads[road] = heads.copy()
+            net.freeway_vsl_zone_head_of_cell[road] = [max(h for h in heads if h<=i) for i in range(21)]
+            for i in range(21): self.old['vsl'][f'{road}__seg{i}'] = 120.
+            self.old['vsl'][road] = 120.
+        self.before = copy.deepcopy(self.old)
+        self.catalog = fixture.build()
+        domain = replace(self.domain(),head_values={2:(80.,),5:(100.,),10:(80.,),13:(100.,)},
+                         meter_points=(),joint_pairs=())
+        result = self.generate(domain=domain)
+        self.assertEqual(result['requested_count'],5)
+        self.assertEqual(len(result['candidates']),5)
+        for candidate in result['candidates']:
+            for cell in (0,1,15,20):
+                self.assertEqual(candidate['control']['vsl'][f'FW_E__seg{cell}'],120.)
+        with self.assertRaisesRegex(ValueError,'free VSL heads'):
+            self.generate(domain=replace(domain,head_values={0:(100.,),5:(),10:(),13:()}))
+
     def test_same_physical_different_model_refuses_unsafe_dedup(self):
         fixed = self.rows(self.old)
         with self.assertRaisesRegex(ValueError, 'unsafe deduplication'):
@@ -411,6 +434,25 @@ class CurrentFreewayDomainTests(unittest.TestCase):
         self.assertNotEqual(domain.provenance, combined.provenance)
         with self.assertRaisesRegex(ValueError, 'outside current'):
             self.build(joint_pairs=((0, 60., pair[2]),))
+
+    def test_six_zone_source_extraction_excludes_entry_and_keeps_four_internal_heads(self):
+        net=self.cfg.network;heads=[0,2,5,10,13,15]
+        net.freeway_vsl_zone_free=[1,2,3,4]
+        fixture=copy.deepcopy(FreewayNeighborsTests.fixture);fixture.cfg=self.cfg
+        for road in net.freeway_links:
+            net.freeway_vsl_zone_heads[road]=heads.copy()
+            net.freeway_vsl_zone_head_of_cell[road]=[max(h for h in heads if h<=i) for i in range(21)]
+            net.freeway_vsl_zone_of_cell[road]=[heads.index(h) for h in net.freeway_vsl_zone_head_of_cell[road]]
+            for action in (self.initial,self.previous):
+                action['vsl'].update({f'{road}__seg{i}':120. for i in range(21)})
+                action['vsl'][road]=120.
+        self.ownership=fixture.build()
+        self.state.source_vectors=[[120.]*21,[80. if 13<=i<15 else 120. for i in range(21)]]
+        domain=self.build()
+        self.assertEqual(domain.head_values,{2:(120.,),5:(120.,),10:(120.,),13:(120.,80.)})
+        self.state.source_vectors[1][0]=self.state.source_vectors[1][1]=100.
+        with self.assertRaisesRegex(ValueError,'fixed entry'):
+            self.build()
 
     def test_meter_extraction_matches_original_fixed_seed_in_all_source_branches(self):
         ramps = self.base.ramps()

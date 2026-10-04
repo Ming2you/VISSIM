@@ -1,0 +1,36 @@
+{
+  "cases": [
+    {
+      "name": "onset1500",
+      "start": 1500.1,
+      "end": 1650.1
+    },
+    {
+      "name": "late3600",
+      "start": 3600.1,
+      "end": 3750.1
+    },
+    {
+      "name": "s47_hold",
+      "start": 2700.1,
+      "end": 3145.1
+    },
+    {
+      "name": "s47_release",
+      "start": 2700.1,
+      "end": 3145.1
+    }
+  ],
+  "interface": "FW_E cell23->24, zero based",
+  "boundary_m": 7663.052375,
+  "fixed_excerpts": true,
+  "new_fzp_reads": 0,
+  "new_forecasts": 0,
+  "new_native": 0,
+  "fit": 0,
+  "comparison": "Current cell mean and speed-weighted moment versus speeds of subsequently crossing identified vehicles",
+  "crossing_speed": "Linear interpolation of two5s endpoint speeds along each vehicle path; not exact crossing-speed measurement",
+  "outer_censoring": "Report upstream vehicles absent from next spatial excerpt; do not count as exits",
+  "edge_extent_m": 30,
+  "causal_proxy_only": "Moment/edge inputs are current snapshot; reference crossing speed uses next sample"
+}

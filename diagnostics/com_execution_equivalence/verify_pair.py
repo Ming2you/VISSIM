@@ -341,7 +341,8 @@ def fzp_comparison(a, b, start, end):
             'records': info, 'excluded': 'Only pre-$VEHICLE metadata, blank lines and line-ending bytes.'}
 
 
-def readbacks(p, fields, expected, *, command_check, numeric=False, distribution_ids=None, require_dense=False, control_interval=None):
+def readbacks(p, fields, expected, *, command_check, numeric=False, distribution_ids=None, require_dense=False, control_interval=None,
+              require_next_step_post=True):
     """Keep transition order including post-step before immediate at each second."""
     before = p.stat(); latest = {}; first = {}; last_post = {}; events = []; rows = 0
     previous = (-1, -1); duplicate_holds = 0; counts = Counter(); observed_writes = Counter(); writes = []; grids = {}; post_states = {}
@@ -413,7 +414,7 @@ def readbacks(p, fields, expected, *, command_check, numeric=False, distribution
                 require(grids.get((key, 'immediate'), 0) & grid == grid
                         and grids.get((key, 'post_step'), 0) & (grid << 1) == grid << 1,
                         'Dense reference has missing one-second readback: ' + key)
-    if not numeric:
+    if not numeric and require_next_step_post:
         # Like sigPendingPostCheck, the last changed request in the callback wins.
         pending = {(key, sec): value for sec, stage, key, value in events if stage == 'immediate'}
         for (key, sec), value in pending.items():
@@ -427,7 +428,8 @@ def readbacks(p, fields, expected, *, command_check, numeric=False, distribution
             'unchanged_observation_rows': duplicate_holds, 'stage_counts': dict(counts), 'transitions': events,
             'setter_immediate_writes': writes if numeric else None,
             'dense_reference_grid_required': require_dense,
-            'minimum_next_step_and_control_boundary_posts_required': not numeric,
+            'minimum_next_step_and_control_boundary_posts_required': not numeric and require_next_step_post,
+            'control_boundary_posts_required': not numeric,
             'independent_command_clock_rows_checked': rows,
             'continuous_hold_coverage_certified': False,
             'vsl_scope': 'DesSpeedDistr class reference ID, not observed vehicle speed; sequential per-class reads, not atomic four-class snapshot.' if numeric else None}
@@ -912,7 +914,7 @@ def qualify_native_300(left, right):
     return result
 
 
-def verify_native_execution(run, terminal):
+def verify_native_execution(run, terminal, *, run_name=None):
     """Audit one completed canonical run, without FZP or process inference.
 
     Native LDP supplies continuous actual states; command rows supply only the
@@ -939,13 +941,15 @@ def verify_native_execution(run, terminal):
         return value
 
     def source_gate():
-        nonlocal run, terminal
+        nonlocal run, terminal, run_name
         run = path(run); terminal = integer(terminal)
+        run_name = run.name if run_name is None else run_name
+        require(isinstance(run_name, str) and re.fullmatch(r'[A-Za-z0-9_-]+', run_name), 'Invalid run name')
         require(terminal > 1, 'Post-control terminal must exceed one second')
-        pp = run / ('run_provenance_' + run.name + '.json'); prov = read(pp)
-        require(prov['name'] == run.name and isinstance(prov['run_id'], str) and prov['run_id']
+        pp = run / ('run_provenance_' + run_name + '.json'); prov = read(pp)
+        require(prov['name'] == run_name and isinstance(prov['run_id'], str) and prov['run_id']
                 and integer(prov['sim_period_sec']) == terminal, 'Run/provenance identity or terminal differs')
-        log = run / ('runlog_' + run.name + '.txt'); lines = log.read_bytes().splitlines()
+        log = run / ('runlog_' + run_name + '.txt'); lines = log.read_bytes().splitlines()
         require(lines.count(b'STAGE=SIM_DONE') == 1 and lines.count(f'SIM_SEC={terminal}'.encode()) == 1
                 and not any(row.startswith(b'ERROR') for row in lines), 'Missing/failed terminal runlog')
         for key in FAILURE_COUNTERS:
@@ -953,6 +957,14 @@ def verify_native_execution(run, terminal):
                     'Failure counter missing/nonzero: ' + key)
         native_paths = {key: pin(prov['files'][key]) for key in
                         ('network', 'main_vbs_runner', 'generated_vbs_config', 'control_mapping')}
+        obs150_event = prov['env'].get('RW_OBSERVATION_CADENCE') == 'decision150'
+        if obs150_event:
+            runner_text = native_paths['main_vbs_runner'].read_text(encoding='utf-8-sig')
+            require(prov['env'].get('RW_OBS150_EXPECTED_SIMRES') == '10'
+                    and re.findall(r'^Const OBS150_FRAME_ADVANCE = ([0-9]+)$', runner_text, re.M) == ['1']
+                    and lines.count(b'SIMRES=10 source=network') == 1
+                    and sum(row.startswith(b'SIGNAL_FRAME_ADVANCE=1 simres=10 ') for row in lines) == 1,
+                    'Unsupported obs150 native clock; cannot reuse the t+1 command oracle')
         config = native_paths['generated_vbs_config']
         sibling = config.with_name(config.stem+'_sgplan.vbs').resolve(strict=True)
         plan_source = None
@@ -981,6 +993,7 @@ def verify_native_execution(run, terminal):
         require(plan == sibling, 'Pinned SG plan is not actual generated-config sibling')
         parsed, excluded = _plan_groups(plan.read_bytes(), prov['env'].get('RW_MAINLINE_SG_ONLY') == '1')
         groups.update(parsed)
+        recorded_catalog, _ = _plan_groups(plan.read_bytes(), False)
         native_clocks.update(native_clock_options(plan.read_text(encoding='utf-8-sig'), groups))
         meters.update(native_options(native_paths['main_vbs_runner'].read_text(encoding='utf-8-sig'),
                                      config.read_text(encoding='utf-8-sig')))
@@ -1001,19 +1014,25 @@ def verify_native_execution(run, terminal):
             require(controller is not None, 'Recorded controller absent from actual network')
             configured = controller.findall('./scDetRecConf/signalOutputConfigurationElement')
             require([r.get('configName') for r in configured[:2]] == ['SIM_SEK','UML_SEK']
-                    and len(configured) == len(sgs)+2
+                    and len(configured) >= len(sgs)+2
                     and all(r.get('configName') == 'SG_BILD' for r in configured[2:]),
                     'Actual network recording columns differ from all-owned SG catalog')
             addresses = [r.get('sg') for r in configured[2:]]
-            require(len(addresses) == len(set(addresses)) and set(addresses) == {f'{sc} {sg}' for sg in sgs},
+            known = {f'{sc} {sg}' for sg in recorded_catalog.get(str(sc), {'1': 1})}
+            require(len(addresses) == len(set(addresses)) and
+                    {f'{sc} {sg}' for sg in sgs} <= set(addresses) <= known,
                     'Missing/duplicate/extra recorded SG address in actual network')
+            # A network may record native-only SGs in addition to the COM cohort.
+            # Parse those actual columns too; never assign them a COM command.
+            expected[sc] = [int(address.split()[1]) for address in addresses]
         sources.update(provenance=prov, expected_groups=expected, mapping=mapping, plan_path=plan,
-                       ramp_meter_timing=ramp_timing)
+                       ramp_meter_timing=ramp_timing, obs150_event=obs150_event)
         result.update(run_directory=str(run), run_id=prov['run_id'], terminal_sec=terminal)
         return {'passed': True, 'provenance': {'path': str(pp), 'sha256': sha(pp)},
                 'runlog': {'path': str(log), 'sha256': sha(log)},
                 'native_source_pins': {key:prov['files'][key] for key in native_paths},
                 'ramp_meter_timing': ramp_timing,
+                'observation_mode': 'obs150_event_with_native_ldp' if obs150_event else 'primary_1s',
                 'plan': {'path': str(plan), 'sha256': sha(plan), 'authority': plan_source},
                 'expected_recorded_groups': sum(map(len, expected.values())),
                 'excluded_midblock_groups': excluded, 'network_scope': 'Actual loaded files.network; no source-network substitution'}
@@ -1022,7 +1041,7 @@ def verify_native_execution(run, terminal):
 
     def commands():
         nonlocal clock
-        folder = run / ('decisions_'+run.name)
+        folder = run / ('decisions_'+run_name)
         require(folder.resolve(strict=True).is_relative_to(run), 'Decision folder outside run')
         interval = integer(sources['provenance']['control_interval_sec']); require(interval > 0, 'Invalid control cadence')
         actual_files = list(folder.glob('action_*.csv'))
@@ -1068,9 +1087,10 @@ def verify_native_execution(run, terminal):
                 'interval_sec':interval,'scope':'Actual CSV times and full mapped rows; no green/offset inferred from warmup JSON'}
 
     if not check('actual_commands', commands)['passed']: return result
-    folder = run / ('decisions_'+run.name)
+    folder = run / ('decisions_'+run_name)
     signals = check('actual_signal_readbacks', lambda: readbacks(folder/'signal_readback.csv', SG_FIELDS, expected_sg,
-        command_check=clock.check_signal, control_interval=checks['actual_commands']['interval_sec']))
+        command_check=clock.check_signal, control_interval=checks['actual_commands']['interval_sec'],
+        require_next_step_post=not sources['obs150_event']))
     check('actual_vsl_apply_readbacks', lambda: readbacks(folder/'vsl_readback.csv', VSL_FIELDS, expected_vsl,
         command_check=clock.check_vsl, numeric=True, distribution_ids=distributions))
 
@@ -1128,7 +1148,8 @@ def verify_native_execution(run, terminal):
     result['native_lsa_com_coverage_passed'] = checks['native_lsa']['passed'] is True
     result['passed'] = result['native_execution_passed'] and result['native_lsa_com_coverage_passed']
     result['limitations'] = ['Native execution evidence only; no FZP, model, policy quality or process-exit assertion.',
-        'Canonical primary 1s stepping and its recorded decision cadence only; no event-mode generalization.',
+        ('Obs150 event stops: initial/changed immediate and control-boundary COM readbacks plus every native LDP second; no claim of per-second COM reads.'
+         if sources['obs150_event'] else 'Canonical primary 1s stepping and its recorded decision cadence only; no event-mode generalization.'),
         'LDP covers every source-owned SG at 1..terminal; command comparison begins after each actual first control.',
         'LDP t uses the t-1 post-step command clock; first-control immediate actual readbacks are separately mandatory.',
         'Native-only urban groups in meter-only diagnostics are covered but not assigned invented COM commands.',

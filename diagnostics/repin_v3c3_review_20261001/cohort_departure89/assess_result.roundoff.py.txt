@@ -1,0 +1,450 @@
+"""Reconstruct interval cell flux from completed counters and conserved stocks."""
+import hashlib
+import json
+from pathlib import Path
+
+from evaluation.controllers import obs150_contract as oc
+from evaluation.controllers.obs150_observation import check_rule_crosscheck
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[2]
+I = ROOT / 'diagnostics/sdmpc_n31_20260924/integration_20260926'
+pins = {}
+
+
+def read(path):
+    data = path.read_bytes()
+    pins[str(path)] = hashlib.sha256(data).hexdigest()
+    return json.loads(data)
+
+
+def save(path, value):
+    path.write_text(json.dumps(value, indent=2, allow_nan=False), encoding='utf-8')
+
+
+def cell_flux(initial, final, source, terminal, merges, exits):
+    """Backward continuity; return net through-flow, not a speed-based estimate."""
+    result = {30: terminal}
+    for cell in reversed(range(31)):
+        result[cell - 1] = (result[cell] + final[cell] - initial[cell]
+                            - merges.get(cell, 0.) + exits.get(cell, 0.))
+    assert abs(result[-1] - source) < 1e-7, (result[-1], source)
+    assert min(result.values()) >= -1e-7
+    return result
+
+
+def main():
+    assert not (HERE / 'flow_assessment82.json').exists()
+    protocol = read(HERE / 'protocol_selected.json')
+    for path, digest in protocol['source_pins'].items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == digest, path
+    assert read(HERE / 'completion81.json')['status'] == 'COMPLETE_DIAGNOSTIC_NOT_GAIN_QUALIFICATION'
+    geo = read(I / 'selected/port_gain/geometry.json')
+    ports = [b for b in geo['boundaries'] if b['road'] == 'FW_E']
+    ramps = [b for b in ports if b['kind'] == 'ramp']
+    offramps = [b for b in ports if b['kind'] == 'offramp']
+    chain_links = {int(b['link']) for b in geo['chains']['FW_E']}
+    actual = {}
+    for row in read(HERE.parent / 's67_full_observation/snapshot_errors76.json'):
+        actual[row['arm'], row['time_sec'], row['cell']] = row['actual_stock']
+    for row in read(HERE.parent / 's67_selected_vsl78/observed_snapshots80.json'):
+        for cell in row['east_cells']:
+            actual[row['arm'], row['time_sec'], cell['cell']] = cell['n']
+    predictions = read(Path(protocol['completed_release_output']) / 'summary.json')['results']
+    selected = read(Path(protocol['jobs'][0]['output']) / 'summary.json')['results']
+    cases = {name: predictions[name + '_actual'] for name in ('release', 'release_vsl90')}
+    cases.update({name: selected[name]['execution'] for name in ('selected', 'vsl90')})
+    a76 = read(HERE.parent / 's67_full_observation/analysis/summary.json')
+    a80 = read(HERE.parent / 's67_selected_vsl78/analysis/summary.json')
+    assert a80['counterfactual_valid'] and a80['prefixes']['selected'] == a76['prefixes']['release']
+    audits = {
+        'release': read(I / 'closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent/ramp_response_audit.json'),
+        'selected': read(HERE.parent / 's67_selected_vsl78/analysis/ramp_response_audit.json'),
+    }
+    save(HERE / 'flow_protocol82.json', dict(
+        previous_goal_turn='PROGRESS: REVIEW81 completed exact unchanged diagnostic replays.',
+        hypothesis='Separate accumulation from incoming and outgoing flux errors in the current coupled plant; do not refit recovery speed from a stock-biased rollout.',
+        prior_checks=['Claude REVIEW_CHECK K3/K4', 'freeway_first/local_fd24_25/README.md',
+                      'freeway_first/first_recovery_divergence/README.md', 'recovery_subcells/README.md'],
+        method='F_i=F_terminal+sum_downstream(delta N - merge + off); check whole-road closure and every cell error identity.',
+        limits=['Aggregate net flux inferred by continuity, not a directly observed cell-face detector.',
+                'Native cell states at150s instants cannot identify subinterval onset or causal ordering.',
+                'No new independent seed, parameter fit, rollout or native execution.'],
+        new_forecasts=0, new_native=0, new_fzp_reads=0))
+    rows = []
+    for name, prediction in cases.items():
+        selected_case = name in ('selected', 'vsl90')
+        run = Path('D:/VISSIM_runs') / ('20261003_s67_selected_vsl78' if selected_case else '20261003_s67_vsl_observation2700')
+        audit = audits['selected' if selected_case else 'release']['arms'][name]
+        cum_actual, cum_pred = {i: 0. for i in range(-1, 31)}, {i: 0. for i in range(-1, 31)}
+        cum_merge_error, cum_off_error = {i: 0. for i in range(31)}, {i: 0. for i in range(31)}
+        for block in prediction['executed_intervals']:
+            start, end = block['start_sec'], block['end_sec']
+            raw = read(run / name / f'decisions_sdmpc31_g_2700_{name}_s67' / f'state_{int(end):06d}.json')
+            obs = raw['obs150']
+            detectors, _ = oc.read_detector_csv(obs['detector_config']['path'], obs['detector_config']['sha256'])
+            oc.validate_raw(obs, detectors, expected_simres=10)
+            check_rule_crosscheck(obs, detectors)
+            bundle = oc.load_bundle(raw)
+            boundaries = oc.evaluate_boundaries(obs, detectors, bundle.frame_end, bundle.frame_start, bundle.err_rows)
+            removed = oc.window_removals(bundle.err_rows, start, end)
+            assert not [r for r in removed if int(r['link']) in chain_links], (name, end, removed)
+            assert obs['window'] == dict(start_s=start, end_s=end)
+            n0 = [actual[name, start, c] for c in range(31)]
+            n1 = [actual[name, end, c] for c in range(31)]
+            am = {}
+            for ramp in ramps:
+                windows = audit[ramp['id']]['actual']['windows']
+                w = next(w for w in windows if w['end_sec'] == end)
+                assert w['start_sec'] == start
+                am[ramp['to_cell']] = w['merge']
+            ao = {b['from_cell']: boundaries['off_entry:' + str(b['connector'])].cross for b in offramps}
+            af = cell_flux(n0, n1, boundaries['source:FW_E'].cross, boundaries['chain_end:FW_E'].cross, am, ao)
+            transfers = block['transfers']
+            flow = lambda source, target: sum(r['vehicles'] for r in transfers if r['source'] == source and r['target'] == target)
+            pm = {b['to_cell']: flow('merge_pending:' + b['id'], 'freeway:FW_E') for b in ramps}
+            stores = {v['connector']: v['storage'] for v in block['offramps'].values()}
+            po = {b['from_cell']: flow('freeway:FW_E', 'storage:' + stores[b['connector']]) for b in offramps}
+            s0, s1 = block['physical_cell_states']
+            p0, p1 = s0['vehicle_count']['FW_E'], s1['vehicle_count']['FW_E']
+            pf = cell_flux(p0, p1, flow('origin:FW_E', 'freeway:FW_E'), flow('freeway:FW_E', 'external:terminal:FW_E'), pm, po)
+            for c in range(-1, 31):
+                cum_actual[c] += af[c]
+                cum_pred[c] += pf[c]
+            for c in range(31):
+                cum_merge_error[c] += pm.get(c, 0.) - am.get(c, 0.)
+                cum_off_error[c] += po.get(c, 0.) - ao.get(c, 0.)
+                incoming = cum_pred[c - 1] - cum_actual[c - 1] + cum_merge_error[c]
+                outgoing = cum_pred[c] - cum_actual[c] + cum_off_error[c]
+                # All arms start from the same native2700 stock, verified below.
+                initial_error = prediction['executed_intervals'][0]['physical_cell_states'][0]['vehicle_count']['FW_E'][c] - actual[name, 2700, c]
+                assert abs(initial_error) < 1e-7
+                residual = (p1[c] - n1[c]) - (initial_error + incoming - outgoing)
+                assert abs(residual) < 1e-7
+                rows.append(dict(case=name, start_sec=start, end_sec=end, cell=c,
+                    native_through=af[c], predicted_through=pf[c], cumulative_native_through=cum_actual[c],
+                    cumulative_predicted_through=cum_pred[c], actual_stock=n1[c], predicted_stock=p1[c],
+                    cumulative_incoming_error=incoming, cumulative_outgoing_error=outgoing,
+                    conservation_error=residual))
+    for path, digest in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == digest, path
+    save(HERE / 'cell_flux82.json', rows)
+    summary = dict(status='COMPLETE_CACHE_ONLY_CONTINUITY_DIAGNOSIS', rows=len(rows),
+        max_cell_error_identity=max(abs(r['conservation_error']) for r in rows),
+        new_forecasts=0, new_native=0, new_fzp_reads=0, new_coefficients=0,
+        inputs_sha256=pins)
+    save(HERE / 'flow_assessment82.json', summary)
+    print(json.dumps({k: v for k, v in summary.items() if k != 'inputs_sha256'}))
+
+
+def assess_boundary_time88():
+    """Native boundary first moments; not a causal fixed-inflow counterfactual."""
+    from collections import Counter, defaultdict
+    from evaluation.controllers import obs150_capture as capture
+    dest = HERE.parent / 'boundary_time88'
+    assert not (dest / 'assessment.json').exists(), 'Preserve completed assessment'
+    protocol = read(dest / 'protocol.json')
+    for p, h in protocol['production_pins'].items():
+        assert hashlib.sha256(Path(p).read_bytes()).hexdigest() == h, p
+    stop = protocol['old_STOP']
+    assert hashlib.sha256(Path(stop['path']).read_bytes()).hexdigest() == stop['sha256']
+    geo = read(I / 'selected/port_gain/geometry.json')
+    assert geo['network']['sha256'] == '64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc'
+    road = {int(v['link']) for v in geo['chains']['FW_E']}
+    ramps = [v for v in geo['boundaries'] if v['road'] == 'FW_E' and v['kind'] == 'ramp']
+    exits = [v for v in geo['boundaries'] if v['road'] == 'FW_E' and v['kind'] == 'offramp']
+    ramp_links = {v['connector'] for v in ramps}
+    domain = road | ramp_links
+    refs = {'source:FW_E': 1, 'chain_end:FW_E': -1}
+    refs.update({'ramp_arrival:' + v['id']: 1 for v in ramps})
+    refs.update({'off_entry:' + str(v['connector']): -1 for v in exits})
+    native71 = I / 'native_rm_observation2700_s71_four84/analysis'
+    groups = [
+        ('67_release', 67, 2700, ('release', 'release_vsl90'),
+         Path('D:/VISSIM_runs/20261003_s67_vsl_observation2700'), HERE.parent / 's67_full_observation/analysis'),
+        ('67_selected', 67, 2700, ('selected', 'vsl90'),
+         Path('D:/VISSIM_runs/20261003_s67_selected_vsl78'), HERE.parent / 's67_selected_vsl78/analysis'),
+        ('71_four', 71, 2250, ('nc', 'rm', 'vsl', 'both'),
+         Path('D:/VISSIM_runs/20261003_independent_s71_four84'), native71),
+    ]
+    cases = {}; events_out = []; late = []; common = {}
+    for group, seed, start, arms, runs, analysis in groups:
+        end = start + 450
+        proof = read(analysis / 'summary.json')
+        if seed == 71:
+            assert proof['counterfactual_valid'] and proof['paired_prefix_exact']
+        elif group == '67_selected':
+            assert proof['counterfactual_valid']
+        else:
+            alignment = read(HERE.parent / 's67_full_observation/recording_start_alignment76.json')
+            assert alignment['overlap_exact'] and alignment['cutoff_s'] == start
+            assert proof['paired_prefix_exact'] and proof['common_start_vehicle_records_exact']
+        for arm in arms:
+            key = group + '/' + arm
+            folder = runs / arm / f'decisions_sdmpc31_g_{start}_{arm}_s{seed}'
+            bundles = {t: oc.load_bundle(read(folder / f'state_{t:06d}.json'))
+                       for t in range(start, end + 1, 150)}
+            first = bundles[start].frame_end['vehicles']
+            if seed in common:
+                assert first == common[seed], 'Same-seed common initial native frame differs'
+            else:
+                common[seed] = first
+            initial_ids = {v[0] for v in first}; initial_domain = {v[0] for v in first if v[1] in domain}
+            last = bundles[end].obs['mer']; source = Path(last['source'])
+            pins[str(source)] = hashlib.sha256(source.read_bytes()).hexdigest()
+            table, _ = oc.read_detector_csv(bundles[end].obs['detector_config']['path'])
+            with source.open('rb') as handle:
+                header = capture._mer_header(handle, source.stat().st_size)
+                capture._check_header_points(header['points'], table, True)
+                seq = capture._count_lines(handle, header['data_start'], last['byte_end'])
+                handle.seek(last['byte_end']); tail = handle.read()
+            assert not tail or tail.endswith(b'\n'), 'MER final suffix incomplete'
+            counters = {int(k): v for k, v in last['records_cum_by_dcp'].items()}
+            extra, _ = capture.parse_mer_rows(tail, header['columns'], seq, set(counters), counters)
+            by_ordinal = defaultdict(dict)
+            for event in [v for b in bundles.values() for v in b.mer_rows] + extra:
+                if event.ordinal is None:
+                    continue
+                old = by_ordinal[event.dcp].get(event.ordinal)
+                assert old is None or old == event
+                by_ordinal[event.dcp][event.ordinal] = event
+            moment = {ref: 0. for ref in refs}; observed = Counter(); physical = Counter()
+            population = {ref: Counter() for ref in refs}; buffer_rows = []; removed = []
+            for t, bundle in bundles.items():
+                obs = bundle.obs
+                detectors, _ = oc.read_detector_csv(obs['detector_config']['path'], obs['detector_config']['sha256'])
+                oc.validate_raw(obs, detectors, expected_simres=10)
+                check_rule_crosscheck(obs, detectors)
+                dg = oc.group_boundaries(detectors)
+                stocks = {}
+                for ref in refs:
+                    ds = dg[ref]; orientation = ds[0].orientation
+                    ids = set().union(*(oc.vehicles_in_segment(bundle.frame_end['vehicles'], d.segment, orientation) for d in ds)) if orientation != 'at' else set()
+                    stocks[ref] = len(ids)
+                buffer_rows.append(dict(time_sec=t, stocks=stocks))
+                if t == start:
+                    continue
+                assert obs['window'] == dict(start_s=t-150, end_s=t)
+                assigned = oc.assign_window(obs, bundle.mer_rows)
+                boundary = oc.evaluate_boundaries(obs, detectors, bundle.frame_end, bundle.frame_start, bundle.err_rows)
+                removed.extend(v for v in oc.window_removals(bundle.err_rows, t-150, t) if int(v['link']) in domain)
+                for ref, sign in refs.items():
+                    physical[ref] += boundary[ref].cross
+                    for d in dg[ref]:
+                        high = obs['detectors_cum'][str(d.dcp_no)]
+                        low = high - obs['detectors'][str(d.dcp_no)]
+                        missing = [n for n in range(low+1, high+1) if n not in by_ordinal[d.dcp_no]]
+                        assert not missing, (key, t, ref, missing)
+                        entries = [by_ordinal[d.dcp_no][n] for n in range(low+1, high+1)]
+                        assert len(entries)-len(assigned.entries[d.dcp_no]) == assigned.tails[d.dcp_no]
+                        if assigned.tails[d.dcp_no]:
+                            late.append(dict(case=key, end=t, ref=ref, dcp=d.dcp_no, count=assigned.tails[d.dcp_no]))
+                        for event in entries:
+                            assert start-.005 < event.t_entry <= end+.005, (key, event)
+                            contribution = sign * (end-event.t_entry) / 3600
+                            cohort = ('initial_domain' if event.veh in initial_domain else
+                                      'initial_elsewhere' if event.veh in initial_ids else 'post_cutoff_population')
+                            moment[ref] += contribution; observed[ref] += 1
+                            population[ref][cohort] += contribution
+                            events_out.append(dict(case=key, ref=ref, time_sec=event.t_entry,
+                                vehicle=event.veh, cohort=cohort, signed_moment_veh_h=contribution))
+            assert not removed, (key, 'Domain deletion needs explicit residence decomposition', removed)
+            final_domain = {v[0] for v in bundles[end].frame_end['vehicles'] if v[1] in domain}
+            residual = len(initial_domain) + sum(refs[r]*physical[r] for r in refs) - len(final_domain)
+            assert residual == 0, (key, 'Physical domain count balance', residual)
+            metric = read(analysis / arm / 'area_metrics.json')
+            costs = {part: sum(v['ttt_veh_h'] for link, v in metric['physical_link_residence'].items() if int(link) in links)
+                     for part, links in [('east_mainline', road), ('east_onramps', ramp_links)]}
+            cases[key] = dict(seed=seed, start_sec=start, end_sec=end, initial_stock=len(initial_domain),
+                final_stock=len(final_domain), physical_counts=dict(physical), detector_counts=dict(observed),
+                signed_detector_moments_veh_h=moment, moments_by_population_veh_h=population,
+                initial_and_final_offset_stocks=buffer_rows, full_run_component_TTT_veh_h=costs,
+                domain_TTT_full_run_veh_h=sum(costs.values()), physical_count_residual=residual)
+            print('Complete native event moments', key, flush=True)
+    contrasts = {}
+    comparisons = [('67_release/release', '67_release/release_vsl90'),
+                   ('67_selected/selected', '67_selected/vsl90'),
+                   ('71_four/nc', '71_four/rm'), ('71_four/nc', '71_four/vsl'),
+                   ('71_four/rm', '71_four/both')]
+    for baseline, arm in comparisons:
+        a, b = cases[baseline], cases[arm]
+        assert a['initial_stock'] == b['initial_stock']
+        delta = {ref: b['signed_detector_moments_veh_h'][ref]-a['signed_detector_moments_veh_h'][ref] for ref in refs}
+        grouped = dict(source=delta['source:FW_E'], ramp_arrival=sum(v for k,v in delta.items() if k.startswith('ramp_arrival:')),
+                       off_entry=sum(v for k,v in delta.items() if k.startswith('off_entry:')), terminal=delta['chain_end:FW_E'])
+        cost = b['domain_TTT_full_run_veh_h']-a['domain_TTT_full_run_veh_h']
+        remainder = cost-sum(delta.values())
+        contrasts[arm+' minus '+baseline] = dict(actual_domain_delta_TTT_veh_h=cost,
+            signed_event_contributions_veh_h=grouped, contributions_by_boundary_veh_h=delta,
+            event_sum_veh_h=sum(delta.values()), physical_minus_detector_residual_veh_h=remainder,
+            residual_within_declared_limit=abs(remainder)<=protocol['accounting_residual_limit_veh_h'],
+            actual_delta_minus_source_accounting_term=cost-grouped['source'],
+            warning='Subtracting source term is bookkeeping, NOT a rerun with common source. Remaining traffic already responded to different inflow; source causality and input randomness are not isolated.')
+    for p,h in pins.items():
+        assert hashlib.sha256(Path(p).read_bytes()).hexdigest() == h, p
+    output = dict(status='COMPLETE_NATIVE_EVENT_MOMENTS_NOT_MODEL_VALIDATION', cases=cases, contrasts=contrasts,
+        resolved_late_mer=late, inputs_sha256=pins, new_forecasts=0,new_native=0,fzp_scans=0,fit=0,
+        interpretation=['Positive contribution increases East mainline+four on-ramp TTT; negative decreases it.',
+            'Merge is internal to this domain, so ramp waiting is included and cannot disappear from accounting.',
+            'Moments use detector crossings, not exact physical boundaries. Full-run paired TTT prefix cancels; remaining offset/sampling discrepancy is reported, never allocated silently.',
+            'Actual routing, stochastic coupling and source backpressure are not isolated causal effects. No fitting/qualification from source-subtracted number.',
+            'Omega objective, normal exit definition, and external costs are unchanged; this subdomain is only a physical diagnosis.'])
+    save(dest / 'events.json', events_out); save(dest / 'assessment.json', output)
+    print(json.dumps(contrasts, indent=2))
+
+
+def boundary_cohorts88():
+    """Reuse saved events to localize the initial population's departure response."""
+    import bisect
+    from collections import Counter, defaultdict
+    dest = HERE.parent / 'boundary_time88'
+    assert not (dest/'cohorts.json').exists()
+    result = read(dest/'assessment.json'); events = read(dest/'events.json')
+    geo = read(I/'selected/port_gain/geometry.json')
+    chain = {int(v['link']):v for v in geo['chains']['FW_E']}
+    ends = [c['end_m'] for c in sorted((c for c in geo['cells'] if c['road']=='FW_E'),key=lambda c:c['cell'])]
+    ramps = {b['connector'] for b in geo['boundaries'] if b['kind']=='ramp' and b['road']=='FW_E'}
+    initial = {}
+    for seed, start, folder in [
+        (67,2700,Path('D:/VISSIM_runs/20261003_s67_vsl_observation2700/release/decisions_sdmpc31_g_2700_release_s67')),
+        (71,2250,Path('D:/VISSIM_runs/20261003_independent_s71_four84/nc/decisions_sdmpc31_g_2250_nc_s71'))]:
+        raw = read(folder/f'state_{start:06d}.json')
+        initial[seed] = {}
+        for v in raw['vehicle_records']['records']:
+            link = int(v['link_no'])
+            if link in chain:
+                c = min(bisect.bisect_right(ends,chain[link]['offset_m']+float(v['position_m'])),30)
+                group = ('cells00_15' if c<16 else 'cells16_20' if c<21 else 'cells21_23' if c<24 else
+                         'cells24_25' if c<26 else 'cells26_30')
+            else:
+                group = 'initial_onramp' if link in ramps else 'initial_elsewhere'
+            initial[seed][int(v['veh_no'])] = group
+    cases = {}; bycase = defaultdict(list)
+    for e in events:bycase[e['case']].append(e)
+    for case, rows in bycase.items():
+        seed = result['cases'][case]['seed']; values = defaultdict(Counter); count = defaultdict(Counter)
+        for e in rows:
+            group = initial[seed].get(e['vehicle'],'post_cutoff_population')
+            assert (group in ('initial_elsewhere','post_cutoff_population')) == (e['cohort']!='initial_domain')
+            category = ('source' if e['ref'].startswith('source:') else 'ramp_arrival' if e['ref'].startswith('ramp_arrival:') else
+                        'terminal' if e['ref'].startswith('chain_end:') else 'off_entry')
+            values[group][category] += e['signed_moment_veh_h'];count[group][category] += 1
+        cases[case] = dict(moments_veh_h=values,detector_event_counts=count)
+        assert abs(sum(sum(g.values()) for g in values.values())-sum(result['cases'][case]['signed_detector_moments_veh_h'].values()))<1e-9
+    contrasts = {}
+    for name, comparison in result['contrasts'].items():
+        arm, baseline = name.split(' minus ')
+        a,b = cases[baseline]['moments_veh_h'],cases[arm]['moments_veh_h']
+        groups = sorted(set(a)|set(b))
+        changes = {g:{k:b.get(g,{}).get(k,0)-a.get(g,{}).get(k,0) for k in ('source','ramp_arrival','off_entry','terminal')} for g in groups}
+        assert abs(sum(sum(g.values()) for g in changes.values())-comparison['event_sum_veh_h'])<1e-9
+        contrasts[name] = changes
+    output = dict(status='COMPLETE_SAVED_EVENT_COHORT_DECOMPOSITION',cases=cases,contrasts=contrasts,
+        warnings=['Initial locations are common pre-control positions, not positions when each effect occurs.',
+                  'Event moments retain detector-offset limitations; these are not exact physical-boundary per-vehicle TTT values.',
+                  'Common initial vehicles are still influenced by later arriving traffic; no isolated causal capacity claim.'],
+        input_sha256=pins,new_native=0,new_forecasts=0,new_fzp_scans=0,fit=0)
+    save(dest/'cohorts.json',output)
+    print(json.dumps(contrasts,indent=2))
+
+
+def assess_cohort_departure89():
+    """Compare passive model tags with common initial native mainline IDs."""
+    import bisect
+    import gzip
+    from collections import Counter
+    dest=HERE.parent/'cohort_departure89';assert not (dest/'assessment.json').exists()
+    status=read(dest/'status.json');assert status['phase']=='complete_pending_assessment'
+    assert status['physical_result_bit_exact']==['release_actual','release_vsl90_actual']
+    with gzip.open(dest/'traces.json.gz','rt',encoding='utf-8') as f:traces=json.load(f)
+    assert len(traces)==2
+    events=read(HERE.parent/'boundary_time88/events.json')
+    geo=read(I/'selected/port_gain/geometry.json')
+    chains={int(r['link']):r for r in geo['chains']['FW_E']}
+    ends=[v['end_m'] for v in sorted((c for c in geo['cells'] if c['road']=='FW_E'),key=lambda c:c['cell'])]
+    native_root=Path('D:/VISSIM_runs/20261003_s67_vsl_observation2700')
+    results={};snapshots=[];curves=[];common=None
+    def position(v):return min(bisect.bisect_right(ends,chains[v[1]]['offset_m']+v[3]),30)
+    for trace in traces:
+        arm=trace['arm'];folder=native_root/arm/f'decisions_sdmpc31_g_2700_{arm}_s67'
+        frames={}
+        for t in (2700,2850,3000,3150):
+            raw=read(folder/f'state_{t:06d}.json')
+            frames[t]=read(Path(raw['lane_plant_observation']['directory'])/f'frame_{t:06d}.json')
+            assert frames[t]['time_s']==t and frames[t]['complete']
+            assert len(frames[t]['vehicles'])==len(raw['vehicle_records']['records'])
+        initial={v[0]:position(v) for v in frames[2700]['vehicles'] if v[1] in chains}
+        if common is None:common=initial
+        else:assert initial==common
+        counts=[sum(c==i for c in initial.values()) for i in range(31)]
+        # Initial NULL-route fractions sum to integer physical counts up to
+        # floating-point roundoff (observed maximum4.27e-14 vehicles).
+        assert max(abs(a-b) for a,b in zip(counts,trace['initial_vehicles_by_cell']))<1e-7
+        native=[dict(e,initial_cell=initial[e['vehicle']],vehicles=1.) for e in events
+                if e['case']=='67_release/'+arm and e['vehicle'] in initial and e['ref'].startswith(('off_entry:','chain_end:'))]
+        model=trace['events'];assert all(2700<e['time_sec']<3150 for e in model)
+        # Native detector events are not silently promoted to physical boundaries.
+        raw=read(folder/'state_003150.json');table,_=oc.read_detector_csv(raw['obs150']['detector_config']['path'])
+        refs=oc.group_boundaries(table);physical=Counter(e['vehicle'] for e in native)
+        for ref in {e['ref'] for e in native}:
+            ds=refs[ref];orientation=ds[0].orientation
+            first=set().union(*(oc.vehicles_in_segment(frames[2700]['vehicles'],d.segment,orientation) for d in ds))&set(initial)
+            last=set().union(*(oc.vehicles_in_segment(frames[3150]['vehicles'],d.segment,orientation) for d in ds))&set(initial)
+            if orientation=='down':physical.update(last);physical.subtract(first)
+            elif orientation=='up':physical.update(first);physical.subtract(last)
+            else:assert orientation=='at'
+        assert all(n in (0,1) for n in physical.values())
+        final={v[0] for v in frames[3150]['vehicles'] if v[1] in chains and v[0] in initial}
+        departed={v for v,n in physical.items() if n}
+        assert not final&departed and final|departed==set(initial),'Initial vehicle fate unresolved'
+        bins={}
+        for name,cs in [('cells00_15',set(range(16))),('cells16_20',set(range(16,21))),
+                        ('cells21_23',set(range(21,24))),('cells24_25',{24,25}),('cells26_30',set(range(26,31)))]:
+            an=[e for e in native if e['initial_cell'] in cs];pn=[e for e in model if e['initial_cell'] in cs]
+            bins[name]=dict(initial_stock=sum(counts[i] for i in cs),
+                native_physical_departures=sum(physical[v] for v,c in initial.items() if c in cs),
+                native_detector_departures=len(an),model_departures=sum(e['vehicles'] for e in pn),
+                native_departure_moment_veh_h=-sum((3150-e['time_sec'])/3600 for e in an),
+                model_departure_moment_veh_h=-sum(e['vehicles']*(3150-e['time_sec'])/3600 for e in pn),
+                native_final_remaining=sum(initial[v] in cs for v in final),
+                model_final_remaining=sum(sum(row[g] for g in cs) for row in trace['frames'][-1]['initial_cell_by_current_cell']))
+            for t in range(2700,3151,30):
+                curves.append(dict(arm=arm,initial_group=name,time_sec=t,
+                    native_detector_departures=sum(e['time_sec']<=t+.005 for e in an),
+                    model_departures=sum(e['vehicles'] for e in pn if e['time_sec']<=t)))
+        for t,frame in frames.items():
+            model_frame=next(x for x in trace['frames'] if x['time_sec']==t)
+            native_stock=[[0]*31 for _ in range(31)]
+            for v in frame['vehicles']:
+                if v[0] in initial and v[1] in chains:native_stock[position(v)][initial[v[0]]]+=1
+            snapshots.append(dict(arm=arm,time_sec=t,native_initial_cell_by_current_cell=native_stock,
+                model_initial_cell_by_current_cell=model_frame['initial_cell_by_current_cell']))
+        results[arm]=bins
+    delta={}
+    for group,a in results['release'].items():
+        b=results['release_vsl90'][group]
+        delta[group]={k:b[k]-a[k] for k in a if k!='initial_stock'}
+    output=dict(status='COMPLETE_PASSIVE_COHORT_RESPONSE_DIAGNOSIS',cases=results,vsl_minus_release=delta,
+        physical_results_bit_exact=status['physical_result_bit_exact'],native_initial_population=1057,
+        limitations=['Only initial mainline population is traced; initial on-ramp/urban stock and new entrants are excluded, not lost from objective.',
+            'Model tags follow the existing uniform mixing within each currently accepted through/exit class; they are expected mass, not native vehicle identities.',
+            'Native events occur at detector offsets; endpoint physical departure counts use offset inventory correction and close every initial identity.',
+            'Native moment is not exact physical per-vehicle TTT. Model events use the midpoint of its unchanged1s updates.',
+            'Initial positions are pre-control positions, not the location where response occurs; cohorts remain affected by all later traffic.',
+            'Unchanged-model diagnostic only. No forecast data leakage, parameter adoption, independent validation pass or9000 qualification.'],
+        input_sha256=pins,new_native=0,forecasts=2,fit=0,fzp_reads=0)
+    save(dest/'assessment.json',output);save(dest/'native_model_snapshots.json',snapshots);save(dest/'departure_curves.json',curves)
+    print(json.dumps(dict(results=results,vsl_minus_release=delta),indent=2))
+
+
+if __name__ == '__main__':
+    import sys
+    if sys.argv[1:] == ['--boundary-time88']:
+        assess_boundary_time88()
+    elif sys.argv[1:] == ['--boundary-cohorts88']:
+        boundary_cohorts88()
+    elif sys.argv[1:] == ['--cohort-departure89']:
+        assess_cohort_departure89()
+    else:
+        assert not sys.argv[1:]
+        main()

@@ -1,0 +1,60 @@
+{
+  "previous_goal_turn": "PROGRESS: unchanged-model exposure observation and conditional ablation",
+  "seeds": [
+    29,
+    43
+  ],
+  "arms": [
+    "none"
+  ],
+  "cells": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "window": [
+    300.1,
+    8850.1
+  ],
+  "history_seconds": 60,
+  "direction_threshold_density": 2.0,
+  "target": "Next60s total cell departures(mainline+off+terminal), vph; future values only labels.",
+  "modes": {
+    "density": {
+      "rho": 2.0
+    },
+    "density_speed": {
+      "rho": 2.0,
+      "speed": 5.0
+    },
+    "local_context": {
+      "rho": 2.0,
+      "speed": 5.0,
+      "down_rho": 3.0,
+      "down_speed": 10.0,
+      "up_flow_past_vph": 1000.0,
+      "merge_past_vph": 180.0,
+      "off_stock": 5.0
+    }
+  },
+  "pairing": "Same seed and physical cell; one positive-history and one negative-history state; >=120s separation. Greedy minimum normalized current-state distance; no outcome in matching and no observation reused within a mode.",
+  "exclusion": "Require n>=5/current speed available; all four past/future30s balance windows have no unexplained entry/loss/native removal and exact conservation.",
+  "support": "At least12 pairs in EACH seed at a cell for a cell-specific directional claim; no forced relaxation when support is low.",
+  "caveats": [
+    "Density trend alone is not a causal traffic regime label; alternating waves can change it.",
+    "NC observations only. No controller response or closed-loop accuracy qualification.",
+    "Flow is not capacity: native supply and receiving availability are not experimentally held fixed.",
+    "Extra hysteresis state is not justified if current speed/context accounts for the difference or matched support is insufficient."
+  ],
+  "new_native": 0,
+  "fzp_reads": 0,
+  "new_rollouts": 0,
+  "fit": 0
+}

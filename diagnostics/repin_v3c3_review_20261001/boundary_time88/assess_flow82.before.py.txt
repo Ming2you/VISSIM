@@ -1,0 +1,141 @@
+"""Reconstruct interval cell flux from completed counters and conserved stocks."""
+import hashlib
+import json
+from pathlib import Path
+
+from evaluation.controllers import obs150_contract as oc
+from evaluation.controllers.obs150_observation import check_rule_crosscheck
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[2]
+I = ROOT / 'diagnostics/sdmpc_n31_20260924/integration_20260926'
+pins = {}
+
+
+def read(path):
+    data = path.read_bytes()
+    pins[str(path)] = hashlib.sha256(data).hexdigest()
+    return json.loads(data)
+
+
+def save(path, value):
+    path.write_text(json.dumps(value, indent=2, allow_nan=False), encoding='utf-8')
+
+
+def cell_flux(initial, final, source, terminal, merges, exits):
+    """Backward continuity; return net through-flow, not a speed-based estimate."""
+    result = {30: terminal}
+    for cell in reversed(range(31)):
+        result[cell - 1] = (result[cell] + final[cell] - initial[cell]
+                            - merges.get(cell, 0.) + exits.get(cell, 0.))
+    assert abs(result[-1] - source) < 1e-7, (result[-1], source)
+    assert min(result.values()) >= -1e-7
+    return result
+
+
+def main():
+    assert not (HERE / 'flow_assessment82.json').exists()
+    protocol = read(HERE / 'protocol_selected.json')
+    for path, digest in protocol['source_pins'].items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == digest, path
+    assert read(HERE / 'completion81.json')['status'] == 'COMPLETE_DIAGNOSTIC_NOT_GAIN_QUALIFICATION'
+    geo = read(I / 'selected/port_gain/geometry.json')
+    ports = [b for b in geo['boundaries'] if b['road'] == 'FW_E']
+    ramps = [b for b in ports if b['kind'] == 'ramp']
+    offramps = [b for b in ports if b['kind'] == 'offramp']
+    chain_links = {int(b['link']) for b in geo['chains']['FW_E']}
+    actual = {}
+    for row in read(HERE.parent / 's67_full_observation/snapshot_errors76.json'):
+        actual[row['arm'], row['time_sec'], row['cell']] = row['actual_stock']
+    for row in read(HERE.parent / 's67_selected_vsl78/observed_snapshots80.json'):
+        for cell in row['east_cells']:
+            actual[row['arm'], row['time_sec'], cell['cell']] = cell['n']
+    predictions = read(Path(protocol['completed_release_output']) / 'summary.json')['results']
+    selected = read(Path(protocol['jobs'][0]['output']) / 'summary.json')['results']
+    cases = {name: predictions[name + '_actual'] for name in ('release', 'release_vsl90')}
+    cases.update({name: selected[name]['execution'] for name in ('selected', 'vsl90')})
+    a76 = read(HERE.parent / 's67_full_observation/analysis/summary.json')
+    a80 = read(HERE.parent / 's67_selected_vsl78/analysis/summary.json')
+    assert a80['counterfactual_valid'] and a80['prefixes']['selected'] == a76['prefixes']['release']
+    audits = {
+        'release': read(I / 'closedloop_recorded2700_lever450_s67_service66_20261003_actuator_equivalent/ramp_response_audit.json'),
+        'selected': read(HERE.parent / 's67_selected_vsl78/analysis/ramp_response_audit.json'),
+    }
+    save(HERE / 'flow_protocol82.json', dict(
+        previous_goal_turn='PROGRESS: REVIEW81 completed exact unchanged diagnostic replays.',
+        hypothesis='Separate accumulation from incoming and outgoing flux errors in the current coupled plant; do not refit recovery speed from a stock-biased rollout.',
+        prior_checks=['Claude REVIEW_CHECK K3/K4', 'freeway_first/local_fd24_25/README.md',
+                      'freeway_first/first_recovery_divergence/README.md', 'recovery_subcells/README.md'],
+        method='F_i=F_terminal+sum_downstream(delta N - merge + off); check whole-road closure and every cell error identity.',
+        limits=['Aggregate net flux inferred by continuity, not a directly observed cell-face detector.',
+                'Native cell states at150s instants cannot identify subinterval onset or causal ordering.',
+                'No new independent seed, parameter fit, rollout or native execution.'],
+        new_forecasts=0, new_native=0, new_fzp_reads=0))
+    rows = []
+    for name, prediction in cases.items():
+        selected_case = name in ('selected', 'vsl90')
+        run = Path('D:/VISSIM_runs') / ('20261003_s67_selected_vsl78' if selected_case else '20261003_s67_vsl_observation2700')
+        audit = audits['selected' if selected_case else 'release']['arms'][name]
+        cum_actual, cum_pred = {i: 0. for i in range(-1, 31)}, {i: 0. for i in range(-1, 31)}
+        cum_merge_error, cum_off_error = {i: 0. for i in range(31)}, {i: 0. for i in range(31)}
+        for block in prediction['executed_intervals']:
+            start, end = block['start_sec'], block['end_sec']
+            raw = read(run / name / f'decisions_sdmpc31_g_2700_{name}_s67' / f'state_{int(end):06d}.json')
+            obs = raw['obs150']
+            detectors, _ = oc.read_detector_csv(obs['detector_config']['path'], obs['detector_config']['sha256'])
+            oc.validate_raw(obs, detectors, expected_simres=10)
+            check_rule_crosscheck(obs, detectors)
+            bundle = oc.load_bundle(raw)
+            boundaries = oc.evaluate_boundaries(obs, detectors, bundle.frame_end, bundle.frame_start, bundle.err_rows)
+            removed = oc.window_removals(bundle.err_rows, start, end)
+            assert not [r for r in removed if int(r['link']) in chain_links], (name, end, removed)
+            assert obs['window'] == dict(start_s=start, end_s=end)
+            n0 = [actual[name, start, c] for c in range(31)]
+            n1 = [actual[name, end, c] for c in range(31)]
+            am = {}
+            for ramp in ramps:
+                windows = audit[ramp['id']]['actual']['windows']
+                w = next(w for w in windows if w['end_sec'] == end)
+                assert w['start_sec'] == start
+                am[ramp['to_cell']] = w['merge']
+            ao = {b['from_cell']: boundaries['off_entry:' + str(b['connector'])].cross for b in offramps}
+            af = cell_flux(n0, n1, boundaries['source:FW_E'].cross, boundaries['chain_end:FW_E'].cross, am, ao)
+            transfers = block['transfers']
+            flow = lambda source, target: sum(r['vehicles'] for r in transfers if r['source'] == source and r['target'] == target)
+            pm = {b['to_cell']: flow('merge_pending:' + b['id'], 'freeway:FW_E') for b in ramps}
+            stores = {v['connector']: v['storage'] for v in block['offramps'].values()}
+            po = {b['from_cell']: flow('freeway:FW_E', 'storage:' + stores[b['connector']]) for b in offramps}
+            s0, s1 = block['physical_cell_states']
+            p0, p1 = s0['vehicle_count']['FW_E'], s1['vehicle_count']['FW_E']
+            pf = cell_flux(p0, p1, flow('origin:FW_E', 'freeway:FW_E'), flow('freeway:FW_E', 'external:terminal:FW_E'), pm, po)
+            for c in range(-1, 31):
+                cum_actual[c] += af[c]
+                cum_pred[c] += pf[c]
+            for c in range(31):
+                cum_merge_error[c] += pm.get(c, 0.) - am.get(c, 0.)
+                cum_off_error[c] += po.get(c, 0.) - ao.get(c, 0.)
+                incoming = cum_pred[c - 1] - cum_actual[c - 1] + cum_merge_error[c]
+                outgoing = cum_pred[c] - cum_actual[c] + cum_off_error[c]
+                # All arms start from the same native2700 stock, verified below.
+                initial_error = prediction['executed_intervals'][0]['physical_cell_states'][0]['vehicle_count']['FW_E'][c] - actual[name, 2700, c]
+                assert abs(initial_error) < 1e-7
+                residual = (p1[c] - n1[c]) - (initial_error + incoming - outgoing)
+                assert abs(residual) < 1e-7
+                rows.append(dict(case=name, start_sec=start, end_sec=end, cell=c,
+                    native_through=af[c], predicted_through=pf[c], cumulative_native_through=cum_actual[c],
+                    cumulative_predicted_through=cum_pred[c], actual_stock=n1[c], predicted_stock=p1[c],
+                    cumulative_incoming_error=incoming, cumulative_outgoing_error=outgoing,
+                    conservation_error=residual))
+    for path, digest in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == digest, path
+    save(HERE / 'cell_flux82.json', rows)
+    summary = dict(status='COMPLETE_CACHE_ONLY_CONTINUITY_DIAGNOSIS', rows=len(rows),
+        max_cell_error_identity=max(abs(r['conservation_error']) for r in rows),
+        new_forecasts=0, new_native=0, new_fzp_reads=0, new_coefficients=0,
+        inputs_sha256=pins)
+    save(HERE / 'flow_assessment82.json', summary)
+    print(json.dumps({k: v for k, v in summary.items() if k != 'inputs_sha256'}))
+
+
+if __name__ == '__main__':
+    main()

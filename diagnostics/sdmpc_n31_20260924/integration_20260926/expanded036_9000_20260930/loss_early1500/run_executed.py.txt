@@ -1,0 +1,101 @@
+"""Four bounded fixed-city predictions; no native execution or fitting."""
+import copy
+import ctypes
+import hashlib
+import importlib.util
+import json
+import pickle
+import sys
+import time
+from pathlib import Path
+
+O = Path(__file__).resolve().parent
+I = O.parents[2]
+U = I.parents[2]
+early = '--early1500' in sys.argv[1:]
+at = 1500 if early else 2250
+if early:
+    O = I/'expanded036_9000_20260930/loss_early1500'
+script = I / 'probe_selected_arrival_path.py'
+protocol = json.loads((O/'protocol.json').read_bytes())
+ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x4000)
+from evaluation.controllers import obs150_contract as oc
+
+
+def readonly(raw, derived):
+    obs = raw[oc.RAW_STATE_KEY]
+    path = oc.resolve(obs, oc.derived_path(obs['sim_sec']))
+    assert path.read_bytes() == oc.derived_bytes(derived)
+    return path
+
+
+oc.write_derived = readonly
+spec = importlib.util.spec_from_file_location('onset_probe', script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+original = module.probe_levers
+D = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+native_action = json.loads((D/f'action_{at:06d}.json').read_bytes())
+caps = native_action['metadata']['sdmpc_constraints']
+old_dir = I/'closedloop_recorded2250_lever450_RM_C10484_city2250_after'
+old = None if early else json.loads((old_dir/'held_actual.json').read_bytes())
+rows = []
+
+
+def audited(captured, reference, output, **kwargs):
+    from evaluation.controllers import area_leader_objective as constraints
+    from src.controllers import rollout_endpoint as endpoint
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower
+    cfg = captured['cfg']
+    cfg_bytes = pickle.dumps(cfg, protocol=5)
+    quantity_cfg = copy.deepcopy(cfg)
+    follower = LinkAgentWuFollower(quantity_cfg)
+    assert pickle.dumps(cfg, protocol=5) == cfg_bytes
+    assert len(follower.cfg.network.signals) == 17
+    evaluate = endpoint.evaluate_price_point
+
+    def checked(state, action, *args, **kw):
+        assert len(rows) < 4
+        point = evaluate(state, action, *args, **kw)
+        if not rows and old is not None:
+            assert abs(point.ttt-old['ttt_omega_veh_h']) < 1e-9, (point.ttt, old['ttt_omega_veh_h'])
+        q = constraints.shared_urban_quantities(follower, point.control_area_response,
+            start_sec=state.time_sec, horizon_steps=3)
+        budget = constraints.shared_quantity_constraints(follower, action, q,
+            start_sec=state.time_sec, horizon_steps=3,
+            np_mode=caps['np']['mode'], target_np_veh=caps['np']['target'],
+            np_tolerance_veh=caps['np']['tolerance'], nuf_mode=caps['nuf']['mode'],
+            target_nuf_veh_h=caps['nuf']['target'], nuf_tolerance_veh_h=caps['nuf']['tolerance'])
+        name = list(protocol['conditions'])[len(rows)]
+        rows.append(dict(case=name, ttt=point.ttt, resource=budget, quantities=q))
+        (O/'quantities.json').write_text(json.dumps(rows,indent=2)+'\n',encoding='utf8')
+        return point
+
+    endpoint.evaluate_price_point = checked
+    try:
+        original(captured, reference, output, **dict(kwargs,
+            onset_factorial=not early, early_ramp_factorial=early, first_interval_audit=True))
+    finally:
+        endpoint.evaluate_price_point = evaluate
+    assert len(rows) == 4
+    (O/'output.json').write_text(json.dumps(dict(output=str(output)),indent=2),encoding='utf8')
+
+
+module.probe_levers = audited
+sys.argv = [str(script),'--closedloop-recorded',f'--at={at}','--lever-probe450',
+    '--meter-ramp=RM_C10484','--trace-ramp=RM_C10484','--warm-head-history','--replay-vsl-history',
+    '--recording-dir='+str(D),
+    '--tuning-json='+str(I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_config.json'),
+    '--probe-label=early1500' if early else '--probe-label=of2']
+if early:
+    sys.argv.append('--early-ramp-factorial')
+pins = {p:h for p,h in protocol['pins_before'].items() if Path(p)!=script}
+pins[str(script)] = hashlib.sha256(script.read_bytes()).hexdigest()
+pins[str(Path(__file__))] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+(O/'execution_pins.json').write_text(json.dumps(pins,indent=2),encoding='utf8')
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+started = time.perf_counter()
+module.main()
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+(O/'run_completion.json').write_text(json.dumps(dict(status='complete',forecasts=len(rows),
+    wall_sec=time.perf_counter()-started,optimizer=0,fit=0,new_native=0,pins_unchanged=True),indent=2),encoding='utf8')

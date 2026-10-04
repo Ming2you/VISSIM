@@ -1,0 +1,63 @@
+{
+  "status": "completed_bounded_initial_timing_test",
+  "previous_goal_turn": "progress",
+  "current_goal_turn": "progress",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "adopted": false,
+  "forecasts": 3,
+  "compute_sec": 94.23183430009522,
+  "sessions": {
+    "61554": "exit0",
+    "56085": "exit0",
+    "43359": "exit0"
+  },
+  "tests": {
+    "gate_tests": 28,
+    "result": "PASS",
+    "default_full450_trace": "EXACT",
+    "actual_first150_commands": {
+      "2250": {
+        "passed": true,
+        "actual_action_sha256": "564c17885443bd605c14bd592e96137b9a88d5b18ddfb9d066c481a02e984f3d",
+        "prediction_sha256": "c167b54c17275e7e5b8fc0ba1e38608618b1e1ea44f48c2228bbbf94831c417b"
+      },
+      "3600": {
+        "passed": true,
+        "actual_action_sha256": "e62972e0529da68d51a8bc374d4699f2389bbe1555227e3934c5ecdba60349b8",
+        "prediction_sha256": "c0da6ecc89c79df643568336a23b62ff10c1fc7a68145fb8dd370f27dd880c96"
+      }
+    },
+    "all8_conservation": "PASS",
+    "independent_seed": "NOT_TESTED_FOR_THIS_CANDIDATE",
+    "full_SDPMC_AD": "NOT_TESTED"
+  },
+  "changes": {
+    "evaluation\\controllers\\physical_ramp_branches.py": {
+      "before": "92dddcddede39fe683c4557b42fa3e4519aa24b58578477071596dc983fe03ef",
+      "after": "bdc8c5e5c04696aae6096b92cc5e827ecc82d481bbdfa333125ce4cbdb2dcdd2"
+    },
+    "diagnostics\\sdmpc_n31_20260924\\tests\\test_initial_gate_routes.py": {
+      "before": "d176ab9265d08664bb6df41dcd0c53f21ba4e0fc516fca7ae16352f0302aefb9",
+      "after": "54f33f84c8c3e11632b76cf895bfdc641ed3cc0b370ee8233f988db4b611060b"
+    }
+  },
+  "protected": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_config.json": "c4abfccb63110bb4f7458a666d5e87b7ae367a07c12ae8403169ec3d674ce6dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\physical_speed\\candidate_config.json": "4dad50007e42915e848c1901e725612bab8996881c47f7f90be468248770a762",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "native": 0,
+  "fzp_scans": 0,
+  "live_CTg_polls": 0,
+  "optimizer": 0,
+  "fits": 0,
+  "push": 0,
+  "next": "Independent47 hold/release2 fixed450 with timing candidate; preserve posthead-queue failure at2250, no head-curve fit, no production adoption/new9000.",
+  "limitations": [
+    "2250 posthead queue1.4vs10 reveals earlier arrival/receiving-error cancellation",
+    "3600 10482 arrival worsens89.08->83.51vs90 even while head improves",
+    "Route IDs absent: conditional expectations, not recovered destinations",
+    "Only current physical positions and current per-link speeds initialize; future MER solely audit"
+  ]
+}

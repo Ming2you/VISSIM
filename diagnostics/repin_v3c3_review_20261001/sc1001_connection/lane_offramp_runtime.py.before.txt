@@ -1,0 +1,339 @@
+"""Eight finite physical off-ramps between the freeway and urban owners.
+
+Connector travel is part of its existing stock, never an additional queue.
+The10643 outlet is advanced by LaneUrbanRuntime; the other seven retain the
+reference DelayedPort law and drain only into available downstream storage.
+"""
+from __future__ import annotations
+import math
+from collections import defaultdict, deque
+from evaluation.controllers.lane_urban_runtime import _debit_stock
+
+
+class SharedSignalApproach:
+    """Finite pre-head lanes shared by city and off-ramp arrivals.
+
+    Packet source/destination labels survive travel and signal service. These
+    packets are the sole physical stock; a caller's storage ledger is a mirror,
+    never another population. Delays and lane shares are explicit binding data,
+    not inferred from a downstream signal or changed to fit a candidate cost.
+    """
+    def __init__(self, lanes, entries, initial, start):
+        self.lanes={str(k):dict(v) for k,v in lanes.items()}
+        self.entries={str(k):[dict(x) for x in v] for k,v in entries.items()}
+        self.time=int(start)
+        if self.time!=start or not self.lanes or not self.entries:
+            raise ValueError('Shared approach requires declared lanes, entries and integer time')
+        self.lane_order=sorted(self.lanes,key=int)
+        if list(map(int,self.lane_order))!=list(range(1,len(self.lanes)+1)):
+            raise ValueError('Shared approach lanes must be contiguous physical lane numbers')
+        movements={m for row in self.lanes.values() for m in row['movements']}
+        for row in self.lanes.values():
+            if any(not math.isfinite(row[k]) or row[k]<=0 for k in ('capacity_veh','service_veh_h')):
+                raise ValueError('Invalid finite approach storage/service')
+            if not row['movements'] or len(set(row['movements']))!=len(row['movements']):
+                raise ValueError('Approach lane needs unique physical exits')
+        for rows in self.entries.values():
+            if not rows or abs(sum(x['share'] for x in rows)-1.)>1e-9:
+                raise ValueError('Approach entry shares must conserve the entire receipt')
+            for row in rows:
+                if (row['lane'] not in self.lanes or row['movement'] not in movements
+                        or not math.isfinite(row['share']) or row['share']<=0
+                        or type(row['delay_sec']) is not int or row['delay_sec']<1):
+                    raise ValueError('Invalid approach entry route, lane or travel delay')
+        self.queues={lane:deque() for lane in self.lanes}
+        for row in initial:
+            lane=row['lane'];amount=row['vehicles'];due=row['ready_sec']
+            if (lane not in self.lanes or row['movement'] not in movements
+                    or not math.isfinite(amount) or amount<0 or type(due) is not int):
+                raise ValueError('Invalid initial approach packet')
+            if amount:self.queues[lane].append([due,row['source'],row['movement'],amount])
+        # Initial physical order must be supplied front to back. A later packet
+        # being nominally faster never lets it pass a stopped packet in its lane.
+        self.initial=sum(self.stock(lane) for lane in self.lanes)
+        self.admitted=0.;self.departed=0.;self.residence_veh_h=0.
+        self.assert_conserved()
+
+    def stock(self,lane=None):
+        return sum(row[3] for key,q in self.queues.items() if lane is None or key==lane for row in q)
+
+    def receiving(self,source):
+        """A full destination lane blocks its share of an unsplit inlet stream."""
+        weights=defaultdict(float)
+        for row in self.entries[source]:weights[row['lane']]+=row['share']
+        return max(0.,min((self.lanes[g]['capacity_veh']-self.stock(g))/w for g,w in weights.items()))
+
+    def accept(self,source,vehicles,step):
+        if step!=self.time or not math.isfinite(vehicles) or vehicles<0:
+            raise ValueError('Approach receipt requires its current time and nonnegative mass')
+        if vehicles>self.receiving(source)+1e-7:
+            raise ArithmeticError('Approach receipt exceeds finite shared receiving space')
+        allocated=0.
+        rows=self.entries[source]
+        for i,row in enumerate(rows):
+            amount=vehicles-allocated if i==len(rows)-1 else vehicles*row['share']
+            allocated+=amount
+            if amount<=0:continue
+            packet=[step+row['delay_sec'],source,row['movement'],amount]
+            q=self.queues[row['lane']]
+            if q and q[-1][:3]==packet[:3]:q[-1][3]+=amount
+            else:q.append(packet)
+        self.admitted+=vehicles
+        self.assert_conserved()
+
+    def advance(self,step,green,receiving):
+        """Serve one second of common lane capacity, with per-exit acceptance.
+
+        A blocked head packet blocks that lane; independent lanes can continue.
+        Simultaneous requests for the same downstream storage share its budget
+        proportionally rather than receiving that budget once per source/lane.
+        """
+        if step!=self.time or set(green)!=set(self.lanes):
+            raise ValueError('Noncontiguous or incomplete shared approach signal state')
+        movements={m for row in self.lanes.values() for m in row['movements']}
+        if set(receiving)!=movements or any(not math.isfinite(v) or v<0 for v in receiving.values()):
+            raise ValueError('Shared approach needs every finite downstream offer')
+        if any(not math.isfinite(g) or not 0<=g<=1 for g in green.values()):
+            raise ValueError('Invalid signal green fraction')
+        before=self.stock()
+        lateral=self._mandatory_lane_changes()
+        budget={g:row['service_veh_h']/3600.*green[g] for g,row in self.lanes.items()}
+        left=dict(receiving);departures=[]
+        while True:
+            request={}
+            by_target=defaultdict(float)
+            for lane,q in self.queues.items():
+                if not q or q[0][0]>step or q[0][2] not in self.lanes[lane]['movements']:continue
+                target=q[0][2];prefix=0.
+                for due,source,movement,amount in q:
+                    if due>step or movement!=target:break
+                    prefix+=amount
+                    if prefix>=budget[lane]:break
+                # Packet size/source tags must not change a lane's priority
+                # when several lanes request the same downstream space.
+                n=min(prefix,budget[lane],left[target])
+                if n>1e-12:
+                    request[lane]=n;by_target[target]+=n
+            if not request:break
+            accepted={g:n*min(1.,left[self.queues[g][0][2]]/by_target[self.queues[g][0][2]]) for g,n in request.items()}
+            for lane,n in accepted.items():
+                q=self.queues[lane];movement=q[0][2];remaining=n
+                while remaining>1e-12:
+                    due,source,target,amount=q[0]
+                    if target!=movement or due>step:
+                        raise ArithmeticError('Shared approach exceeded its ready FIFO prefix')
+                    served=min(remaining,amount)
+                    departures.append(dict(lane=lane,source=source,movement=target,vehicles=served))
+                    q[0][3]=amount-served;remaining-=served
+                    if q[0][3]<=1e-12:q.popleft()
+                budget[lane]=max(0.,budget[lane]-n)
+                left[movement]=max(0.,left[movement]-n)
+        served=sum(x['vehicles'] for x in departures)
+        self.departed+=served
+        self.residence_veh_h+=(before-served/2.)/3600.
+        self.time+=1
+        self.last_lateral=lateral
+        self.assert_conserved()
+        return departures
+
+    def _mandatory_lane_changes(self):
+        """Coarse adjacent-lane transfers using the same OLD finite space.
+
+        This resolves a known destination's accessibility, not discretionary
+        weaving. It has no fitted VSL/RM bonus or extra population. The accepted
+        rate is bounded by the declared lane flow rate; a spatial gap model is
+        still an approximation at this approach aggregation level.
+        """
+        room={lane:max(0.,min(row['capacity_veh']-self.stock(lane),row['service_veh_h']/3600.))
+              for lane,row in self.lanes.items()}
+        requests=defaultdict(list)
+        for lane in self.lane_order:
+            budget=self.lanes[lane]['service_veh_h']/3600.
+            for packet in self.queues[lane]:
+                if packet[2] in self.lanes[lane]['movements']:continue
+                targets=[g for g in self.lane_order if packet[2] in self.lanes[g]['movements']]
+                nearest=min(targets,key=lambda g:abs(int(g)-int(lane)))
+                target=str(int(lane)+(1 if int(nearest)>int(lane) else -1))
+                n=min(packet[3],budget)
+                if n>0:requests[target].append((lane,packet,n));budget-=n
+                if budget<=1e-12:break
+        additions=defaultdict(list);transfers=[]
+        for target,rows in requests.items():
+            total=sum(n for lane,packet,n in rows)
+            factor=min(1.,room[target]/total)
+            for lane,packet,n in rows:
+                moved=n*factor
+                if moved<=0:continue
+                additions[target].append([*packet[:3],moved])
+                packet[3]-=moved
+                transfers.append(dict(source_lane=lane,target_lane=target,source=packet[1],
+                                      movement=packet[2],vehicles=moved))
+        for lane in self.lane_order:
+            self.queues[lane]=deque(p for p in self.queues[lane] if p[3]>1e-12)
+            for packet in additions[lane]:
+                # Due time is a travel readiness estimate, not an observed
+                # spatial gap. Preserve the order of already-ready target cars.
+                where=next((j for j,p in enumerate(self.queues[lane])
+                            if p[0]>max(self.time,packet[0])),len(self.queues[lane]))
+                self.queues[lane].insert(where,packet)
+        self.assert_conserved()
+        return transfers
+
+    def assert_conserved(self):
+        for lane,row in self.lanes.items():
+            if not -1e-7<=self.stock(lane)<=row['capacity_veh']+1e-7:
+                raise ArithmeticError('Shared approach exceeded physical lane storage')
+        if abs(self.initial+self.admitted-self.departed-self.stock())>1e-7:
+            raise ArithmeticError('Shared approach lost or duplicated vehicles')
+
+
+class LaneOfframpRuntime:
+    def __init__(self, ports, descriptions, local_port, membership):
+        if set(ports) != set(descriptions)-{'10643'}:
+            raise ValueError('Exactly seven ordinary physical off-ramps required')
+        self.ports=ports
+        self.descriptions=descriptions
+        self.local_port=local_port
+        self.membership=membership
+        self.last_drain=None
+
+    def stock(self, off):
+        return (math.fsum(p.stock for p in self.local_port.lanes) if off=='10643'
+                else self.ports[off].stock)
+
+    def assert_mirrors(self,state,cfg):
+        for off,row in self.descriptions.items():
+            key=row['storage']
+            n=cfg.network.urban_link_storage_veh[key]-state.urban_link_storage[key]
+            if abs(n-self.stock(off))>1e-7:
+                raise ArithmeticError('Physical off-ramp differs from its sole stock owner: '+off)
+
+    def drain(self,state,control,cfg,step,routing):
+        from src.models import urban_queue_model as uqm
+        from evaluation.controllers.control_area_objective import get_ledger,emit_transfer
+        from evaluation.controllers.urban_flow_accounting import _receive_corridor
+        from evaluation.controllers.route_choice_corridor import known_legsplit_receive, direct_exit_receive
+        if self.last_drain is not None and step!=self.last_drain+1:
+            raise ValueError('Noncontiguous physical off-ramp drainage')
+        self.assert_mirrors(state,cfg)
+        ledger=get_ledger(state)
+        departures=defaultdict(float)
+        for off,port in self.ports.items():
+            row=self.descriptions[off]
+            key=row['storage']
+            stock=port.stock
+            requests=[]
+            if row.get('local_upstream'):
+                target=state.lane_urban_runtime.origin
+                service=cfg.network.movement_capacity_veh_h*row['lanes']/3600.
+                room=uqm._effective_available_space(state,cfg,target)
+                requests.append((None,target,min(service,room),service,room))
+            elif row['direct']:
+                target=row['target']
+                service=cfg.network.movement_capacity_veh_h*row['lanes']/3600.
+                room=uqm._effective_available_space(state,cfg,target)
+                requests.append((None,target,min(service,room),service,room))
+            else:
+                # Distinct movements retain the existing conditional weights;
+                # their downstream room is consumed by actual accepted packets.
+                reserved=defaultdict(float)
+                for m in cfg.network.off_ramp_to_movement[row['group']]:
+                    spec=cfg.network.urban_movements[m]
+                    target=spec['receiving_link']
+                    service=(uqm._movement_capacity_flow(control,cfg,m,spec)*
+                             uqm._phase_green_fraction(control,cfg,spec,urban_step_index=step)/3600.)
+                    room=max(0.,uqm._effective_available_space(state,cfg,target)-reserved[target])
+                    amount=min(float(spec['beta'])*stock,service,room)
+                    requests.append((m,target,amount,service,room))
+                    reserved[target]+=amount
+            limit=math.fsum(x[2] for x in requests)
+            actual=port.release(step,1.,limit*3600.)
+            if actual>limit+1e-7 or actual>stock+1e-7:
+                raise ArithmeticError('Physical off-ramp exceeded available sending/service')
+            if ledger.captures_response:
+                ledger.record_resource_allocation('physical_offramp_stock',off,stock,{off:actual})
+                ledger.record_resource_allocation('physical_offramp_service',off,limit,{off:actual})
+            for movement,target,amount,service,room in requests:
+                n=amount*actual/limit if limit else 0.
+                if ledger.captures_response:
+                    evidence={off+':'+str(movement):n}
+                    ledger.record_resource_allocation('physical_offramp_target_room',off+':'+target,room,evidence)
+                    ledger.record_resource_allocation('physical_offramp_target_service',off+':'+str(movement),service,evidence)
+                if n<=0:continue
+                state.urban_link_storage[key]+=n
+                state.urban_link_storage[target]=_debit_stock(state.urban_link_storage[target],n)
+                if row.get('local_upstream'):
+                    emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,preserve_area=True)
+                    state.lane_urban_runtime.schedule_upstream(state,cfg,step,n,entry='off10638')
+                elif movement is None:
+                    emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,
+                        source_inside=self.membership[str(row['connector'])],
+                        target_inside=self.membership[str(row['to_link'])])
+                    due=step+uqm._link_delay_steps(state,cfg,target)
+                    owned=False
+                    if getattr(cfg.network,'known_legsplit_routes',None):
+                        owned=known_legsplit_receive(state,cfg,n,due,off_ramp=row['group'],entry_step=step)
+                    physical_direct=getattr(cfg.network,'direct_exit_legsplit',{}).get('travel')
+                    if physical_direct:
+                        owned=direct_exit_receive(state,cfg,off,target,n,due,entry_step=step) or owned
+                    if not owned:
+                        if target in routing:uqm._schedule(state.urban_arrival_buffer,target,due,n)
+                        uqm._schedule(state.urban_storage_release_buffer,target,due,n)
+                    if not physical_direct:direct_exit_receive(state,cfg,off,target,n,due)
+                else:
+                    emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,route_key='movement:'+movement)
+                    if not _receive_corridor(state,cfg,movement,n,step):
+                        due=step+uqm._link_delay_steps(state,cfg,target)
+                        if target in routing:uqm._schedule(state.urban_arrival_buffer,target,due,n)
+                        uqm._schedule(state.urban_storage_release_buffer,target,due,n)
+                        from evaluation.controllers.omega_distance import record_ordinary_movement
+                        record_ordinary_movement(state,cfg,movement,n,step,due)
+                departures[row['group']]+=n
+        self.last_drain=step
+        self.assert_mirrors(state,cfg)
+        if ledger.captures_response:ledger.complete_constraint_coverage('physical_offramp_drain')
+        return dict(departures)
+
+    def capacities(self,state,cfg):
+        self.assert_mirrors(state,cfg)
+        caps={off:max(0.,state.urban_link_storage[row['storage']])*3600.
+              for off,row in self.descriptions.items()}
+        lanes=[min(p.capacity-p.stock,p.receiving(1.))*3600. for p in self.local_port.lanes]
+        caps['10643']=min(caps['10643'],math.fsum(lanes))
+        # The mainline has lane1,lane2,lanes3+ groups;10643 admits only the
+        # first two physical lanes. The inaccessible group has zero room.
+        return caps,{'10643':lanes+[0.]}
+
+    def land(self,state,cfg,end,flows,group_flows):
+        from evaluation.controllers.control_area_objective import get_ledger,emit_transfer
+        ledger=get_ledger(state)
+        if set(flows)!=set(self.descriptions):raise ValueError('Incomplete physical off-ramp landing')
+        total=0.
+        for off,row in self.descriptions.items():
+            amount=flows[off]/3600.
+            key=row['storage']
+            room=state.urban_link_storage[key]
+            if not math.isfinite(amount) or amount<0 or amount>room+1e-7:
+                raise ArithmeticError('Freeway sent beyond finite connector storage')
+            if off=='10643':
+                by_lane=group_flows[off]
+                if len(by_lane)!=2 or abs(math.fsum(by_lane)-amount)>1e-7:
+                    raise ArithmeticError('Off-ramp lane admission disagrees with aggregate')
+                for g,n in enumerate(by_lane):
+                    p=self.local_port.lanes[g]
+                    receiving=p.receiving(1.)
+                    p.accept(end,n)
+                    self.local_port.admit(g,n)
+                    if ledger.captures_response:
+                        ledger.record_resource_allocation('physical_offramp_lane_receiving',off+':'+str(g),receiving,{off:n})
+            else:self.ports[off].accept(end,amount)
+            state.urban_link_storage[key]=_debit_stock(room,amount)
+            emit_transfer(state,cfg,'freeway:'+row['road'],'storage:'+key,amount,
+                source_inside=True,target_inside=self.membership[str(row['connector'])])
+            total+=amount
+            if ledger.captures_response:
+                ledger.record_resource_allocation('physical_offramp_landing_storage',off,room,{off:amount})
+                ledger.complete_constraint_coverage('offramp_landing:'+off)
+        self.assert_mirrors(state,cfg)
+        ledger.complete_constraint_coverage('offramp_landing')
+        return total

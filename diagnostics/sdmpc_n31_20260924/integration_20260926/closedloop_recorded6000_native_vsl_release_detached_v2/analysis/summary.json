@@ -1,0 +1,87 @@
+{
+  "scope": "Common actual SDMPC history,450s VSL-only hold/release response; not a new closed-loop policy or NC comparison",
+  "start_sec": 6000,
+  "end_sec": 6450,
+  "arms": {
+    "hold": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_6450_veh_h": 5708.545472222221,
+      "TTT_6000p1_6450_veh_h": 356.29847222221997,
+      "Omega_TTD_events": 43735,
+      "Omega_end_vehicles": 2755,
+      "native_removals": 296,
+      "uninserted_at_end": 10022,
+      "unresolved_Omega_disappearances": 609,
+      "outside_Omega_residence_veh_h": 2138.1303888888947,
+      "last_fzp_sec": 6445.1,
+      "tail_hold_veh_h": 3.7498611111108326,
+      "native_physical_network_time_veh_h": 7846.5553685566665,
+      "native_uninserted_delay_veh_h": 12031.825750000278,
+      "native_total_time_including_uninserted_veh_h": 19878.381118556943,
+      "native_uninserted_at_end": 10022.0,
+      "native_network_end_vehicles": 3524.0,
+      "native_arrived_vehicles": 48992.0
+    },
+    "release": {
+      "native_execution_passed": true,
+      "lsa_passed": false,
+      "TTT_0_6450_veh_h": 5708.483916666668,
+      "TTT_6000p1_6450_veh_h": 356.23691666666673,
+      "Omega_TTD_events": 43740,
+      "Omega_end_vehicles": 2746,
+      "native_removals": 296,
+      "uninserted_at_end": 10026,
+      "unresolved_Omega_disappearances": 608,
+      "outside_Omega_residence_veh_h": 2137.9956666666726,
+      "last_fzp_sec": 6445.1,
+      "tail_hold_veh_h": 3.7376111111108337,
+      "native_physical_network_time_veh_h": 7846.347840775833,
+      "native_uninserted_delay_veh_h": 12031.9282222225,
+      "native_total_time_including_uninserted_veh_h": 19878.27606299833,
+      "native_uninserted_at_end": 10026.0,
+      "native_network_end_vehicles": 3513.0,
+      "native_arrived_vehicles": 48999.0
+    }
+  },
+  "reused_nc_run": null,
+  "whole_omega_gain_qualified": false,
+  "new_calibration": false,
+  "prefixes": {
+    "hold": {
+      "sha256": "15711067a2b6f6523389902e25b6381b7d69ae9b4c73f461b3160e4795cde293",
+      "rows": 5319738,
+      "last_time_s": 5995.1
+    },
+    "release": {
+      "sha256": "15711067a2b6f6523389902e25b6381b7d69ae9b4c73f461b3160e4795cde293",
+      "rows": 5319738,
+      "last_time_s": 5995.1
+    }
+  },
+  "original_prefix": {
+    "sha256": "15711067a2b6f6523389902e25b6381b7d69ae9b4c73f461b3160e4795cde293",
+    "rows": 5319738,
+    "last_time_s": 5995.1
+  },
+  "paired_prefix_exact": true,
+  "original_initial_history_exact": true,
+  "delta_definition": "release minus hold",
+  "delta_TTT_veh_h": -0.06155555555324099,
+  "delta_outside_Omega_residence_veh_h": -0.13472222222208075,
+  "limitations": [
+    "5s sampled residence; final4.9s holds last observed stock.",
+    "Only the protocol VSL zone changes after the common prefix; city signals,offset and all RM commands are held.",
+    "Native whole-network time and sampled Omega time have different scopes and must not be substituted.",
+    "Completion of a simulation does not establish controller gain or independent-seed robustness.",
+    "Native LSA coverage failure remains separate; user authorized LDP as execution evidence."
+  ],
+  "delta_native_total_time_including_uninserted_veh_h": -0.10505555861163884,
+  "delta_native_uninserted_delay_veh_h": 0.10247222222096752,
+  "protocol_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded6000_native_vsl_release_detached_v2\\protocol.json",
+  "protocol_sha256": "b7745d61ccd34ffb83ec915173c2a5c1a0592d90879b4cff9aa0d11d3dbee5b2",
+  "prediction_source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded6000_lever450_VSL_FW_E__seg13_detached\\summary.json",
+  "predicted_delta_omega_veh_h": 0.2969575133020612,
+  "predicted_delta_tracked_total_veh_h": 0.30112239676924446,
+  "counterfactual_valid": true
+}

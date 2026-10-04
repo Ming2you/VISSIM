@@ -1,0 +1,22 @@
+{
+  "previous_goal_turn": "PROGRESS:current-state local67 balance and lane populations identified possible pressure mismatch; no coefficient changed.",
+  "candidates": [
+    "pressure18",
+    "pressure18_merge21_23"
+  ],
+  "new_native": 0,
+  "new_fzp_reads": 0,
+  "maximum_full_forecasts": 14,
+  "pressure": "Only cell18: route inventory removes10481-target stock; remaining stock divided by current usable continuing lanes=min(3,effective lanes18). This is a homogeneous through-route pressure hypothesis, not an observed lane partition.",
+  "equation": "rho_through=N_continuing/(L*lambda_continuing); virtual_down=max(0,rho+(rho_down-rho_through)*(rho+kappa)/(rho_through+kappa)). Existing speed update receives virtual_down only at18; physical density,FD,q,storage,lane-drop andmerge flow unchanged.",
+  "calibration": "One common delta_merge multiplier at21/23 from20seed29 NC30s mean equation balances, with actual5s merges and current native states. Bound[0.25,1],10%quadratic prior toward1; no control-effect fit.",
+  "train_gate": "Seed29 NC750: cell15-25 tail300 normalized N/v/q loss<=90% baseline; first450<=110%; whole speed RMSE<=baseline+2km/h.",
+  "validation": "If either train gate passes, freeze lower-tail-loss candidate before seed29VSL750/RM/both450,seed43all4(NC/VSL750),seed67lateall4(450). Seeds43/67 previously inspected, not blind.",
+  "limits": [
+    "The equivalent density is a proposed local closure, not a published formula or capacity bonus.",
+    "Routes do not uniquely determine lanes; lane2 is shared. All same-step route masses are predicted causally.",
+    "Speed-gradient branch and existing recovery predicates see the equivalent pressure; no new cost/reward/control labels.",
+    "Conditional derivative fit is approximate; acceptance requires autonomous states,physical flows,queues and paired costs.",
+    "No controller integration or production adoption from training success alone."
+  ]
+}

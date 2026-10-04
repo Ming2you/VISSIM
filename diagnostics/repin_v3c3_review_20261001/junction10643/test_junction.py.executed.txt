@@ -1,0 +1,133 @@
+import copy
+import json
+import math
+from pathlib import Path
+import types
+import unittest
+from unittest.mock import patch
+
+from evaluation.controllers.physical_urban_transport import UrbanTransport, FIFO, observe, geometry
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[2]
+MANIFEST=json.loads((HERE.parent/'retained10638/candidate_manifest.json').read_bytes())
+NETWORK=ROOT/MANIFEST['sources']['network']['path']
+PROTOCOL=json.loads((HERE/'local_protocol.json').read_bytes())
+
+
+class Green:
+    def state_at(self,*args,**kwargs):return 'GREEN'
+
+
+class Red:
+    def state_at(self,*args,**kwargs):return 'RED'
+
+
+def current():
+    folder=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3/hold/decisions_sdmpc31_g_2700_hold_s47')
+    raw=json.loads((folder/'state_002700.json').read_bytes())
+    frame=json.loads((Path(raw['lane_plant_observation']['directory'])/'frame_002700.json').read_bytes())
+    routes,exits=geometry(NETWORK)
+    result=observe(frame,routes,exits)
+    result['vehicles']=[v for v in result['vehicles'] if v['link']!=10700]
+    return result
+
+
+def build(aligned=False,cls=UrbanTransport,data=None,program=None):
+    args=dict(current=current() if data is None else data,network=NETWORK,
+        program=program or Green(),offset=0,speed=PROTOCOL['urban_free_speed_m_s'],
+        spacing=6.,wave=PROTOCOL['wave_m_s'],lateral_access=PROTOCOL['lateral_access'],
+        continuation=PROTOCOL['unrouted_continuation'])
+    if cls is UrbanTransport:args['junction_aligned']=aligned
+    return cls(**args)
+
+
+def blank(aligned):
+    x=build(aligned,data=dict(time_s=2700,vehicles=[]))
+    return x
+
+
+class JunctionTests(unittest.TestCase):
+    def test_capacity_length_and_cfl(self):
+        a,b=build(False),build(True)
+        self.assertAlmostEqual(sum(a.cap.values()),sum(b.cap.values()),10)
+        self.assertAlmostEqual(sum(e[-1] for e in a.edges.values()),sum(e[-1] for e in b.edges.values()),10)
+        self.assertGreaterEqual(min(b.dx.values()),b.speed)
+        self.assertEqual(b.off_entry_cell(2),(10641,2,0))
+        self.assertAlmostEqual(b.edges[126][-1],b.merge_position,10)
+
+    def test_actual_initial_labels_and_input_immutable(self):
+        data=current();saved=copy.deepcopy(data)
+        a,b=build(False,data=data),build(True,data=data)
+        self.assertEqual(data,saved)
+        for label,n in a.counts().items():self.assertAlmostEqual(n,b.counts()[label],10)
+
+    def test_tail_mapping_and_distance_no_loss(self):
+        b=blank(True)
+        total=math.fsum(z-y for road,e in b.edges.items() for x0,x1 in zip(e,e[1:])
+                       for _,y,z in b.physical_spans(road,x0,x1))
+        self.assertAlmostEqual(total,sum(e[-1] for e in build(False).edges.values()),10)
+        spans=b.physical_spans(10641,0,b.edges[10641][-1])
+        self.assertEqual([r for r,a,z in spans],[126,10641])
+        self.assertAlmostEqual(spans[0][1],b.merge_position,10)
+        self.assertAlmostEqual(spans[0][2],b.physical_end126,10)
+        self.assertAlmostEqual(spans[1][2],b.lengths[10641],10)
+
+    def test_observed_tail_vehicle_keeps_identity(self):
+        layout=blank(True)
+        data=dict(time_s=2700,vehicles=[dict(vehicle=123,link=126,lane=1,
+            position_m=layout.physical_end126-1.,speed_kmh=0.,length_m=4.5,connector=10634)])
+        saved=copy.deepcopy(data);m=build(True,data=data)
+        self.assertEqual(data,saved)
+        self.assertAlmostEqual(m.counts()[(10634,123)],1.,10)
+        self.assertEqual(m.junction_projection[0]['vehicle'],123)
+        self.assertEqual(sum(q.stock for (r,l,i),q in m.cells.items() if r==126),0.)
+
+    def test_unqualified_compiled_path_fails_closed(self):
+        m=blank(True)
+        with patch('evaluation.controllers.physical_urban_transport.prediction_cache.active',
+                   return_value=types.SimpleNamespace(urban_pipeline_enabled=True)):
+            with self.assertRaisesRegex(ValueError,'not qualified'):
+                m.step({})
+
+    def test_no_false_upstream_receiving_and_shared_downstream_budget(self):
+        receipts=[]
+        for aligned in (False,True):
+            m=blank(aligned);last=(126,1,len(m.edges[126])-2)
+            m.cells[last].append((10634,1),m.cap[last]);m.initial=m.counts()
+            offer=FIFO([((10634,2),1.)])
+            accepted=m.step({'off':(m.off_entry_cell(1),offer)})
+            receipts.append(sum(n for _,n in accepted.get('off',[])))
+            target=(10641,1,0)
+            flowed=sum(n for _,t,ps in m.last_transfers if t==target for _,n in ps)
+            self.assertLessEqual(flowed,m.last_receiving_limits[target]+1e-10)
+            self.assertAlmostEqual(sum(m.counts().values()),sum(m.initial.values())+receipts[-1],10)
+        self.assertEqual(receipts[0],0.)
+        self.assertGreater(receipts[1],0.)
+
+    def test_real_downstream_full_still_blocks(self):
+        m=blank(True);target=m.off_entry_cell(1)
+        m.cells[target].append((10634,1),m.cap[target]);m.initial=m.counts()
+        accepted=m.step({'off':(target,FIFO([((10634,2),1.)]))})
+        self.assertEqual(sum(n for _,n in accepted.get('off',[])),0.)
+
+    def test_red_and_label_conservation(self):
+        m=build(True,program=Red())
+        before=m.counts()
+        for _ in range(40):m.step({})
+        # The upstream side10642 is unsignalized; signal exits must remain closed.
+        self.assertEqual(sum(n for label,n in m.departed.items() if label[0] in (10634,10635)),0.)
+        for label,n in before.items():self.assertAlmostEqual(n,m.counts().get(label,0)+m.departed.get(label,0),8)
+
+    def test_disabled_path_exact_120_steps(self):
+        legacy=types.ModuleType('junction_legacy_transport')
+        exec(compile((HERE/'physical_urban_transport.py.before').read_text(encoding='utf-8'),'<preserved>', 'exec'),legacy.__dict__)
+        a,b=build(False,cls=legacy.UrbanTransport),build(False)
+        for _ in range(120):
+            self.assertEqual(a.step({}),b.step({}))
+            self.assertEqual(a.last_transfers,b.last_transfers)
+            self.assertEqual(a.counts(),b.counts())
+            self.assertEqual(a.vehicle_seconds,b.vehicle_seconds)
+
+
+if __name__=='__main__':unittest.main()

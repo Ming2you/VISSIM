@@ -1,0 +1,27 @@
+{
+  "train": [
+    "onset29",
+    "late29"
+  ],
+  "validate": [
+    "hold47",
+    "release47",
+    "hold53",
+    "release53"
+  ],
+  "formula": "x=r10/(q22_total+r10)*max(0,1-v23/110); v_lane=v23*exp(-a*x)",
+  "parameters": 1,
+  "fit": "Nonnegative weighted least squares of log(v23/v_lane) against x, zero intercept; weights=lane vehicle count.",
+  "assumptions": "110km/h is a fixed free-speed reference for this screen; VSL-limited free flow may be confounded and must not be claimed qualified.",
+  "merge_memory_sec": 10,
+  "parameter_grid": 0,
+  "refit_after_validation": false,
+  "comparison": "Native whole-cell speed times the measured initial lane/whole ratio for each case.",
+  "gate": "Combined vehicle-weighted holdout MAE at least10% lower than fixed initial ratio; no holdout arm MAE more than25% worse.",
+  "stage": "Necessary observation-closure screen only. Current native aggregate inputs are substituted, not autonomous prediction. Future frames are used as labels only; trailing merge counts end at current time.",
+  "next_if_fail": "Reject this formula without fitting more coefficients or launching rollouts.",
+  "new_native": 0,
+  "new_fzp_reads": 0,
+  "new_forecasts": 0,
+  "live_poll": 0
+}

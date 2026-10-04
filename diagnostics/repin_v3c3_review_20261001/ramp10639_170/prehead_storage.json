@@ -1,0 +1,249 @@
+{
+  "status": "defect_reproduced_not_fixed",
+  "fixture": {
+    "geometry_length_m": 100,
+    "head_m": 60,
+    "spacing_m": 6,
+    "initial_pre_n": 10,
+    "physical_pre_capacity_veh": 10,
+    "expected_additional_admission": 0,
+    "current_reported_admission_space": 6.666666666666668,
+    "receipt": {
+      "start_sec": 0.0,
+      "end_sec": 1.0,
+      "duration_sec": 1.0,
+      "start": {
+        "connector_id": "diagnostic",
+        "time_sec": 0.0,
+        "phase": "idle",
+        "upstream_travelling_veh": 10.0,
+        "head_ready_veh": 0.0,
+        "downstream_travelling_veh": 0.0,
+        "merge_ready_veh": 0.0,
+        "connector_veh": 10.0,
+        "capacity_veh": 16.666666666666668,
+        "outside_component_backlog_veh": 0.0,
+        "cumulative_requested_veh": 0.0,
+        "cumulative_admitted_veh": 0.0,
+        "cumulative_head_service_veh": 0.0,
+        "cumulative_merge_veh": 0.0,
+        "connector_ttt_veh_h": 0.0,
+        "conservation_residual_veh": 0.0
+      },
+      "arrived_at_head_veh": 1.0,
+      "arrived_at_merge_veh": 0.0,
+      "eligible_merge_veh": 0.0,
+      "connector_ttt_veh_h": 0.002777777777777778,
+      "accepted_merge_veh": 0.0,
+      "meter_mode": "RED",
+      "green_sec": 0.0,
+      "head_service_limit_veh": 0.0,
+      "head_service_veh": 0.0,
+      "posthead_free_before_service_veh": 6.666666666666667,
+      "nominal_posthead_storage_veh": 6.666666666666667,
+      "requested_arrivals_veh": 1.0,
+      "admitted_arrivals_veh": 1.0,
+      "end": {
+        "connector_id": "diagnostic",
+        "time_sec": 1.0,
+        "phase": "idle",
+        "upstream_travelling_veh": 10.0,
+        "head_ready_veh": 1.0,
+        "downstream_travelling_veh": 0.0,
+        "merge_ready_veh": 0.0,
+        "connector_veh": 11.0,
+        "capacity_veh": 16.666666666666668,
+        "outside_component_backlog_veh": 0.0,
+        "cumulative_requested_veh": 1.0,
+        "cumulative_admitted_veh": 1.0,
+        "cumulative_head_service_veh": 0.0,
+        "cumulative_merge_veh": 0.0,
+        "connector_ttt_veh_h": 0.002777777777777778,
+        "conservation_residual_veh": 0.0
+      },
+      "conservation_residual_veh": 0.0
+    }
+  },
+  "cached_witnesses": [
+    {
+      "arm": "hold",
+      "connector": "10639",
+      "pre_capacity_per_lane_veh": 52.47244896814666,
+      "violating_lane_steps": 320,
+      "max_excess_veh": 15.169794032402926,
+      "first": {
+        "time_s": 2798.1,
+        "lane": 1,
+        "pre_veh": 52.52999999999962,
+        "excess_veh": 0.05755103185295951,
+        "admitted_veh": 0.16
+      },
+      "last": {
+        "time_s": 3120.1,
+        "lane": 1,
+        "pre_veh": 67.64224300054958,
+        "excess_veh": 15.169794032402926,
+        "admitted_veh": 0.28343613270268975
+      }
+    },
+    {
+      "arm": "hold",
+      "connector": "10681",
+      "pre_capacity_per_lane_veh": 48.45333856857746,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "hold",
+      "connector": "10490",
+      "pre_capacity_per_lane_veh": 45.43392654693442,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "hold",
+      "connector": "10484",
+      "pre_capacity_per_lane_veh": 62.85179380913423,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release",
+      "connector": "10639",
+      "pre_capacity_per_lane_veh": 52.47244896814666,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release",
+      "connector": "10681",
+      "pre_capacity_per_lane_veh": 48.45333856857746,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release",
+      "connector": "10490",
+      "pre_capacity_per_lane_veh": 45.43392654693442,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release",
+      "connector": "10484",
+      "pre_capacity_per_lane_veh": 62.85179380913423,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "hold_vsl90",
+      "connector": "10639",
+      "pre_capacity_per_lane_veh": 52.47244896814666,
+      "violating_lane_steps": 320,
+      "max_excess_veh": 15.169874190035863,
+      "first": {
+        "time_s": 2798.1,
+        "lane": 1,
+        "pre_veh": 52.52999999999962,
+        "excess_veh": 0.05755103185295951,
+        "admitted_veh": 0.16
+      },
+      "last": {
+        "time_s": 3120.1,
+        "lane": 1,
+        "pre_veh": 67.64232315818252,
+        "excess_veh": 15.169874190035863,
+        "admitted_veh": 0.283476396985364
+      }
+    },
+    {
+      "arm": "hold_vsl90",
+      "connector": "10681",
+      "pre_capacity_per_lane_veh": 48.45333856857746,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "hold_vsl90",
+      "connector": "10490",
+      "pre_capacity_per_lane_veh": 45.43392654693442,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "hold_vsl90",
+      "connector": "10484",
+      "pre_capacity_per_lane_veh": 62.85179380913423,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release_vsl90",
+      "connector": "10639",
+      "pre_capacity_per_lane_veh": 52.47244896814666,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release_vsl90",
+      "connector": "10681",
+      "pre_capacity_per_lane_veh": 48.45333856857746,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release_vsl90",
+      "connector": "10490",
+      "pre_capacity_per_lane_veh": 45.43392654693442,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    },
+    {
+      "arm": "release_vsl90",
+      "connector": "10484",
+      "pre_capacity_per_lane_veh": 62.85179380913423,
+      "violating_lane_steps": 0,
+      "max_excess_veh": 0,
+      "first": null,
+      "last": null
+    }
+  ],
+  "input_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\ramp10639_170\\prehead_storage.py": "01eaacd5ccd8f9b814e2efd87b46cd8cc0f8801539d349296ad11c49cc4e0c5c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_boundary.py": "f0603b14047adf988d26057c364d79aa45ec8721d0b0a0f439785381503a950f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\recovery_lateral169\\forecast\\state\\s67_late_hold.json.gz": "10f2023c2c1ef1f6bf8239c2449ce72d16d5a43e072476b104dcf1997d9688f6",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\recovery_lateral169\\forecast\\state\\s67_late_release.json.gz": "65745c3af3237896369b55a6cff189d65ddf8372e55c33fbd66f45fabb073309",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\recovery_lateral169\\forecast\\state\\s67_late_hold_vsl90.json.gz": "c339996741428710abb4369c18a40d2ba41a7e9dd4908972022e4a1582c857b2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\recovery_lateral169\\forecast\\state\\s67_late_release_vsl90.json.gz": "7a2ffe65034fb5118bc51f4db55c0f90168803a4387936c79a184d3b1dd0bd2a"
+  },
+  "qualification": "Compartment geometry inconsistency, not a calibrated jam-spacing estimate. Correcting it can move waiting upstream; Omega and outside costs must remain conserved. No gain claim.",
+  "forecasts": 0,
+  "native": 0,
+  "FZP": 0
+}

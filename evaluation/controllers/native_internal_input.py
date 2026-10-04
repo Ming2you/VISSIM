@@ -612,6 +612,8 @@ def advance(state,control,demand,cfg,urban_step_index):
                 delay=max(1,uqm._link_delay_steps(state,cfg,target),math.ceil(row['minimum_approach_distance_m']/(speed/3.6)/dt))
                 uqm._schedule(state.urban_arrival_buffer,target,urban_step_index+delay,admitted)
                 uqm._schedule(state.urban_storage_release_buffer,target,urban_step_index+delay,admitted)
+                from evaluation.controllers.omega_distance import record_native_simple
+                record_native_simple(state,cfg,no,admitted,urban_step_index,urban_step_index+delay)
             stats['admitted_veh']+=admitted;stats['unadmitted_demand_veh']-=admitted
         if not math.isclose(stats['desired_veh'],stats['admitted_veh']+stats['unadmitted_demand_veh'],abs_tol=1e-8):
             raise AssertionError('Native internal desired/admitted/backlog accounting differs')

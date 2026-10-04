@@ -1,0 +1,21 @@
+{
+  "hypothesis": "Current merging-lane speed bias, rather than whole-cell speed, controls post-head travel",
+  "formula": "u_post=min(nominal, current_lane1_mean_speed/current_cell23_mean_speed * predicted_cell23_mean_speed)",
+  "scope": "RM_C10484 posthead travel only; receiving caps, METANET coefficients and all commands unchanged",
+  "ratio": "Measured at current snapshot only, fixed over one450s forecast; no seed/time/action bonus",
+  "max_forecasts_onset": 1,
+  "max_additional_forecasts": 5,
+  "screen": {
+    "onset_error_ratio_max": 0.8,
+    "low_queue_error_increase_max_veh": 1
+  },
+  "reuse_baselines": [
+    "early1500/held_actual",
+    "shared84/recovery_base/held_actual"
+  ],
+  "assumption": "Current lane speed ratio persists over450s; hypothesis, not proven lane dynamics",
+  "future_inputs": false,
+  "fit": 0,
+  "new_native": 0,
+  "automatic_adoption": false
+}

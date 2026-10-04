@@ -1,0 +1,305 @@
+{
+  "cases": [
+    {
+      "case": "s29_early",
+      "actual_best": "both",
+      "predicted_best": "both",
+      "actual_regret": 0.0,
+      "actual_main": {
+        "none": 124.24583333333334,
+        "vsl": 123.87083333333334,
+        "rm": 123.24583333333334,
+        "both": 123.14583333333333
+      },
+      "predicted_main": {
+        "none": 129.24961801789402,
+        "vsl": 128.87937553824938,
+        "rm": 129.02086953448168,
+        "both": 128.64397399450743
+      },
+      "pairs": [
+        {
+          "base": "none",
+          "arm": "vsl",
+          "actual": -0.375,
+          "predicted": -0.3702424796446451,
+          "meaningful": false,
+          "same_sign": true
+        },
+        {
+          "base": "none",
+          "arm": "rm",
+          "actual": -1.0,
+          "predicted": -0.2287484834123461,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "none",
+          "arm": "both",
+          "actual": -1.1000000000000085,
+          "predicted": -0.6056440233865885,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "vsl",
+          "arm": "rm",
+          "actual": -0.625,
+          "predicted": 0.14149399623229897,
+          "meaningful": true,
+          "same_sign": false
+        },
+        {
+          "base": "vsl",
+          "arm": "both",
+          "actual": -0.7250000000000085,
+          "predicted": -0.23540154374194344,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "rm",
+          "arm": "both",
+          "actual": -0.10000000000000853,
+          "predicted": -0.3768955399742424,
+          "meaningful": false,
+          "same_sign": true
+        }
+      ]
+    },
+    {
+      "case": "s29_late",
+      "actual_best": "hold",
+      "predicted_best": "hold",
+      "actual_regret": 0.0,
+      "actual_main": {
+        "hold": 120.89583333333333,
+        "release": 130.3625,
+        "hold_vsl90": 121.50833333333334,
+        "release_vsl90": 130.28333333333333
+      },
+      "predicted_main": {
+        "hold": 127.10988260601572,
+        "release": 134.85374739996854,
+        "hold_vsl90": 127.56295485299928,
+        "release_vsl90": 134.67160240923155
+      },
+      "pairs": [
+        {
+          "base": "hold",
+          "arm": "release",
+          "actual": 9.466666666666683,
+          "predicted": 7.743864793952824,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "hold",
+          "arm": "hold_vsl90",
+          "actual": 0.6125000000000114,
+          "predicted": 0.45307224698356663,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "hold",
+          "arm": "release_vsl90",
+          "actual": 9.387500000000003,
+          "predicted": 7.561719803215837,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "release",
+          "arm": "hold_vsl90",
+          "actual": -8.854166666666671,
+          "predicted": -7.290792546969257,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "release",
+          "arm": "release_vsl90",
+          "actual": -0.07916666666667993,
+          "predicted": -0.18214499073698676,
+          "meaningful": false,
+          "same_sign": true
+        },
+        {
+          "base": "hold_vsl90",
+          "arm": "release_vsl90",
+          "actual": 8.774999999999991,
+          "predicted": 7.10864755623227,
+          "meaningful": true,
+          "same_sign": true
+        }
+      ]
+    },
+    {
+      "case": "s43_early",
+      "actual_best": "rm",
+      "predicted_best": "rm",
+      "actual_regret": 0.0,
+      "actual_main": {
+        "none": 128.5375,
+        "vsl": 129.3,
+        "rm": 127.3375,
+        "both": 127.40416666666667
+      },
+      "predicted_main": {
+        "none": 120.80641473518097,
+        "vsl": 121.27732596574465,
+        "rm": 120.67202438490817,
+        "both": 121.16912050746527
+      },
+      "pairs": [
+        {
+          "base": "none",
+          "arm": "vsl",
+          "actual": 0.762500000000017,
+          "predicted": 0.47091123056368644,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "none",
+          "arm": "rm",
+          "actual": -1.1999999999999886,
+          "predicted": -0.13439035027279544,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "none",
+          "arm": "both",
+          "actual": -1.1333333333333258,
+          "predicted": 0.36270577228430056,
+          "meaningful": true,
+          "same_sign": false
+        },
+        {
+          "base": "vsl",
+          "arm": "rm",
+          "actual": -1.9625000000000057,
+          "predicted": -0.6053015808364819,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "vsl",
+          "arm": "both",
+          "actual": -1.8958333333333428,
+          "predicted": -0.10820545827938588,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "rm",
+          "arm": "both",
+          "actual": 0.06666666666666288,
+          "predicted": 0.497096122557096,
+          "meaningful": false,
+          "same_sign": true
+        }
+      ]
+    },
+    {
+      "case": "s53_late",
+      "actual_best": "hold_vsl90",
+      "predicted_best": "hold",
+      "actual_regret": 0.2541666666666771,
+      "actual_main": {
+        "hold": 124.44583333333334,
+        "release": 133.2125,
+        "hold_vsl90": 124.19166666666666,
+        "release_vsl90": 132.90833333333333
+      },
+      "predicted_main": {
+        "hold": 126.62064635178923,
+        "release": 135.4890912272019,
+        "hold_vsl90": 126.81430183899634,
+        "release_vsl90": 135.336846410149
+      },
+      "pairs": [
+        {
+          "base": "hold",
+          "arm": "release",
+          "actual": 8.766666666666666,
+          "predicted": 8.868444875412663,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "hold",
+          "arm": "hold_vsl90",
+          "actual": -0.2541666666666771,
+          "predicted": 0.1936554872071099,
+          "meaningful": false,
+          "same_sign": false
+        },
+        {
+          "base": "hold",
+          "arm": "release_vsl90",
+          "actual": 8.462499999999991,
+          "predicted": 8.716200058359775,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "release",
+          "arm": "hold_vsl90",
+          "actual": -9.020833333333343,
+          "predicted": -8.674789388205554,
+          "meaningful": true,
+          "same_sign": true
+        },
+        {
+          "base": "release",
+          "arm": "release_vsl90",
+          "actual": -0.30416666666667425,
+          "predicted": -0.15224481705288895,
+          "meaningful": false,
+          "same_sign": true
+        },
+        {
+          "base": "hold_vsl90",
+          "arm": "release_vsl90",
+          "actual": 8.716666666666669,
+          "predicted": 8.522544571152665,
+          "meaningful": true,
+          "same_sign": true
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "cases": 4,
+    "pairs": 24,
+    "meaningful_pairs": 18,
+    "meaningful_sign_correct": 16,
+    "exact_best": 3,
+    "maximum_actual_regret": 0.2541666666666771
+  },
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\selection.json": "29ebe47ab357ede960a0735c9dc186ec20b3c7a50aaf554498ca613543acf61f",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\expanded_joint\\summary.json": "bf9525f31bc0f11dddc9080817f73a0b3aa87596d8bb0b2fb5bc259c487778a0",
+    "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\expanded_seed53\\summary.json": "868a55f7004e5e76a7e99d5317601d27cde86f3e4633f657264f2489bdf460d0"
+  },
+  "model": "expanded_joint/eval_036",
+  "threshold_veh_h": 0.5,
+  "threshold_origin": "existing cellwise protocol, not chosen after this comparison",
+  "previously_inspected_checks": true,
+  "train_cases": [
+    "s29_early",
+    "s29_late"
+  ],
+  "check_cases": [
+    "s43_early",
+    "s53_late"
+  ],
+  "scope": "East31 mainline TTT only, four fixed candidates per common initial state; no independent confidence interval or global optimization claim.",
+  "adoption": false,
+  "new_rollouts": 0,
+  "goal_qualified": false
+}

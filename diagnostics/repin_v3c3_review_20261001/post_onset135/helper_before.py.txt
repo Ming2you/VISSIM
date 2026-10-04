@@ -1,0 +1,1266 @@
+"""Bounded equal-budget local recalibration of two existing plant structures.
+
+Reuses124 executed canonical functions in-process. No native simulation or new
+production adapter. Validation records never select a coefficient vector.
+"""
+import ast
+import copy
+import gzip
+import hashlib
+import itertools
+import json
+import math
+from pathlib import Path
+import sys
+import time
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[2]
+R=HERE.parent
+I=ROOT/'diagnostics/sdmpc_n31_20260924/integration_20260926'
+C=I/'baseline_reproduction_20260929/cellwise_calibration'
+F=C/'freeway_first'
+
+
+def read(p):
+    data=Path(p).read_bytes()
+    return json.loads(gzip.decompress(data) if str(p).endswith('.gz') else data)
+
+
+def save(p,x):
+    Path(p).write_text(json.dumps(x,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
+
+
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+def losses(rows,z):
+    """Calibration score; the controller's Omega objective is not modified."""
+    absolute=[]; local=[]; response=[]; pairs=[]
+    for row in rows:
+        a,p=row['actual'],row['predicted']
+        terms=[((p[k]-a[k])/s)**2 for k,s in [('ttt',5.),('ramp_ttt',1.),('off_ttt',1.),('end_n',40.),('exits',30.)]]
+        terms += [((p['merges'][r]-a['merges'][r])/20.)**2 for r in a['merges']]
+        absolute.append(sum(terms)/len(terms))
+        local.append(sum((row['local_rmse'][k]/s)**2 for k,s in [('n',8.),('v',20.),('q',800.)])/3)
+    for case in sorted({x['case'] for x in rows}):
+        by={x['arm']:x for x in rows if x['case']==case}
+        # All six contrasts preserve both incremental VSL effects and RM effects.
+        for a,b in itertools.combinations(sorted(by),2):
+            left,right=by[a],by[b]
+            actual={k:right['actual'][k]-left['actual'][k] for k in ('ttt','ramp_ttt','end_n','exits')}
+            pred={k:right['predicted'][k]-left['predicted'][k] for k in actual}
+            terms=[((pred[k]-actual[k])/max(s,abs(actual[k])))**2 for k,s in [('ttt',.5),('ramp_ttt',.5),('end_n',15.),('exits',15.)]]
+            terms += [((right['predicted']['merges'][r]-left['predicted']['merges'][r]-(right['actual']['merges'][r]-left['actual']['merges'][r]))/max(10.,abs(right['actual']['merges'][r]-left['actual']['merges'][r])))**2 for r in left['actual']['merges']]
+            response.append(sum(terms)/len(terms))
+            pairs.append(dict(case=case,left=a,right=b,actual=actual,predicted=pred,
+                              meaningful=abs(actual['ttt'])>=.5,sign_correct=actual['ttt']*pred['ttt']>0))
+    avg=lambda xs:sum(xs)/len(xs) if xs else 0.
+    ans=dict(absolute=avg(absolute),local=avg(local),response=avg(response),pairs=pairs,
+             prior=avg([(v-1.)**2 for v in z]))
+    ans['objective']=ans['absolute']+.25*ans['local']+2*ans['response']+.1*ans['prior']
+    return ans
+
+
+def main():
+    resume='--resume' in sys.argv
+    if resume:
+        previous_status=read(HERE/'status.json')
+        assert previous_status['status']=='failed' and previous_status['forecasts']==6 and previous_status['stage']=='aggregate_axis0_0.8'
+    else:
+        assert not (HERE/'status.json').exists(),'Preserve previous result; no automatic restart'
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    context,replay,Obs=common.setup()
+    from evaluation.controllers import lane_plant_runtime as lpr,physical_lane_groups as lanes,offramp_routing as routing,area_freeway_accounting as area
+    from evaluation.controllers.freeway_fd import cell_state_response
+    protected=read(R/'junction_fifo124/protocol.json')
+    for p,h in protected['protected_sha256'].items():assert sha(p)==h
+    assert sha(protected['STOP']['path'])==protected['STOP']['sha256']
+    document=context['document'];original=read(context['paths']['reference_config'])
+    catalog=read(C/'data_catalog.json')['checked_records']
+    train=[x for x in catalog if x['case']=='s29_late'];assert len(train)==4
+    validation=[x for x in catalog if x['case']=='s43_early']+common.records(False)
+    validation += [x for x in catalog if x['case']=='s29_early' and x['arm']=='none']
+    assert len(validation)==9
+    data={};payload={};pins={}
+    for rec in train+validation:
+        key=(rec['case'],rec['arm']);data[key]=Obs(rec['truth'])
+        args,kw=replay.read_primitive_capture(rec['input'],rec['sha256'])
+        assert kw['horizon_sec']==450 and args[2]==context['parameters']
+        raw=F/'route_inventory'/('initial_raw.json' if rec['case']=='s29_late' else rec['case']+'/initial_raw.json')
+        kw['offramp_inventory']=dict(contract=read(F/'route_inventory/contract.json'),raw=read(raw))
+        kw['port_dynamics']['entry_capacity_mode']='storage'
+        payload[key]=(args,kw);pins[str(raw)]=sha(raw);pins[rec['input']]=rec['sha256']
+    # Current initial states must match across the four intervention candidates.
+    first=payload[('s29_late',train[0]['arm'])][0][0]
+    assert all(payload[('s29_late',r['arm'])][0][0]==first for r in train)
+    axes=[(.8,1.2),(.65,1.35),(.65,1.35)]
+    protocol=dict(previous_goal_turn='PROGRESS:124 eight autonomous forecasts; node closure activates but fixed coefficients fail gain sign.',
+        parameters=[dict(cells=[19,20,21],key='rho_crit',multipliers=axes[0]),
+                    dict(cells=[19,20,21],key='relaxation.acceleration_sec',multipliers=axes[1]),
+                    dict(cells=[22,23,24,25],key='relaxation.acceleration_sec',multipliers=axes[2])],
+        interpretation='Current predicted desired>=speed selects acceleration branch. Tau changes existing METANET relaxation and anticipation denominator; not a reward or a seed/control bonus. Critical density changes the same physical FD and node receiving consistently.',
+        structures=['aggregate existing production','shared existing124 lane19..25 + receiving21 + reciprocal10483'],
+        train=[dict(case=r['case'],arm=r['arm']) for r in train],validation=[dict(case=r['case'],arm=r['arm']) for r in validation],
+        budget=dict(max_vectors_per_structure=9,training450=72,validation450=36,parity450=2,max_total450=110),
+        optimizer='Baseline+six symmetric one-axis candidates, then combined best individual improving directions and midpoint if distinct. No extension, no validation retuning.',
+        objective='Absolute TTT/wait/endN/exits/actualmerge errors +0.25localN/v/q+2all-pair response errors +0.1parameterprior. Same formula/bounds/budget for both structures; controllerOmegaTTT unchanged.',
+        gate='Training score>=5% better and response not worse; validation meaningful>=0.5vehh pair signs and best-control rank must hold, paired loss improve>=10%, absolute error not worse>10%. No adoption from training/velocity fit alone.',
+        scope='FW_E31cells+4on/4off connectors, not wholeOmegaTTT orOmegaTTD; executed-command autonomous forecast. Known inspected seeds, not pristineblind.',
+        source_sha256=pins,protected_sha256=protected['protected_sha256'],STOP=protected['STOP'],
+        helper_sha256=sha(__file__),no_future_traffic_states=True,new_native=0,new_FZP=0,push=0)
+    if resume:
+        old_protocol=read(HERE/'protocol.json')
+        assert all(old_protocol[k]==json.loads(json.dumps(protocol[k])) for k in ('parameters','budget','train','validation','source_sha256','protected_sha256'))
+        save(HERE/'repair.json',dict(reason='Binding equality differed7.1e-15 from multiplication order; use absolute1e-10 for the configured scalar. Physical inputs unchanged. Six completed forecasts reused.',helper_sha256=sha(__file__)))
+    else:save(HERE/'protocol.json',protocol)
+    original_model=context['component']; model_class=type(original_model)
+    source=read(R/'junction_fifo124/dynamic/executed_function_sources.json');hooks=[]
+    forecasts=6 if resume else 0;started=time.perf_counter();current='prepare'
+    evaluations=read(HERE/'evaluations.json') if resume else []
+    selections={};validation_rows=[]
+    spec=read(F/'joint_lane_25/protocol.json')['candidate'];spec.update(congested_receiving_cells=[21],reciprocal_off='10483')
+    contexts={};bindings=read(HERE/'bindings.json') if resume else []
+    def model_for(z):
+        key=tuple(z)
+        if key in contexts:return contexts[key]
+        config=copy.deepcopy(original)
+        for i in (19,20,21):config['freeway']['physical_cell_fd']['FW_E'][str(i)]['rho_crit']*=z[0]
+        for group,m in ((range(19,22),z[1]),(range(22,26),z[2])):
+            for i in group:config['freeway']['state_response']['FW_E']['cell_overrides'][str(i)]['relaxation']['acceleration_sec']*=m
+        prior=[p for p in HERE.glob('coeff_*/reference_config.json') if read(p)==config] if resume else []
+        if prior:dest=prior[0].parent
+        else:
+            dest=HERE/f'coeff_{len(list(HERE.glob("coeff_*"))):02d}';dest.mkdir()
+        path=dest/'reference_config.json'
+        if not path.exists():save(path,config)
+        manifest=copy.deepcopy(document);manifest['sources']['reference_config']=dict(path=path.relative_to(ROOT).as_posix(),sha256=sha(path))
+        manifest['qualification']='Unqualified125 limited local coefficients; shared structure requires explicit124 process-local code. No production/native adoption.'
+        if (dest/'manifest.json').exists():assert read(dest/'manifest.json')==manifest
+        else:save(dest/'manifest.json',manifest)
+        new=lpr.load_sources(dest/'manifest.json')['component']
+        cfg=new._config('FW_E',context['parameters']['by_direction']['FW_E'])
+        old=original_model._config('FW_E',context['parameters']['by_direction']['FW_E'])
+        for i in range(31):
+            row=cfg.network.freeway_segment_params['FW_E'][i]; oldrow=old.network.freeway_segment_params['FW_E'][i]
+            assert abs(row['rho_crit']-oldrow['rho_crit']*(z[0] if i in (19,20,21) else 1.))<1e-10
+            local=cell_state_response(cfg.network,'FW_E',i); previous=cell_state_response(old.network,'FW_E',i)
+            factor=z[1] if 19<=i<=21 else z[2] if 22<=i<=25 else 1.
+            if 'relaxation' in previous:
+                assert abs(local['relaxation']['acceleration_sec']-previous['relaxation']['acceleration_sec']*factor)<1e-10
+                assert local['relaxation']['deceleration_sec']==previous['relaxation']['deceleration_sec']
+            assert local.get('anticipation')==previous.get('anticipation') and local.get('delta_merge')==previous.get('delta_merge')
+        assert cfg.network.freeway_segment_params['FW_W']==old.network.freeway_segment_params['FW_W']
+        bindings.append(dict(z=z,config=str(path),binding_verified=True,physical_cells=list(range(19,26))))
+        save(HERE/'bindings.json',bindings);contexts[key]=new;return new
+    def execute(model,structure,record,dest):
+        nonlocal forecasts
+        assert forecasts<110
+        key=(record['case'],record['arm']);args,kw=copy.deepcopy(payload[key])
+        if structure=='shared':kw['route_lane_regions']={'FW_E':copy.deepcopy(spec)}
+        pred=model.rollout(*args,**kw);forecasts+=1
+        row=replay._cellwise_measure(model,pred,record,data[key])
+        errors={'n':[],'v':[],'q':[]}
+        for p in pred['cells']:
+            if not 19<=p['cell']<=25:continue
+            a=next(v for v in data[key].cells[round(p['time_s'],6)] if v['road']=='FW_E' and v['cell']==p['cell'])
+            errors['n'].append(p['n_veh']-a['n_veh'])
+            if a['v_kmh'] is not None:errors['v'].append(p['v_kmh']-a['v_kmh'])
+        for p in pred['flows']:
+            if 19<=p['cell']<=25:
+                a=data[key].flows[round(p['window_end_s'],6),'FW_E',p['cell']]
+                errors['q'].append((p['downstream_crossings']-float(a['downstream_crossings']))*120.)
+        row['local_rmse']={k:math.sqrt(sum(x*x for x in xs)/len(xs)) for k,xs in errors.items()}
+        if structure=='shared':
+            reg=pred['diagnostics']['roads'][0]['joint_lane_region'];assert reg['route_marginal_max_error']<1e-7
+            row['route_error']=reg['route_marginal_max_error']
+            row['additional_off_restriction_steps']=sum(x['off_accepted_veh']<x['off_before_veh']-1e-9 for x in reg['junction_rows'])
+        with gzip.open(dest/(record['case']+'_'+record['arm']+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+        save(HERE/'status.json',dict(status='running',stage=current,forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+        return pred,row
+    def evaluate(structure,z,tag):
+        nonlocal current
+        current=structure+'_'+tag
+        existing=[x for x in evaluations if x['structure']==structure and x['z']==z]
+        if existing:
+            assert resume;print(json.dumps(dict(reused=current)),flush=True);return existing[0]
+        folder=HERE/f'eval_{len(evaluations):02d}'
+        assert not folder.exists() or (resume and not list(folder.iterdir()))
+        folder.mkdir(exist_ok=resume)
+        model=model_for(z);rows=[]
+        for r in train:_,row=execute(model,structure,r,folder);rows.append(row)
+        result=dict(structure=structure,z=z,tag=tag,folder=str(folder),rows=rows,loss=losses(rows,z))
+        evaluations.append(result);save(folder/'result.json',result);save(HERE/'evaluations.json',evaluations)
+        print(json.dumps(dict(stage=current,z=z,loss={k:v for k,v in result['loss'].items() if k!='pairs'},forecasts=forecasts)),flush=True)
+        return result
+    save(HERE/'status.json',dict(status='running',stage=current,forecasts=0))
+    try:
+        assert not hasattr(lanes,'RouteLaneRegion')
+        ns={};exec(compile(source['RouteLaneRegion'],'124class','exec'),lanes.__dict__,ns)
+        lanes.RouteLaneRegion=ns['RouteLaneRegion'];hooks.append((lanes,'RouteLaneRegion',None))
+        for target,name in ((routing,'initialize_inventory'),(routing,'advance_inventory'),(area,'_freeway_substep_events'),(model_class,'rollout')):
+            old=getattr(target,name);ns={};exec(compile(source[name],'124_'+name,'exec'),old.__globals__,ns)
+            hooks.append((target,name,old));setattr(target,name,ns[name])
+        parity=HERE/'parity';parity.mkdir(exist_ok=resume);rec=next(x for x in validation if x['case']=='s67_late' and x['arm']=='release')
+        checks={}
+        if resume:checks=read(HERE/'parity.json')
+        else:
+            for structure,label in (('aggregate','default_before'),('shared','shared_release')):
+                pred,_=execute(original_model,structure,rec,parity)
+                old=read(R/'junction_fifo124/dynamic'/(label+'.json.gz'))
+                checks[structure]=all(json.loads(json.dumps(pred[k]))==old[k] for k in ('cells','flows','ports','ramps'))
+        save(HERE/'parity.json',checks);assert all(checks.values())
+        for structure in ('aggregate','shared'):
+            group=[evaluate(structure,[1.,1.,1.],'fixed')];combined=[1.,1.,1.]
+            for axis,values in enumerate(axes):
+                trials=[]
+                for value in values:
+                    z=[1.,1.,1.];z[axis]=value;trials.append(evaluate(structure,z,f'axis{axis}_{value}'))
+                group.extend(trials)
+                best=min([group[0]]+trials,key=lambda x:x['loss']['objective'])
+                combined[axis]=best['z'][axis]
+            for tag,z in [('combined',combined),('midpoint',[(x+1)/2 for x in combined])]:
+                if any(x['z']==z for x in group):continue
+                group.append(evaluate(structure,z,tag))
+            best=min(group,key=lambda x:x['loss']['objective'])
+            selections[structure]=dict(fixed=group[0],selected=best,selected_before_validation=True,
+                training_improvement=1-best['loss']['objective']/group[0]['loss']['objective'])
+            save(HERE/'selection.json',selections)
+        # Values are frozen before ANY independent outcome is evaluated here.
+        for structure in ('aggregate','shared'):
+            for mode in ('fixed','selected'):
+                selected=selections[structure][mode];model=model_for(selected['z'])
+                current=structure+'_'+mode+'_validation';folder=HERE/current;folder.mkdir()
+                for rec in validation:
+                    _,row=execute(model,structure,rec,folder)
+                    validation_rows.append(dict(structure=structure,mode=mode,**row))
+                save(HERE/'validation.json',validation_rows)
+                print(json.dumps(dict(stage=current,forecasts=forecasts)),flush=True)
+        save(HERE/'status.json',dict(status='complete_pending_assessment',forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+    except BaseException as exc:
+        save(HERE/'status.json',dict(status='failed',stage=current,error=repr(exc),forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+        raise
+    finally:
+        for target,name,old in reversed(hooks):
+            if old is None:delattr(target,name)
+            else:setattr(target,name,old)
+        for p,h in protected['protected_sha256'].items():assert sha(p)==h,p
+        assert sha(protected['STOP']['path'])==protected['STOP']['sha256']
+        for p,h in pins.items():assert sha(p)==h,p
+        save(HERE/'restoration.json',dict(core_unchanged=True,STOP_unchanged=True,input_pins_unchanged=True,process_hooks_restored=True))
+
+
+def validate_admissible126():
+    """One already-trained feasible candidate; no new optimizer or lane hooks."""
+    out=R/'admissible_validation126'
+    assert not (out/'status.json').exists(), 'No repeat validation'
+    assessment=read(HERE/'assessment.json')
+    choices=assessment['training_admissible_candidates']['aggregate']
+    assert len(choices)==1 and choices[0]['z']==[1.,.65,1.] and not choices[0]['validated_in125']
+    z=choices[0]['z']
+    binding=next(b for b in read(HERE/'bindings.json') if b['z']==z)
+    manifest=Path(binding['config']).parent/'manifest.json'
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    baseline,replay,Obs=common.setup()
+    from evaluation.controllers import lane_plant_runtime as lpr
+    context=lpr.load_sources(manifest);model=context['component']
+    catalog=read(C/'data_catalog.json')['checked_records']
+    records=[r for r in catalog if r['case']=='s43_early']+common.records(False)
+    records += [r for r in catalog if r['case']=='s29_early' and r['arm']=='none']
+    assert len(records)==9
+    prior=read(HERE/'protocol.json')
+    assert [{'case':r['case'],'arm':r['arm']} for r in records]==prior['validation']
+    pins={str(manifest):sha(manifest),binding['config']:sha(binding['config']),str(HERE/'assessment.json'):sha(HERE/'assessment.json')}
+    protocol=dict(previous_goal_turn='PROGRESS:125 calibrated two structures and identified one training-feasible unvalidated aggregate candidate.',
+        candidate=z,candidate_source=choices[0],manifest=str(manifest),selection='Unique125 training gate candidate; no coefficient selection from43/67 outcomes.',
+        budget=dict(candidate450=9,baseline_parity450=1,total450=10,fits=0,new_native=0,new_FZP=0),
+        scope=prior['scope'],gate=prior['gate'],records=prior['validation'],pins=pins,
+        protected_sha256=prior['protected_sha256'],STOP=prior['STOP'],helper_sha256=sha(__file__),
+        limitations='Previously inspected validation cases are not blind. This tests one frozen already-calibrated vector, not a new search.')
+    save(out/'protocol.json',protocol)
+    rows=[];forecasts=0;started=time.perf_counter()
+    save(out/'status.json',dict(status='running',stage='parity',forecasts=0))
+    try:
+        rec=next(r for r in records if r['case']=='s67_late' and r['arm']=='release')
+        args,kw=common.payload(replay,rec,450)
+        pred=baseline['component'].rollout(*args,**kw);forecasts+=1
+        old=read(HERE/'aggregate_fixed_validation'/(rec['case']+'_'+rec['arm']+'.json.gz'))
+        parity={k:json.loads(json.dumps(pred[k]))==old[k] for k in ('cells','flows','ports','ramps')}
+        save(out/'parity.json',parity);assert all(parity.values())
+        for rec in records:
+            args,kw=common.payload(replay,rec,450);obs=Obs(rec['truth'])
+            pred=model.rollout(*args,**kw);forecasts+=1
+            row=replay._cellwise_measure(model,pred,rec,obs)
+            errors={'n':[],'v':[],'q':[]}
+            for p in pred['cells']:
+                if 19<=p['cell']<=25:
+                    a=next(x for x in obs.cells[round(p['time_s'],6)] if x['road']=='FW_E' and x['cell']==p['cell'])
+                    errors['n'].append(p['n_veh']-a['n_veh'])
+                    if a['v_kmh'] is not None:errors['v'].append(p['v_kmh']-a['v_kmh'])
+            for p in pred['flows']:
+                if 19<=p['cell']<=25:
+                    a=obs.flows[round(p['window_end_s'],6),'FW_E',p['cell']]
+                    errors['q'].append((p['downstream_crossings']-float(a['downstream_crossings']))*120.)
+            row['local_rmse']={k:math.sqrt(sum(x*x for x in xs)/len(xs)) for k,xs in errors.items()}
+            rows.append(row)
+            with gzip.open(out/(rec['case']+'_'+rec['arm']+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+            save(out/'rows.json',rows)
+            save(out/'status.json',dict(status='running',stage=rec['case']+'_'+rec['arm'],forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+        fixed=[r for r in read(HERE/'validation.json') if r['structure']=='aggregate' and r['mode']=='fixed']
+        before=losses(fixed,[1.,1.,1.]);after=losses(rows,z)
+        checks=dict(meaningful_signs=all(p['sign_correct'] for p in after['pairs'] if p['meaningful']),
+            response_improves10pct=after['response']<=.9*before['response'],
+            absolute_within110pct=after['absolute']<=1.1*before['absolute'])
+        ranks=[]
+        for case in ('s43_early','s67_late'):
+            group=[r for r in rows if r['case']==case]
+            actual=min(group,key=lambda r:r['actual']['ttt']);chosen=min(group,key=lambda r:r['predicted']['ttt'])
+            ranks.append(dict(case=case,actual=actual['arm'],predicted=chosen['arm'],regret=chosen['actual']['ttt']-actual['actual']['ttt']))
+        checks['meaningful_choice']=all(r['regret']<=.5 for r in ranks)
+        result=dict(status='complete_component_pass' if all(checks.values()) else 'complete_not_adopted',checks=checks,
+            baseline=before,candidate=after,rankings=ranks,forecasts=forecasts,elapsed_sec=time.perf_counter()-started,
+            scope=protocol['scope'],new_fit=0,production_adopted=False,whole_omega_qualified=False,goal_complete=False,
+            interpretation='A failed single frozen vector does not bound all future physically grounded calibration. No extra grid follows this validation.')
+        save(out/'assessment.json',result);save(out/'status.json',dict(status=result['status'],forecasts=forecasts,elapsed_sec=result['elapsed_sec']))
+        print(json.dumps({k:result[k] for k in ('status','checks','rankings','forecasts','elapsed_sec')},ensure_ascii=False),flush=True)
+        for p in after['pairs']:
+            print(json.dumps(dict(case=p['case'],left=p['left'],right=p['right'],actual=p['actual']['ttt'],predicted=p['predicted']['ttt'],meaningful=p['meaningful']),ensure_ascii=False),flush=True)
+    except BaseException as exc:
+        save(out/'status.json',dict(status='failed',error=repr(exc),forecasts=forecasts));raise
+    finally:
+        for p,h in prior['protected_sha256'].items():assert sha(p)==h,p
+        for p,h in pins.items():assert sha(p)==h,p
+        assert sha(prior['STOP']['path'])==prior['STOP']['sha256']
+        save(out/'preservation.json',dict(core=True,inputs=True,STOP=True,production_unchanged=True))
+
+
+def validate_full73_126():
+    """Frozen coefficient on an existing different-seed native pair, four forecasts."""
+    import subprocess
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    common.setup()  # low process priority and canonical imports, no forecasts
+    out=R/'admissible_validation126/full73';out.mkdir(exist_ok=False)
+    prior=read(HERE/'protocol.json')
+    binding=next(b for b in read(HERE/'bindings.json') if b['z']==[1.,.65,1.])
+    manifest=Path(binding['config']).parent/'manifest.json'
+    commands=read(R/'replication_s73_95/postprocess_plan.json')['commands']['forecast']
+    original_tuning=Path(next(x.split('=',1)[1] for x in commands if x.startswith('--tuning-json=')))
+    tuning=read(original_tuning);tuning['freeway']['lane_plant']=manifest.relative_to(ROOT).as_posix()
+    candidate=out/'candidate_tuning.json';save(candidate,tuning)
+    jobs=[]
+    for name,tuning_path in (('baseline',original_tuning),('candidate',candidate)):
+        label='s73_tau126_'+name
+        argv=[('--probe-label='+label if x.startswith('--probe-label=') else '--tuning-json='+str(tuning_path) if x.startswith('--tuning-json=') else x) for x in commands]
+        destination=I/('closedloop_recorded2700_lever450_'+label);assert not destination.exists()
+        jobs.append(dict(name=name,argv=argv,output=str(destination)))
+    pins={str(Path(commands[0])):sha(commands[0]),str(original_tuning):sha(original_tuning),str(manifest):sha(manifest),str(candidate):sha(candidate)}
+    save(out/'protocol.json',dict(reason='43 late boundary realization differs;73 independently observed equal918 source counts. Equal totals alone are not proof of identical arrival times. Check same fixed candidate without retuning.',
+        budget=dict(baseline450=2,candidate450=2,fits=0,new_native=0,FZP=0),candidate=[1.,.65,1.],
+        scope='WholeOmegaFW+protectedurban450s from native73 common2700 state; same past head/VSL history and executed commands. Externalwaitingdiagnostic.',
+        source=read(R/'replication_s73_95/response_assessment95.json')['actual_delta_omega_veh_h'],
+        jobs=jobs,pins=pins,protected_sha256=prior['protected_sha256'],STOP=prior['STOP'],
+        gate='Fresh baseline must reproduce95 physical results exactly; no future traffic states; same frozen126 coefficients; preserve actual gain/loss and do not tune on73.'))
+    started=time.perf_counter()
+    try:
+        for job in jobs:
+            save(out/'status.json',dict(status='running',job=job['name']))
+            with (out/(job['name']+'.log')).open('w',encoding='utf-8') as f:
+                child=subprocess.run([sys.executable]+job['argv'],cwd=ROOT,stdout=f,stderr=subprocess.STDOUT,
+                    creationflags=subprocess.BELOW_NORMAL_PRIORITY_CLASS,check=False)
+            assert child.returncode==0,(job['name'],child.returncode)
+            summary=read(Path(job['output'])/'summary.json')
+            assert summary['future_observation_inputs'] is False and summary['native_started'] is False and summary['optimizer_iterations']==0
+            if job['name']=='baseline':
+                old=read(I/'closedloop_recorded2700_lever450_s73_replication95/summary.json')
+                fields=('ttt_omega_veh_h','tracked_outside_residence_veh_h','cost_by_stock','outside_cost_by_stock','ramps','commands','physical_cell_states','control_area')
+                checks={arm:{k:values[k]==old['results'][arm][k] for k in fields} for arm,values in summary['results'].items()}
+                save(out/'baseline_parity.json',checks);assert all(all(row.values()) for row in checks.values())
+        summaries={j['name']:read(Path(j['output'])/'summary.json') for j in jobs}
+        deltas={name:s['results']['release_vsl90_actual']['ttt_omega_veh_h']-s['results']['release_actual']['ttt_omega_veh_h'] for name,s in summaries.items()}
+        actual=read(R/'replication_s73_95/response_assessment95.json')['actual_delta_omega_veh_h']
+        save(out/'assessment.json',dict(actual_delta_omega_veh_h=actual,predicted_deltas=deltas,
+            candidate_error=abs(deltas['candidate']-actual),correct_sign=deltas['candidate']*actual>0,
+            magnitude_gate=abs(deltas['candidate']-actual)<=max(.5,.5*abs(actual)),
+            new_native=0,new_fits=0,production_adopted=False,goal_complete=False))
+        save(out/'status.json',dict(status='complete_not_adopted',forecasts=4,elapsed_sec=time.perf_counter()-started))
+        print(json.dumps(dict(actual=actual,predicted=deltas)),flush=True)
+    except BaseException as exc:
+        save(out/'status.json',dict(status='failed',error=repr(exc),elapsed_sec=time.perf_counter()-started));raise
+    finally:
+        for p,h in {**prior['protected_sha256'],**pins}.items():assert sha(p)==h,p
+        assert sha(prior['STOP']['path'])==prior['STOP']['sha256']
+        save(out/'preservation.json',dict(core=True,inputs=True,STOP=True))
+
+
+def calibrate_response127(*, junction_identification=False, lane_state=False):
+    """One bounded four-variable joint fit, with both VSL regimes in training.
+
+    Reuses the conservative124 junction and existing METANET terms. The former
+    validation seed67 is explicitly training here;73 remains unfit. No native
+    run or production model is changed. A failed fit does not start another grid.
+    """
+    import numpy as np
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    assert not lane_state or junction_identification
+    out=R/('lane_state132' if lane_state else 'merge_response129' if junction_identification else 'response_regimes127');out.mkdir(exist_ok=True)
+    assert not (out/'status.json').exists(),'Preserve finished/failed work; no automatic retry'
+    context,replay,Obs=common.setup()
+    from evaluation.controllers import lane_plant_runtime as lpr,physical_lane_groups as lanes,offramp_routing as routing,area_freeway_accounting as area
+    from evaluation.controllers.freeway_fd import cell_state_response
+    protected=read(R/'junction_fifo124/protocol.json')
+    for p,h in protected['protected_sha256'].items():assert sha(p)==h
+    assert sha(protected['STOP']['path'])==protected['STOP']['sha256']
+    original=read(context['paths']['reference_config']);document=context['document']
+    catalog=read(C/'data_catalog.json')['checked_records']
+    train=[x for x in catalog if x['case']=='s29_late']+common.records(False)
+    validation=[x for x in catalog if x['case']=='s43_early' or (x['case']=='s29_early' and x['arm']=='none')]
+    assert len(train)==8 and len(validation)==5
+    data={};payloads={};pins={}
+    if lane_state:
+        from diagnostics.repin_v3c3_review_20261001.lane_state132 import prepare as lane_fit
+        proposal=read(out/'proposal.json');lane_targets=lane_fit.load_targets()
+        for p,h in proposal['input_sha256'].items():assert sha(p)==h,p
+        assert sha(lane_fit.__file__)==proposal['source_sha256']
+        pins.update(proposal['input_sha256'])
+        pins[str(out/'proposal.json')]=sha(out/'proposal.json')
+    for rec in train+validation:
+        key=rec['case'],rec['arm'];data[key]=Obs(rec['truth'])
+        args,kw=copy.deepcopy(replay.read_primitive_capture(rec['input'],rec['sha256']))
+        assert kw['horizon_sec']==450 and args[2]==context['parameters']
+        raw=F/'route_inventory'/('initial_raw.json' if rec['case']=='s29_late' else rec['case']+'/initial_raw.json')
+        kw['offramp_inventory']=dict(contract=read(F/'route_inventory/contract.json'),raw=read(raw))
+        kw['port_dynamics']['entry_capacity_mode']='storage'
+        payloads[key]=(args,kw);pins[str(raw)]=sha(raw);pins[rec['input']]=rec['sha256']
+        if junction_identification:
+            flowfile=Path(rec['truth'])/'flows_30s.csv';pins[str(flowfile)]=sha(flowfile)
+    for case in ('s29_late','s67_late','s43_early'):
+        states=[payloads[(r['case'],r['arm'])][0][0] for r in train+validation if r['case']==case]
+        assert all(s==states[0] for s in states)
+    source_path=R/'junction_fifo124/dynamic/executed_function_sources.json'
+    pins[str(source_path)]=sha(source_path);pins[str(HERE/'evaluations.json')]=sha(HERE/'evaluations.json')
+    source=read(source_path);model_class=type(context['component'])
+    spec=read(F/'joint_lane_25/protocol.json')['candidate']
+    spec.update(congested_receiving_cells=[21],reciprocal_off='10483')
+    protocol=dict(previous_goal_turn='PROGRESS:126 fixed candidate validation finished; no gain qualification.',
+        reason='125 trained only29late: VSL increment +0.0458 (release) and +0.7833 (hold), not a strong benefit example. Explicitly promote previously inspected67late to training, retain unfit73 for later evaluation. No claim of blind data.',
+        parameters=['rho_crit19..21','tau_acc19..21','nu_downstream_lt19..21','tau_acc22..25'],
+        physics='Existing124 conserved shared exit/through lane and common merge/mainline receiving; predicted current state selects regimes. No VSL-specific reward or future states.',
+        bounds=[.7,1.3],difference_step=.10,structures=['shared124'],
+        training=[dict(case=x['case'],arm=x['arm']) for x in train],validation=[dict(case=x['case'],arm=x['arm']) for x in validation],
+        budget=dict(training_vectors=11,training450=88,validation450=5,optional_wholeOmega450=2,new_native=0,new_FZP=0),
+        algorithm='Baseline+8 central differences; one bounded ridge least-squares direction; full/half step only. Select among training-admissible vectors before validation. No second Jacobian or grid extension.',
+        loss='125 absolute +0.25local +2pair response for450; add0.5 times corresponding three150s block metrics (no repeated local term), plus0.1 mean squared multiplier departure.',
+        gate='Train total>=5% reduction,450 and150block response both nonworse; validation meaningful sign/rank and response>=10% improvement, absolute<=110%base. No adoption without wholeOmega/SDMPC.',
+        scope='FW_E31+4on+4off connector component, not wholeOmega orOmegaTTD.73 not used for coefficient selection.',
+        protected_sha256=protected['protected_sha256'],STOP=protected['STOP'],source_sha256=pins,helper_sha256=sha(__file__))
+    if junction_identification:
+        protocol.update(previous_goal_turn='PROGRESS:128 separated merge/exit mechanisms; no autonomous gain qualification.',
+            reason='128 removal of local merge penalty reversed RM benefit.127 held delta21/23 fixed. Identify their joint response with adjacent FD/recovery, including150s through/exit contrast, without deleting either mechanism.',
+            parameters=['delta_merge21','delta_merge23','tau_acc19..21','rho_crit19..21'],
+            bounds=[.7,1.3],
+            budget=dict(training_vectors=11,conditional_training450=88,autonomous_training450=8,autonomous_validation450=5,new_native=0,new_FZP=0),
+            input_policy='Only physical identification uses measured future30s source admissions, uniform per bin. No future merge/exit/state inputs. All qualification predictions use original captured source forecasts; never deploy observed future source.',
+            loss=protocol['loss']+' Add weight2 mean squared error of all paired150s cell19/20 through and cell20 exit differences, normalized by max(10veh,absolute observed difference).',
+            gate='Conditional train objective>=5% improvement,450/150 response nonworse and local discharge response>=10% improvement. Then autonomous original-source training and independent-state checks: meaningful signs,choice regret<=.5vehh,response>=10%improvement,absolute<=110%base. No automatic extension or adoption.',
+            helper_sha256=sha(__file__))
+    if lane_state:
+        protocol.update(previous_goal_turn='PROGRESS:131 current-state lane/class sending comparison; state bias identified.',
+            reason='Add lane N and Nv/L movement-proxy observations to the existing129 aggregate fitting score; reuses36 saved physical forecasts and9saved coefficient vectors. No new model term.',
+            loss='Equal baseline-normalized129 residual, lane N, lane Nv/L, paired lane response; seeanalysis_protocol.json. Controller objective unchanged.',
+            algorithm='Cached129 baseline and central differences produce one bounded proposal; execute full/half step only. No new Jacobian or grid.',
+            budget=dict(cached_training_vectors=9,new_conditional_training450=16,optional_autonomous_training450=8,optional_independent_state450=5),
+            gate=protocol['gate']+' Also both laneN andmotion loss nonworse and their mean relative loss>=10% reduction.',
+            proposal=str(out/'proposal.json'),helper_sha256=sha(__file__))
+    save(out/'protocol.json',protocol)
+    started=time.perf_counter();forecasts=0;stage='setup';hooks=[];evaluations=[];parity={};bindings=[]
+    def residual(rows):
+        # Exactly the unregularized125 objective as a least-squares vector.
+        result=[];n=len(rows)
+        for row in rows:
+            a,p=row['actual'],row['predicted'];den=math.sqrt(n*(5+len(a['merges'])))
+            result += [(p[k]-a[k])/s/den for k,s in [('ttt',5.),('ramp_ttt',1.),('off_ttt',1.),('end_n',40.),('exits',30.)]]
+            result += [(p['merges'][r]-a['merges'][r])/20./den for r in sorted(a['merges'])]
+            result += [.5*row['local_rmse'][k]/s/math.sqrt(n*3) for k,s in [('n',8.),('v',20.),('q',800.)]]
+        pairs=[]
+        for case in sorted({r['case'] for r in rows}):
+            group=sorted([r for r in rows if r['case']==case],key=lambda x:x['arm'])
+            pairs += list(itertools.combinations(group,2))
+        for left,right in pairs:
+            terms=[]
+            for k,s in [('ttt',.5),('ramp_ttt',.5),('end_n',15.),('exits',15.)]:
+                a=right['actual'][k]-left['actual'][k];p=right['predicted'][k]-left['predicted'][k]
+                terms.append((p-a)/max(s,abs(a)))
+            for r in sorted(left['actual']['merges']):
+                a=right['actual']['merges'][r]-left['actual']['merges'][r]
+                p=right['predicted']['merges'][r]-left['predicted']['merges'][r]
+                terms.append((p-a)/max(10.,abs(a)))
+            result += [v*math.sqrt(2/len(pairs)/len(terms)) for v in terms]
+        v=np.array(result);expected=losses(rows,[1.]*4)['objective']
+        assert abs(float(v@v)-expected)<1e-8*max(1,expected)
+        return v
+    def model_for(z,dest):
+        config=copy.deepcopy(original)
+        for i in range(19,22):
+            config['freeway']['physical_cell_fd']['FW_E'][str(i)]['rho_crit']*=z[3] if junction_identification else z[0]
+            row=config['freeway']['state_response']['FW_E']['cell_overrides'][str(i)]
+            row['relaxation']['acceleration_sec']*=z[2] if junction_identification else z[1]
+            if not junction_identification:row['anticipation']['downstream_lt_local']*=z[2]
+        if junction_identification:
+            for axis,i in enumerate((21,23)):config['freeway']['state_response']['FW_E']['cell_overrides'][str(i)]['delta_merge']*=z[axis]
+        else:
+            for i in range(22,26):config['freeway']['state_response']['FW_E']['cell_overrides'][str(i)]['relaxation']['acceleration_sec']*=z[3]
+        cfg_path=dest/'reference_config.json';save(cfg_path,config)
+        manifest=copy.deepcopy(document);manifest['sources']['reference_config']=dict(path=cfg_path.relative_to(ROOT).as_posix(),sha256=sha(cfg_path))
+        manifest['qualification']='Unqualified127: requires explicit conserved124 process-local junction; NOT deployable by manifest alone.'
+        if junction_identification:manifest['qualification']='Unqualified129 conditional physical identification; requires conserved124 process-local junction. Future source never an operational input.'
+        if lane_state:manifest['qualification']='Unqualified132 lane-state calibration; requires conserved124 process-local junction. Future observations are score labels only; no deployment.'
+        save(dest/'manifest.json',manifest);new=lpr.load_sources(dest/'manifest.json')['component']
+        cfg=new._config('FW_E',context['parameters']['by_direction']['FW_E'])
+        old=context['component']._config('FW_E',context['parameters']['by_direction']['FW_E'])
+        for i in range(31):
+            a=cfg.network.freeway_segment_params['FW_E'][i];b=old.network.freeway_segment_params['FW_E'][i]
+            rho_scale=z[3] if junction_identification else z[0]
+            assert abs(a['rho_crit']-b['rho_crit']*(rho_scale if 19<=i<=21 else 1.))<1e-10
+            local=cell_state_response(cfg.network,'FW_E',i);before=copy.deepcopy(cell_state_response(old.network,'FW_E',i))
+            if junction_identification:
+                if 19<=i<=21:before['relaxation']['acceleration_sec']*=z[2]
+                if i in (21,23):before['delta_merge']*=z[0 if i==21 else 1]
+            else:
+                if 19<=i<=25:before['relaxation']['acceleration_sec']*=z[1] if i<=21 else z[3]
+                if 19<=i<=21:before['anticipation']['downstream_lt_local']*=z[2]
+            assert local==before
+        assert cfg.network.freeway_segment_params['FW_W']==old.network.freeway_segment_params['FW_W']
+        bindings.append(dict(z=z,manifest=str(dest/'manifest.json'),verified=True));save(out/'bindings.json',bindings)
+        return new
+    def execute(model,rec,dest):
+        nonlocal forecasts
+        assert forecasts<(29 if lane_state else 101 if junction_identification else 93)
+        key=(rec['case'],rec['arm']);args,kw=copy.deepcopy(payloads[key]);kw['route_lane_regions']={'FW_E':copy.deepcopy(spec)}
+        conditioned=junction_identification and stage not in ('validation','autonomous_training')
+        if conditioned:
+            before=copy.deepcopy(args)
+            for j,step in enumerate(args[1]):
+                end=round(rec['cutoff']+30*(j//30+1),6)
+                step['source_demand_vph']['FW_E']=float(data[key].flows[end,'FW_E',0]['source_admissions'])*120.
+            restored=copy.deepcopy(args)
+            for j,step in enumerate(restored[1]):step['source_demand_vph']['FW_E']=before[1][j]['source_demand_vph']['FW_E']
+            assert restored==before
+        pred=model.rollout(*args,**kw);forecasts+=1
+        row=replay._cellwise_measure(model,pred,rec,data[key]);errors={'n':[],'v':[],'q':[]}
+        # Invalid/conservation checks already ran inside _cellwise_measure.
+        # Its large per-sample scoring tables are not used by this fit.
+        row.pop('score',None)
+        if junction_identification:
+            row['conditional_source_input']=conditioned
+            if conditioned:
+                requested=sum(s['source_demand_vph']['FW_E']/3600 for s in args[1])
+                accepted=sum(p['source_admissions'] for p in pred['flows'] if p['cell']==0)
+                assert abs(requested-accepted)<1e-7
+            windows=[]
+            for block in range(3):
+                end=rec['cutoff']+150*(block+1);start=end-150
+                pp=[x for x in pred['flows'] if start+1e-6<x['window_end_s']<=end+1e-6]
+                aa=[x for (t,road,c),x in data[key].flows.items() if road=='FW_E' and start+1e-6<t<=end+1e-6]
+                assert len(pp)==len(aa)==31*5
+                measure=lambda xs:{label:sum(float(x[field]) for x in xs if int(x['cell'])==cell) for label,cell,field in [('through19',19,'downstream_crossings'),('through20',20,'downstream_crossings'),('exit20',20,'off_departures')]}
+                windows.append(dict(actual=measure(aa),predicted=measure(pp)))
+            row['discharge_windows']=windows
+        for p in pred['cells']:
+            if not 19<=p['cell']<=25:continue
+            a=next(v for v in data[key].cells[round(p['time_s'],6)] if v['road']=='FW_E' and v['cell']==p['cell'])
+            errors['n'].append(p['n_veh']-a['n_veh'])
+            if a['v_kmh'] is not None:errors['v'].append(p['v_kmh']-a['v_kmh'])
+        for p in pred['flows']:
+            if 19<=p['cell']<=25:
+                a=data[key].flows[round(p['window_end_s'],6),'FW_E',p['cell']]
+                errors['q'].append((p['downstream_crossings']-float(a['downstream_crossings']))*120.)
+        row['local_rmse']={k:math.sqrt(sum(x*x for x in xs)/len(xs)) for k,xs in errors.items()}
+        reg=pred['diagnostics']['roads'][0]['joint_lane_region'];assert reg['route_marginal_max_error']<1e-7
+        row['route_error']=reg['route_marginal_max_error']
+        if lane_state:lane_fit.attach(row,pred,lane_targets)
+        blocks=common.block_measures(model,replay,data[key],rec,pred)
+        for b in blocks:
+            b.pop('score',None)
+            b['local_rmse']={'n':0.,'v':0.,'q':0.}
+        if stage=='baseline' and (not junction_identification or rec['case']=='s67_late'):
+            prior=HERE/('eval_09' if rec['case']=='s29_late' else 'shared_fixed_validation')/(rec['case']+'_'+rec['arm']+'.json.gz')
+            if junction_identification:prior=R/'merge_exit128/both'/(rec['arm']+'.json.gz')
+            old=read(prior);check={k:json.loads(json.dumps(pred[k]))==old[k] for k in ('cells','flows','ports','ramps')}
+            parity[rec['case']+'_'+rec['arm']]=check;save(out/'baseline_parity.json',parity);assert all(check.values())
+        with gzip.open(dest/(rec['case']+'_'+rec['arm']+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+        save(out/'status.json',dict(status='running',stage=stage,forecasts=forecasts,elapsed_sec=time.perf_counter()-started))
+        return row,blocks
+    def evaluate(z,label):
+        nonlocal stage
+        stage=label;dest=out/f'eval_{len(evaluations):02d}';dest.mkdir()
+        model=model_for(z,dest);rows=[];blocks=[]
+        for rec in train:
+            row,b=execute(model,rec,dest);rows.append(row);blocks+=b
+        r=np.r_[residual(rows),math.sqrt(.5)*residual(blocks)]
+        discharge_response=None
+        if junction_identification:
+            differences=[]
+            for case in sorted({x['case'] for x in rows}):
+                for a,b in itertools.combinations([x for x in rows if x['case']==case],2):
+                    for av,bv in zip(a['discharge_windows'],b['discharge_windows']):
+                        for k in ('through19','through20','exit20'):
+                            actual=bv['actual'][k]-av['actual'][k];predicted=bv['predicted'][k]-av['predicted'][k]
+                            differences.append((predicted-actual)/max(10.,abs(actual)))
+            discharge_response=float(np.mean(np.square(differences)))
+            r=np.r_[r,np.array(differences)*math.sqrt(2/len(differences))]
+        lane_scores=None
+        if lane_state:r,lane_scores=lane_fit.augmented(r,rows,proposal['normalizers'])
+        regularized=np.r_[r,math.sqrt(.1/4)*(np.array(z)-1)]
+        score=losses(rows,z);blockscore=losses(blocks,[1.]*4)
+        ans=dict(z=z,label=label,folder=str(dest),rows=rows,blocks=blocks,loss450=score,loss150=blockscore,
+                 objective=float(regularized@regularized),residual=r.tolist())
+        if junction_identification:ans['discharge_response']=discharge_response
+        if lane_state:ans['lane_state_scores']=lane_scores
+        evaluations.append(ans);save(dest/'result.json',ans);save(out/'evaluations.json',evaluations)
+        print(json.dumps(dict(stage=stage,z=z,objective=ans['objective'],response450=score['response'],response150=blockscore['response'],forecasts=forecasts)),flush=True)
+        return ans
+    save(out/'status.json',dict(status='running',stage=stage,forecasts=0))
+    try:
+        assert not hasattr(lanes,'RouteLaneRegion')
+        ns={};exec(compile(source['RouteLaneRegion'],'124class','exec'),lanes.__dict__,ns)
+        lanes.RouteLaneRegion=ns['RouteLaneRegion'];hooks.append((lanes,'RouteLaneRegion',None))
+        for target,name in ((routing,'initialize_inventory'),(routing,'advance_inventory'),(area,'_freeway_substep_events'),(model_class,'rollout')):
+            old=getattr(target,name);ns={};exec(compile(source[name],'124_'+name,'exec'),old.__globals__,ns)
+            hooks.append((target,name,old));setattr(target,name,ns[name])
+        if lane_state:
+            base=read(out/'cached_baseline.json');evaluations.append(base)
+            step=np.array(proposal['step']);assert proposal['kkt_verified'] and np.max(np.abs(step))<=.3+1e-10
+            save(out/'linear_fit.json',dict(reused_proposal=proposal,extra_jacobian_evaluations=0))
+        else:
+            base=evaluate([1.]*4,'baseline');columns=[]
+            for axis in range(4):
+                vals=[]
+                for sign in (-1,1):
+                    z=[1.]*4;z[axis]+=sign*.1;vals.append(evaluate(z,f'difference{axis}_{sign}'))
+                columns.append((np.array(vals[1]['residual'])-vals[0]['residual'])/.2)
+            jac=np.array(columns).T;r0=np.array(base['residual'])
+            matrix=np.vstack([jac,math.sqrt(.1/4)*np.eye(4)]);target=np.r_[-r0,np.zeros(4)]
+            # Four dimensions only: enumerate the81 box faces and solve free axes.
+            # This is an exact convex bounded linear solve, not81 traffic forecasts.
+            solutions=[]
+            for face in itertools.product((-1,0,1),repeat=4):
+                step=.3*np.array(face,dtype=float);free=[i for i,v in enumerate(face) if v==0]
+                if free:step[free]=np.linalg.lstsq(matrix[:,free],target-matrix@step,rcond=None)[0]
+                if np.max(np.abs(step))<=.3+1e-10:solutions.append((float(np.sum((matrix@step-target)**2)),step))
+            linear_loss,step=min(solutions,key=lambda x:x[0]);gradient=matrix.T@(matrix@step-target)
+            tol=1e-8*max(1.,float(np.max(np.abs(matrix.T@target))))
+            assert all(g>=-tol if x<=-.3+1e-9 else g<=tol if x>=.3-1e-9 else abs(g)<=tol for x,g in zip(step,gradient))
+            save(out/'linear_fit.json',dict(step=step.tolist(),linear_loss=linear_loss,box_faces=81,kkt_verified=True,
+                 singular_values=np.linalg.svd(jac,compute_uv=False).tolist(),note='One bounded linearized calibration solve; not a converged nonlinear optimizer or SDMPC solve.'))
+        for scale in (1.,.5):evaluate((1+scale*step).tolist(),f'joint_step_{scale}')
+        eligible=[e for e in evaluations[1:] if e['objective']<=.95*base['objective'] and e['loss450']['response']<=base['loss450']['response'] and e['loss150']['response']<=base['loss150']['response']]
+        if junction_identification:eligible=[e for e in eligible if e['discharge_response']<=.9*base['discharge_response']]
+        if lane_state:
+            eligible=[e for e in eligible if all(e['lane_state_scores'][i]<=base['lane_state_scores'][i] for i in (1,2))
+                and sum(e['lane_state_scores'][i]/base['lane_state_scores'][i] for i in (1,2))/2<=.9]
+        selected=min(eligible,key=lambda e:e['objective']) if eligible else None
+        save(out/'selection.json',dict(selected=selected['folder'] if selected else None,z=selected['z'] if selected else None,
+             training_admissible=[dict(z=e['z'],folder=e['folder']) for e in eligible],selected_before_validation=True))
+        result=dict(status='complete_no_training_admissible_candidate',forecasts=forecasts,production_adopted=False,goal_complete=False)
+        if selected:
+            autonomous_check=None
+            if junction_identification:
+                stage='autonomous_training';dest=out/'autonomous_training';dest.mkdir();model=lpr.load_sources(Path(selected['folder'])/'manifest.json')['component'];arows=[]
+                for rec in train:
+                    row,_=execute(model,rec,dest);arows.append(row)
+                save(out/'autonomous_training.json',arows)
+                old=read(R/'response_regimes127/eval_00/compact_result.json')['rows']
+                assert {(x['case'],x['arm']) for x in old}=={(x['case'],x['arm']) for x in arows}
+                a=losses(old,[1.]*4);b=losses(arows,selected['z'])
+                regrets={}
+                for case in sorted({x['case'] for x in arows}):
+                    group=[x for x in arows if x['case']==case];regrets[case]=min(group,key=lambda x:x['predicted']['ttt'])['actual']['ttt']-min(x['actual']['ttt'] for x in group)
+                autonomous_check=dict(meaningful_signs=all(x['sign_correct'] for x in b['pairs'] if x['meaningful']),response_improvement=b['response']<=.9*a['response'],absolute=b['absolute']<=1.1*a['absolute'],choice=max(regrets.values())<=.5)
+                save(out/'autonomous_assessment.json',dict(baseline=a,candidate=b,checks=autonomous_check,regrets=regrets,future_observations=False))
+            stage='validation';dest=out/'validation';dest.mkdir();model=lpr.load_sources(Path(selected['folder'])/'manifest.json')['component'];rows=[]
+            for rec in validation:
+                row,_=execute(model,rec,dest);rows.append(row)
+            save(out/'validation.json',rows)
+            old=[x for x in read(HERE/'validation.json') if x['structure']=='shared' and x['mode']=='fixed' and x['case'] in ('s43_early','s29_early')]
+            assert len(old)==len(rows)==5
+            a=losses(old,[1.]*4);b=losses(rows,selected['z'])
+            signs=all(p['sign_correct'] for p in b['pairs'] if p['meaningful'])
+            group=[x for x in rows if x['case']=='s43_early'];actual=min(group,key=lambda x:x['actual']['ttt']);pred=min(group,key=lambda x:x['predicted']['ttt'])
+            regret=pred['actual']['ttt']-actual['actual']['ttt']
+            checks=dict(meaningful_signs=signs,response_improvement=b['response']<=.9*a['response'],absolute=a['absolute']*1.1>=b['absolute'],choice=regret<=.5)
+            if junction_identification:checks['autonomous_training']=all(autonomous_check.values())
+            result.update(status='complete_component_pass_pending_fullOmega' if all(checks.values()) else 'complete_not_adopted',baseline=a,candidate=b,checks=checks,choice_regret=regret,forecasts=forecasts)
+        result['elapsed_sec']=time.perf_counter()-started
+        save(out/'assessment.json',result);save(out/'status.json',dict(status=result['status'],forecasts=forecasts,elapsed_sec=result['elapsed_sec']))
+        print(json.dumps(dict(final_status=result['status'],forecasts=forecasts,seconds=result['elapsed_sec'])),flush=True)
+    except BaseException as exc:
+        save(out/'status.json',dict(status='failed',stage=stage,forecasts=forecasts,error=repr(exc)));raise
+    finally:
+        for target,name,old in reversed(hooks):
+            if old is None:delattr(target,name)
+            else:setattr(target,name,old)
+        for p,h in {**protected['protected_sha256'],**pins}.items():assert sha(p)==h,p
+        assert sha(protected['STOP']['path'])==protected['STOP']['sha256']
+        save(out/'preservation.json',dict(core=True,inputs=True,STOP=True,hooks_restored=True))
+
+
+def diagnose_source127():
+    """Four conditional forecasts; observed source input is diagnostic ONLY."""
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    parent=R/'response_regimes127';out=parent/'source_diagnostic';out.mkdir(exist_ok=True)
+    assert read(parent/'status.json')['status']=='complete_not_adopted'
+    assert not (out/'status.json').exists(),'No duplicate/retry of finished or failed diagnostic'
+    context,replay,Obs=common.setup()
+    from evaluation.controllers import lane_plant_runtime as lpr,physical_lane_groups as lanes,offramp_routing as routing,area_freeway_accounting as area
+    protocol=read(parent/'protocol.json');selected=read(parent/'selection.json')
+    for p,h in protocol['protected_sha256'].items():assert sha(p)==h
+    assert sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+    sourcepath=R/'junction_fifo124/dynamic/executed_function_sources.json';source=read(sourcepath)
+    records=[r for r in common.records(False) if r['arm'] in ('release','release_vsl90')];assert len(records)==2
+    spec=read(F/'joint_lane_25/protocol.json')['candidate'];spec.update(congested_receiving_cells=[21],reciprocal_off='10483')
+    manifests={'fixed':parent/'eval_00/manifest.json','candidate':Path(selected['selected'])/'manifest.json'}
+    pins={str(sourcepath):sha(sourcepath),str(parent/'selection.json'):sha(parent/'selection.json')}
+    for p in manifests.values():pins[str(p)]=sha(p)
+    for r in records:
+        pins[r['input']]=r['sha256'];p=Path(r['truth'])/'flows_30s.csv';pins[str(p)]=sha(p)
+    save(out/'protocol.json',dict(budget450=4,fits=0,scope='Same67 component450; only source_demand_vph uses future observed30s admissions, uniformly within each30s. Diagnostic, not autonomous; NOT a corrected causal training label.',
+        fixed_and_candidate=True,selection_frozen=selected['z'],inputs=pins,protected_sha256=protocol['protected_sha256'],STOP=protocol['STOP'],helper_sha256=sha(__file__)))
+    hooks=[];rows=[];started=time.perf_counter();stage='setup'
+    save(out/'status.json',dict(status='running',forecasts=0))
+    try:
+        assert not hasattr(lanes,'RouteLaneRegion');ns={};exec(compile(source['RouteLaneRegion'],'124class','exec'),lanes.__dict__,ns)
+        lanes.RouteLaneRegion=ns['RouteLaneRegion'];hooks.append((lanes,'RouteLaneRegion',None))
+        for target,name in ((routing,'initialize_inventory'),(routing,'advance_inventory'),(area,'_freeway_substep_events'),(type(context['component']),'rollout')):
+            old=getattr(target,name);ns={};exec(compile(source[name],'124_'+name,'exec'),old.__globals__,ns)
+            hooks.append((target,name,old));setattr(target,name,ns[name])
+        for label,manifest in manifests.items():
+            model=lpr.load_sources(manifest)['component']
+            for rec in records:
+                stage=label+'_'+rec['arm'];truth=Obs(rec['truth']);args,kw=common.payload(replay,rec,450)
+                before=copy.deepcopy(args);expected=0.
+                for j,step in enumerate(args[1]):
+                    end=round(rec['cutoff']+30*(j//30+1),6)
+                    rate=float(truth.flows[end,'FW_E',0]['source_admissions'])*120.
+                    step['source_demand_vph']['FW_E']=rate;expected+=rate/3600.
+                restored=copy.deepcopy(args)
+                for j,step in enumerate(restored[1]):step['source_demand_vph']['FW_E']=before[1][j]['source_demand_vph']['FW_E']
+                assert restored==before
+                kw['route_lane_regions']={'FW_E':copy.deepcopy(spec)}
+                pred=model.rollout(*args,**kw);row=replay._cellwise_measure(model,pred,rec,truth)
+                row.pop('score',None);row['label']=label
+                row['source_requested']=expected
+                row['source_accepted']=sum(p['source_admissions'] for p in pred['flows'] if p['cell']==0 and p['road']=='FW_E')
+                assert abs(row['source_accepted']-expected)<1e-7,'Conditional source request was supply-limited; do not call it realized-boundary match'
+                row['route_error']=pred['diagnostics']['roads'][0]['joint_lane_region']['route_marginal_max_error'];assert row['route_error']<1e-7
+                blocks=common.block_measures(model,replay,truth,rec,pred)
+                for b in blocks:b.pop('score',None)
+                row['blocks']=blocks;rows.append(row)
+                with gzip.open(out/(stage+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+                save(out/'rows.json',rows);save(out/'status.json',dict(status='running',stage=stage,forecasts=len(rows)))
+        results={}
+        for label in manifests:
+            group={r['arm']:r for r in rows if r['label']==label};a=group['release'];b=group['release_vsl90']
+            results[label]={kind:{k:b[kind][k]-a[kind][k] for k in ('ttt','mainline_ttt','ramp_ttt','off_ttt','exits','end_n')} for kind in ('actual','predicted')}
+        save(out/'assessment.json',dict(results=results,elapsed_sec=time.perf_counter()-started,forecasts=4,production_adopted=False,autonomous=False,causal_decomposition=False,goal_complete=False))
+        save(out/'status.json',dict(status='complete_conditional_only',forecasts=4,elapsed_sec=time.perf_counter()-started));print(json.dumps(results),flush=True)
+    except BaseException as exc:
+        save(out/'status.json',dict(status='failed',stage=stage,forecasts=len(rows),error=repr(exc)));raise
+    finally:
+        for target,name,old in reversed(hooks):
+            if old is None:delattr(target,name)
+            else:setattr(target,name,old)
+        for p,h in {**protocol['protected_sha256'],**pins}.items():assert sha(p)==h
+        assert sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+        save(out/'preservation.json',dict(core=True,inputs=True,STOP=True,hooks_restored=True))
+
+
+def diagnose_merge_exit128():
+    """Finite2x2 ablation of model mechanisms, not native causal attribution."""
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    out=R/'merge_exit128';out.mkdir(exist_ok=True)
+    assert not (out/'status.json').exists(),'Preserve prior work; no automatic retries'
+    context,replay,Obs=common.setup()
+    from evaluation.controllers import lane_plant_runtime as lpr,physical_lane_groups as lanes,offramp_routing as routing,area_freeway_accounting as area
+    previous=R/'response_regimes127';prior=read(previous/'protocol.json')
+    for p,h in prior['protected_sha256'].items():assert sha(p)==h
+    assert sha(prior['STOP']['path'])==prior['STOP']['sha256']
+    manifest=previous/'eval_00/manifest.json';model=lpr.load_sources(manifest)['component']
+    sourcepath=R/'junction_fifo124/dynamic/executed_function_sources.json';source=read(sourcepath)
+    original=source['RouteLaneRegion'];modified=original
+    def replace(old,new):
+        nonlocal modified
+        assert modified.count(old)==1,old
+        modified=modified.replace(old,new)
+    replace('        self.road = road',
+        "        self._merge_penalty = bool(spec.get('diagnostic_merge_penalty', True))\n"
+        "        self._exit_feedback = bool(spec.get('diagnostic_exit_feedback', True))\n"
+        "        self.speed_terms = []\n        self.road = road")
+    replace('            if off == self.reciprocal_off:',
+            '            if self._exit_feedback and off == self.reciprocal_off:')
+    replace('            through[i][g] = {k:n*factor for k,n in through[i][g].items()}',
+            '            if not self._exit_feedback:factor = 1.\n            through[i][g] = {k:n*factor for k,n in through[i][g].items()}')
+    replace('            if delta > 0 and self.merge[i][g]:',
+            '            before_merge = velocity\n            if self._merge_penalty and delta > 0 and self.merge[i][g]:')
+    replace('            requests = sum(row[g] for off,row in self.off_requests.items() if self.off_access[off] == g',
+            '            after_merge = velocity\n            requests = sum(row[g] for off,row in self.off_requests.items() if self.off_access[off] == g')
+    replace('            if requests > sent+1e-9 and n:',
+            '            if self._exit_feedback and requests > sent+1e-9 and n:')
+    replace('            values.append(max(net.v_min,velocity))',
+            "            self.speed_terms.append(dict(time_s=state.time_sec+dt*3600,cell=i,lane=g+1,n_veh=n,\n"
+            "                merge_veh=self.merge[i][g],off_requested=requests,off_sent=sent,\n"
+            "                pre_merge_kmh=before_merge,post_merge_kmh=after_merge,post_exit_kmh=velocity,\n"
+            "                merge_decrement_kmh=max(net.v_min,before_merge)-max(net.v_min,after_merge),\n"
+            "                exit_decrement_kmh=max(net.v_min,after_merge)-max(net.v_min,velocity)))\n"
+            '            values.append(max(net.v_min,velocity))')
+    ast.parse(modified);save(out/'executed_class.json',dict(original_sha256=hashlib.sha256(original.encode()).hexdigest(),source=modified))
+    records=common.records(False);assert len(records)==4
+    data={};inputs={};pins={str(manifest):sha(manifest),str(sourcepath):sha(sourcepath)}
+    for rec in records:
+        data[rec['arm']]=Obs(rec['truth']);args,kw=common.payload(replay,rec,450)
+        before=copy.deepcopy(args)
+        for j,step in enumerate(args[1]):
+            end=round(rec['cutoff']+30*(j//30+1),6)
+            step['source_demand_vph']['FW_E']=float(data[rec['arm']].flows[end,'FW_E',0]['source_admissions'])*120.
+        restored=copy.deepcopy(args)
+        for j,step in enumerate(restored[1]):step['source_demand_vph']['FW_E']=before[1][j]['source_demand_vph']['FW_E']
+        assert restored==before;inputs[rec['arm']]=(args,kw)
+        pins[rec['input']]=rec['sha256'];p=Path(rec['truth'])/'flows_30s.csv';pins[str(p)]=sha(p)
+    assert all(v[0][0]==next(iter(inputs.values()))[0][0] for v in inputs.values())
+    spec=read(F/'joint_lane_25/protocol.json')['candidate'];spec.update(congested_receiving_cells=[21],reciprocal_off='10483')
+    variants=[('both',True,True),('no_merge_penalty',False,True),('no_exit_feedback',True,False),('neither',False,False)]
+    save(out/'protocol.json',dict(previous_goal_turn='NO_PROGRESS:read-only explanation verified existing paths; no new physical validation.',
+        budget450=16,fits=0,native=0,FZP=0,variants=variants,controls=[r['arm'] for r in records],
+        source_input='Future observed30s admissions uniform within each bin: conditional diagnostic ONLY.',
+        merge_ablation='Suppress only explicit speed penalty in lane region19..25 (actual merge cells21/23); keep upstream10/12,actual receiving/merge allocation/ramp waits and all FD terms.',
+        exit_ablation='Suppress only added same-lane exit-through FIFO,reciprocal10483 coupling,and exit blocked-flow speed cap in region19..25. Keep finite off storage/drain/actual accepted exits,existing occupancy lane loss,receiving21 and geometry. Not all off-ramp dynamics removed.',
+        interpretation='Mechanism ablations are not operating controls or calibrated candidates. Endogenous accepted merges can change; compare/report them, never assume fixed actual counts. The factorial interaction is a MODEL interaction,not native causal attribution.',
+        gate='Both-enabled exact127 physical parity; mass/storage/source checks all16; all flags must demonstrably affect their intended term before conclusions. No coefficient or native search follows this probe.',
+        protected_sha256=prior['protected_sha256'],STOP=prior['STOP'],input_sha256=pins,helper_sha256=sha(__file__)))
+    hooks=[];instances=[];rows=[];termrows=[];started=time.perf_counter();stage='prepare';parity={}
+    save(out/'status.json',dict(status='running',forecasts=0,stage=stage))
+    try:
+        assert not hasattr(lanes,'RouteLaneRegion');ns={};exec(compile(modified,'128diagnosticclass','exec'),lanes.__dict__,ns)
+        klass=ns['RouteLaneRegion'];old_init=klass.__init__
+        def initialize(instance,*a,**k):old_init(instance,*a,**k);instances.append(instance)
+        klass.__init__=initialize;lanes.RouteLaneRegion=klass;hooks.append((lanes,'RouteLaneRegion',None))
+        for target,name in ((routing,'initialize_inventory'),(routing,'advance_inventory'),(area,'_freeway_substep_events'),(type(context['component']),'rollout')):
+            old=getattr(target,name);ns={};exec(compile(source[name],'124_'+name,'exec'),old.__globals__,ns)
+            hooks.append((target,name,old));setattr(target,name,ns[name])
+        for label,merge_on,exit_on in variants:
+            folder=out/label;folder.mkdir()
+            for rec in records:
+                stage=label+'_'+rec['arm'];instances.clear();args,kw=copy.deepcopy(inputs[rec['arm']])
+                local=copy.deepcopy(spec);local.update(diagnostic_merge_penalty=merge_on,diagnostic_exit_feedback=exit_on)
+                kw['route_lane_regions']={'FW_E':local}
+                pred=model.rollout(*args,**kw);assert len(instances)==1
+                row=replay._cellwise_measure(model,pred,rec,data[rec['arm']]);row.pop('score',None);row['variant']=label
+                actual_source=sum(s['source_demand_vph']['FW_E']/3600 for s in args[1])
+                predicted_source=sum(p['source_admissions'] for p in pred['flows'] if p['road']=='FW_E' and p['cell']==0)
+                assert abs(predicted_source-actual_source)<1e-7
+                row['source_accepted']=predicted_source;row['route_error']=instances[0].max_residual;assert row['route_error']<1e-7
+                row['blocks']=common.block_measures(model,replay,data[rec['arm']],rec,pred)
+                for b in row['blocks']:b.pop('score',None)
+                if label=='both' and rec['arm'] in ('release','release_vsl90'):
+                    old=read(previous/'source_diagnostic'/('fixed_'+rec['arm']+'.json.gz'))
+                    check={k:json.loads(json.dumps(pred[k]))==old[k] for k in ('cells','flows','ports','ramps')}
+                    parity[rec['arm']]=check;save(out/'parity.json',parity);assert all(check.values())
+                terms=instances[0].speed_terms;assert len(terms)==450*7*3
+                assert all(t['merge_decrement_kmh']>=-1e-9 and t['exit_decrement_kmh']>=-1e-9 for t in terms)
+                if not merge_on:assert max(abs(t['merge_decrement_kmh']) for t in terms)<1e-12
+                if not exit_on:assert max(abs(t['exit_decrement_kmh']) for t in terms)<1e-12
+                for cell in range(19,26):
+                    for block in (0,1,2):
+                        group=[t for t in terms if t['cell']==cell and block*150<int(round(t['time_s']-rec['cutoff']))<=150*(block+1)]
+                        assert len(group)==450
+                        termrows.append(dict(variant=label,arm=rec['arm'],cell=cell,block=block,
+                            merge_active=sum(t['merge_decrement_kmh']>1e-9 for t in group),exit_active=sum(t['exit_decrement_kmh']>1e-9 for t in group),
+                            both_direct=sum(t['merge_decrement_kmh']>1e-9 and t['exit_decrement_kmh']>1e-9 for t in group),
+                            merge_decrement_sum=sum(t['merge_decrement_kmh'] for t in group),exit_decrement_sum=sum(t['exit_decrement_kmh'] for t in group),
+                            accepted_merge=sum(t['merge_veh'] for t in group),accepted_off=sum(t['off_sent'] for t in group)))
+                row['junction_restriction_steps']=sum(t['off_accepted_veh']<t['off_before_veh']-1e-9 for t in instances[0].junction_rows)
+                rows.append(row)
+                with gzip.open(folder/(rec['arm']+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+                with gzip.open(folder/(rec['arm']+'_speed_terms.json.gz'),'wt',encoding='utf-8') as f:json.dump(terms,f,allow_nan=False)
+                save(out/'rows.json',rows);save(out/'terms_by150.json',termrows)
+                save(out/'status.json',dict(status='running',forecasts=len(rows),stage=stage,elapsed_sec=time.perf_counter()-started))
+                print(json.dumps(dict(stage=stage,ttt=row['predicted']['ttt'],forecasts=len(rows))),flush=True)
+        contrasts=[]
+        for label,_,_ in variants:
+            by={r['arm']:r for r in rows if r['variant']==label}
+            for a,b in (('release','release_vsl90'),('hold','hold_vsl90'),('hold','release'),('hold_vsl90','release_vsl90')):
+                d={kind:{k:by[b][kind][k]-by[a][kind][k] for k in ('ttt','mainline_ttt','ramp_ttt','off_ttt','exits','end_n')} for kind in ('actual','predicted')}
+                d['merge_delta']={r:by[b]['predicted']['merges'][r]-by[a]['predicted']['merges'][r] for r in by[a]['predicted']['merges']}
+                contrasts.append(dict(variant=label,left=a,right=b,**d))
+        effects=[]
+        for rec in records:
+            by={r['variant']:r for r in rows if r['arm']==rec['arm']}
+            effects.append(dict(arm=rec['arm'],interaction={k:by['both']['predicted'][k]-by['no_merge_penalty']['predicted'][k]-by['no_exit_feedback']['predicted'][k]+by['neither']['predicted'][k] for k in ('ttt','mainline_ttt','ramp_ttt','off_ttt','exits','end_n')}))
+        save(out/'assessment.json',dict(contrasts=contrasts,model_interactions=effects,
+            direct_overlap_count=sum(t['both_direct'] for t in termrows),forecasts=16,elapsed_sec=time.perf_counter()-started,
+            causal_native_attribution=False,autonomous=False,production_adopted=False,goal_complete=False))
+        save(out/'status.json',dict(status='complete_diagnostic_only',forecasts=16,elapsed_sec=time.perf_counter()-started))
+    except BaseException as exc:
+        save(out/'status.json',dict(status='failed',stage=stage,forecasts=len(rows),error=repr(exc)));raise
+    finally:
+        for target,name,old in reversed(hooks):
+            if old is None:delattr(target,name)
+            else:setattr(target,name,old)
+        for p,h in {**prior['protected_sha256'],**pins}.items():assert sha(p)==h
+        assert sha(prior['STOP']['path'])==prior['STOP']['sha256']
+        save(out/'preservation.json',dict(core=True,inputs=True,STOP=True,hooks_restored=True))
+
+
+def diagnose_exit130():
+    """Observe the existing124 exit allocation without changing any operation."""
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    out=R/'exit_constraints130'
+    if '--exit130-second' in sys.argv:
+        failed=read(out/'status.json')
+        assert failed['status']=='failed' and failed['stage']=='fixed_release' and failed['forecasts']==0
+        assert all(read(out/'parity.json')['fixed_release'].values())
+        assert all(x['checks']==450 and x['max_error']<1e-9 for x in read(out/'counter_semantics.json'))
+        out=out/'attempt2'
+    out.mkdir(exist_ok=True)
+    assert not (out/'status.json').exists(),'Preserve previous work; no automatic retry'
+    context,replay,Obs=common.setup()
+    from evaluation.controllers import lane_plant_runtime as lpr,physical_lane_groups as lanes,offramp_routing as routing,area_freeway_accounting as area
+    previous=R/'merge_response129';protocol=read(previous/'protocol.json')
+    for p,h in protocol['protected_sha256'].items():assert sha(p)==h
+    assert sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+    sourcepath=R/'junction_fifo124/dynamic/executed_function_sources.json';source=read(sourcepath)
+    recs=[x for x in common.records(False) if x['arm'] in ('release','release_vsl90')];assert len(recs)==2
+    cases=[('fixed',previous/'eval_00'),('joint_unadopted',previous/'eval_09')]
+    spec=read(F/'joint_lane_25/protocol.json')['candidate'];spec.update(congested_receiving_cells=[21],reciprocal_off='10483')
+    inputs={};obs={};pins={str(sourcepath):sha(sourcepath)}
+    for rec in recs:
+        obs[rec['arm']]=Obs(rec['truth']);args,kw=common.payload(replay,rec,450)
+        for j,step in enumerate(args[1]):
+            end=round(rec['cutoff']+30*(j//30+1),6)
+            step['source_demand_vph']['FW_E']=float(obs[rec['arm']].flows[end,'FW_E',0]['source_admissions'])*120.
+        inputs[rec['arm']]=(args,kw);pins[rec['input']]=rec['sha256']
+        p=Path(rec['truth'])/'flows_30s.csv';pins[str(p)]=sha(p)
+    for _,folder in cases:
+        p=folder/'manifest.json';pins[str(p)]=sha(p)
+    save(out/'protocol.json',dict(previous_goal_turn='PROGRESS:129 joint calibration finished, all candidates failed declared response gates.',
+        forecasts=4,fits=0,native=0,FZP=0,source='Same conditional observed30s source as129; no future internal states. Not autonomous qualification.',
+        mechanism='Instrument existing plan after it completes. Reconstruct request->finite branch capacity->reciprocal through receiving->accepted exit; compare actual accepted amount and downstream through allocation.',
+        gate='All four original physical tables exactly match129. Every1s reconstructed restriction and allocated flow must match runtime. No change to coefficients or model decisions.',
+        protected_sha256=protocol['protected_sha256'],STOP=protocol['STOP'],input_sha256=pins,helper_sha256=sha(__file__)))
+    hooks=[];instances=[];results=[];parity={};started=time.perf_counter();stage='prepare'
+    save(out/'status.json',dict(status='running',stage=stage,forecasts=0))
+    try:
+        assert not hasattr(lanes,'RouteLaneRegion');ns={};exec(compile(source['RouteLaneRegion'],'124class','exec'),lanes.__dict__,ns)
+        klass=ns['RouteLaneRegion'];original_init=klass.__init__;original_plan=klass.plan
+        def initialize(instance,*a,**kw):
+            original_init(instance,*a,**kw);instance.exit_trace=[];instances.append(instance)
+        def instrument(instance,state,cfg,mainline,route_requests,q_inter,receiving,ramp_release,branch_capacity):
+            result=original_plan(instance,state,cfg,mainline,route_requests,q_inter,receiving,ramp_release,branch_capacity)
+            i=20;g=0;off='10483';dt=cfg.simulation.T_f_h;stock=instance.before[i][g]
+            fraction=min(1.,instance.oldv[i][g]*dt/instance.lengths[i])
+            through=sum(n*fraction for k,n in stock.items() if k.rsplit('|',1)[-1]!=off)
+            off_stock=sum(n for k,n in stock.items() if k.rsplit('|',1)[-1]==off)
+            request=instance.off_requests[off][g];assert abs(request-off_stock*fraction)<1e-9
+            capacity=branch_capacity[off]*dt;after_storage=min(request,capacity)
+            room=instance.free[i+1][g];ratio=min(1.,room/through) if through else 1.
+            after_reciprocal=min(after_storage,request*ratio)
+            sent=instance.off_sent[off][g];assert abs(sent-after_reciprocal)<1e-9
+            scaled=through*(sent/request if request else 1.)
+            through_actual=instance.outgoing[i][g];assert abs(through_actual-min(scaled,room))<1e-9
+            instance.exit_trace.append(dict(time_s=state.time_sec+dt*3600,cell=i,lane=g+1,
+                lane_n=instance.n0[i][g],off_n=off_stock,other_lane_off_n=sum(n for krow in instance.before[i][1:] for k,n in krow.items() if k.rsplit('|',1)[-1]==off),
+                old_speed=instance.oldv[i][g],travel_fraction=fraction,off_request=request,
+                branch_capacity_veh=capacity,after_storage=after_storage,accepted_off=sent,
+                storage_reduction=request-after_storage,reciprocal_reduction=after_storage-sent,
+                through_request=through,through_room=room,through_scaled=scaled,accepted_through=through_actual,
+                downstream_lane_n=instance.n0[i+1][g],downstream_speed=instance.oldv[i+1][g],
+                accepted_merge=instance.merge[i+1][g],receiving_before_merge=room+instance.merge[i+1][g]))
+            return result
+        klass.__init__=initialize;klass.plan=instrument;lanes.RouteLaneRegion=klass;hooks.append((lanes,'RouteLaneRegion',None))
+        for target,name in ((routing,'initialize_inventory'),(routing,'advance_inventory'),(area,'_freeway_substep_events'),(type(context['component']),'rollout')):
+            old=getattr(target,name);ns={};exec(compile(source[name],'124_'+name,'exec'),old.__globals__,ns)
+            hooks.append((target,name,old));setattr(target,name,ns[name])
+        for label,folder in cases:
+            model=lpr.load_sources(folder/'manifest.json')['component']
+            for rec in recs:
+                stage=label+'_'+rec['arm'];instances.clear();args,kw=copy.deepcopy(inputs[rec['arm']]);kw['route_lane_regions']={'FW_E':copy.deepcopy(spec)}
+                pred=model.rollout(*args,**kw);assert len(instances)==1 and len(instances[0].exit_trace)==450
+                row=replay._cellwise_measure(model,pred,rec,obs[rec['arm']]);row.pop('score',None)
+                old=read(folder/(rec['case']+'_'+rec['arm']+'.json.gz'))
+                check={k:json.loads(json.dumps(pred[k]))==old[k] for k in ('cells','flows','ports','ramps')}
+                parity[stage]=check;save(out/'parity.json',parity);assert all(check.values())
+                trace=instances[0].exit_trace
+                previous_admitted=previous_departed=0.
+                for t in trace:
+                    port=next(x for x in pred['ports'] if x['connector']=='10483' and abs(x['time_s']-t['time_s'])<1e-7)
+                    admitted=port['admitted_veh']-previous_admitted
+                    departed=port['departed_veh']-previous_departed
+                    assert abs(admitted-t['accepted_off'])<1e-9
+                    t.update(port_n=port['n_veh'],port_ready=port['ready_veh'],port_drained=departed)
+                    previous_admitted=port['admitted_veh'];previous_departed=port['departed_veh']
+                summaries=[]
+                for block in range(3):
+                    tt=[t for t in trace if block*150<int(round(t['time_s']-rec['cutoff']))<=150*(block+1)];assert len(tt)==150
+                    sums={k:sum(t[k] for t in tt) for k in ('off_request','after_storage','accepted_off','storage_reduction','reciprocal_reduction','through_request','accepted_through','accepted_merge','port_drained')}
+                    means={k:sum(t[k] for t in tt)/len(tt) for k in ('lane_n','off_n','other_lane_off_n','old_speed','downstream_lane_n','downstream_speed','port_n','port_ready')}
+                    active={k:sum(t[k]>1e-9 for t in tt) for k in ('storage_reduction','reciprocal_reduction')}
+                    end=round(rec['cutoff']+150*(block+1),6);start=end-150
+                    native=[x for (tm,road,c),x in obs[rec['arm']].flows.items() if road=='FW_E' and c==20 and start+1e-6<tm<=end+1e-6]
+                    assert len(native)==5
+                    summaries.append(dict(block=block,sums=sums,means=means,active_seconds=active,
+                        actual_off=sum(float(x['off_departures']) for x in native),actual_all_lane_through=sum(float(x['downstream_crossings']) for x in native),
+                        predicted_all_lane_through=sum(x['downstream_crossings'] for x in pred['flows'] if x['cell']==20 and start+1e-6<x['window_end_s']<=end+1e-6)))
+                with gzip.open(out/(stage+'_trace.json.gz'),'wt',encoding='utf-8') as f:json.dump(trace,f,allow_nan=False)
+                results.append(dict(case=label,arm=rec['arm'],metrics=row,blocks=summaries))
+                save(out/'results.json',results);save(out/'status.json',dict(status='running',stage=stage,forecasts=len(results)))
+                print(json.dumps(dict(stage=stage,forecasts=len(results),middle150=summaries[1])),flush=True)
+        save(out/'status.json',dict(status='complete_diagnostic_only',forecasts=4,elapsed_sec=time.perf_counter()-started))
+    except BaseException as exc:
+        save(out/'status.json',dict(status='failed',stage=stage,forecasts=len(results),error=repr(exc)));raise
+    finally:
+        for target,name,old in reversed(hooks):
+            if old is None:delattr(target,name)
+            else:setattr(target,name,old)
+        for p,h in {**protocol['protected_sha256'],**pins}.items():assert sha(p)==h
+        assert sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+        save(out/'preservation.json',dict(core=True,inputs=True,STOP=True,hooks_restored=True))
+
+
+def accepted_transport133_source(source):
+    """A single unadopted current-state transport variant; no fitted bonus.
+
+    Carry speed moments with the accepted mainline mass. Ramp arrivals retain
+    the old local speed surrogate and explicit merge loss, so this does not
+    repeat the rejected fixed-ramp-speed mixing option. The subsequent kinetic
+    source uses the transported speed; its old analytic convection is disabled
+    to avoid counting mainline transport twice.
+    """
+    code=source['RouteLaneRegion']
+    old='''        self.exchange_v = {}
+        for i,rows in self.next.items():'''
+    new='''        self.exchange_v = {}
+        self.transport_rows = getattr(self, 'transport_rows', [])
+        before_moment = sum(n*v for i in self.cells for n,v in zip(self.n0[i],self.oldv[i]))
+        balance = 0.
+        after_moment = 0.
+        for i,rows in self.next.items():'''
+    assert code.count(old)==1;code=code.replace(old,new)
+    old='''            moment = [n*v for n,v in zip(ns,self.oldv[i])]
+            for g,row in enumerate(matrix):'''
+    new='''            transported = []
+            for g,n in enumerate(ns):
+                up = self.oldv[i-1][g] if i-1 in self.oldv else state.freeway_speed[self.road][i-1]
+                sent = sum(row[g] for off,row in self.off_sent.items()
+                           if runtime['branches'][off]['source_cell'] == i)
+                residual = self.n0[i][g]-self.outgoing[i][g]-sent
+                assert residual >= -1e-8
+                assert abs(n-(residual+self.merge[i][g]+self.incoming[i][g]))<1e-8
+                moment = (residual+self.merge[i][g])*self.oldv[i][g]+self.incoming[i][g]*up
+                moved_speed = moment/n if n>1e-9 else self.oldv[i][g]
+                assert min(up,self.oldv[i][g])-1e-7 <= moved_speed <= max(up,self.oldv[i][g])+1e-7
+                transported.append(moved_speed)
+                if i == self.cells[0]:balance += self.incoming[i][g]*up
+                if i == self.cells[-1]:balance -= self.outgoing[i][g]*self.oldv[i][g]
+                balance += (self.merge[i][g]-sent)*self.oldv[i][g]
+                self.transport_rows.append(dict(time_s=state.time_sec,cell=i,lane=g+1,
+                    n_before=self.n0[i][g],n_after_longitudinal=n,old_v=self.oldv[i][g],
+                    upstream_v=up,incoming=self.incoming[i][g],outgoing=self.outgoing[i][g],
+                    off=sent,merge=self.merge[i][g],transported_v=moved_speed))
+            moment = [n*v for n,v in zip(ns,transported)]
+            moment_before_lateral = sum(moment)
+            for g,row in enumerate(matrix):'''
+    assert code.count(old)==1;code=code.replace(old,new)
+    old='''                    moment[g] -= amount*self.oldv[i][g];moment[k] += amount*self.oldv[i][g]'''
+    new='''                    moment[g] -= amount*transported[g];moment[k] += amount*transported[g]'''
+    assert code.count(old)==1;code=code.replace(old,new)
+    old='''        self.next_v = {}
+
+    def speed'''
+    new='''            assert abs(sum(moment)-moment_before_lateral)<1e-7
+            after_moment += sum(moment)
+        residual_moment = after_moment-before_moment-balance
+        assert abs(residual_moment)<1e-7, residual_moment
+        self.transport_max_error = max(getattr(self,'transport_max_error',0.),abs(residual_moment))
+        self.next_v = {}
+
+    def speed'''
+    assert code.count(old)==1;code=code.replace(old,new)
+    old='''mn.metanet_speed_update_kmh(self.exchange_v[i][g],up,rho,down,target'''
+    new='''mn.metanet_speed_update_kmh(self.exchange_v[i][g],self.exchange_v[i][g],rho,down,target'''
+    assert code.count(old)==1;code=code.replace(old,new)
+    compile(code,'accepted_transport133','exec')
+    result=dict(source);result['RouteLaneRegion']=code
+    return result
+
+
+def validate_frozen132(*, accepted_transport=False, local_reaction=False):
+    """Falsify frozen132 full step without future source; no refit or adoption.
+
+    The failed local-flow gate remains failed. This separate diagnostic tests
+    whether the user's macro control ranking could nevertheless be recovered.
+    """
+    from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+    from evaluation.controllers import lane_plant_runtime as lpr,physical_lane_groups as lanes,offramp_routing as routing,area_freeway_accounting as area
+    assert not (accepted_transport and local_reaction)
+    parent=R/'lane_state132'
+    out=R/'onset_reaction134/forecast' if local_reaction else R/'accepted_transport133' if accepted_transport else parent/'autonomous_diagnostic'
+    out.mkdir(exist_ok=True)
+    assert not (out/'status.json').exists(),'Preserve completed/failed diagnostic; no retry'
+    assert read(parent/'status.json')['status']=='complete_no_training_admissible_candidate'
+    assert read(parent/'selection.json')['selected'] is None
+    context,replay,Obs=common.setup()
+    protected=read(parent/'protocol.json');proposal=read(parent/'proposal.json')
+    manifest=R/'onset_reaction134/candidate/manifest.json' if local_reaction else parent/'eval_01/manifest.json'
+    assert read(parent/'eval_01/result.json')['z']==proposal['full']
+    catalog=read(C/'data_catalog.json')['checked_records']
+    training=[x for x in catalog if x['case']=='s29_late']+common.records(False)
+    validation=[x for x in catalog if x['case']=='s43_early' or (x['case']=='s29_early' and x['arm']=='none')]
+    assert len(training)==8 and len(validation)==5
+    sourcepath=R/'junction_fifo124/dynamic/executed_function_sources.json';source=read(sourcepath)
+    if accepted_transport:
+        source=accepted_transport133_source(source)
+        save(out/'executed_function_sources.json',source)
+    pins={str(sourcepath):sha(sourcepath),str(manifest):sha(manifest),str(parent/'proposal.json'):sha(parent/'proposal.json')}
+    model=lpr.load_sources(manifest)['component'];spec=read(F/'joint_lane_25/protocol.json')['candidate']
+    spec.update(congested_receiving_cells=[21],reciprocal_off='10483')
+    save(out/'protocol.json',dict(
+        reason='132 state errors improved but local discharge response failed. Separate macro ranking falsification, not weakening132 gates or promoting the candidate.',
+        selection='Full joint step frozen before autonomous diagnostics; no other vector evaluated or selected on these results.',
+        manifest=str(manifest),z=proposal['full'],future_observations_in_model=False,
+        budget=dict(training_state450=8,independent_state450_only_if_training_passes=5,new_native=0,new_FZP=0,additional_fits=0),
+        gate='Meaningful abs(deltaTTT)>=.5 signs, all-pair response>=10% improvement, absolute<=110%baseline, actual regret of predicted minimum<=.5vehh. This still cannot reverse132 failed flow gate or qualify wholeOmega.',
+        scope='FW_E31+4on+4off; component TTT, not Omega. Original captured source forecasts and all waiting costs unchanged.',
+        protected_sha256=protected['protected_sha256'],STOP=protected['STOP'],inputs=pins,helper_sha256=sha(__file__)))
+    for p,h in protected['protected_sha256'].items():assert sha(p)==h
+    if local_reaction:
+        fitting=read(R/'onset_reaction134/proposal.json')
+        for p,h in fitting['input_sha256'].items():assert sha(p)==h,p
+        pins.update(fitting['input_sha256'])
+        protocol=read(out/'protocol.json')
+        protocol.update(reason='134 native-state lane21 merge/anticipation fit selected one bounded coefficient vector. Test its autonomous response, including RM benefit that disappears when merge is weakened excessively.',
+            selection='One2D least-squares proposal from67 nominal110 only. No coefficients selected using autonomous outcomes or VSL observations.',
+            manifest=str(manifest),z=fitting['z'],parameters=fitting['parameters'],
+            mechanics='Shared124/132 dynamics unchanged. Only cell21 delta_merge and anticipation.downstream_lt_local differ; all other31cell coefficients, accepted-flow rules, waiting costs and VSL exposure unchanged.',
+            limits='Conditional fit hit both lower bounds including delta21=0. This does not establish zero physical merge friction; all-arm rollout must test it. No fitting-bound expansion.',
+            budget=dict(training_state450=8,independent_state450=0,new_native=0,new_FZP=0,additional_fits=0),
+            compared_to='Frozen132 identical initial observations and autonomous demand forecasts.29late is an other-state check,67 is the fitted state; neither is pristine blind validation.',
+            independent_validation='FullOmega and unfit seeds remain mandatory before adoption.')
+        save(out/'protocol.json',protocol)
+    if accepted_transport:
+        protocol=read(out/'protocol.json')
+        protocol.update(previous_goal_turn='NO_PROGRESS: terminology explanation only; revalidated132 terminal results and live process inventory before this work.',
+            reason='132 autonomous VSL response still wrong after joint N/v fitting; test accepted-flow speed transport instead of analytic convection.',
+            selection='One physical transport variant with the already frozen132 coefficients. No coefficient refit, no capacity or command bonus.',
+            mechanics='Accepted mainline mass carries old upstream speed moment; residual/outgoing/off stock uses old local speed. Lateral mixing uses transported means. Existing relaxation/anticipation acts on that transported mean with analytic convection=0. Ramp speed surrogate remains local and explicit merge loss is preserved.',
+            limits='Operator-split variant of local METANET closure, not the unchanged published METANET equation. Speed moment is balanced for transport only, not conserved across acceleration/braking. Still cell/lane homogeneous and approximate ramp mixing.',
+            compared_to='Frozen132 identical coefficients and original autonomous inputs; cached8 results reused.',
+            inspected_prior=['merge_population','merge_speed_audit','lane_terms25','joint_lane_rec','exit_sending131','upstream_worklog/07_fww_sc1001eb/fww-struct/P_PLANT.md'],
+            budget=dict(parity450=1,training_state450=8,independent_state450=0,new_native=0,new_FZP=0,additional_fits=0),
+            independent_validation='A passing candidate requires a separately declared matched-coefficient independent comparison; no adoption in this diagnostic.')
+        save(out/'protocol.json',protocol)
+    hooks=[];forecasts=0;started=time.perf_counter();phase='setup'
+    def run_records(records,folder):
+        nonlocal forecasts
+        rows=[];folder.mkdir()
+        for rec in records:
+            args,kw=copy.deepcopy(replay.read_primitive_capture(rec['input'],rec['sha256']))
+            raw=F/'route_inventory'/('initial_raw.json' if rec['case']=='s29_late' else rec['case']+'/initial_raw.json')
+            pins[rec['input']]=rec['sha256'];pins[str(raw)]=sha(raw)
+            assert kw['horizon_sec']==450 and args[2]==context['parameters']
+            input_copy=copy.deepcopy(args)
+            kw.update(offramp_inventory=dict(contract=read(F/'route_inventory/contract.json'),raw=read(raw)),route_lane_regions={'FW_E':copy.deepcopy(spec)})
+            kw['port_dynamics']['entry_capacity_mode']='storage'
+            pred=model.rollout(*args,**kw);forecasts+=1
+            assert args==input_copy,'Original captured future forecast must not be replaced or mutated'
+            obs=Obs(rec['truth']);row=replay._cellwise_measure(model,pred,rec,obs);row.pop('score',None)
+            for name in ('cells_30s.csv','flows_30s.csv','ports_30s.csv'):
+                p=Path(rec['truth'])/name;pins[str(p)]=sha(p)
+            errors={'n':[],'v':[],'q':[]}
+            for z in pred['cells']:
+                if 19<=z['cell']<=25:
+                    a=next(v for v in obs.cells[round(z['time_s'],6)] if v['road']=='FW_E' and v['cell']==z['cell'])
+                    errors['n'].append(z['n_veh']-a['n_veh'])
+                    if a['v_kmh'] is not None:errors['v'].append(z['v_kmh']-a['v_kmh'])
+            for z in pred['flows']:
+                if 19<=z['cell']<=25:
+                    a=obs.flows[round(z['window_end_s'],6),'FW_E',z['cell']]
+                    errors['q'].append((z['downstream_crossings']-float(a['downstream_crossings']))*120.)
+            row['local_rmse']={k:math.sqrt(sum(x*x for x in v)/len(v)) for k,v in errors.items()}
+            row['route_error']=pred['diagnostics']['roads'][0]['joint_lane_region']['route_marginal_max_error']
+            assert row['route_error']<1e-7
+            if accepted_transport:
+                assert len(instances)==1
+                obj=instances.pop();assert len(obj.transport_rows)==450*7*3
+                row['transport_max_error']=obj.transport_max_error
+                with gzip.open(folder/(rec['case']+'_'+rec['arm']+'_transport.json.gz'),'wt',encoding='utf-8') as f:json.dump(obj.transport_rows,f,allow_nan=False)
+            with gzip.open(folder/(rec['case']+'_'+rec['arm']+'.json.gz'),'wt',encoding='utf-8') as f:json.dump(pred,f,allow_nan=False)
+            rows.append(row);save(folder/'rows.json',rows)
+            save(out/'status.json',dict(status='running',phase=phase,forecasts=forecasts))
+        return rows
+    def compare(old,rows):
+        a=losses(old,[1.]*4);b=losses(rows,proposal['full']);regrets={}
+        for case in sorted({x['case'] for x in rows}):
+            group=[x for x in rows if x['case']==case]
+            regrets[case]=min(group,key=lambda x:x['predicted']['ttt'])['actual']['ttt']-min(x['actual']['ttt'] for x in group)
+        checks=dict(meaningful_signs=all(x['sign_correct'] for x in b['pairs'] if x['meaningful']),
+            response_improvement=b['response']<=.9*a['response'],absolute=b['absolute']<=1.1*a['absolute'],choice=max(regrets.values())<=.5)
+        return dict(baseline=a,candidate=b,checks=checks,regrets=regrets)
+    try:
+        assert not hasattr(lanes,'RouteLaneRegion');ns={};exec(compile(source['RouteLaneRegion'],'124class','exec'),lanes.__dict__,ns)
+        lanes.RouteLaneRegion=ns['RouteLaneRegion'];hooks.append((lanes,'RouteLaneRegion',None))
+        if accepted_transport:
+            instances=[];original_init=lanes.RouteLaneRegion.__init__
+            def record_instance(obj,*a,**kw):
+                original_init(obj,*a,**kw);instances.append(obj)
+            lanes.RouteLaneRegion.__init__=record_instance
+        for target,name in ((routing,'initialize_inventory'),(routing,'advance_inventory'),(area,'_freeway_substep_events'),(type(model),'rollout')):
+            old=getattr(target,name);ns={};exec(compile(source[name],'124_'+name,'exec'),old.__globals__,ns)
+            hooks.append((target,name,old));setattr(target,name,ns[name])
+        if accepted_transport:
+            phase='baseline_parity';candidate_class=lanes.RouteLaneRegion;ns={}
+            exec(compile(read(sourcepath)['RouteLaneRegion'],'124_parity','exec'),lanes.__dict__,ns)
+            lanes.RouteLaneRegion=ns['RouteLaneRegion']
+            rec=training[0];args,kw=copy.deepcopy(replay.read_primitive_capture(rec['input'],rec['sha256']))
+            raw=F/'route_inventory/initial_raw.json'
+            kw.update(offramp_inventory=dict(contract=read(F/'route_inventory/contract.json'),raw=read(raw)),route_lane_regions={'FW_E':copy.deepcopy(spec)})
+            kw['port_dynamics']['entry_capacity_mode']='storage'
+            pred=model.rollout(*args,**kw);forecasts+=1
+            reference=read(parent/'autonomous_diagnostic/training'/(rec['case']+'_'+rec['arm']+'.json.gz'))
+            checks={k:json.loads(json.dumps(pred[k]))==reference[k] for k in ('cells','flows','ports','ramps')}
+            save(out/'parity.json',checks);assert all(checks.values())
+            lanes.RouteLaneRegion=candidate_class
+        phase='autonomous_training';rows=run_records(training,out/'training')
+        old=read(parent/'autonomous_diagnostic/training/rows.json') if accepted_transport or local_reaction else read(R/'response_regimes127/eval_00/compact_result.json')['rows']
+        result=compare(old,rows);save(out/'training_assessment.json',result)
+        passed=all(result['checks'].values())
+        if passed and not (accepted_transport or local_reaction):
+            phase='independent_state';rows=run_records(validation,out/'validation')
+            old=[x for x in read(HERE/'validation.json') if x['structure']=='shared' and x['mode']=='fixed' and x['case'] in ('s43_early','s29_early')]
+            result=compare(old,rows);save(out/'validation_assessment.json',result);passed=all(result['checks'].values())
+        save(out/'assessment.json',dict(status='complete_macro_gate_pass_only' if passed else 'complete_macro_gate_failed',forecasts=forecasts,
+            original132_local_flow_gate_still_failed=True,production_adopted=False,goal_complete=False,elapsed_sec=time.perf_counter()-started))
+        save(out/'status.json',read(out/'assessment.json'))
+        print(json.dumps(read(out/'assessment.json')),flush=True)
+    except BaseException as exc:
+        save(out/'status.json',dict(status='failed',phase=phase,forecasts=forecasts,error=repr(exc)));raise
+    finally:
+        for target,name,old in reversed(hooks):
+            if old is None:delattr(target,name)
+            else:setattr(target,name,old)
+        for p,h in {**protected['protected_sha256'],**pins}.items():assert sha(p)==h,p
+        assert sha(protected['STOP']['path'])==protected['STOP']['sha256']
+        save(out/'preservation.json',dict(core=True,inputs=True,STOP=True,hooks_restored=True,input_sha256=pins))
+
+
+if __name__=='__main__':
+    if '--local134' in sys.argv:validate_frozen132(local_reaction=True)
+    elif '--flux133' in sys.argv:validate_frozen132(accepted_transport=True)
+    elif '--exit130' in sys.argv or '--exit130-second' in sys.argv:diagnose_exit130()
+    elif '--frozen132' in sys.argv:validate_frozen132()
+    elif '--lane132' in sys.argv:calibrate_response127(junction_identification=True,lane_state=True)
+    elif '--junction129' in sys.argv:calibrate_response127(junction_identification=True)
+    elif '--mechanisms128' in sys.argv:diagnose_merge_exit128()
+    elif '--source127' in sys.argv:diagnose_source127()
+    elif '--response127' in sys.argv:calibrate_response127()
+    elif '--full73-126' in sys.argv:validate_full73_126()
+    elif '--validate126' in sys.argv:validate_admissible126()
+    else:main()

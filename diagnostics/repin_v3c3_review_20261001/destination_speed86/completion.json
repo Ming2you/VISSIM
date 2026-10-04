@@ -1,0 +1,144 @@
+{
+  "status": "complete",
+  "goal": "ACTIVE / NOT_QUALIFIED",
+  "previous_goal_turn": "NO_PROGRESS; this turn PROGRESS with completed destination-conditioned closure and current-state audits",
+  "conditional_windows": 352,
+  "current_snapshots": 8,
+  "current_partitions": 64,
+  "diagnostic_gate_passed": false,
+  "gate_checks": [
+    {
+      "case": "29_none",
+      "target": "10481",
+      "reduction_percent": 71.8106607508211,
+      "passed": true
+    },
+    {
+      "case": "29_none",
+      "target": "10483",
+      "reduction_percent": -15.942406793646867,
+      "passed": false
+    },
+    {
+      "case": "29_vsl",
+      "target": "10481",
+      "reduction_percent": 71.8106607508211,
+      "passed": true
+    },
+    {
+      "case": "29_vsl",
+      "target": "10483",
+      "reduction_percent": -10.958628479625766,
+      "passed": false
+    },
+    {
+      "case": "43_none",
+      "target": "10481",
+      "reduction_percent": 54.42462187140007,
+      "passed": true
+    },
+    {
+      "case": "43_none",
+      "target": "10483",
+      "reduction_percent": 17.748790809741834,
+      "passed": false
+    },
+    {
+      "case": "43_vsl",
+      "target": "10481",
+      "reduction_percent": 50.00918065799511,
+      "passed": true
+    },
+    {
+      "case": "43_vsl",
+      "target": "10483",
+      "reduction_percent": 16.858166860633116,
+      "passed": false
+    },
+    {
+      "case": "67_release",
+      "target": "10481",
+      "reduction_percent": 42.63624915613671,
+      "passed": true
+    },
+    {
+      "case": "67_release",
+      "target": "10483",
+      "reduction_percent": 18.266207572432346,
+      "passed": false
+    },
+    {
+      "case": "67_release_vsl90",
+      "target": "10481",
+      "reduction_percent": 42.63624915613671,
+      "passed": true
+    },
+    {
+      "case": "67_release_vsl90",
+      "target": "10483",
+      "reduction_percent": 19.64322783343603,
+      "passed": false
+    }
+  ],
+  "current_cell20_at3000": {
+    "release": {
+      "target_n": 12,
+      "through_n": 22,
+      "target_speed": 19.114724083663308,
+      "through_speed": 51.70269634078489,
+      "mixed_speed": 40.20105907356551,
+      "stock_share": 0.35294117647058826,
+      "speed_share": 0.16781580787842826,
+      "mixed_to_destination_flux_ratio": 2.10314618707596,
+      "unknown": 0
+    },
+    "release_vsl90": {
+      "target_n": 10,
+      "through_n": 33,
+      "target_speed": 20.27551941698091,
+      "through_speed": 26.941100368842125,
+      "mixed_speed": 25.390965263758126,
+      "stock_share": 0.23255813953488372,
+      "speed_share": 0.1857053099295441,
+      "mixed_to_destination_flux_ratio": 1.252296660893086,
+      "unknown": 0
+    }
+  },
+  "original_functions_unchanged": [
+    "read",
+    "main"
+  ],
+  "production_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\offramp_routing.py": "4ed3243430761f3ac5eaa517dfefee904418b0d8e252d3d369d4cbe5f4dd07a4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec"
+  },
+  "old_stop": {
+    "path": "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP",
+    "sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "new_forecasts": 0,
+  "native_runs": 0,
+  "fitting": 0,
+  "fzp_scans": 0,
+  "adopted": false,
+  "decision": "Do not install a general speed-weighted branch split. Global off-flow overprediction and local target underdeparture can coexist; no global beta/service multiplier. Current destination-speed covariance at10483 is real but dynamic/gain causality remains unproven. Do not repeat the same passive-tag or fixed-speed-weight grids.",
+  "limitations": [
+    "First conditional cohort ends for many upstream branch vehicles before VSL influence; it is not six independent control-effect validations.",
+    "Current same-run snapshots refresh observed routes and verify actual post-intervention difference without stitching old caches. They do not prove a derivative at matched local states.",
+    "CIM process inventory read denied; no process action or owned job started. No claims about unrelated process status.",
+    "Existing failed9000 remains unmodified; no simulator restart/push."
+  ],
+  "artifacts": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\protocol.json": "0c007cfa9a453ea8f7639f464043f84df066dae6264771cdf0eca194380113c4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\assessment.json": "5dd3be59666dae0c21a32114740616cf2ca31a403339384088eba66f7bc40a47",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\details.json": "79f624c929948d8177f9063dcaf72d8c3d650f7cb7804305be94984a806acba5",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\current_protocol.json": "2ee640928fb84bdcc3f5fd2e2af712d4f0457cdfd623e049d5f8b0553c07fd55",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\current_snapshots.json": "bf6dae4e5afce2c2fc1497e1955a64e279c86291c1e2f4513a04a2031cefcf8b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\audit.executed.py.txt": "949b5e5a2cf3d9ca550c563812edc5d6e11df2ab85e5535f132e27b39ec406ac",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\audit.current_executed.py.txt": "c895be3e7ba204ca18a6c4470a7c126ca9b428d091674a09f5078db48907ddfd",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\destination_speed86\\README.md": "3f9d90e0a0074129dad5fafc5f9c432b67d5c150dcd718e66997037fb65b940c"
+  }
+}

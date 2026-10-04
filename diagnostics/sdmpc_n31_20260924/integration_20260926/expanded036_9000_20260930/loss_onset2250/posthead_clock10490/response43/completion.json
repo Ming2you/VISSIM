@@ -1,0 +1,57 @@
+{
+  "status": "complete_not_qualified",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "adopted": false,
+  "forecasts": 4,
+  "forecast_compute_sec": 86.71707470004912,
+  "forecast_compute_by_arm": {
+    "held_actual": 21.755115700070746,
+    "rm": 21.65475049999077,
+    "vsl": 21.46729579998646,
+    "both": 21.83991270000115
+  },
+  "run_wall_sec": 101.12917859992012,
+  "optimizer_iterations": 0,
+  "new_native": 0,
+  "fzp_scans": 0,
+  "coefficient_fits": 0,
+  "live_monitoring": 0,
+  "push": 0,
+  "checks": {
+    "same_commands_and_initial_physical_states": true,
+    "all8_ramp_conservation": true,
+    "writer_constraints": true,
+    "native_omega_reintegrated": true
+  },
+  "protected_and_core_pins_unchanged": true,
+  "rank": {
+    "native": [
+      "rm",
+      "both",
+      "nc",
+      "vsl"
+    ],
+    "before": [
+      "rm",
+      "nc",
+      "both",
+      "vsl"
+    ],
+    "candidate": [
+      "rm",
+      "nc",
+      "both",
+      "vsl"
+    ]
+  },
+  "result_sha256": "8cfd1fcc1fc55a949e6d73bddbf5c5f4a79d3ae46dcfdd0acb285ea7b12baaa3",
+  "accounting_sha256": "fdee7e543a99ed7e3fb9b20b15f3553d0540683ab542b11e92181876cd5f5ce1",
+  "full_rollout_AD_verified": false,
+  "SDMPC_selection_verified": false,
+  "assessor_change": {
+    "protocol_pins_preedit_source": true,
+    "before_sha256": "59bffdf72676461ccfaa4797f4a543a3932903cbac401d2893ebd257aafa193a",
+    "after_sha256": "8641580627c0f42a4967561063ab4c6419071cfafef28418b926035eee0234cf",
+    "reason": "Existing assessor extended with explicit candidate/baseline/output CLI options before verification; no equations changed. Initial completion check compared preedit hash to postedit file and stopped before writes. Diff and both versions preserved."
+  }
+}

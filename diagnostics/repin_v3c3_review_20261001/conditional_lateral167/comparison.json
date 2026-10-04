@@ -1,0 +1,85 @@
+{
+  "pairs": [
+    {
+      "mode": "baseline",
+      "actual": {
+        "ttt": -1.6333333333333258,
+        "ramp_ttt": -0.2833333333333332,
+        "end_n": -56.0,
+        "exits": 18.0
+      },
+      "predicted": {
+        "ttt": 0.15143165867010566,
+        "ramp_ttt": 0.0028919758873993118,
+        "end_n": 4.794579016291209,
+        "exits": -4.852230468255357
+      }
+    },
+    {
+      "mode": "conditional",
+      "actual": {
+        "ttt": -1.6333333333333258,
+        "ramp_ttt": -0.2833333333333332,
+        "end_n": -56.0,
+        "exits": 18.0
+      },
+      "predicted": {
+        "ttt": -0.14408351677639075,
+        "ramp_ttt": 0.002257116938654491,
+        "end_n": -5.591975377551989,
+        "exits": 5.658115610250434
+      }
+    }
+  ],
+  "windows": [
+    {
+      "arm": "release",
+      "lo": 2670.1,
+      "hi": 2820.1,
+      "native_endpoint_off20": 62,
+      "baseline_off20": 41.2284994344677,
+      "conditioned_off20": 45.21698663212915
+    },
+    {
+      "arm": "release",
+      "lo": 2820.1,
+      "hi": 2970.1,
+      "native_endpoint_off20": 29,
+      "baseline_off20": 22.323595890540084,
+      "conditioned_off20": 32.19938617136612
+    },
+    {
+      "arm": "release",
+      "lo": 2970.1,
+      "hi": 3120.1,
+      "native_endpoint_off20": 45,
+      "baseline_off20": 21.869696738645004,
+      "conditioned_off20": 35.29063500646689
+    },
+    {
+      "arm": "release_vsl90",
+      "lo": 2670.1,
+      "hi": 2820.1,
+      "native_endpoint_off20": 62,
+      "baseline_off20": 41.559434551571236,
+      "conditioned_off20": 45.46505039175955
+    },
+    {
+      "arm": "release_vsl90",
+      "lo": 2820.1,
+      "hi": 2970.1,
+      "native_endpoint_off20": 43,
+      "baseline_off20": 22.36910762880551,
+      "conditioned_off20": 37.296507306009154
+    },
+    {
+      "arm": "release_vsl90",
+      "lo": 2970.1,
+      "hi": 3120.1,
+      "native_endpoint_off20": 45,
+      "baseline_off20": 20.883092596849963,
+      "conditioned_off20": 37.40934880348872
+    }
+  ],
+  "limits": "Native off20 labels independently confirmed131 for these windows; other appearance/disappearance is not classified as normal exits. Conditional outputs cannot qualify autonomous gains."
+}

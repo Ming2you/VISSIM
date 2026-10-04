@@ -1,0 +1,56 @@
+{
+  "status": "completed_bounded_screen",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "adopted": false,
+  "forecasts": 5,
+  "candidate_count": 1,
+  "coefficient_fits": 0,
+  "optimizer": 0,
+  "native": 0,
+  "fzp_scans": 0,
+  "live_monitoring": 0,
+  "push": 0,
+  "sessions": {
+    "43420": "exit0",
+    "21193": "exit0",
+    "58920": "exit0",
+    "94817": "exit0"
+  },
+  "forecast_compute_seconds": 169.08001020003576,
+  "changes": {
+    "evaluation/controllers/physical_ramp_boundary.py": {
+      "before": "46703b814b389ed82b43bb41fd8b244bd1ba14684e9c24065a3252a6251c6e73",
+      "after": "70c5def2ea20774652a68255b9b42b1adc47cc734a9b47e3b95a05d5add4d241"
+    },
+    "evaluation/controllers/lane_ramp_runtime.py": {
+      "before": "22dbd42be58fde3ba4c7161784af7da4f8f2c351fb329f556e483448baa90ed1",
+      "after": "383e578012f2629c7f55897d99b9d7521a1ccb6c97a0d3c73beeb04140e64825"
+    },
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": {
+      "before": "41e4cc279b080c78d818a04de51df448c0b7223b3a2f2b1597424cdeef6cf8bd",
+      "after": "93463ba0c0f3dbf57bd69ed1e764d5813972d3473d8bea99e74c36bbe567ebca"
+    },
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\audit_city_arrival.py": {
+      "before": "a783a0051ad8e1b6e7ec378a8838daeec6d9dbd73c9b863d3bfb65d33a9f1a02",
+      "after": "42d0da9bcc8f385d2210e1f1f7613af1c942a6f726f9d077abddaaf66bf012fd"
+    }
+  },
+  "protected": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_config.json": "c4abfccb63110bb4f7458a666d5e87b7ae367a07c12ae8403169ec3d674ce6dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\physical_speed\\candidate_config.json": "4dad50007e42915e848c1901e725612bab8996881c47f7f90be468248770a762",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "tests": {
+    "default_entire_trace": "exact",
+    "all8_mass": "pass",
+    "local_math_forward_ad": "pass",
+    "local_math_reverse_ad": "pass_after_authorized_dependency_read",
+    "full_rollout_AD": "not_run",
+    "portable_ramp_tests": "7pass",
+    "old_geometry_fixture": "missing_port_profile_json_test8_error"
+  },
+  "independent47": "correct_hold_before_release_rank; tiny change, not major gain prediction improvement",
+  "next": "Audit10490 arrival/head overprediction using existing traces; do not fit another receiving coefficient or adopt new9000.",
+  "note": "Final one-line component-harness audit-label correction has no numeric effect; coupled forecasts do not use that label."
+}

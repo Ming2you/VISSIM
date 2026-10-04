@@ -1,0 +1,785 @@
+"""Assess the four completed1500s forecasts against the same-command150s prefix."""
+import csv
+import hashlib
+import gzip
+import json
+from pathlib import Path
+
+O = Path(__file__).resolve().parent
+E, I = O.parent, O.parents[1]
+P = I/'closedloop_recorded1500_lever450_RM_C10484_trace10484_early1500'
+D = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+pins = {}
+
+
+def read(p):
+    b = p.read_bytes()
+    pins[str(p)] = hashlib.sha256(b).hexdigest()
+    return b.decode('utf-8-sig')
+
+
+def js(p):
+    return json.loads(read(p))
+
+
+def table(p):
+    return list(csv.DictReader(read(p).splitlines()))
+
+
+def main():
+    done = js(O/'run_completion.json')
+    assert done['status'] == 'complete' and done['forecasts'] == 4 and done['pins_unchanged']
+    result = js(P/'summary.json')['results']
+    assert list(result) == ['held_actual','rm10490','rm10484','both_ramps']
+    base = result['held_actual']
+    quantity = {r['case']: r for r in js(O/'quantities.json')}
+    captures = {t: js(D/f'state_{t:06d}.json')['vehicle_records'] for t in (1500,1650)}
+    assert all(r['complete'] and r['unobservable_count']==0 for r in captures.values())
+    vehicles = {t: r['records'] for t,r in captures.items()}
+    detector_rows = [r for r in table(E/'loss_diagnosis/detector_windows_150s.csv')
+                     if r['arm']=='sdmpc' and float(r['sim_sec'])==1650]
+    locations = table(I/'selected/obs150/obs150_detectors_v2.csv')
+    native = {}
+    for ramp in base['ramps']:
+        con = ramp.removeprefix('RM_C')
+        stock = {t: [r for r in vs if str(r['link_no'])==con] for t,vs in vehicles.items()}
+        def count(role):
+            rows = [r for r in detector_rows if r['role']==role and r['link']==con]
+            assert rows
+            return sum(int(r['count']) for r in rows)
+        def position(role):
+            rows = [r for r in locations if r['role']==role and r['link']==con]
+            values = {int(r['lane']):float(r['pos']) for r in rows}
+            assert values and len(values)==len(rows)
+            return values
+        arrival_pos, head_pos = position('ramp_arrival'), position('meter_head')
+        pre = {t: sum(v['position_m']<arrival_pos[v['lane_no']] for v in vs) for t,vs in stock.items()}
+        post = {t: sum(v['position_m']>=head_pos[v['lane_no']] for v in vs) for t,vs in stock.items()}
+        arrival = count('ramp_arrival')+pre[1650]-pre[1500]
+        head = count('meter_head')
+        merge = head+post[1500]-post[1650]
+        assert len(stock[1500])+arrival-merge==len(stock[1650])
+        native[ramp] = dict(initial_stock=len(stock[1500]),arrival=arrival,head=head,
+            merge=merge,final_stock=len(stock[1650]),initial_posthead=post[1500],
+            final_posthead=post[1650])
+    geometry = js(I/'selected/port_gain/geometry.json')
+    addr = geometry['addresses']
+    from bisect import bisect_right
+    cell_truth = {}
+    for t,vs in vehicles.items():
+        cell_truth[t] = {}
+        for road in ('FW_E','FW_W'):
+            cells = sorted([c for c in geometry['cells'] if c['road']==road],key=lambda c:c['cell'])
+            ends = [c['end_m'] for c in cells]
+            bins = [[] for _ in cells]
+            for v in vs:
+                item = addr.get(str(v['link_no']))
+                if item and item[0]==road:
+                    cell = min(bisect_right(ends,item[1]+v['position_m']),30)
+                    bins[cell].append(v['speed_kph'])
+            cell_truth[t][road] = dict(n=[len(b) for b in bins],
+                speed=[sum(b)/len(b) if b else None for b in bins])
+    rows = []
+    for name,r in result.items():
+        first = r['first_interval']
+        assert first['physical_cell_states'][0]==base['first_interval']['physical_cell_states'][0]
+        for road in ('FW_E','FW_W'):
+            model_n = first['physical_cell_states'][0]['vehicle_count'][road]
+            assert max(abs(a-b) for a,b in zip(model_n,cell_truth[1500][road]['n']))<1e-8
+        targets = ({'RM_C10490'} if name=='rm10490' else {'RM_C10484'} if name=='rm10484'
+                   else {'RM_C10490','RM_C10484'} if name=='both_ramps' else set())
+        for block,(cmd,held) in enumerate(zip(r['commands'],base['commands'])):
+            assert all(cmd[k]==held[k] for k in ('vsl','green_times','offsets'))
+            assert all(v==110 for v in cmd['vsl'].values())
+            assert all(v==(8-2*block if k in targets else 10) for k,v in cmd['meters'].items())
+        delta = {k:r['cost_by_stock'].get(k,0)-base['cost_by_stock'].get(k,0) for k in set(r['cost_by_stock'])|set(base['cost_by_stock'])}
+        # Report exact model stock addresses; keep origin/merge stocks separate.
+        east = delta.get('freeway:FW_E',0)
+        west = delta.get('freeway:FW_W',0)
+        ramps = sum(v for k,v in delta.items() if k.startswith('ramp:'))
+        total = r['ttt_omega_veh_h']-base['ttt_omega_veh_h']
+        assert abs(sum(delta.values())-total)<1e-7
+        assert all(abs(v['residual'])<1e-7 for v in r['ramps'].values())
+        rows.append(dict(case=name,delta_omega=total,delta_E=east,delta_W=west,delta_ramps=ramps,
+            delta_other_omega=total-east-west-ramps,delta_outside=r['tracked_outside_residence_veh_h']-base['tracked_outside_residence_veh_h'],
+            delta_merge={k:v['merge']-base['ramps'][k]['merge'] for k,v in r['ramps'].items()},
+            first150_delta_merge={k:v['merge']-base['first_interval']['ramps'][k]['merge'] for k,v in first['ramps'].items()},
+            n_p=quantity[name]['resource']['np'],n_uf=quantity[name]['resource']['nuf'],
+            feasible=quantity[name]['resource']['feasible']))
+    actual_first = dict(ramps=native,cells=cell_truth,
+        model_ramps=base['first_interval']['ramps'],model_cells=base['first_interval']['physical_cell_states'][1])
+    trace_path = P/'held_actual_RM_C10484_trace.json.gz'
+    pins[str(trace_path)] = hashlib.sha256(trace_path.read_bytes()).hexdigest()
+    with gzip.open(trace_path,'rt',encoding='utf-8') as f:
+        trace = json.load(f)
+    grouped = {}
+    prefix = 'physical_ramp_merge_'
+    for r in trace['resources']:
+        if r['kind'].startswith(prefix):
+            grouped.setdefault(r['start_sec'],{})[r['kind'].removeprefix(prefix)] = r
+    gate_blocks = []
+    for start in (1500,1650,1800):
+        ties = {k:0 for k in ('stock','canonical_receiving','physical_receiving','eligible')}
+        total = 0.
+        for sec in range(start,start+150):
+            gates = grouped[sec]
+            assert set(gates)==set(ties)
+            cap = min(r['available_veh'] for r in gates.values())
+            used = gates['eligible']['accepted_total_veh']
+            assert abs(used-cap)<1e-8
+            total += used
+            for k,r in gates.items():
+                ties[k] += abs(r['available_veh']-cap)<1e-8
+        gate_blocks.append(dict(start_sec=start,end_sec=start+150,merge=total,binding_seconds_including_ties=ties))
+    initial_post = trace['initial_stock']['downstream_travelling_veh']+trace['initial_stock']['merge_ready_veh']
+    model_head = base['first_interval']['ramps']['RM_C10484']['head']
+    model_merge = base['first_interval']['ramps']['RM_C10484']['merge']
+    posthead = dict(native=native['RM_C10484'],model_initial=initial_post,
+        model_final=initial_post+model_head-model_merge,model_head=model_head,model_merge=model_merge,
+        fixed_posthead_speed_kmh=trace['initial_buffer']['posthead_travel_speed_kmh'],
+        gate_blocks=gate_blocks,scope='Recorded model gates; not a native capacity estimate or causal intervention')
+    for p,h in js(O/'execution_pins.json').items():
+        assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h
+    for p,h in pins.items():
+        assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==h
+    output = dict(status='complete',rows=rows,first150=actual_first,posthead10484=posthead,all_commands_valid=True,
+        all_initial_cells_exact=True,all8_ramp_balances_pass=True,source_pins=pins,
+        forecast_compute_seconds=sum(r['wall_sec'] for r in result.values()),run_wall_seconds=done['wall_sec'],
+        new_native=0,new_forecasts=0,model_response_only=True,adopted=False,goal_qualified=False)
+    (O/'assessment.json').write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(rows=rows,native_first150=native,model_first150=base['first_interval']['ramps']),ensure_ascii=False))
+
+
+def posthead_timing():
+    """Isolate future head timing with frozen receiving; not a plant forecast."""
+    import ast
+    import math
+    import statistics
+
+    out = O/'posthead10484_timing'
+    out.mkdir(exist_ok=True)
+    assert not (out/'verification.json').exists(), 'Preserve completed diagnostic'
+    protocol = dict(window=[1500,1650], ramp='RM_C10484',
+        cases=['saved_head_parity','native_head_times','native_head_ceil_1s'],
+        fixed='Initial cohorts, nominal travel and saved canonical/physical receiving budgets',
+        scope='Future-conditioned buffer-only accounting; changed merges do not update freeway',
+        full_forecasts=0,fit=0,native_runs=0,fzp_scans=0,live_monitoring=0)
+    (out/'protocol.json').write_text(json.dumps(protocol,indent=2)+'\n',encoding='utf-8')
+    # Reuse only the two pure functions. Importing the historical script would
+    # re-execute its already completed 10490 diagnosis and rewrite its files.
+    helper = E/'audit_posthead10490_receiving.py'
+    tree = ast.parse(read(helper))
+    functions = [n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in ('close','fluid_replay')]
+    assert len(functions)==2
+    namespace = {}
+    exec(compile(ast.Module(body=functions,type_ignores=[]),str(helper),'exec'),namespace)
+    replay, close = namespace['fluid_replay'], namespace['close']
+    assessment = js(O/'assessment.json')
+    for path,digest in assessment['source_pins'].items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest, path
+    trace_path = P/'held_actual_RM_C10484_trace.json.gz'
+    data = trace_path.read_bytes()
+    pins[str(trace_path)] = hashlib.sha256(data).hexdigest()
+    trace = json.loads(gzip.decompress(data))
+    initial = trace['initial_buffer']
+    start, stop = protocol['window']
+    states = {t:js(D/f'state_{t:06d}.json') for t in (start,stop)}
+    loc = [r for r in table(I/'selected/obs150/obs150_detectors_v2.csv')
+           if r['role']=='meter_head' and r['link']=='10484']
+    assert len(loc)==1 and int(loc[0]['lane'])==1
+    det = int(loc[0]['dcp_no'])
+    assert abs(float(loc[0]['pos'])-initial['head_position_m'])<1e-6
+    events = []
+    for state in states.values():
+        spec = state['obs150']['mer']
+        path = D/spec['chunk']
+        text = read(path)
+        assert pins[str(path)]==spec['chunk_sha256']
+        events.extend(json.loads(line) for line in text.splitlines())
+    assert len({r[0] for r in events})==len(events)
+    entries = [r for r in events if r[1]==det and r[2] is not None]
+    assert len({r[4] for r in entries})==len(entries)
+    native_heads = [(r[2],1.) for r in entries if start<=r[2]<stop]
+    close(len(native_heads),states[stop]['obs150']['detectors'][str(det)])
+    close(len(native_heads),states[stop]['obs150']['detectors_cum'][str(det)]-
+          states[start]['obs150']['detectors_cum'][str(det)])
+    native = assessment['posthead10484']['native']
+    close(len(native_heads),native['head'])
+    travel = initial['post_head_travel_sec']
+    due = [(start+(initial['length_m']-p)/initial['posthead_travel_speed_kmh']*3.6,n)
+           for p,_,n in initial['initial_cohorts'] if p>=initial['head_position_m']]
+    close(sum(n for _,n in due),native['initial_posthead'])
+    grouped = {}
+    model_heads = []
+    for r in trace['resources']:
+        if not start<r['end_sec']<=stop:
+            continue
+        if r['kind']=='physical_ramp_head_service':
+            assert r['resource']=='RM_C10484:0'
+            model_heads.append((r['end_sec'],r['accepted_total_veh']))
+        elif r['kind'] in ('physical_ramp_merge_canonical_receiving','physical_ramp_merge_physical_receiving'):
+            assert r['resource']=='RM_C10484'
+            grouped.setdefault(r['end_sec'],[]).append(r['available_veh'])
+    assert len(grouped)==len(model_heads)==150 and all(len(v)==2 for v in grouped.values())
+    budgets = [dict(end_sec=t,available_veh=min(v)) for t,v in sorted(grouped.items())]
+    outcomes = {name:replay(due,heads,travel,budgets) for name,heads in (
+        ('saved_head_parity',model_heads),('native_head_times',native_heads),
+        ('native_head_ceil_1s',[(math.ceil(t),n) for t,n in native_heads]))}
+    close(outcomes['saved_head_parity']['merge'],assessment['posthead10484']['model_merge'])
+    close(outcomes['saved_head_parity']['end_post'],assessment['posthead10484']['model_final'])
+    by_id = {r[4]:r[2] for r in entries}
+    post = [v for v in states[stop]['vehicle_records']['records']
+            if v['link_no']==10484 and v['position_m']>=initial['head_position_m']]
+    close(len(post),native['final_posthead'])
+    assert all(v['veh_no'] in by_id for v in post), 'Head ages require complete observed crossings'
+    ages = [dict(vehicle=v['veh_no'],head_sec=by_id[v['veh_no']],age_sec=stop-by_id[v['veh_no']],
+                 position_m=v['position_m'],speed_kmh=v['speed_kph']) for v in post]
+    blocks = [dict(start_sec=t,end_sec=t+30,
+        native_head=sum(n for at,n in native_heads if t<=at<t+30),
+        model_head=sum(n for at,n in model_heads if t<at<=t+30),
+        saved_receiving=sum(r['available_veh'] for r in budgets if t<r['end_sec']<=t+30))
+        for t in range(start,stop,30)]
+    for path,digest in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest, path
+    result = dict(status='complete_diagnostic_only',protocol=protocol,native=native,
+        nominal_posthead_travel_sec=travel,outcomes=outcomes,head_30s=blocks,
+        native_end_post_vehicles=ages,native_head_age_median_sec=statistics.median(v['age_sec'] for v in ages),
+        native_post_older_than_nominal=sum(v['age_sec']>travel for v in ages),
+        native_post_speed_below5=sum(v['speed_kmh']<5 for v in ages),
+        parity_pass=True,head_counts_verified=True,source_pins=pins,
+        mass_conserved=True,autonomous=False,adopted=False,goal_qualified=False)
+    (out/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (out/'assess_source_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({k:v for k,v in result.items() if k not in ('source_pins','native_end_post_vehicles')},ensure_ascii=False))
+
+
+def receiving_context():
+    """Compare traced model inputs with native spatial context; no refit."""
+    from evaluation.controllers.physical_ramp_boundary import gap_acceptance_supply_vph
+    out = O/'receiving_context1500'
+    assert not (out/'verification.json').exists(), 'Preserve completed analysis'
+    done = js(out/'run_completion.json')
+    assert done['status']=='complete' and done['forecasts']==1 and done['pins_unchanged']
+    trace = js(out/'receiving_trace.json')
+    assert len(trace)==450
+    for row in trace:
+        assert not row['lane_resolved_mainline']
+        assert abs(row['q_conflict_vph']-row['upstream_density']*row['upstream_speed'])<1e-8
+        assert abs(row['gap_supply_vph']-gap_acceptance_supply_vph(row['q_conflict_vph'],2,1.5))<1e-8
+    geometry = js(I/'selected/port_gain/geometry.json')
+    cells = {c['cell']:c for c in geometry['cells'] if c['road']=='FW_E'}
+    rows = []
+    for t in js(out/'protocol.json')['native_windows']:
+        state = js(D/f'state_{t:06d}.json')
+        capture = state['vehicle_records']
+        assert capture['complete'] and capture['unobservable_count']==0
+        by_cell = {22:[],23:[]}
+        for v in capture['records']:
+            addr = geometry['addresses'].get(str(v['link_no']))
+            if addr is None or addr[0]!='FW_E':
+                continue
+            x = addr[1]+v['position_m']
+            for k in by_cell:
+                if cells[k]['start_m']<=x<cells[k]['end_m']:
+                    by_cell[k].append(v)
+        for cell,vs in by_cell.items():
+            for lane in (0,1):
+                selected = [v for v in vs if lane==0 or v['lane_no']==lane]
+                length = cells[cell]['lane_km'] if lane==0 else cells[cell]['length_km']
+                density = len(selected)/length
+                speed = sum(v['speed_kph'] for v in selected)/len(selected) if selected else 0.
+                rows.append(dict(time_sec=t,cell=cell,lane='all' if lane==0 else lane,
+                    vehicles=len(selected),density_vpkmpl=density,speed_kmh=speed,
+                    stopped_below5=sum(v['speed_kph']<5 for v in selected),
+                    q_rho_v_proxy_vph=density*speed,
+                    hypothetical_gap_vph=gap_acceptance_supply_vph(density*speed,2,1.5)))
+    # This is the consumed aggregate upstream state, not the target-lane row.
+    native_initial = next(r for r in rows if r['time_sec']==1500 and r['cell']==22 and r['lane']=='all')
+    assert abs(trace[0]['upstream_density']-native_initial['density_vpkmpl'])<1e-8
+    assert abs(trace[0]['upstream_speed']-native_initial['speed_kmh'])<1e-8
+    saved_path = P/'held_actual_RM_C10484_trace.json.gz'
+    blob = saved_path.read_bytes();pins[str(saved_path)]=hashlib.sha256(blob).hexdigest()
+    saved = json.loads(gzip.decompress(blob))
+    actual_budget = {r['start_sec']:r['available_veh'] for r in saved['resources']
+                    if r['kind']=='physical_ramp_merge_physical_receiving'}
+    for r in trace:
+        assert abs(actual_budget[r['time_sec']]-min(r['gap_supply_vph'],r['canonical_supply_vph'])/3600)<1e-8
+    blocks=[]
+    for t in (1500,1650,1800):
+        selection=[r for r in trace if t<=r['time_sec']<t+150]
+        blocks.append(dict(start_sec=t,end_sec=t+150,
+            gap_binds=sum(r['gap_supply_vph']<r['canonical_supply_vph'] for r in selection),
+            canonical_min_vph=min(r['canonical_supply_vph'] for r in selection),
+            physical_budget_veh=sum(actual_budget[r['time_sec']] for r in selection),
+            mean_upstream_density=sum(r['upstream_density'] for r in selection)/150,
+            mean_upstream_speed=sum(r['upstream_speed'] for r in selection)/150))
+    for path,digest in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest,path
+    with (out/'native_lane_context.csv').open('w',encoding='utf-8-sig',newline='') as f:
+        w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+    result=dict(status='complete',traced_formula_all450_pass=True,saved_budget_parity_all450_pass=True,
+        initial_consumed_state_native_exact=True,blocks=blocks,native_context=rows,
+        source_pins=pins,new_forecasts=1,optimizer_iterations=0,fit=0,new_native=0,
+        interpretation='Native lane q=rho*v is a spatial proxy, not measured conflicting flow or an identified capacity. Full forecast is unchanged and autonomous; native spatial comparisons are retrospective diagnosis.',
+        source_cell=22,target_merge_cell=23,native_merge_lane='24 1',adopted=False,goal_qualified=False)
+    (out/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (out/'assess_source_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps(dict(blocks=blocks,native_onset=[r for r in rows if r['time_sec'] in (1500,1650)]),ensure_ascii=False))
+
+
+def posthead84_screen():
+    """Apply the predeclared onset gate before any further candidate runs."""
+    out=O/'posthead84'
+    assert not (out/'assessment.json').exists()
+    protocol=js(out/'protocol.json')
+    done=js(out/'onset/run_completion.json')
+    assert done['status']=='complete' and done['forecasts']==1 and done['pins_unchanged']
+    output=Path(js(out/'onset/output.json')['output'])
+    base=js(P/'held_actual.json');candidate=js(output/'held_actual.json')
+    assert base['commands']==candidate['commands']
+    assert base['physical_cell_states'][0]==candidate['physical_cell_states'][0]
+    def trace(path):
+        data=path.read_bytes();pins[str(path)]=hashlib.sha256(data).hexdigest()
+        return json.loads(gzip.decompress(data))
+    t0,t1=[trace(p/'held_actual_RM_C10484_trace.json.gz') for p in (P,output)]
+    assert t0['initial_buffer']==t1['initial_buffer'] and t0['initial_stock']==t1['initial_stock']
+    raw={t:js(D/f'action_{t:06d}.json') for t in (1350,1500)}
+    assert all(raw[1350][k]==raw[1500][k] for k in ('green_times','offsets','vsl','ramp_metering'))
+    observed=js(O/'assessment.json')['posthead10484']['native']
+    actual=dict(merge=observed['merge'],post=observed['final_posthead'])
+    rows={}
+    for name,r in (('baseline',base),('candidate',candidate)):
+        x=r['first_interval']['ramps']['RM_C10484']
+        rows[name]=dict(arrival=x['arrival'],head=x['head'],merge=x['merge'],
+            post=observed['initial_posthead']+x['head']-x['merge'],total_final=x['final_stock'],
+            omega_ttt=r['ttt_omega_veh_h'],wall_sec=r['wall_sec'])
+        assert all(abs(v['residual'])<1e-7 for v in r['ramps'].values())
+    errors={name:{k:abs(r[k]-actual[k]) for k in actual} for name,r in rows.items()}
+    ratios={k:errors['candidate'][k]/errors['baseline'][k] for k in actual}
+    passed=all(v<=protocol['screen']['onset_merge_and_post_error_ratio_max'] for v in ratios.values())
+    base_cfg=js(Path(protocol['baseline_config']));new_cfg=js(Path(protocol['candidate_config']))
+    new_manifest=js(Path(new_cfg['freeway']['lane_plant']));old_manifest=js(Path(base_cfg['freeway']['lane_plant']))
+    new_ref=js(Path(new_manifest['sources']['reference_config']['path']))
+    old_ref=js(Path(old_manifest['sources']['reference_config']['path']))
+    assert new_ref['freeway']['physical_ramp_receiving_nodes']['RM_C10484'].pop('posthead_speed')=='merge_cell_cap'
+    assert new_ref==old_ref
+    new_manifest['sources']['reference_config']=old_manifest['sources']['reference_config']
+    assert new_manifest==old_manifest
+    new_cfg['freeway']['lane_plant']=base_cfg['freeway']['lane_plant']
+    assert new_cfg==base_cfg
+    for path,h in js(out/'onset/execution_pins.json').items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    for path,h in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    result=dict(status='complete',physical_screen_passed=passed,rows=rows,native=actual,
+        errors=errors,error_ratios=ratios,source_pins=pins,only_one_declared_config_change=True,
+        initial_state_exact=True,commands_exact=True,all8_mass_pass=True,
+        candidate_model_cost_change_is_not_control_gain=True,
+        forecasts=1,forecast_compute_sec=candidate['wall_sec'],total_wall_sec=done['wall_sec'],
+        remaining_runs='NOT_RUN: onset screen failed' if not passed else 'Pending physical/independent guards',
+        adopted=False,goal_qualified=False)
+    (out/'assessment.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (out/'assess_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({k:v for k,v in result.items() if k!='source_pins'},ensure_ascii=False))
+
+
+def shared84_screen():
+    """Score one diagnostic shared-throughput candidate without adoption."""
+    out=O/'shared84'
+    assert not (out/'assessment.json').exists()
+    protocol=js(out/'protocol.json')
+    done=js(out/'onset/run_completion.json')
+    assert done['status']=='complete' and done['forecasts']==1 and done['pins_unchanged']
+    output=Path(js(out/'onset/output.json')['output'])
+    base=js(P/'held_actual.json');candidate=js(output/'held_actual.json')
+    assert base['commands']==candidate['commands']
+    assert base['physical_cell_states'][0]==candidate['physical_cell_states'][0]
+    assert base['validation']==candidate['validation']
+    traces=[]
+    for folder in (P,output):
+        path=folder/'held_actual_RM_C10484_trace.json.gz'
+        content=path.read_bytes();pins[str(path)]=hashlib.sha256(content).hexdigest()
+        traces.append(json.loads(gzip.decompress(content)))
+    assert traces[0]['initial_buffer']==traces[1]['initial_buffer']
+    assert traces[0]['initial_stock']==traces[1]['initial_stock']
+    observed=js(O/'assessment.json')['posthead10484']['native']
+    actual=dict(merge=observed['merge'],post=observed['final_posthead'])
+    rows={}
+    for name,r in (('baseline',base),('candidate',candidate)):
+        x=r['first_interval']['ramps']['RM_C10484']
+        rows[name]=dict(arrival=x['arrival'],head=x['head'],merge=x['merge'],
+            post=observed['initial_posthead']+x['head']-x['merge'],
+            total_final=x['final_stock'],omega_ttt=r['ttt_omega_veh_h'])
+        assert all(abs(v['residual'])<1e-7 for v in r['ramps'].values())
+    errors={name:{k:abs(r[k]-actual[k]) for k in actual} for name,r in rows.items()}
+    ratios={k:errors['candidate'][k]/errors['baseline'][k] for k in actual}
+    passed=all(v<=protocol['screen']['onset_merge_and_post_error_ratio_max'] for v in ratios.values())
+    ledger=js(out/'onset/joint_receiving_ledger.json')
+    assert len(ledger)==450
+    assert [r['time_sec'] for r in ledger]==list(range(1500,1950))
+    for r in ledger:
+        s,d,m,a=(r[k] for k in ('supply_veh','mainline_request_veh','mainline_veh','ramp_veh'))
+        assert m+a<=s+1e-7 and a<=max(0.,s-d)+1e-7
+        assert abs(m-min(d,max(0.,s-a)))<1e-7
+        assert abs(r['actual_sending_veh']-d)<1e-7
+        assert abs(r['actual_receiving_veh']-max(0.,s-a))<1e-7
+    assert len(base['physical_cell_states'])==len(candidate['physical_cell_states'])
+    for a,b in zip(base['physical_cell_states'],candidate['physical_cell_states']):
+        for key in ('density','speed_kmh','effective_lanes'):
+            assert a[key]['FW_W']==b[key]['FW_W']
+    for path,h in js(out/'onset/execution_pins.json').items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    for path,h in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    result=dict(status='complete',onset_screen_passed=passed,rows=rows,native=actual,
+        errors=errors,error_ratios=ratios,source_pins=pins,initial_state_exact=True,
+        commands_exact=True,all8_mass_pass=True,west_states_exact=True,
+        joint_allocation_checks=450,forecasts=1,forecast_compute_sec=candidate['wall_sec'],
+        total_wall_sec=done['wall_sec'],native_runs=0,fit=0,
+        candidate_model_cost_change_is_not_control_gain=True,
+        assumption='Mainline-first allocation; native priority not identified',
+        remaining_runs='NOT_RUN: recovery, independent seed and control-response tests pending',
+        adopted=False,goal_qualified=False)
+    (out/'assessment.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+    (out/'assess_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({k:v for k,v in result.items() if k!='source_pins'},ensure_ascii=False))
+
+
+def shared84_recovery():
+    """Reject onset-only improvement if an independent recovery state worsens."""
+    out=O/'shared84'
+    assert not (out/'recovery_assessment.json').exists()
+    assert js(out/'assessment.json')['onset_screen_passed']
+    protocol=js(out/'protocol.json');observed=js(out/'recovery_native.json')
+    actual=observed['native']['RM_C10484']
+    results={};rows={};done=[]
+    for case in ('recovery_base','recovery'):
+        completion=js(out/case/'run_completion.json');done.append(completion)
+        assert completion['status']=='complete' and completion['forecasts']==1
+        folder=Path(js(out/case/'output.json')['output'])
+        result=js(folder/'held_actual.json');results[case]=result
+        r=result['first_interval']['ramps']['RM_C10484']
+        rows[case]=dict(**r,post=actual['initial_posthead']+r['head']-r['merge'],
+            omega_ttt=result['ttt_omega_veh_h'])
+        assert all(abs(v['residual'])<1e-7 for v in result['ramps'].values())
+        for path,h in js(out/case/'execution_pins.json').items():
+            assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    base,candidate=results.values()
+    assert base['commands']==candidate['commands'] and base['validation']==candidate['validation']
+    assert base['physical_cell_states'][0]==candidate['physical_cell_states'][0]
+    west_differences=[]
+    for a,b in zip(base['physical_cell_states'],candidate['physical_cell_states']):
+        west_differences.append(dict(time_sec=a['time_sec'],**{
+            key:max(abs(x-y) for x,y in zip(a[key]['FW_W'],b[key]['FW_W']))
+            for key in ('density','speed_kmh','effective_lanes')}))
+    errors={name:{'merge':abs(r['merge']-actual['merge']),
+                  'post':abs(r['post']-actual['final_posthead'])} for name,r in rows.items()}
+    passed=all(errors['recovery'][k]-errors['recovery_base'][k]
+               <=protocol['screen']['recovery_error_increase_max_veh'] for k in ('merge','post'))
+    trace=js(out/'recovery/receiving_trace.json')
+    ledger=js(out/'recovery/joint_receiving_ledger.json')
+    assert len(trace)==len(ledger)==450
+    trace_blocks=[]
+    for j in range(3):
+        block=trace[j*150:(j+1)*150];flows=ledger[j*150:(j+1)*150]
+        trace_blocks.append(dict(start_sec=3600+j*150,
+            supply_veh=sum(r['shared_supply_vph']/3600 for r in block),
+            requested_mainline_veh=sum(r['mainline_request_vph']/3600 for r in block),
+            accepted_mainline_veh=sum(r['mainline_veh'] for r in flows),
+            accepted_ramp_veh=sum(r['ramp_veh'] for r in flows),
+            zero_ramp_supply_seconds=sum(r['gap_supply_vph']==0 for r in block)))
+    for path,h in observed['source_pins'].items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    for path,h in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    result=dict(status='complete',recovery_screen_passed=passed,native=actual,rows=rows,
+        errors=errors,trace_blocks=trace_blocks,source_pins=pins,commands_exact=True,
+        initial_state_exact=True,all8_mass_pass=True,west_state_max_differences=west_differences,
+        west_states_exact=all(all(r[k]==0 for k in ('density','speed_kmh','effective_lanes')) for r in west_differences),
+        forecasts=2,forecast_compute_sec=sum(r['wall_sec'] for r in results.values()),
+        total_wall_sec=sum(r['wall_sec'] for r in done),new_native=0,fit=0,
+        candidate_status='REJECTED' if not passed else 'INDEPENDENT_RESPONSE_PENDING',
+        remaining_runs='NOT_RUN: failed recovery guard' if not passed else 'Pending independent response',
+        model_cost_change_is_not_control_gain=True,adopted=False,goal_qualified=False)
+    (out/'recovery_assessment.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+    (out/'recovery_assess_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({k:v for k,v in result.items() if k!='source_pins'},ensure_ascii=False))
+
+
+def shared84_boundary_check():
+    """Reconstruct actual cell23 ingress from a bracketed native detector slab."""
+    out=O/'shared84';target=out/'native_shared_flow.json'
+    assert not target.exists()
+    geometry=js(I/'selected/port_gain/geometry.json')
+    assert hashlib.sha256((I/'selected/network/native_seed29.inpx').read_bytes()).hexdigest()==geometry['network']['sha256']
+    locations=table(I/'selected/obs150/obs150_detectors_v2.csv')
+    detectors=table(E/'loss_diagnosis/detector_windows_150s.csv')
+    evidence=js(E/'loss_diagnosis/mechanism_evidence.json')
+    assert evidence['all_passed']
+    points=[r for r in locations if r['role']=='through' and r['ref']=='10483']
+    assert len(points)==3 and {int(r['lane']) for r in points}=={1,2,3}
+    assert len({(r['link'],r['pos']) for r in points})==1
+    left=geometry['addresses'][points[0]['link']][1]+float(points[0]['pos'])
+    cell=next(c for c in geometry['cells'] if c['road']=='FW_E' and c['cell']==23)
+    right=cell['start_m']
+    inside=[b for b in geometry['boundaries'] if b['road']=='FW_E' and left<b['chain_pos_m']<right]
+    assert len(inside)==1 and inside[0]['id']=='RM_C10490'
+    off=next(b for b in geometry['boundaries'] if b['connector']==10483)
+    assert off['chain_pos_m']<left<inside[0]['chain_pos_m']<right
+    assert all(str(link) not in evidence['removals_by_link']['sdmpc'] for link in (119,10702,24,10490,10484))
+    observed={1500:js(O/'assessment.json')['first150']['ramps'],
+              3600:js(out/'recovery_native.json')['native']}
+    rows=[]
+    for start,native in observed.items():
+        end=start+150;stock={}
+        for t in (start,end):
+            capture=js(D/f'state_{t:06d}.json')['vehicle_records']
+            assert capture['complete'] and capture['unobservable_count']==0
+            count=0
+            for v in capture['records']:
+                address=geometry['addresses'].get(str(v['link_no']))
+                if address and address[0]=='FW_E' and left<=address[1]+v['position_m']<right:
+                    count+=1
+            stock[t]=count
+        counts=[r for r in detectors if r['arm']=='sdmpc' and float(r['sim_sec'])==end
+                and r['role']=='through' and r['ref']=='10483']
+        assert len(counts)==3
+        through=sum(int(r['count']) for r in counts)
+        main=stock[start]+through+native['RM_C10490']['merge']-stock[end]
+        rows.append(dict(start_sec=start,end_sec=end,slab_start_m=left,slab_end_m=right,
+            initial_slab_stock=stock[start],final_slab_stock=stock[end],through_detector=through,
+            merge10490=native['RM_C10490']['merge'],mainline_into_cell23=main,
+            merge10484=native['RM_C10484']['merge'],combined_into_cell23=main+native['RM_C10484']['merge'],
+            candidate_nominal_upper_bound_veh=6937*150/3600))
+    for path,h in pins.items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    result=dict(status='complete',method='Through10483 + merge10490 + initial slab stock - final slab stock; then add merge10484',
+        bracketed_single_merge=True,native_removals_in_scope=0,rows=rows,source_pins=pins,
+        interpretation='Observed ingress, not identified saturation capacity. Native future used only for diagnosis. No bound fitting.',
+        forecasts=0,new_native=0,fit=0)
+    target.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+    (out/'boundary_assess_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({k:v for k,v in result.items() if k!='source_pins'},ensure_ascii=False))
+
+
+def local_trajectory10484():
+    """Read two bounded native FZP byte ranges; no complete scan or forecast."""
+    import ctypes
+    import time
+    out=O/'local10484';out.mkdir(exist_ok=True)
+    assert not (out/'extraction.json').exists()
+    path=D.parent/'vissim_eval/sdmpc31_sdmpc9000_s29_001.fzp'
+    before=path.stat();started=time.perf_counter()
+    ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(),0x4000)
+    protocol=dict(windows=[[1470.1,1665.1],[3570.1,3765.1]],record_interval_sec=5,
+        links=[10484,119,10702,24],scope='Local ramp/mainline rows; native five-second samples, not exact merge events',
+        model_forecasts=0,new_native=0,fit=0,current_run_queries=0)
+    (out/'protocol.json').write_text(json.dumps(protocol,indent=2)+'\n',encoding='utf8')
+    metadata=[];probes=[];total_bytes=0
+    with path.open('rb') as stream:
+        header=[]
+        while True:
+            line=stream.readline();total_bytes+=len(line);header.append(line)
+            assert line,'Missing FZP header'
+            if line.startswith(b'$VEHICLE:'):
+                names=line.strip().split(b':',1)[1].decode('ascii').split(';')
+                break
+        assert names[0]=='SIMSEC' and len(set(names))==len(names)
+        assert all(x in names for x in ('NO','LANE\\LINK\\NO','LANE\\INDEX','POS','SPEED','INTERACTSTATE','INTERACTTARGTYPE','INTERACTTARGNO'))
+        indexes={n:i for i,n in enumerate(names)};data_start=stream.tell()
+        def lower_bound(target):
+            nonlocal total_bytes
+            lo,hi=data_start,before.st_size
+            while hi-lo>65536:
+                mid=(lo+hi)//2;stream.seek(mid)
+                skipped=stream.readline();pos=stream.tell();line=stream.readline()
+                total_bytes+=len(skipped)+len(line)
+                if not line:hi=mid;continue
+                t=float(line.split(b';',1)[0]);probes.append((pos,t))
+                if t<target:lo=stream.tell()
+                else:hi=mid
+            stream.seek(lo)
+            while True:
+                pos=stream.tell();line=stream.readline();total_bytes+=len(line)
+                if not line:return pos
+                if float(line.split(b';',1)[0])>=target:return pos
+        for start,stop in protocol['windows']:
+            begin,end=lower_bound(start-.001),lower_bound(stop+.001)
+            stream.seek(begin);raw=stream.read(end-begin);total_bytes+=len(raw)
+            assert len(raw)==end-begin
+            selected=[];frames={};last=-1;all_count=0
+            for line in raw.splitlines():
+                fields=line.decode('ascii').split(';');assert len(fields)==len(names)
+                t=float(fields[0]);assert start-.001<=t<=stop+.001 and t>=last;last=t
+                no=int(fields[indexes['NO']]);ids=frames.setdefault(t,set())
+                assert no not in ids,(t,no);ids.add(no);all_count+=1
+                link=int(fields[indexes['LANE\\LINK\\NO']]);pos=float(fields[indexes['POS']])
+                if not (link==10484 or link==119 and pos>=390 or link==10702 or link==24 and pos<=400):continue
+                selected.append(dict(zip(names,fields)))
+            expected=[round(start+5*j,1) for j in range(round((stop-start)/5)+1)]
+            assert list(frames)==expected,(list(frames),expected)
+            dest=out/f'rows_{int(start)}_{int(stop)}.json.gz'
+            assert not dest.exists()
+            dest.write_bytes(gzip.compress(json.dumps(selected,separators=(',',':')).encode('utf8'),mtime=0))
+            metadata.append(dict(start_sec=start,end_sec=stop,start_byte=begin,end_byte=end,
+                range_sha256=hashlib.sha256(raw).hexdigest(),rows_scanned=all_count,
+                rows_selected=len(selected),frame_vehicle_counts={str(t):len(ids) for t,ids in frames.items()},
+                selected_file=str(dest),selected_sha256=hashlib.sha256(dest.read_bytes()).hexdigest()))
+    ordered=sorted(set(probes));assert all(a[1]<=b[1] for a,b in zip(ordered,ordered[1:]))
+    after=path.stat();assert before.st_size==after.st_size and before.st_mtime_ns==after.st_mtime_ns
+    result=dict(status='complete',source_path=str(path),source_size=before.st_size,
+        source_mtime_ns=before.st_mtime_ns,header_sha256=hashlib.sha256(b''.join(header)).hexdigest(),
+        seek_probes=len(probes),actual_bytes_read=total_bytes,windows=metadata,
+        whole_file_rehashed=False,wall_sec=time.perf_counter()-started,protocol=protocol)
+    (out/'extraction.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf8')
+    (out/'extract_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({k:v for k,v in result.items() if k not in ('windows','protocol')},ensure_ascii=False))
+
+
+def local10484_analyze():
+    """Compare observed front-of-ramp interactions and bracketed merge times."""
+    import statistics
+    from collections import defaultdict,Counter
+    out=O/'local10484';assert not (out/'analysis.json').exists()
+    extraction=js(out/'extraction.json');geometry=js(I/'selected/port_gain/geometry.json')
+    boundary=next(b for b in geometry['boundaries'] if b['id']=='RM_C10484')
+    head=next(r for r in table(I/'selected/obs150/obs150_detectors_v2.csv') if r['role']=='meter_head' and r['link']=='10484')
+    results=[]
+    for meta,start in zip(extraction['windows'],(1500,3600)):
+        path=Path(meta['selected_file']);content=path.read_bytes()
+        assert hashlib.sha256(content).hexdigest()==meta['selected_sha256'];pins[str(path)]=meta['selected_sha256']
+        rows=json.loads(gzip.decompress(content));frames=defaultdict(dict);by_vehicle=defaultdict(list)
+        for r in rows:
+            t=float(r['SIMSEC']);no=int(r['NO']);frames[t][no]=r;by_vehicle[no].append(r)
+        heads={};mer_rows=[]
+        for sec in (start-150,start,start+150,start+300):
+            state=js(D/f'state_{sec:06d}.json');spec=state['obs150']['mer'];path=D/spec['chunk']
+            text=read(path);assert pins[str(path)]==spec['chunk_sha256']
+            mer_rows.extend(json.loads(line) for line in text.splitlines())
+        assert len({r[0] for r in mer_rows})==len(mer_rows)
+        for r in mer_rows:
+            if r[1]==int(head['dcp_no']) and r[2] is not None:
+                assert r[4] not in heads;heads[r[4]]=r[2]
+        arrivals=[no for no,t in heads.items() if start<=t<start+150]
+        post_rows=[];front_rows=[];frame_post=[]
+        for t,frame in frames.items():
+            if not start<=t<start+150:continue
+            post=[r for r in frame.values() if r['LANE\\LINK\\NO']=='10484' and float(r['POS'])>=float(head['pos'])]
+            post_rows.extend(post);frame_post.append(dict(time_sec=t,n=len(post)))
+            if not post:continue
+            r=max(post,key=lambda r:float(r['POS']));target=frame.get(int(r['INTERACTTARGNO'])) if r['INTERACTTARGNO'] else None
+            front_rows.append(dict(time_sec=t,vehicle=int(r['NO']),pos_m=float(r['POS']),speed_kmh=float(r['SPEED']),
+                interaction_state=r['INTERACTSTATE'],target_type=r['INTERACTTARGTYPE'],target_vehicle=r['INTERACTTARGNO'],
+                target_link=int(target['LANE\\LINK\\NO']) if target else None,
+                target_lane=int(target['LANE\\INDEX']) if target else None,
+                target_speed_kmh=float(target['SPEED']) if target else None,
+                target_pos_m=float(target['POS']) if target else None,
+                target_previously_on_ramp=any(x['LANE\\LINK\\NO']=='10484' and float(x['SIMSEC'])<t
+                                               for x in by_vehicle.get(int(r['INTERACTTARGNO']),[])) if r['INTERACTTARGNO'] else False))
+        transitions=[];censored=[]
+        for no in arrivals:
+            history=by_vehicle.get(no,[]);pairs=[(a,b) for a,b in zip(history,history[1:])
+                if a['LANE\\LINK\\NO']=='10484' and b['LANE\\LINK\\NO']=='24']
+            assert len(pairs)<=1
+            if pairs:
+                a,b=pairs[0];lo,hi=float(a['SIMSEC']),float(b['SIMSEC']);assert abs(hi-lo-5)<1e-8
+                transitions.append(dict(vehicle=no,head_sec=heads[no],last_ramp_sec=lo,first_mainline_sec=hi,
+                    posthead_travel_lower_sec=max(0.,lo-heads[no]),posthead_travel_upper_sec=hi-heads[no],
+                    merge_lane=int(b['LANE\\INDEX'])))
+            else:censored.append(no)
+        assert transitions
+        results.append(dict(start_sec=start,head_entries=len(arrivals),frame_count=len(frame_post),
+            posthead_vehicle_samples=len(post_rows),posthead_slow_samples=sum(float(r['SPEED'])<5 for r in post_rows),
+            posthead_speed_median_kmh=statistics.median(float(r['SPEED']) for r in post_rows),
+            sampled_posthead_lane_change_counts=dict(Counter(r['LNCHG'] for r in post_rows)),
+            front_rows=front_rows,frame_posthead=frame_post,head_to_merge=transitions,
+            right_censored_or_unobserved=censored,
+            completed_sample_travel_median_lower_sec=statistics.median(r['posthead_travel_lower_sec'] for r in transitions),
+            completed_sample_travel_median_upper_sec=statistics.median(r['posthead_travel_upper_sec'] for r in transitions),
+            front_targets_present=len([r for r in front_rows if r['target_link'] is not None]),
+            front_targets_lane24_1=sum(r['target_link']==24 and r['target_lane']==1 for r in front_rows),
+            front_targets_previously_on_ramp=sum(r['target_previously_on_ramp'] for r in front_rows)))
+    for path,h in pins.items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    result=dict(status='complete',results=results,source_pins=pins,
+        limitations=['Five-second snapshots can miss brief lane changes or stops.',
+                    'Head-to-merge time brackets use native MER and FZP; censored vehicles excluded from reported completed-sample medians.',
+                    'An interaction target is observed, not proof of an exclusive causal mechanism.',
+                    'No future observations are supplied to an autonomous plant forecast.'],
+        forecasts=0,new_native=0,fit=0,adopted=False)
+    (out/'analysis.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf8')
+    (out/'analyze_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+    print(json.dumps([{k:v for k,v in r.items() if k not in ('front_rows','frame_posthead','head_to_merge')} for r in results]))
+
+
+def lane84_screen(case):
+    """Score a current-observation travel candidate against frozen baselines."""
+    assert case in ('onset','low_queue')
+    out=O/'lane84';target=out/(case+'_assessment.json');assert not target.exists()
+    protocol=js(out/'protocol.json');done=js(out/case/'run_completion.json')
+    assert done['status']=='complete' and done['forecasts']==1
+    output=Path(js(out/case/'output.json')['output'])
+    base_folder=P if case=='onset' else Path(js(O/'shared84/recovery_base/output.json')['output'])
+    base=js(base_folder/'held_actual.json');candidate=js(output/'held_actual.json')
+    native=(js(O/'assessment.json')['first150']['ramps'] if case=='onset'
+            else js(O/'shared84/recovery_native.json')['native'])['RM_C10484']
+    assert base['commands']==candidate['commands'] and base['validation']==candidate['validation']
+    assert base['physical_cell_states'][0]==candidate['physical_cell_states'][0]
+    buffers=[]
+    for folder in (base_folder,output):
+        path=folder/'held_actual_RM_C10484_trace.json.gz';content=path.read_bytes()
+        pins[str(path)]=hashlib.sha256(content).hexdigest();buffers.append(json.loads(gzip.decompress(content)))
+    assert buffers[0]['initial_buffer']==buffers[1]['initial_buffer']
+    assert buffers[0]['initial_stock']==buffers[1]['initial_stock']
+    rows={}
+    for label,result in (('baseline',base),('candidate',candidate)):
+        r=result['first_interval']['ramps']['RM_C10484']
+        rows[label]=dict(**r,post=native['initial_posthead']+r['head']-r['merge'],omega_ttt=result['ttt_omega_veh_h'])
+        assert all(abs(v['residual'])<1e-7 for v in result['ramps'].values())
+    errors={name:dict(merge=abs(r['merge']-native['merge']),post=abs(r['post']-native['final_posthead']))
+            for name,r in rows.items()}
+    ratios={k:errors['candidate'][k]/errors['baseline'][k] for k in ('merge','post')}
+    passed=(all(v<=protocol['screen']['onset_error_ratio_max'] for v in ratios.values()) if case=='onset' else
+            all(errors['candidate'][k]-errors['baseline'][k]<=protocol['screen']['low_queue_error_increase_max_veh'] for k in ratios))
+    measured=js(out/case/'native_speed_ratio.json');trace=js(out/case/'speed_trace.json')
+    assert len(trace)==450 and [r['time_sec'] for r in trace]==list(range(measured['at_sec'],measured['at_sec']+450))
+    assert not measured['future_observation_inputs']
+    for r in trace:
+        assert r['observed_ratio']==measured['ratio']
+        assert abs(r['posthead_speed_kmh']-min(r['nominal_speed_kmh'],measured['ratio']*r['cell_speed_kmh']))<1e-10
+    for path,h in js(out/case/'execution_pins.json').items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    for path,h in pins.items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==h,path
+    result=dict(status='complete',case=case,screen_passed=passed,rows=rows,native=native,
+        errors=errors,error_ratios=ratios,measurement=measured,source_pins=pins,
+        initial_state_exact=True,initial_ramp_cohorts_exact=True,commands_exact=True,all8_mass_pass=True,
+        current_observation_only=True,speed_formula_checks=450,forecasts=1,fit=0,new_native=0,
+        forecast_compute_sec=candidate['wall_sec'],total_wall_sec=done['wall_sec'],
+        model_cost_change_is_not_control_gain=True,adopted=False,goal_qualified=False)
+    target.write_text(json.dumps(result,indent=2)+'\n',encoding='utf8')
+    (out/(case+'_assess_executed.py.txt')).write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({k:v for k,v in result.items() if k!='source_pins'}))
+
+
+if __name__=='__main__':
+    import sys
+    if len(sys.argv)==2 and sys.argv[1].startswith('--lane84-screen='):
+        lane84_screen(sys.argv[1].split('=',1)[1])
+    elif sys.argv[1:]==['--local10484-analyze']:
+        local10484_analyze()
+    elif sys.argv[1:]==['--local10484-extract']:
+        local_trajectory10484()
+    elif sys.argv[1:]==['--shared84-boundary']:
+        shared84_boundary_check()
+    elif sys.argv[1:]==['--shared84-recovery']:
+        shared84_recovery()
+    elif sys.argv[1:]==['--shared84-screen']:
+        shared84_screen()
+    elif sys.argv[1:]==['--posthead-timing']:
+        posthead_timing()
+    elif sys.argv[1:]==['--receiving-context']:
+        receiving_context()
+    elif sys.argv[1:]==['--posthead84-screen']:
+        posthead84_screen()
+    else:
+        assert not sys.argv[1:]
+        main()

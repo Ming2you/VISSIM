@@ -1,0 +1,78 @@
+"""Saved-state off-ramp cost attribution; no rollout or future forecast input."""
+import csv
+import gzip
+import json
+from pathlib import Path
+from diagnostics.sdmpc_n31_20260924.integration_20260926 import replay_congested_component as r
+
+HERE = Path(__file__).resolve().parent
+OUT = HERE / 'off_cost53'
+OUT.mkdir(exist_ok=False)
+CW = HERE.parent / 'cellwise_calibration'
+records = r.load(CW / 'additional_admission_s53.json')['records']
+pins = {str(Path(__file__)): r.sha(__file__)}
+rows = []
+bins = []
+for rec in records:
+    pp = CW / 'freeway_first/expanded_seed53/expanded' / (rec['arm'] + '_prediction.json.gz')
+    cp = Path(rec['truth']) / 'ports_30s.csv'
+    pins.update({str(p): r.sha(p) for p in (pp, cp, Path(rec['input']))})
+    with gzip.open(pp, 'rt') as f:
+        pred = json.load(f)
+    with cp.open(encoding='utf-8-sig', newline='') as f:
+        obs = list(csv.DictReader(f))
+    args, kw = r.read_primitive_capture(rec['input'], rec['sha256'])
+    t0, t1 = rec['cutoff'], rec['cutoff'] + rec['horizon']
+    for off in ['10481', '10483', '10643', '10682']:
+        actual = [x for x in obs if x['connector'] == off and t0 < float(x['window_end_s']) <= t1 + 1e-7]
+        model = {round(x['time_s'], 6): x for x in pred['ports'] if x['connector'] == off}
+        assert len(actual) == 15
+        assert all(float(x['unresolved_absences_veh']) == 0 for x in actual)
+        initial = float(actual[0]['start_n_veh'])
+        assert initial == len(kw['port_dynamics']['initial_cohorts'][off])
+        previous = dict(n_veh=initial, admitted_veh=0., departed_veh=0.)
+        totals = {kind: dict(a=0., d=0., ttt=0., weighted_a=0., weighted_d=0.) for kind in ['actual', 'model']}
+        for x in actual:
+            start, end = float(x['window_start_s']), float(x['window_end_s'])
+            y = model[round(end, 6)]
+            assert abs(end-start-30.) < 1e-6
+            a = float(x['arrivals_veh']); d = float(x['departures_veh'])
+            ma = y['admitted_veh']-previous['admitted_veh']; md = y['departed_veh']-previous['departed_veh']
+            n0, n1 = float(x['start_n_veh']), float(x['end_n_veh'])
+            assert abs(n1-n0-a+d) < 1e-7
+            assert abs(y['n_veh']-previous['n_veh']-ma+md) < 1e-7
+            w = (t1-(start+end)/2)/3600
+            item = dict(arm=rec['arm'], off=off, start=start, end=end,
+                        actual_a=a, actual_d=d, model_a=ma, model_d=md,
+                        actual_n=n1, model_n=y['n_veh'])
+            bins.append(item)
+            for kind, aa, dd, nn0, nn1 in [('actual',a,d,n0,n1),('model',ma,md,previous['n_veh'],y['n_veh'])]:
+                z = totals[kind]
+                z['a'] += aa; z['d'] += dd
+                z['ttt'] += (nn0+nn1)*(end-start)/7200
+                z['weighted_a'] += aa*w; z['weighted_d'] += dd*w
+            previous = y
+        for kind, z in totals.items():
+            assert abs(z['ttt']-(initial*(t1-t0)/3600+z['weighted_a']-z['weighted_d'])) < 1e-7
+        caps = [float(x['off_capacity_vph'][off]) for x in args[1]]
+        rows.append(dict(arm=rec['arm'], off=off, initial=initial, actual=totals['actual'], model=totals['model'],
+                         service_min_vph=min(caps), service_max_vph=max(caps),
+                         initial_travel_speed_kmh=kw['port_dynamics']['travel_speed_kmh'][off]))
+
+contrasts=[]
+for arm, reference in [('release','hold'),('hold_vsl90','hold'),('release_vsl90','hold_vsl90')]:
+    for off in ['10481','10483','10643','10682']:
+        a=next(x for x in rows if x['arm']==reference and x['off']==off)
+        b=next(x for x in rows if x['arm']==arm and x['off']==off)
+        delta={kind:{k:b[kind][k]-a[kind][k] for k in a[kind]} for kind in ['actual','model']}
+        error={k:delta['model'][k]-delta['actual'][k] for k in delta['actual']}
+        assert abs(error['ttt']-error['weighted_a']+error['weighted_d'])<1e-7
+        contrasts.append(dict(arm=arm, reference=reference, off=off, delta=delta, error=error))
+for p,h in pins.items():
+    assert r.sha(p)==h
+r.save(OUT/'summary.json',dict(rows=rows,contrasts=contrasts,pins=pins,identity_checks=240,
+                             new_forecasts=0,new_native=0,future_input=False,
+                             scope='East four off-ramp connectors; exact30s cost accounting, not causal attribution.'))
+r.save(OUT/'bins.json',bins)
+(OUT/'source_executed.py.txt').write_bytes(Path(__file__).read_bytes())
+print(json.dumps(dict(rows=rows,contrasts=contrasts),ensure_ascii=False),flush=True)

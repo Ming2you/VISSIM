@@ -1,0 +1,552 @@
+{
+  "phase": "matched_native9000_queue_running_gain_unqualified",
+  "native9000": {
+    "results_root": "D:/VISSIM_runs/20260927_sd31_closedloop9000",
+    "session_id": 9778,
+    "queue_pid": 21112,
+    "active_arm_at_last_check": "nc",
+    "first_verified_sim_sec": 150,
+    "seed": 29,
+    "requested_arms": ["nc", "sdmpc"],
+    "completed": false,
+    "gain_qualified": false,
+    "new_coefficient_fit": false,
+    "frozen_tree": "D:/VISSIM_runs/20260927_sd31_native_cost150_v3/frozen/sdmpc31_886a014a_202609270156",
+    "frozen_sha256": "1d2f0fd3c61b50586198058a03d3ef65e6af324a8e14baa88ab26f62eae79dbc"
+  },
+  "native_waiting_cost": {
+    "report": "NATIVE_WAITING_COST.md",
+    "runner_changed": true,
+    "model_coefficients_changed": false,
+    "objective_changed": false,
+    "tests_passed": 10,
+    "same_horizon_fzp_rows_exact": 18745,
+    "same_horizon_fzp_sha256": "6f5287333417b841cc59f746d4403b85ceb64e15ca022eaf8969544e675b3172",
+    "final_native_record_pending": false,
+    "validation": "native_cost150_validation.json",
+    "frozen_sha256": "1d2f0fd3c61b50586198058a03d3ef65e6af324a8e14baa88ab26f62eae79dbc"
+  },
+  "meter_tail_diagnostic": {
+    "session_id": 98579,
+    "exit_code": 1,
+    "completed": false,
+    "completed_held_blocks": 3,
+    "failure": "Aggregate predictor clock/horizon mismatch on continuation beyond the existing 450-second prediction window",
+    "log": "closedloop3000_meter_tail_v2.log",
+    "conclusion": "No 900-second response conclusion; incomplete diagnostic is not evidence against metering",
+    "automatic_retry": false
+  },
+  "receiving_audit": {
+    "report": "receiving_audit/README.md",
+    "baseline_rollouts": 2,
+    "physical_arrays_exact": true,
+    "storage_binding_steps_per_arm_per_ramp": 0,
+    "existing_fd_peak_validated_as_hard_capacity": false,
+    "new_receiving_model_adopted": false
+  },
+  "lane_drop_ablation": {
+    "report": "lane_drop_response/summary.json",
+    "session": 91623,
+    "exit_code": 0,
+    "rollouts": 18,
+    "choices_improved": false,
+    "production_adopted": false
+  },
+  "ledger_roundoff_fix": {
+    "failed_session": 32425,
+    "failed_exit": 1,
+    "reason": "count*inside/total rounded above count for an all-inside transfer; the resulting negative outside cohort prevented continued prediction",
+    "fix": "Form inside/total before multiplying count; initial stock and overdraw checks unchanged",
+    "before_test": "ledger_roundoff_before.log",
+    "after_test": "ledger_roundoff_after.log",
+    "tests_passed": 52
+  },
+  "off_entry_proxy_diagnosis": {
+    "report": "off_entry_response/summary.json",
+    "session": 99084,
+    "exit_code": 0,
+    "rollouts": 8,
+    "baseline_physical_arrays_exact": true,
+    "proxy_binding_confirmed": true,
+    "removal_improved_choices": false,
+    "production_adopted": false
+  },
+  "decision_regret_reassessment": {
+    "report": "decision_regret_check/summary.json",
+    "session": 11179,
+    "exit_code": 0,
+    "cached_training_candidates": 15,
+    "new_training_rollouts": 0,
+    "new_check_rollouts": 8,
+    "delta_merge": 4,
+    "carlson_E": 2,
+    "train_regret_before_after_veh_h": [5.254166666666691, 0.82916666666668],
+    "check_regret_before_after_veh_h": [3.745833333333337, 2.9541666666666515],
+    "scope": "East31 plus8 connector residence only; previously inspected development states",
+    "independent_holdout": false,
+    "production_adopted": false,
+    "remaining": "Early RM benefit still missed; seed47 harmful10484 release still selected; inspect common receiving allocation"
+  },
+  "bounded_response_alternatives": {
+    "report": "DECISION_RESPONSE_AND_SELECTION.md",
+    "anticipation_rollouts": 34,
+    "merge_inlet_rollouts": 18,
+    "selection_improved": false,
+    "production_adopted": false,
+    "aggregate_merge_speed_default": false,
+    "accounting_tests_passed": 10,
+    "new_native_runs": 0,
+    "absolute_fit_required": false,
+    "exact_ranking_of_near_ties_required": false,
+    "next_scope": "Decision-relevant merge/discharge/waiting response only; no wider parameter sweep"
+  },
+  "updated_utc": "2026-09-26T17:04:00Z",
+  "base_commit": "886a014a303dd155e05cc33041796822abbc29b0",
+  "baseline_audit_complete": true,
+  "pending_question": null,
+  "runner_capture_regression": {
+    "reproduced": true,
+    "tests_passed": 5
+  },
+  "upstream_binding_tests": {
+    "passed": 39,
+    "subtests_passed": 6,
+    "skipped": 0
+  },
+  "native9000_started": false,
+  "native9000_queued": false,
+  "new_native_started": true,
+  "gain_qualified": false,
+  "active_owned_jobs": [{"session_id":9778,"stage":"matched9000 NC then SDMPC queue","native":true,"results_root":"D:/VISSIM_runs/20260927_sd31_closedloop9000"}],
+  "source_sha256": {
+    "scripts/run_real_world_stackelberg_controller.vbs": "b493d466a628d50a207bc3419ccc5ab94c3aeff0c5e70f7effdcba8f34ae9fd2",
+    "tests/test_runner_capture_output.py": "1fdff4edb8439ace637efa9241e3ccda60d2390ce70896c7b6ed4fdda31a2523",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/audit_baselines.py": "113bd9716ddfa73b8133a86d401344fdd989ded8e229e4c07ef9024fd7a4453d",
+    "evaluation/controllers/runtime_setup.py": "e1a62211d441f5fd4645094baa0660ab2832312498942ad0b5114feb594a89a2",
+    "evaluation/controllers/lane_plant_runtime.py": "b0b5b844c96033b5a13cc3005a203b4990bce3a9968cef02496a7c877db972e4",
+    "evaluation/controllers/vsl_exposure_history.py": "2623717f754410d12ff42c34caf6515e3bc83bcf9bac0d5d380a20cc38ae6648",
+    "diagnostics/sdmpc_n31_20260924/tests/test_vsl_history.py": "ba06bc49916f8dbde403f0d744f76bbf24faf4b532c71893c1caf38b5bac0578",
+    "diagnostics/sdmpc_n31_20260924/tests/n31_ad_smoke.py": "62751f17d2527b3872c525faa4802346c6bb164c9dec350b9c7f691249c3acad",
+    "diagnostics/sdmpc_n31_20260924/config_n31_v2.json": "16c5f8bce1a15fe77a3cc994d739acf9151df7f0290d26e818f0137294c6fead",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/check_history_replay.py": "946f9466b0f01e208826c9b84fb3fec4346dabb9ae4e45f904289dc0d74b8b6d",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/check_history_ad.py": "b00525de3d6ad6df45dadbba1f197596fa0a3475756ed3a6206e709b837ab422",
+    "diagnostics/sdmpc_n31_20260924/tests/n31_parity_roles.py": "8932cc868823226aa722627c0d36fb46f918462ea5e82503cf0d99c4aa076da4",
+    "diagnostics/sdmpc_n31_20260924/tests/test_n31_parity.py": "fc527548e56a3228479c9ba30cbaee8fb0d18a35c46e9a2bab980ca40c432a52",
+    "diagnostics/sdmpc_n31_20260924/tests/test_n31_vsl_binding.py": "30ceacf5908a634b1dfd761a0c4408cfe91c1d421218af8b16bda555b23b65d9",
+    "diagnostics/sdmpc_n31_20260924/tools/obs150_verify_gt.py": "b4d02650e9c0f7d879186a69b95d3db7becba9cb3e0e326d85320ebbba7333c7",
+    "diagnostics/sdmpc_n31_20260924/tools/tests/test_tools_verify_gt.py": "80e3032666ff131548c933140d1a7049dfb14d0f050e7406d95d18f38fa90f81",
+    "evaluation/controllers/freeway_local_state.py": "677c20b6ef08f242d9ad71c963c3159397c392d0c4e6c506c2c1af4db21812ac",
+    "evaluation/controllers/signal_actuation_contract.py": "f4e4b37280d5a9bc03929dca783ff3a90190795cbb18ad9b8932b0c0e2f5f502",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "9536c928040ccdd92e2ac79aac06360597909149de116c27dddd5e4d37c5b1ec",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "63ef4725064043c009e1a4dc32bb40c8b021b6f72d7027967c530e902f95f651",
+    "evaluation/controllers/route_choice_corridor.py": "b621f8187bea19317b6fc35e0eb0fc8d1f7abc177754d6d378ab4ab1da5f28b0",
+    "evaluation/controllers/urban_flow_accounting.py": "86947c7d5f61ca88d76eca42b8a0b8a174eb50cff83b1c28f5fb7ae1c8e42b76",
+    "evaluation/controllers/lane_offramp_runtime.py": "7e43adc6548649104eb040de1e0a9bfebd4b6d0c84bbfe436c7844eabe41f346",
+    "evaluation/controllers/head_service_resources.py": "6cd1ad58aca4c7642b880076cd060ff143b4c68b76a47c8b79c96a3c7d3ba022",
+    "evaluation/controllers/signal_head_observation.py": "ba59cb2446419559f1d3a16c5fdfc44e663b94e0e6377eff1b290ada651a4791",
+    "diagnostics/test_joint_owner_addresses.py": "05dd876e53cb73034615a8e8e0ec59b737c99272fd1b83f4d487f5ac23d3796c",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/check_transport_ad.py": "ae48cf32ff573d4eb2e92201399ebf46db6bd947230b95b4f5f03fb8af7d8822",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/head_service_resource_10633.json": "2f56c657dd11295029c36b68735aa55ab7e2f3212dcceee43df27446def7a417",
+    "evaluation/controllers/joint_owner_game.py": "df76c801920dc65179dc2db838aa7e472eeebc6cee125190e7dcf9fa7f69a3b9",
+    "evaluation/controllers/joint_owner_neighbors.py": "ecb0f13e1e590ed68dc34eba0d99dff3540b6a9fdaf3a6a1cca4b613dfdcab0d",
+    "diagnostics/test_joint_freeway_neighbors.py": "aaef7495804f0d5c17407fdcf73ec88083c937d4215d87a7de30d445dc19e8d7",
+    "diagnostics/test_joint_price_basis_proof.py": "e5f05009c475a899afe0abbcb730060fb15d341cc101e5e16675e8cf98796d4a",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/replay_congested_component.py": "16eb494fa1f2039c0925038555f86effd5dfd1aa75f254d6b3b6ee2e086e1c0f",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/probe_selected_arrival_path.py": "4933b07b1070f940ed508513421d4eba535531205ec819e4341ff2104c057afa",
+    "evaluation/controllers/physical_movement_routes.py": "88f09efc4c894643e427bc6526589915a6a2d9f6ac4f4119d183812c6235a21f",
+    "diagnostics/test_physical_phase_authority.py": "df3f927d4987f398919f076d826d66737a2088ffe17b722d091eae7b9ce3e64d",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\physical_phase_authority_10625.json": "d4d3f83029ce690a4898f35697d86c48d597d46c9a12a37c9934ca5bd41f29bb",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "3763de42df36cfdc9f2e6f625e3c25055beb1a3d19db8be09bdd1de7ebc8c310",
+    "evaluation/controllers/physical_ramp_branches.py": "f0bc613c2ac03d3ce5ff15804334543ab0b42d93aed45f220fd1d21884875b11",
+    "evaluation/controllers/area_follower_objective.py": "c03bbc6415543f0145e4358fef65fb171c2199b4d20046c8a6ac2633028d38e5",
+    "evaluation/controllers/sdmpc.py": "930f42398e08b7430ffc2ee7708d19634626bdbfd32db69528222cc27eab9f2e",
+    "evaluation/controllers/sdmpc_sequence.py": "e48a7856d6217824b65f77d1974439ae14b40754534cd44c92a0d558ce79d311",
+    "evaluation/controllers/freeway_fd.py": "b7529f8732cf2a5b58579ee2cf4552f08a1a17cc7be4b4ac490f0d5b7bc34ae3",
+    "evaluation/controllers/area_freeway_accounting.py": "e4c684273711bb5f89aed28b434d47b564c0b5ee4ea55c654f885d13c82aba23",
+    "diagnostics/test_physical_ramp_branches.py": "c59e26a7c974a3256d97f43d9ee9a67703a5e591b89b856714bb94b56c139a90"
+  },
+  "runner_before_sha256": "8c753c08d1440c3fe1c8570c9e8b2edafed9bd37c7102ebd0d18b4703364d2cf",
+  "report": "README.md",
+  "next": "Wait for session 77438. NC3000 is complete; SDMPC3000 alone resumed with verified matching frozen runtime. Analyze both only after native completion.",
+  "vsl_history_port": {
+    "status": "VERIFIED_OFFLINE_NOT_PRODUCTION_ENABLED",
+    "native_receipts_byte_exact": [
+      900,
+      1050,
+      1200,
+      1350
+    ],
+    "forward_ad_passed": true,
+    "reverse_ad_passed": true,
+    "net_gain_qualified": false
+  },
+  "integration_tests": {
+    "passed": 61,
+    "subtests_passed": 10,
+    "skipped": 0,
+    "log": "integration_tests_final.log",
+    "junit": "integration_tests_final.xml"
+  },
+  "ad_smoke_original_failure": {
+    "cause": "Python 3.12 float/Dual diagnostic summation; individual 31 cell values exact",
+    "reproduced_with_upstream_head": true,
+    "fix": "Test-only compensated sum with unchanged strict equality",
+    "physical_model_changed": false
+  },
+  "shared_gates": {
+    "passed": 113,
+    "subtests_passed": 10,
+    "skipped": 4,
+    "skipped_reason": "External historical probe files absent",
+    "log": "shared_gates_final.log",
+    "junit": "shared_gates_final.xml"
+  },
+  "gt_port": {
+    "verifier_and_contract_sources_byte_exact_to_previous": true,
+    "full_native_ground_truth_pass": false,
+    "unresolved_vehicles": [
+      3788,
+      6095
+    ],
+    "raw_rescan": false
+  },
+  "physical_merge_binding": {
+    "unit_tests_passed": 12,
+    "worker_and_observation_tests_passed": 15,
+    "vendor_modified": false,
+    "native_gain_qualified": false
+  },
+  "blocked_audit": {
+    "same_condition_consecutive_goal_turns": 3,
+    "condition": "Required target network choice remains unanswered",
+    "independent_work_completed": "Runner capture, causal VSL history, physical sign mapping, GT route identification, refined merge binding, AD and fresh-worker verification",
+    "dependent_work": "Target-network calibration, paired gain validation, full SDMPC and native9000",
+    "decision": "blocked_by_required_user_network_choice",
+    "resolved_by": "User selected option 1"
+  },
+  "goal_status_last_read": "active",
+  "goal_restored_after_user_accidental_deletion": true,
+  "work_status": "in_progress_10490_arrival_and_discharge_response",
+  "selected_baseline": {
+    "choice": 1,
+    "network_sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "user_instruction": "1번 해줘",
+    "code_commit": "886a014a303dd155e05cc33041796822abbc29b0"
+  },
+  "baseline_selection_complete": true,
+  "selected_validation": "selected_validation.json",
+  "arrival_path_review": {
+    "report": "ARRIVAL_PATH_REVIEW.md",
+    "completed_offline_rollouts": 45,
+    "exogenous_proxy_full_state_invariant": true,
+    "native_prior_candidate_production_enabled": false,
+    "gain_qualified": false,
+    "latest_report": "NORTH_AUTHORITY_AND_SERVICE.md"
+  },
+  "physical_ramp_transport": {
+    "code_implemented": true,
+    "production_enabled": false,
+    "configuration_options": [
+      "urban.known_wout_native_choice_prior",
+      "urban.known_wout_physical_travel"
+    ],
+    "recorded_start_times": [
+      900,
+      1050,
+      1200
+    ],
+    "holdout_seed_passed": false,
+    "gain_qualified": false,
+    "tests_passed": 25,
+    "tests_log": "transport_regression_tests.log",
+    "known_limits": [
+      "10646 residual and10490 overarrival remain",
+      "10625 pre-head authority implemented in reviewed candidate; selected production config unchanged",
+      "Achieved discharge floor is not identified saturation capacity; current online10625 counter absent",
+      "Full rollout AD/fresh-worker qualification pending"
+    ]
+  },
+  "head_service_review": {
+    "times": [
+      900,
+      1050,
+      1200
+    ],
+    "seed": 29,
+    "subtests_passed": 19,
+    "log": "head_service_regression_final.log",
+    "tests_passed": 57,
+    "gain_qualified": false,
+    "report": "HEAD_AND_LEVER_REVIEW.md",
+    "production_enabled": false
+  },
+  "selected_vsl_ownership": {
+    "subtests_passed": 57,
+    "full_solver_qualified": false,
+    "layouts": [
+      [
+        0,
+        5,
+        10,
+        15
+      ],
+      [
+        0,
+        2,
+        5,
+        10,
+        13,
+        15
+      ]
+    ],
+    "tests_passed": 76,
+    "remaining": "Full selected SDMPC optimization, derivatives and actual selection not yet qualified",
+    "log": "six_zone_callbacks_final.log",
+    "price_basis_dimension_fixed": true
+  },
+  "lever_response": {
+    "completed_rollouts": 9,
+    "start_sec": 1200,
+    "reference": "held actual1050 action, not NC",
+    "report": "recorded_ramp_canonical_prior1200_travel_pool4_head10633_history_lever450/summary.json",
+    "optimizer_iterations": 0,
+    "duration_sec": 450,
+    "native_started": false,
+    "future_native_gt_available_to_sec": 1350,
+    "gain_qualified": false
+  },
+  "transport_ad": {
+    "full_rollout_passed": false,
+    "scope": "Accepted vehicle-count derivatives through physical route buffers",
+    "reverse_passed": true,
+    "forward_passed": true
+  },
+  "congested_component_replay": {
+    "start_sec": 2670.1,
+    "duration_sec": 450,
+    "completed_rollouts": 4,
+    "historical_arrays_exact": true,
+    "independent_holdout": false,
+    "calibration": false,
+    "gain_qualified": false,
+    "reference": "held existing ALINEA, not NC",
+    "scope": "East31 cells plus8 ramp connectors; not full Omega",
+    "report": "CONGESTED_REPLAY_AND_NEIGHBORS.md",
+    "results": "congested_replay/summary.json",
+    "parity": "congested_replay/historical_parity.json"
+  },
+  "spatial_cohort_audit": {
+    "report": "SPATIAL_AND_NORTH_ABLATION.md",
+    "initial_network_vehicles": 5247,
+    "initial_east_vehicles": 1035,
+    "prefix_exact": true,
+    "new_native_runs": 0,
+    "new_component_rollouts": 0,
+    "full_fzp_rescans": 0,
+    "initial_fzp_prefix_scans": 1,
+    "future_prediction_inputs": false,
+    "capacity_drop_identified": false
+  },
+  "north1200_ablation": {
+    "results": "north1200_ablation.json",
+    "new_rollouts": 3,
+    "reused_rollouts": 1,
+    "duration_sec": 150,
+    "production_enabled": false,
+    "gain_qualified": false,
+    "remaining": "206.5306veh/h pre-head service bound and remaining10646/10490 arrival errors"
+  },
+  "north_authority_service": {
+    "report": "NORTH_AUTHORITY_AND_SERVICE.md",
+    "summary": "north_authority1200_summary.json",
+    "code_implemented": true,
+    "production_enabled": false,
+    "new_rollouts": 2,
+    "tests_passed": 4,
+    "subtests_passed": 9,
+    "fixture_errors": 14,
+    "initial_projection_unchanged": true,
+    "observed_floor_vph": 240,
+    "saturation_identified": false,
+    "gain_qualified": false
+  },
+  "gate_initial_routes": {
+    "report": "GATE_ROUTES_AND_ARRIVAL_TIMING.md",
+    "summary": "gate_arrival_cohorts1200.json",
+    "tests_passed": 7,
+    "new_rollouts": 2,
+    "initialization_failures_preserved": 2,
+    "disabled_full_trace_exact": true,
+    "initial_gate_storage_veh": 163,
+    "production_enabled": false,
+    "gain_qualified": false,
+    "optimizer_iterations": 0,
+    "current_source_sha256": {
+      "evaluation/controllers/physical_ramp_branches.py": "bae2bdc5f5a4fdb5530972558ac9997da69b4689d4fc1a1ea3656d6bf4eeb0e7",
+      "evaluation/controllers/runtime_setup.py": "902d6fb9b3a0ed60853ee4e2eedbc49f4eda8b5d40781b01ac9af8ec3c3e95f5",
+      "evaluation/controllers/urban_flow_accounting.py": "249c89bc695b01a003d6e1d59ead3b77fdadf37bc1ccd558f5bf072e94155686",
+      "diagnostics/sdmpc_n31_20260924/tests/test_initial_gate_routes.py": "0a236e35e104ff13ef9fe40b08cdcd91455d91c0d70b977fae9709c45a5a0790",
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "d035c470ace1d12e9e1af59b50cef06c12204de57238dd23fb90d3bab98ae987",
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\audit_gate_arrival_cohorts.py": "aee9a4b3f4adf3e13c0b8f14344ff4005b3b1890e403199ff66271088fc8787e"
+    }
+  },
+  "gate_future_transport": {
+    "report": "GATE_FUTURE_TRANSPORT.md",
+    "summary": "gate_future_audit1200.json",
+    "tests_passed": 13,
+    "new_rollouts": 4,
+    "durations_sec": [
+      150,
+      150,
+      150,
+      450
+    ],
+    "initialization_failures_preserved": 2,
+    "failed_states_sec": [
+      900,
+      1050
+    ],
+    "disabled_full_trace_exact": true,
+    "production_enabled": false,
+    "gain_qualified": false,
+    "optimizer_iterations": 0,
+    "completed_held450": "gate_future_lanes1200_held450/summary.json",
+    "native_started": false,
+    "current_source_sha256": {
+      "evaluation/controllers/physical_ramp_branches.py": "35792503cd0837594a9054a5abb9c12ca7bab0fd01f197950afbc16235a64d87",
+      "evaluation/controllers/urban_flow_accounting.py": "f59e9989f8a24a516402718085da88fd00dcbd22b382c3379e67a04ef4f99878",
+      "diagnostics/sdmpc_n31_20260924/tests/test_initial_gate_routes.py": "597500200d55affa71608a060d6e84fcbfe45b05936f0264330c1bc48ed27649",
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\probe_selected_arrival_path.py": "cdfc2922adf753335b623d741b26dae198f447d1d332a3a69dd224f2a1e4dfd1",
+      "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\audit_gate_arrival_cohorts.py": "2630cb59f7e4526c62ec59ebf8fac0bcc82083ab515162554bf27ce983c920a9"
+    }
+  },
+  "decision_priority": {
+    "user_request": "Do not require perfect VISSIM replication; prioritize material control cost differences and choices",
+    "absolute_fit_is_completion_gate": false,
+    "preserve_conservation_and_actuator_contracts": true,
+    "spatial_timing_prototype": "paused; archived; tested source restored byte-exactly",
+    "paused_archive": "executed_sources/physical_ramp_branches_paused_spatial_ac693d175bb6.py.txt",
+    "unused_projection_candidate": "gate_projection10695.json; untested, not adopted",
+    "next": "Use existing common-state lever cost contrasts to isolate decision-reversing merge/discharge/waiting errors; proceed to bounded controller selection without waiting for individual-vehicle timing accuracy",
+    "new_rollouts_this_update": 0,
+    "new_native_runs_this_update": 0
+  },
+  "decision_response_screen": {
+    "report": "DECISION_RESPONSE_AND_SELECTION.md",
+    "results": "decision_response/screen.json",
+    "training_rollouts": 120,
+    "check_rollouts": 16,
+    "parity_diagnosis_rollouts": 2,
+    "first_attempt_unscored_rollouts": 1,
+    "selected_delta_merge": 2,
+    "selected_carlson_E": 4,
+    "adopted": false,
+    "reason": "Small delta-cost error reduction did not improve selected commands or realized component regret on either checking state",
+    "independent_holdout": false,
+    "new_native_runs": 0,
+    "tests_passed": 44,
+    "subtests_passed": 31
+  },
+  "selection_integration": {
+    "first_failure": "select1200/policy_context_diagnosis.json",
+    "root_cause": "sdmpc_vsl_activation_secant true in selected config silently ignored by upstream code; existing feature restored",
+    "price_reset": false,
+    "prior_application_guard_preserved": true,
+    "activation_tests_passed": 23,
+    "activation_subtests_passed": 24,
+    "running": null,
+    "session_id": 59053,
+    "live_process_evidence": [
+      {
+        "ProcessId": 34364,
+        "ParentProcessId": 35116,
+        "CreationDate": "2026-09-26T20:50:40.42229+09:00",
+        "CommandLine": "\"C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe\" diagnostics/sdmpc_n31_20260924/integration_20260926/probe_selected_arrival_path.py --at=1200 --canonical-prior --physical-travel --north-authority --pooled-green --head-turn-10633 --warm-head-history --select --activation-restored"
+      }
+    ],
+    "coefficient_candidate_enabled": false,
+    "full_selection_completed": true,
+    "second_attempt_result": "PFO2 accepted; then unnecessary legacy service-to-green inversion failed on g9/g10 plateau. Preserved select1200v2.",
+    "np_domain_fix": "Read unchanged installed NP proposals only; SDMPC owns explicit green search. Legacy full joint domain default unchanged. 24 tests and24 subtests passed.",
+    "result": "select1200v3/decision_summary.json",
+    "runtime_session_terminal": true,
+    "execution_model_check": {
+      "status": "complete",
+      "report": "select1200v3_check/summary.json",
+      "rollouts": 2,
+      "delta_omega_ttt_veh_h": -1.9659103063966086,
+      "gain_percent": 0.4600889186693951,
+      "delta_including_tracked_outside_veh_h": -0.3102791041950468,
+      "native_verified": false,
+      "sequence_validity": "INVALID_AS_MULTIBLOCK_PREDICTION; see select1200v3_check/SEQUENCE_VALIDITY_NOTICE.json"
+    }
+  },
+  "native1200_replay": {
+    "completed": true,
+    "execution_LDP_passed": true,
+    "LSA_failed": true,
+    "prefix_exact": true,
+    "delta_omega_ttt_veh_h": -0.04266666666649144,
+    "delta_outside_residence_veh_h": 0.19988888888883594,
+    "whole_gain_qualified": false,
+    "report": "native_pair1200/README.md"
+  },
+  "nominal_roundoff_fix": {
+    "reproduced_from_native1350": true,
+    "history_tests_passed": 10,
+    "fixed_history_initialization_passed": true,
+    "coefficients_changed": false,
+    "failed_run_preserved": true,
+    "report": "NC1350_NUMERICAL_FIX.md",
+    "native1350_passed": true,
+    "native1350_decision_exit_code": 0
+  },
+  "queue_transition_recovery": {
+    "first_queue_session": 28012,
+    "first_queue_exit": 1,
+    "reason": "Immediate next-arm guard saw VISSIM still open after successful NC completion",
+    "terminal_nc_proof": "STAGE=SIM_DONE; SIM_SEC=3000; watchdog OK attempt=1",
+    "subsequent_process_check": "No VISSIM or cscript remained at 22:29:33 local",
+    "action": "Preserved prior failure; added explicit completed-NC reuse and 30-second process-close grace without termination",
+    "preflight": "PASS",
+    "frozen_sha256": "ec097d6890d60bbb90d8fbeec42a279ad198afaaa7be5dfe6fcca7ef433798b8",
+    "sdmpc_session": 77438
+  },
+  "native3000": {
+    "completed": true,
+    "session_id": 77438,
+    "exit_code": 0,
+    "report": "closedloop3000_analysis/README.md",
+    "execution_LDP_passed": true,
+    "prefix_exact": true,
+    "delta_omega_ttt_veh_h": -55.14044444444062,
+    "delta_outside_residence_veh_h": 46.609666666666726,
+    "whole_gain_qualified": false
+  },
+  "diagnostic_sequence_correction": {
+    "previous_session": 71853,
+    "previous_exit": 0,
+    "scope": "probe_levers fixed endpoint only",
+    "cause": "Missing sdmpc_sequence.prediction_scope made future blocks ineffective.",
+    "native_controller_affected": false,
+    "invalidated": [
+      "closedloop3000_meter2700",
+      "select1200v3_check"
+    ],
+    "fixed_probe": "closedloop3000_meter2700_sequence_v1",
+    "timing_tests_passed": 4,
+    "full_sequence_test_file": "SavedCoordinateTests setup unavailable: old TRLAB network path missing",
+    "native9000_started": false,
+    "corrected_session": 42535,
+    "corrected_exit": 0,
+    "corrected_rollouts": 9,
+    "all_three_blocks_executed": true
+  },
+  "bounded_meter_response": {
+    "report": "closedloop3000_meter2700_sequence_v1/README.md",
+    "completed": true,
+    "all_candidates_no_material_predicted_gain": true,
+    "native_counterfactual_qualified": false,
+    "coefficients_changed": false
+  }
+}

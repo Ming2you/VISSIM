@@ -1,0 +1,206 @@
+{
+  "buffer_trials": 16,
+  "new_full_forecasts": 5,
+  "new_native": 0,
+  "calibration": false,
+  "adopted": false,
+  "reason": "Some10681 head/post improvements but no autonomous merge or cost response change on seed53; not a gain correction.",
+  "metrics": {
+    "head": {
+      "baseline_mae": 9.633602464403005,
+      "candidate_mae": 5.178017435388538
+    },
+    "post": {
+      "baseline_mae": 7.324655261284839,
+      "candidate_mae": 3.803206071534248
+    },
+    "merges": {
+      "baseline_mae": 7.249502015338091,
+      "candidate_mae": 7.249502015338091
+    }
+  },
+  "seed53_rows": [
+    {
+      "arm": "hold",
+      "mainline_max": 0.0,
+      "flow_max": 0.0,
+      "off_max": 0.0,
+      "baseline10681": {
+        "pre": 31.971776947188932,
+        "post": 25.821509179103447,
+        "head": 154.02822305281106,
+        "merge": 145.20671387370757,
+        "ttt": 6.914382315844675
+      },
+      "candidate10681": {
+        "pre": 40.0084770595335,
+        "post": 17.78480906675889,
+        "head": 145.99152294046647,
+        "merge": 145.20671387370757,
+        "ttt": 6.914382315844677
+      }
+    },
+    {
+      "arm": "release",
+      "mainline_max": 0.0,
+      "flow_max": 0.0,
+      "off_max": 0.0,
+      "baseline10681": {
+        "pre": 36.06113909185875,
+        "post": 26.052853494299466,
+        "head": 149.93886090814124,
+        "merge": 140.88600741384172,
+        "ttt": 7.116568996547407
+      },
+      "candidate10681": {
+        "pre": 43.08848847108548,
+        "post": 19.02550411507275,
+        "head": 142.91151152891447,
+        "merge": 140.88600741384172,
+        "ttt": 7.11656899654741
+      }
+    },
+    {
+      "arm": "hold_vsl90",
+      "mainline_max": 0.0,
+      "flow_max": 0.0,
+      "off_max": 0.0,
+      "baseline10681": {
+        "pre": 31.95111522326478,
+        "post": 25.82145116438982,
+        "head": 154.0488847767352,
+        "merge": 145.22743361234535,
+        "ttt": 6.913501712107709
+      },
+      "candidate10681": {
+        "pre": 39.989751995782,
+        "post": 17.782814391872638,
+        "head": 146.01024800421797,
+        "merge": 145.22743361234535,
+        "ttt": 6.9135017121077125
+      }
+    },
+    {
+      "arm": "release_vsl90",
+      "mainline_max": 0.0,
+      "flow_max": 0.0,
+      "off_max": 0.0,
+      "baseline10681": {
+        "pre": 36.06631294756026,
+        "post": 26.052853494299466,
+        "head": 149.93368705243972,
+        "merge": 140.88083355814024,
+        "ttt": 7.116286733025347
+      },
+      "candidate10681": {
+        "pre": 43.08775276077041,
+        "post": 19.031413681089298,
+        "head": 142.91224723922954,
+        "merge": 140.88083355814024,
+        "ttt": 7.116286733025346
+      }
+    }
+  ],
+  "seed53_pairs": [
+    {
+      "arm": "hold",
+      "actual": {
+        "ttt": 0.0,
+        "mainline_ttt": 0.0,
+        "ramp_ttt": 0.0,
+        "off_ttt": 0.0,
+        "exits": 0.0
+      },
+      "baseline": {
+        "ttt": 0.0,
+        "mainline_ttt": 0.0,
+        "ramp_ttt": 0.0,
+        "off_ttt": 0.0,
+        "exits": 0.0
+      },
+      "candidate": {
+        "ttt": 0.0,
+        "mainline_ttt": 0.0,
+        "ramp_ttt": 0.0,
+        "off_ttt": 0.0,
+        "exits": 0.0
+      }
+    },
+    {
+      "arm": "release",
+      "actual": {
+        "ttt": 5.929166666666646,
+        "mainline_ttt": 8.766666666666666,
+        "ramp_ttt": -3.258333333333333,
+        "off_ttt": 0.4208333333333334,
+        "exits": -101.0
+      },
+      "baseline": {
+        "ttt": 2.576346259747652,
+        "mainline_ttt": 8.868444875412663,
+        "ramp_ttt": -5.970095412635622,
+        "off_ttt": -0.3220032030294009,
+        "exits": -92.69684087374526
+      },
+      "candidate": {
+        "ttt": 2.576346259747652,
+        "mainline_ttt": 8.868444875412663,
+        "ramp_ttt": -5.970095412635622,
+        "off_ttt": -0.3220032030294009,
+        "exits": -92.69684087374526
+      }
+    },
+    {
+      "arm": "hold_vsl90",
+      "actual": {
+        "ttt": -0.15000000000000568,
+        "mainline_ttt": -0.2541666666666771,
+        "ramp_ttt": -0.03333333333333144,
+        "off_ttt": 0.13750000000000018,
+        "exits": 4.0
+      },
+      "baseline": {
+        "ttt": 0.17541790674135882,
+        "mainline_ttt": 0.1936554872071099,
+        "ramp_ttt": -0.0009885672869529571,
+        "off_ttt": -0.01724901317879457,
+        "exits": -5.319856526031799
+      },
+      "candidate": {
+        "ttt": 0.17541790674135882,
+        "mainline_ttt": 0.1936554872071099,
+        "ramp_ttt": -0.0009885672869529571,
+        "off_ttt": -0.01724901317879457,
+        "exits": -5.319856526031799
+      }
+    },
+    {
+      "arm": "release_vsl90",
+      "actual": {
+        "ttt": 5.874999999999972,
+        "mainline_ttt": 8.462499999999991,
+        "ramp_ttt": -3.037499999999998,
+        "off_ttt": 0.4500000000000002,
+        "exits": -103.0
+      },
+      "baseline": {
+        "ttt": 2.4434594679661643,
+        "mainline_ttt": 8.716200058359775,
+        "ramp_ttt": -5.970067830386817,
+        "off_ttt": -0.3026727600068124,
+        "exits": -87.53695292980115
+      },
+      "candidate": {
+        "ttt": 2.4434594679661643,
+        "mainline_ttt": 8.716200058359775,
+        "ramp_ttt": -5.970067830386821,
+        "off_ttt": -0.3026727600068124,
+        "exits": -87.53695292980115
+      }
+    }
+  ],
+  "baseline_parity": true,
+  "max_mass_residual": 1.4637180356658064e-12,
+  "pins_checked": 124,
+  "pins_mismatches": []
+}

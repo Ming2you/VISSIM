@@ -1,0 +1,108 @@
+{
+  "previous_turn": "progress",
+  "goal": "ACTIVE/NOT_QUALIFIED",
+  "candidates": {
+    "fd125": {
+      "cells": [
+        24,
+        25
+      ],
+      "before": {
+        "24": {
+          "rho_crit": 22.199359874535315,
+          "metanet_a_m": 1.4343988477824117
+        },
+        "25": {
+          "rho_crit": 34.14801321204055,
+          "metanet_a_m": 1.3249810356550333
+        }
+      },
+      "after": {
+        "24": {
+          "rho_crit": 27.749199843169144,
+          "metanet_a_m": 1.4343988477824117
+        },
+        "25": {
+          "rho_crit": 42.68501651505069,
+          "metanet_a_m": 1.3249810356550333
+        }
+      }
+    },
+    "relax200": {
+      "cells": [
+        24,
+        25
+      ],
+      "before": {
+        "24": {
+          "anticipation": {
+            "downstream_ge_local": 18.375,
+            "downstream_lt_local": 15.716147192783822
+          },
+          "relaxation": {
+            "acceleration_sec": 15.627428679221985,
+            "deceleration_sec": 15.627428679221985
+          }
+        },
+        "25": {
+          "anticipation": {
+            "downstream_ge_local": 16.29826832197862,
+            "downstream_lt_local": 23.652703955864677
+          },
+          "relaxation": {
+            "acceleration_sec": 14.416449495256892,
+            "deceleration_sec": 14.416449495256892
+          }
+        }
+      },
+      "after": {
+        "24": {
+          "anticipation": {
+            "downstream_ge_local": 36.75,
+            "downstream_lt_local": 31.432294385567644
+          },
+          "relaxation": {
+            "acceleration_sec": 31.25485735844397,
+            "deceleration_sec": 31.25485735844397
+          }
+        },
+        "25": {
+          "anticipation": {
+            "downstream_ge_local": 32.59653664395724,
+            "downstream_lt_local": 47.305407911729354
+          },
+          "relaxation": {
+            "acceleration_sec": 28.832898990513783,
+            "deceleration_sec": 28.832898990513783
+          }
+        }
+      }
+    }
+  },
+  "screen_forecasts": 4,
+  "independent_pair_max": 2,
+  "fixed_initial_states": [
+    2250,
+    3600
+  ],
+  "scoring_horizon_sec": 150,
+  "forecast_horizon_sec": 450,
+  "optimizer_iterations": 0,
+  "new_native": 0,
+  "FZP_scans": 0,
+  "live_monitoring": 0,
+  "selection": {
+    "joint_stock_and_outflow_error_mean_ratio_max": 0.8,
+    "each_state_stock_and_outflow_not_worse": true,
+    "all31_stock_L1_max_ratio": 1.05,
+    "cell23_speed_abs_error_max_extra_kmh": 2.0
+  },
+  "scope": "Existing FD or relaxation coefficients only; no new dynamics, bonuses, future native inputs, or production changes. Earlier tau24/recovery_tau6 rejected on old model; this comparison preserves nu/tau for relaxation-only effect on expanded036-derived candidate.",
+  "later_check": "Choose at most one passing candidate before viewing seed47 outcome; same hold/release450 physical merge and Omega cost direction required.",
+  "source_pins": {
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\posthead_clock10490\\candidate_config.json": "6c939a5d645a15d06c00549a3c39af449b7099123646b1bda78ffe5812bbc753",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\posthead_clock10490\\manifest.json": "51b371f33490e2602272f31ccfd6ac5b7ae3b152b462c5cfaf2b6df27c5ed9a3",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\posthead_clock10490\\reference_config.json": "5bf75a733905424fa0c8eaba9dcdfc8b5fdea2e65128ef1dfb2d47f181858428",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\audit_city_arrival.py": "cd33ebd7e163854b8d00849d852fc720abf9c11578e6242b5152101267437572"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "status": "prepared_one_candidate",
+  "parameter": "FW_E physical cell11 effective rho_crit",
+  "fit_seed": 29,
+  "fit_policy": "none",
+  "fit_window_s": [
+    2220.1,
+    2970.1
+  ],
+  "fit_budget_scalar_evaluations": 25,
+  "bounds": [
+    22.75,
+    56.0
+  ],
+  "autonomous_forecast_budget": 6,
+  "checks": [
+    "43 sameinitial NC/RM/VSL/both",
+    "47 sameinitial RM hold/city-selected pair"
+  ],
+  "acceptance": [
+    "No conservation, initial-state or executable-command change",
+    "Reduce10682 entry/stock error and cell11 speed error without falsely congesting recovered seed47 cell10",
+    "No gain-qualification from conditional derivative fit; retain8port/queue/OmegaTTT diagnostics"
+  ],
+  "forbidden": [
+    "Future native boundary in autonomous forecast",
+    "Additional coefficient grids",
+    "NewVISSIM",
+    "Push"
+  ]
+}

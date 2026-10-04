@@ -1,0 +1,31 @@
+{
+  "created_at": "2026-10-03T11:56:03.148041+09:00",
+  "previous_goal_turn": "PROGRESS REVIEW93 completed and rejected one state residual candidate.",
+  "question": "Does the actual coupled predictor execute the calibrated per-road/cell parameters, or mistakenly use whole-network defaults? Distinguish new diagnostic93 reference error from a production propagation bug.",
+  "method": "Load the pinned reference through canonical calibration factory; compare runtime config and pickle/deepcopy snapshots; instrument unchanged exact450 pair across all actual road cells to check active parameters and scalar speed equation. Require prior physical results exact.",
+  "budget": {
+    "exact450": 2,
+    "native": 0,
+    "fit": 0,
+    "FZP_reads": 0,
+    "AD_worker": 0
+  },
+  "limits": [
+    "Serialization and source-path audit are not a new AD derivative accuracy test.",
+    "Identical parameter propagation does not qualify control-gain predictions.",
+    "Full-network defaults may legitimately differ from per-road physical configs; do not blindly copy them over."
+  ],
+  "protected_sha256": {
+    "evaluation\\controllers\\offramp_routing.py": "4ed3243430761f3ac5eaa517dfefee904418b0d8e252d3d369d4cbe5f4dd07a4",
+    "evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "evaluation\\controllers\\area_freeway_accounting.py": "22c57c5e88138189c0ae00f3d08e8dfda6d4c991b196355cb699d2c66a5a9e80",
+    "evaluation\\controllers\\lane_offramp_runtime.py": "3e912d15b2d2376d82175106f499e848859a9a0c3459f69b33276ca6e0554f08",
+    "evaluation\\controllers\\lane_plant_runtime.py": "4fe78e6c6ef7a9ffc3c48f147ae49efa4e7b3952831852792d8c56992b7be9ec",
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "input_sha256": {
+    "diagnostics\\repin_v3c3_review_20261001\\retained10638\\candidate_manifest.json": "2df69af43f596f2728978a1b03c409c46cb089e7398868b129835e94dc841248",
+    "diagnostics\\repin_v3c3_review_20261001\\rm47_service66_response\\candidate_config.json": "f921cd0c152ff358b8dc805debbd69bffe85c4a2be6c957a0eda445cd0fc4f05",
+    "diagnostics\\repin_v3c3_review_20261001\\s67_policy_response81\\protocol_path.json": "8b1646606ea3d4d6ee48758448423cce800769045bf23beeddf6f54ba0efce02"
+  }
+}

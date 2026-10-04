@@ -1,0 +1,91 @@
+{
+  "previous_goal_turn": "NO_PROGRESS:priority clarification only; resumed implementation of required conserved local lane-route dynamics.",
+  "hypothesis": "Averaging the shared exit/merge lane before its nonlinear dynamics suppresses the local recongestion and VSL response.",
+  "scope": "Existing31cell METANET outside19-21; exact current lane-route partition and accepted class transfers inside; no extra vehicles or capacity bonus.",
+  "changed": "Lane-resolved sending, accessible branch release, local receiving, route transport and per-lane existing METANET; fixed empirical lateral exchange.",
+  "unchanged": "FD/relaxation/anticipation/merge coefficients, native network, commands, demand, dynamic off storage/drain, VSL cohorts, ramp buffers/costs, objective.",
+  "approximation": "Inlet target-specific lane shares frozen from the current upstream cell; uniform only for unobserved targets. Cell VSL-cohort fractions shared by its lanes. Lane hazards from matched5s endpoints undercount unresolved paths and are not exact individual lane-change rates.",
+  "train": {
+    "seed": 29,
+    "arm": "early_none",
+    "window": [
+      2220.1,
+      2670.1
+    ],
+    "counts": [
+      [
+        0,
+        26,
+        0
+      ],
+      [
+        16,
+        0,
+        26
+      ],
+      [
+        0,
+        14,
+        0
+      ]
+    ],
+    "at_risk_intervals": [
+      2627,
+      2135,
+      2022
+    ],
+    "unmatched_intervals": 881
+  },
+  "candidate": {
+    "cells": [
+      19,
+      20,
+      21
+    ],
+    "lanes": 3,
+    "exchange_rates_per_sec": [
+      [
+        0.0,
+        0.0019893048473776645,
+        0.0
+      ],
+      [
+        0.0015137678641314435,
+        0.0,
+        0.0024598727792135957
+      ],
+      [
+        0.0,
+        0.0013895837537593822,
+        0.0
+      ]
+    ],
+    "inlet_lane_to_group": {
+      "2": 0,
+      "3": 1,
+      "4": 2
+    },
+    "off_access": {
+      "10483": 0
+    },
+    "ramp_access": {
+      "RM_C10490": 0
+    }
+  },
+  "max_new_forecasts": 9,
+  "fit_grid": 0,
+  "new_native": 0,
+  "evaluation": "Four late29 and four late67 executed-command450s autonomous predictions. Both seeds already inspected; no pristine holdout claim.",
+  "gates": "Mass and class conservation, no physical storage breach, no negative stock, large mainline/component cost direction and ordering; flow and state deterioration retained even if choice matches.",
+  "pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_lane_groups.py": "39a5a22add05e30369a858bee208eedf236486acf1194cab09821ea8134e2739",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\offramp_routing.py": "fe15bd9716517b9c13d6206edd93a37a159946f92cbee566d3336553c6a3d4d2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\area_freeway_accounting.py": "9973c50df3f674dbafcd9e2cb3c82a081dd2d5de9d1da363dc4f211d4c8933f6",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\freeway_fd.py": "ca1a68a45f75d34811399b37825d0b762ddaf66c0b53cbadd194e9670af91ca1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\canonical_harness.py": "cf3e2e2a26857ef78848e56290fb8e6532f67dbcc8b99fa78c4388d1debed03d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\replay_congested_component.py": "edcf7d9071c43899755c4b5b2e6545b98d3c44362acedfe9b0584fe453f38b82",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\vsl_native_exposure\\s29_early_none_frames.json.gz": "aa98cdbfee4c468d9024f6d9cdb54f56855afe9009369ea10d7fb47da05cc380",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\contract.json": "18fb6aefcaca2c9159f4388728f4488057571486acb5345517fb56569c8b4ded"
+  },
+  "implementation_repair": "Regression test exposed off-exit speed cap applied to inaccessible lanes despite accessible-lane FIFO specification; cap now uses only the declared access lane. Same six frozen rates and all physical coefficients. One additional9forecast verification budget; first failed model results preserved."
+}

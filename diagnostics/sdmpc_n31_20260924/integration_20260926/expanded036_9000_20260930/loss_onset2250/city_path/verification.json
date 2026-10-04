@@ -1,0 +1,414 @@
+{
+  "previous_goal_turn": "progress",
+  "current_goal_turn": "progress",
+  "stage": "completed_bounded_diagnosis",
+  "active_goal": "ACTIVE/NOT_QUALIFIED",
+  "new_forecasts": 4,
+  "new_initialization_only": 1,
+  "native_runs": 0,
+  "fzp_scans": 0,
+  "coefficient_fits": 0,
+  "live_polls": 0,
+  "push": 0,
+  "sessions": {
+    "8709": "exit0",
+    "47591": "exit0",
+    "59462": "exit0_initialization_only",
+    "5877": "exit0",
+    "31159": "exit0"
+  },
+  "regression": {
+    "before_expected_failure": true,
+    "after_pass": true,
+    "expected_speed": 40.780464436792734,
+    "actual_after_speed": 40.780464436792734
+  },
+  "tests": {
+    "passed": 8,
+    "failed": 0,
+    "repaired_test_fixture": "Old StubTrafficState config lacked simulation/mpc/cycle fields required by tau diagnostics"
+  },
+  "unchanged_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_plant_runtime.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\coupled_expanded_joint\\candidate_config.json": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\route_choice_corridor.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\lane_ramp_runtime.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\physical_ramp_boundary.py": true,
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\evaluation\\controllers\\sdmpc.py": true,
+    "D:\\VISSIM_runs\\20260928_sd31_d4e2_9000\\STOP": true
+  },
+  "changed_source_functions": [
+    "build_local_observation_summary"
+  ],
+  "states": {
+    "2250": {
+      "before": {
+        "flows_first150": {
+          "upstream329": 14.060150375939847,
+          "downstream29": 2.5416666666666665,
+          "ramp_arrival": 23.904249939257582,
+          "ramp_merge": 43.18899160993409
+        },
+        "delay_range": [
+          101,
+          104
+        ],
+        "ttt450": 485.1621378829676,
+        "turn_limits": {
+          "SC1002_E_SC101_to_W_SC1001": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 10.0,
+            "final_queue": 4.84855164853496
+          },
+          "SC1001_E_SC1002_to_W_RAMP": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 0.6666666666666666,
+            "final_queue": 9.204260651629072
+          }
+        },
+        "ramp_conservation_max": 4.156675004196586e-13,
+        "moving_speed_before_lane_correction": 24.46827866207564
+      },
+      "after": {
+        "flows_first150": {
+          "upstream329": 14.060150375939847,
+          "downstream29": 10.53409090909091,
+          "ramp_arrival": 27.900462060469703,
+          "ramp_merge": 45.76474918569168
+        },
+        "delay_range": [
+          61,
+          63
+        ],
+        "ttt450": 485.218467039533,
+        "turn_limits": {
+          "SC1002_E_SC101_to_W_SC1001": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 10.0,
+            "final_queue": 5.516249602844277
+          },
+          "SC1001_E_SC1002_to_W_RAMP": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 0.6666666666666666,
+            "final_queue": 1.2118364092048282
+          }
+        },
+        "ramp_conservation_max": 4.156675004196586e-13,
+        "moving_speed_before_lane_correction": 40.780464436792734
+      },
+      "native": {
+        "native_upstream329": 35,
+        "native_downstream29": 31,
+        "head_to_head": {
+          "matched": 27,
+          "unmatched": 4,
+          "median": 54.7199999999998,
+          "min": 50.210000000000036,
+          "max": 164.6199999999999,
+          "note": "Includes travel, any queueing and red delay; retrospective conditional cohort, not a free-flow calibration"
+        },
+        "initial329_lanes": {
+          "1": {
+            "count": 1,
+            "stopped": 0,
+            "through_departed150": 0
+          },
+          "2": {
+            "count": 15,
+            "stopped": 12,
+            "through_departed150": 15
+          },
+          "3": {
+            "count": 16,
+            "stopped": 13,
+            "through_departed150": 16
+          },
+          "4": {
+            "count": 6,
+            "stopped": 5,
+            "through_departed150": 0
+          }
+        },
+        "bins": [
+          {
+            "start": 2250,
+            "end": 2280,
+            "upstream329": 14,
+            "downstream29": 0
+          },
+          {
+            "start": 2280,
+            "end": 2310,
+            "upstream329": 21,
+            "downstream29": 6
+          },
+          {
+            "start": 2310,
+            "end": 2340,
+            "upstream329": 0,
+            "downstream29": 16
+          },
+          {
+            "start": 2340,
+            "end": 2370,
+            "upstream329": 0,
+            "downstream29": 9
+          },
+          {
+            "start": 2370,
+            "end": 2400,
+            "upstream329": 0,
+            "downstream29": 0
+          }
+        ],
+        "signal_transitions": [
+          [
+            2266,
+            "1002",
+            "6",
+            "write",
+            "GREEN"
+          ],
+          [
+            2296,
+            "1001",
+            "6",
+            "write",
+            "GREEN"
+          ],
+          [
+            2332,
+            "1002",
+            "6",
+            "write",
+            "AMBER"
+          ],
+          [
+            2335,
+            "1002",
+            "6",
+            "write",
+            "RED"
+          ],
+          [
+            2351,
+            "1001",
+            "6",
+            "write",
+            "AMBER"
+          ],
+          [
+            2354,
+            "1001",
+            "6",
+            "write",
+            "RED"
+          ]
+        ]
+      },
+      "same_commands": true,
+      "same_initial_stocks_and_buffers": true,
+      "same_initial_freeway_arrays": true
+    },
+    "3600": {
+      "before": {
+        "flows_first150": {
+          "upstream329": 13.138716356107665,
+          "downstream29": 3.048611111111111,
+          "ramp_arrival": 16.90042575459984,
+          "ramp_merge": 16.97554878224708
+        },
+        "delay_range": [
+          109,
+          113
+        ],
+        "ttt450": 517.5937176466567,
+        "turn_limits": {
+          "SC1002_E_SC101_to_W_SC1001": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 3.6666666666666665,
+            "final_queue": 5.48103605528947
+          },
+          "SC1001_E_SC1002_to_W_RAMP": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 2.6666666666666665,
+            "final_queue": 4.428146258503402
+          }
+        },
+        "ramp_conservation_max": 2.5579538487363607e-13,
+        "moving_speed_before_lane_correction": 22.5837629
+      },
+      "after": {
+        "flows_first150": {
+          "upstream329": 13.138716356107665,
+          "downstream29": 3.048611111111111,
+          "ramp_arrival": 16.90042575459984,
+          "ramp_merge": 16.975548782247085
+        },
+        "delay_range": [
+          78,
+          81
+        ],
+        "ttt450": 516.9855486408635,
+        "turn_limits": {
+          "SC1002_E_SC101_to_W_SC1001": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 3.6666666666666665,
+            "final_queue": 5.808862423932167
+          },
+          "SC1001_E_SC1002_to_W_RAMP": {
+            "post_intention_shortfall_max": 0.0,
+            "initial_queue": 2.6666666666666665,
+            "final_queue": 9.663653504880214
+          }
+        },
+        "ramp_conservation_max": 2.2382096176443156e-13,
+        "moving_speed_before_lane_correction": 31.5610465
+      },
+      "native": {
+        "native_upstream329": 27,
+        "native_downstream29": 8,
+        "head_to_head": {
+          "matched": 6,
+          "unmatched": 2,
+          "median": 110.63999999999987,
+          "min": 107.21000000000004,
+          "max": 125.0,
+          "note": "Includes travel, any queueing and red delay; retrospective conditional cohort, not a free-flow calibration"
+        },
+        "initial329_lanes": {
+          "2": {
+            "count": 9,
+            "stopped": 3,
+            "through_departed150": 9
+          },
+          "3": {
+            "count": 10,
+            "stopped": 5,
+            "through_departed150": 10
+          },
+          "4": {
+            "count": 4,
+            "stopped": 3,
+            "through_departed150": 0
+          }
+        },
+        "bins": [
+          {
+            "start": 3600,
+            "end": 3630,
+            "upstream329": 0,
+            "downstream29": 7
+          },
+          {
+            "start": 3630,
+            "end": 3660,
+            "upstream329": 26,
+            "downstream29": 1
+          },
+          {
+            "start": 3660,
+            "end": 3690,
+            "upstream329": 1,
+            "downstream29": 0
+          },
+          {
+            "start": 3690,
+            "end": 3720,
+            "upstream329": 0,
+            "downstream29": 0
+          },
+          {
+            "start": 3720,
+            "end": 3750,
+            "upstream329": 0,
+            "downstream29": 0
+          }
+        ],
+        "signal_transitions": [
+          [
+            3605,
+            "1001",
+            "6",
+            "write",
+            "GREEN"
+          ],
+          [
+            3630,
+            "1002",
+            "6",
+            "write",
+            "GREEN"
+          ],
+          [
+            3655,
+            "1001",
+            "6",
+            "write",
+            "AMBER"
+          ],
+          [
+            3658,
+            "1001",
+            "6",
+            "write",
+            "RED"
+          ],
+          [
+            3693,
+            "1002",
+            "6",
+            "write",
+            "AMBER"
+          ],
+          [
+            3696,
+            "1002",
+            "6",
+            "write",
+            "RED"
+          ]
+        ]
+      },
+      "same_commands": true,
+      "same_initial_stocks_and_buffers": true,
+      "same_initial_freeway_arrays": true
+    }
+  },
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250\\trace.json.gz": "d732da2654abe22d7bbf90f05fc7bb03616a899bf3c09ba1fcbfeb386ad22b1f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_RM_C10484_city2250\\held_actual.json": "6aa21fdb18fb66ba160d99a384ff2ef9227f13f797bb07e9b64c04e09ad4518b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_init\\initial.json": "aceacff709950a2b742f90a2b4feffba6015a37d460475da7244ef80ccb12ae4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_after\\trace.json.gz": "d87d290b80a134111158760a50ebebc7ee2c0c6ce2c8cacb68598e501acb162f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded2250_lever450_RM_C10484_city2250_after\\held_actual.json": "1035ea6f55e30a0eba0ce25351a830b392b1e3376199c820e703d9152bed96d1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_after\\initial.json": "d6e94e2e118c50d1d10bc325d76ec75d99ce798164ff460b1ac5f5498a443ea6",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600\\trace.json.gz": "a5de7c178b95511332be1ca6b6b6c166005de8045d413c4f3e1aafa4eb40dea0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded3600_lever450_RM_C10484_city3600\\held_actual.json": "2eb8b91a857cfedd54cc42610547bfeb3f1a89e71460a503c665ba5c8f3cd130",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600\\initial.json": "69db1647f5d9784b1a4d82e1c5b3a8b69f650e70ebcbbdbb62be8ccd60ba0df0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_after\\trace.json.gz": "e521ea6198cfdae8e8ef9775c9c5a808abba4aa2f5c43adf45adbcf4692ef6dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop_recorded3600_lever450_RM_C10484_city3600_after\\held_actual.json": "f0967cb1e149256d6c316ff9d7c5903b34aa3f669d42f294ae7e203c597b6aca",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\3600_after\\initial.json": "fd4103310507b415abb53dd48c23e3872dc36a3ffc4d94c323a1f55a2cc3b7a2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\speed_regression_before.json": "9c52fed0898136042a07f3644e14ec51783f2941230bc1420a47d28f1fc4e163",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\speed_binding\\protocol.json": "0418c746d4f0dfe63075eec6d63e1a65faefafbaefff18a0f31a305ed39e7967"
+  },
+  "native_source_pins": {
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002100.json": "ae148c8ddbf905e8ee999354bb079d712d8c5c6ebf91d5bcdda6d98d0f965166",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002250.json": "edbc7d80a55d2f341a3f18aebb1f82674d2af23edc7901c69c78e3da8549b8fb",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002400.json": "510de21cd09f18b76f98a45b666d143cd0a96bdafc50d5f9832dc4bf3b43de8d",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_002550.json": "a475cdf2a5b67ab0578c2a267f1cbca1c4db851fd72aa2ce30d472c8c6d81d9f",
+    "D:\\VISSIM_runs\\20260930_expanded036_runtime_r2\\frozen\\sdmpc31_886a014a_202609301259\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\obs150\\obs150_detectors_v2.csv": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_002100.jsonl": "28c626432aef26aef8d24c5f0b665cab4e75a6f2963f0652c0cfd493e78d32bb",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_002250.jsonl": "a7b7f9f0e21225d5bc76aba6ff92e746c6b2b9cc87e87500fba4b1302d6b2dff",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_002400.jsonl": "49e31d8d2766bd78e43584fb5cfde1a66fda69d62007c57d6303927d9417f2ed",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_002550.jsonl": "5de72f5702be8657a2249c5b853c221de2e8d7298094145e6f6d40c19b2cc9d5",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003450.json": "a6479bf4737d01e065e266d83875db18ebf89c7036b30f8d6d9cbea38069627f",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003600.json": "09037d07796f9ecfd8a80172a0ef3e4d56b216bedde1ca6e067b7c23b2ace2df",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003750.json": "4c10b18f7ae4ec357c495e4633e1cb52e73b8a3046b9b3d835ae3cad5f8dd430",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_003900.json": "49288789f982e9b090c2395ea1787b83c34d84f55e04b3f2f0547ab4377291e8",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_003450.jsonl": "e98faf4306994c9484e8e2e1612f5d2ffacff944f9943c4030c760341a693ff4",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_003600.jsonl": "9acd98c612f948158f365969719be65e03d27b02e00eb270792f08e30ad0f7a3",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_003750.jsonl": "f6b692c6127c56ec09dc9c98a40574afd42d09faac65df863cd6b6282461ae76",
+    "D:\\VISSIM_runs\\20260930_expanded036_s29_9000_r2\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\obs150\\mer_003900.jsonl": "86513894dd79aa6b50c838aecc5fc9bae0bd18da56164e85689eec169a8c6bef"
+  },
+  "qualification": "Arrival aggregation semantics fixed; RM merge and queue allocation errors remain. No gain/candidate/SDMPC/NP/NUF qualification."
+}

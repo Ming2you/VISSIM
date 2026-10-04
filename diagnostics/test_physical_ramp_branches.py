@@ -373,4 +373,72 @@ class PhysicalRampTests(unittest.TestCase):
         self.assertEqual(pickle.dumps(state,protocol=5),before)
 
 
+class RecordedReplayEncodingTests(unittest.TestCase):
+    def test_fixed_replay_status_retains_address_rate_and_green_checks(self):
+        import csv
+        import tempfile
+        spec={'ramps':{f'RM_C{i}':dict(sc_no=9100+i,sg_no=1,capacity_vph=900.,cycle_sec=10.,
+              service_by_green_veh_h={'2':180.}) for i in range(8)},
+              'minimum_green_sec':2.,'legacy_groups':{}}
+        cfg=SimpleNamespace(network=SimpleNamespace(physical_ramp_branches=spec))
+        action=ControlAction(ramp_metering={mid:180. for mid in spec['ramps']})
+        rows=[dict(kind='ramp_meter',id=mid,sc_no=m['sc_no'],green_sec=2.,rate_vph=180.,
+                   metadata='ok;physical_signal_contract=1') for mid,m in spec['ramps'].items()]
+        with tempfile.TemporaryDirectory(prefix='recorded-replay-') as directory:
+            path=Path(directory)/'action.csv'
+            def write(changed):
+                with path.open('w',newline='',encoding='utf-8') as stream:
+                    writer=csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(changed)
+            for status in ('ok','fixed_command_replay'):
+                changed=copy.deepcopy(rows)
+                for row in changed:row['metadata']=status+';physical_signal_contract=1'
+                write(changed)
+                parsed=ramps.read_recorded_control(action.copy(),cfg,path)
+                self.assertEqual(parsed.ramp_metering,action.ramp_metering)
+                self.assertEqual(ramps.held_actual_reference(parsed,cfg).ramp_metering,action.ramp_metering)
+            for field,value in (('metadata','failed'),('metadata','unknown'),('sc_no',9999),('rate_vph',181.)):
+                changed=copy.deepcopy(rows);changed[0][field]=value;write(changed)
+                with self.assertRaisesRegex(ValueError,'address/encoding'):
+                    ramps.read_recorded_control(action.copy(),cfg,path)
+            write(rows)
+            mismatched=action.copy();mismatched.diagnostics['rw_meter_green_RM_C0']=4.
+            with self.assertRaisesRegex(ValueError,'JSON/CSV'):
+                ramps.read_recorded_control(mismatched,cfg,path)
+
+
+class NpOnlyDomainTests(unittest.TestCase):
+    def test_np_proposals_do_not_require_an_unused_meter_inverse(self):
+        from unittest.mock import patch
+        from evaluation.controllers import joint_owner_neighbors as neighbors
+        from evaluation.controllers.area_follower_objective import prepare_joint_leader_candidates
+        cfg=SimpleNamespace(network=SimpleNamespace(control_area_enabled=True,freeway_links=('FW_E','FW_W'),
+            physical_ramp_branches={'ramps':{'RM_C10639':{'service_by_green_veh_h':{'9':1512.,'10':1512.}}}}),
+            mpc=SimpleNamespace(leader_budget_off=False,wu_faithful_np_coordination_mode='cap',
+                                wu_faithful_nuf_coordination_mode='equality'))
+        anchor=ControlAction(N_P_star=0.,N_UF_star=5700.,ramp_metering={'RM_C10639':1512.},
+                             diagnostics={'rw_meter_green_RM_C10639':10.})
+        state=SimpleNamespace(time_sec=1200.)
+        actions=[ControlAction(N_P_star=v) for v in (-100.,0.,100.,0.)]
+        controller=SimpleNamespace(cfg=cfg,nash_solver=SimpleNamespace(cfg=cfg),
+            leader=SimpleNamespace(candidates=lambda *args,**kwargs:actions))
+        before=pickle.dumps((cfg,state,anchor),protocol=5)
+        # Receipt loading has separate native CSV tests; this isolates domain construction.
+        with patch.object(ramps,'held_actual_reference',return_value=anchor.copy()) as verify, \
+             patch.object(neighbors,'_physical_meter_points',side_effect=AssertionError('Unused meter seed grid')):
+            domain=prepare_joint_leader_candidates(controller,state,[SimpleNamespace()],anchor,
+                                                   budget_tolerance_veh_h=0.,np_only=True)
+            verify.assert_called_once_with(anchor,cfg)
+            self.assertEqual(domain['np_values'],(-100.,0.,100.))
+            self.assertEqual(domain['objective_queries'],0)
+            self.assertEqual(pickle.dumps((cfg,state,anchor),protocol=5),before)
+            # Ordinary joint-game callers still request the complete meter seed domain.
+            with self.assertRaisesRegex(AssertionError,'Unused meter seed grid'):
+                prepare_joint_leader_candidates(controller,state,[SimpleNamespace()],anchor,
+                                                 budget_tolerance_veh_h=0.)
+            actions.append(ControlAction(N_P_star=float('nan')))
+            with self.assertRaisesRegex(ValueError,'finite installed NP'):
+                prepare_joint_leader_candidates(controller,state,[SimpleNamespace()],anchor,
+                                                 budget_tolerance_veh_h=0.,np_only=True)
+
+
 if __name__=='__main__':unittest.main()

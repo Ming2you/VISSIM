@@ -106,7 +106,9 @@ def rollout(conf, road, steps, *, rho, v, source, ramp, cap, vsl):
             update_ramp_queues=False, include_ramp_queue_ttt=False, complete_allocator_scope=False)
         ttt = ttt + cost
         state.time_sec += cfg.simulation.T_f_sec
-    vehicles = sum(d * l * w for d, l, w in zip(state.freeway_density[road], lengths, lanes))
+    # Python 3.12 compensates sum(float) but not sum(Dual). The cell values
+    # must still match exactly; use the same compensated aggregation for both.
+    vehicles = ad.MathProxy.fsum(d * l * w for d, l, w in zip(state.freeway_density[road], lengths, lanes))
     return ttt, vehicles, list(state.freeway_speed[road])
 
 

@@ -1,0 +1,105 @@
+{
+  "status": "DIAGNOSIS_COMPLETE_NOT_GAIN_QUALIFIED",
+  "window_sec": [
+    2670.1,
+    3120.1
+  ],
+  "scope": "FW_E31+eight east connector ports; not whole Omega",
+  "objective_changed": false,
+  "command_changes": [
+    {
+      "time_sec": 2700,
+      "hold_green_sec": 2,
+      "release_green_sec": 4
+    },
+    {
+      "time_sec": 2850,
+      "hold_green_sec": 2,
+      "release_green_sec": 6
+    },
+    {
+      "time_sec": 3000,
+      "hold_green_sec": 2,
+      "release_green_sec": 8
+    }
+  ],
+  "commands_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\metanet_net_gain_goal_20260924\\release2670_seed47\\hold_commands.json": {
+      "raw_sha256": "a6a89fe698e17f6d67e492c5092d7533d2479e5b7860f1defc5cfe23c99596cb",
+      "capture_canonical_sha256": "858c1b9b051badebc74b1c6862b8b7e4d9eb2b95919e8fcd261369b178dffd16"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\metanet_net_gain_goal_20260924\\release2670_seed47\\release_10484_commands.json": {
+      "raw_sha256": "8f24055c8fc0145967a1da05fdae1c7627bd4db4a4b65aacd29adc18fe040d6a",
+      "capture_canonical_sha256": "b68a53d8bc11acf4fa89036b08ebb1b482af80a945245b42d6daf2ab92db8ef0"
+    }
+  },
+  "common_initial_state_exact": true,
+  "cache_sha_verified": true,
+  "cost_conservation_verified": true,
+  "baseline_delta": {
+    "native": 1.6791666666666742,
+    "predicted": -0.21590483455379683
+  },
+  "tau4_delta": {
+    "native": 1.6791666666666742,
+    "predicted": -0.23972261026143116
+  },
+  "tau4_component_boundary": {
+    "native": {
+      "source": -0.004166666666662877,
+      "ramp_approach": -0.01666666666666572,
+      "off_drain": 0.4125000000000014,
+      "terminal": 1.2875000000000014
+    },
+    "predicted": {
+      "source": 0.0,
+      "ramp_approach": 0.0,
+      "off_drain": 0.0007612318706335941,
+      "terminal": -0.24048384213206475
+    }
+  },
+  "off10483_posthoc_split": {
+    "counts": {
+      "hold": {
+        "off_veh": 162.0,
+        "through_veh": 738.0,
+        "total_out_veh": 900.0,
+        "realized_off_share": 0.18
+      },
+      "release_10484": {
+        "off_veh": 141.0,
+        "through_veh": 679.0,
+        "total_out_veh": 820.0,
+        "realized_off_share": 0.1719512195121951
+      }
+    },
+    "flow_volume_effect_veh": -14.399999999999999,
+    "realized_composition_effect_veh": -6.600000000000006,
+    "order_dependent_decomposition": true,
+    "used_for_forecast": false
+  },
+  "failed_checks": [
+    {
+      "stage": "initial_all_arm_flow_stock_reconciliation",
+      "arm": "hold_vsl90",
+      "unexplained_mainline_losses_veh": 4,
+      "resolution": "No reinterpretation as exits. This audit only covers hold and release_10484, both zero loss. VSL exact decomposition remains unqualified."
+    },
+    {
+      "stage": "raw_command_hash_compared_to_canonical_hash",
+      "resolution": "Capture source documents integer-key sorted JSON hashing; correct canonical hash now matches, raw bytes separately pinned."
+    }
+  ],
+  "native_runs": 0,
+  "new_rollouts": 0,
+  "optimizer_iterations": 0,
+  "model_or_parameter_changes": false,
+  "selected_network_config_unchanged": true,
+  "stop_preserved": true,
+  "source_sha256": "3ab425932c8e16f78d8607da33c5928c26f7fa09c062a508e03e773cca101f14",
+  "saved_data_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\recovery_response\\seed47_audit\\baseline_decomposition_v2.json": "793d875b58978a8290e63f081d35b1cdd406477911a679d27a1ee4204d74d16f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\closedloop9000_d4e2_analysis\\recovery_response\\seed47_audit\\tau4_decomposition_v2.json": "c83989d3b59f819db37076fd6696e785e20f99c65845e73cf124ee50dce2af67"
+  },
+  "next_step": "Audit canonical local METANET speed-term balance at common native states and merge perturbations; separate state/mean-speed closure from receiving limits before another fit. No new native restart."
+}
