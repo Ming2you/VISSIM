@@ -51,6 +51,7 @@ tmp/                              자식 프로세스 TEMP
 | ● `opt1v2/a1v2_visit.py` | `e_s*_ext.parquet` | `opt1v2/out/a1v2_visit.json`, `a1v2_cycles.csv` |
 | ● `opt1v2/a1_v1rule_v3c3.py` | `e_s*_v1.parquet` | `opt1v2/out/a1_v1rule_v3c3.json`, `a1_v1rule_cycles_v3c3.csv` |
 | `opt1v2/s2_lanefull.py` / `opt1v2/p4c_states_grid9_v3c3.py` | `e_s*_ext` / `e_s*_v1` parquet | `opt1v2/out/s2_lanefull.json` / `p4_states_grid9_v3c3.json` |
+| `sa/` (K8-6 SA 관문 하네스) | 포착·롤아웃·FZP·EO·R-obs3 | `<out>/sa/…`. FH 이식, TL3/DP 잡, 스모크 H-0…H-5, 관문 G-EB-0…14, 훅 계수. 자세한 것은 `sa/README.md` |
 
 opt1v2 도구는 `--data DIR`로 parquet 폴더를 바꿀 수 있습니다(기본 `<out>/opt1v2/data`).
 
