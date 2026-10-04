@@ -3,7 +3,7 @@
     python -B jobs.py [--root R] [--out O] [--robs D] [--dry-run] <T> <capvariant> <label> <mode> <action> <patches>
         -> <out>/out/<T>/jobs/<label>/{job.pickle, result.pickle, log.txt, hook/, brief.json}
 
-capvariant: capture folder cap_<capvariant> (capture.py);  mode: scalar | ad
+capvariant: capture folder cap_<capvariant> (capture.py);  mode: scalar | ad | ad_full (non-surrogate, worker.py)
 action: REF | M2ALL | M2E | M2W | M5ALL ;  patches: comma list of worker.py patches (s1, s3, s3f) or '-'"""
 import json
 import pickle
@@ -21,7 +21,7 @@ ap = c.parser(__doc__)
 ap.add_argument('T', type=int)
 ap.add_argument('capv')
 ap.add_argument('label')
-ap.add_argument('mode', choices=('scalar', 'ad'))
+ap.add_argument('mode', choices=('scalar', 'ad', 'ad_full'))
 ap.add_argument('act', choices=tuple(ACTIONS))
 ap.add_argument('patches')
 ap.add_argument('--dry-run', action='store_true', help='print the job and the worker command only (writes nothing)')

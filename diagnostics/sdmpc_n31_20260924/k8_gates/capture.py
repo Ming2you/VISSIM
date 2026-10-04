@@ -1,7 +1,8 @@
 """Capture driver (one adapter process at a time, BELOW_NORMAL):
 
-    python -B capture.py [--root R] [--out O] [--robs D] [--dry-run] <variant> <T> [<T> ...]
-        -> <out>/out/<T>/cap_<variant>/{template.pickle, capture.json, capture_log.txt}
+    python -B capture.py [--root R] [--out O] [--robs D] [--dry-run] [--cap-label L] <variant> <T> [<T> ...]
+        -> <out>/out/<T>/cap_<variant>/{template.pickle, capture.json, capture_log.txt}   (cap_<L> with --cap-label,
+           K8-0b: several code roots captured into one output root)
 
 variant: base | s5 | s9 | s59  projection patch compiled in memory by cap_child.py (nothing on disk is edited)
          lgk                   base projection; tuning = <root> config_n31_v2.json + urban.capacity.lane_group_kinds
@@ -33,6 +34,7 @@ ap = c.parser(__doc__)
 ap.add_argument('variant', choices=('base', 's5', 's9', 's59', 'lgk'))
 ap.add_argument('T', nargs='+', type=int, help='decision times (s)')
 ap.add_argument('--dry-run', action='store_true', help='print the capture command lines only (writes nothing)')
+ap.add_argument('--cap-label', help='capture folder cap_<label> instead of cap_<variant>')
 args = ap.parse_args()
 c.apply(args)
 if not args.dry_run:
@@ -40,7 +42,7 @@ if not args.dry_run:
 variant = args.variant
 for T in args.T:
     replay = c.REPLAYS / f'{T:06d}'
-    out = c.RESULTS / f'{T:06d}' / f'cap_{variant}'
+    out = c.RESULTS / f'{T:06d}' / f'cap_{args.cap_label or variant}'
     tuning = c.TUNING
     proj = variant
     if variant == 'lgk':

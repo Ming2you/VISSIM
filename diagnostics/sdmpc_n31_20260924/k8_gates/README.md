@@ -72,3 +72,24 @@ python -B <tool>.py --help
 - 자식 환경은 R-obs provenance의 `RW_*`를 그대로 씁니다(`RW_OBS150_DETECTORS`는 FRZ_K7 경로, sha 고정). numba 캐시와 탄젠트 캐시는 코드 루트 안 `__pycache__`·`__tangentcache__`(gitignore, 동결 제외)에 생깁니다.
 - 옮기지 않은 것: `fixdoc.py`(DEFECTS.md 문구 수정용 일회성), 스크래치 결과물.
 - 원본 sha256 앞 16자: k8common a33664b0c7ece912, prep 5ffaeba95ee3b31d, capture 552a5a2a005e96d0, cap_child 9b75189b4e5c06b3, jobs c35994c041e0f997, worker 0c1eba192b123474, full 0386f830e74f2ef8, an_fid 57d26b8fca38201f, an_jobs 0d4762138644dbe1, an_lgk f7ed23c783c5a2f8, an_proj af08156c3575733e, an_ramps c2fdbedfa4deb1f2, an_s9split 82b437417c9e3385, s6_scan 61a48c9cb15ca99c, s7_links 84fd3cd5207ae198, roots 90e577d163dc4c3a, pinlen 8707a2d54407345c, chain1-4 5cf134777aacf32c·7b992550f0da60c4·648cd3420ae7dcb2·1cc60c757adda69d, sitecustomize 8b02b81182b7030e, x2_extract 4474bcbb5750b2a9, g2_inpx b1615bae0f0d8263, p4c_states_grid9_v3c3 3a7ba0f016ff20d9, s2_lanefull 749d451277a4dd02, a1v2_visit ef650b91960cf061, a1_v1rule_v3c3 1460516b3eb91d22.
+
+## K8-0b (S3 계수 훅·K8-2 관문 도구, 보충 1 §D)
+
+K8-2 관문 전에 넣는 도구 커밋입니다. 런타임 코드는 0줄입니다.
+
+| 도구 | 내용 |
+|---|---|
+| `s3site/sitecustomize.py` | S3 31곳 수동 LINE 훅. 스크래치 `amend1/s3/site/sitecustomize.py`(sha16 69c3665e29f716cf)의 이식. 바뀐 것은 머리 주석, 위치 표 두 벌(`SITES_K81` = 원본 행 바이트 그대로, `SITES_K82` = DEFECTS §4 여섯 행을 K8-2 커밋의 줄·문구로 옮김), 환경변수 `K8_S3_ANCHORS`(k81 기본·k82)로 고르기, `EXTRA['anchors']` 기록뿐입니다. 위치 id는 K7 줄 번호를 그대로 써서 두 표를 행끼리 비교합니다 |
+| `s3run.py` | `job`(스칼라·대리 AD·비대리 AD)과 `full`(배포 결정 전체). `jobs.py`·`full.py`와 같은 워커·어댑터·환경이고, PYTHONPATH 첫 칸만 `s3site`로 바꿉니다. `--anchors`는 필수. 스크래치 `amend1/s3/tools/run_s3.py`(sha16 cb288a34b0ef3233)의 이식 |
+| `an_s3.py` | 런 폴더 하나의 훅 파일 집계 + 정방향 스윕 검증. 스크래치 `an_s3.py`(sha16 6369c050539c79a6)와 docstring만 다릅니다 |
+| `table_s3.py` | 4런 표(JSON·markdown). 스크래치 `table_s3.py`(sha16 e9e46d4ee6744cc7)와 같은 칸, 런 목록·출력은 인자 |
+| `k82_gate.py` | K8-2 판정기(읽기만). 선언값(보충 1 r2 §2 K8-2 (a)–(f))은 코드 상수입니다 |
+| `worker.py` | mode `ad_full`(비대리 역방향 AD: 스칼라 증인 + 탄젠트 + 전체 `state_error`; 진단 전용 옵션 `central_multiplier`·`prediction_hotpath`만 그 프로세스에서 끔, S1_OWNER §5 방식). 결과에 `max_primal_state_error`·`complete_primal_state_match`·`trace` 등을 더하고, `area_leader_objective.shared_urban_quantities`의 소유자별 `accepted_event_count`·`net_inflow_veh` 원시값을 수동 기록(`kind_service`) |
+| `capture.py` / `jobs.py` | `--cap-label`(여러 코드 루트를 한 출력 루트에 포착) / mode `ad_full` 허용 |
+
+- K8-2 관문 배치(출력 루트 하나: replay 경로가 모든 팔에서 같도록)
+  - `out/<T>/cap_k81base`, `cap_k82` : K8-1 런타임(기준)·K8-2 후보 포착
+  - `out/<T>/jobs/k81_<A>_<mode>`, `k82_<A>_<mode>` : `s3run.py --anchors k81|k82 job`
+  - `out/2700/full_k81`, `full_ctrl`, `full_k82` : 배포 결정. ctrl = 기준 + 고친 네 파일 끝에 주석 한 줄(줄 번호 불변, 원천 해시만 바뀜)로, 원천 해시에서 나오는 실행 출처 경로를 판정 전에 실측합니다
+  - `k81_table_s3.json`, `k82_table_s3.json` : `table_s3.py`(2700 REF ad, 2700 M2ALL ad, 4950 REF ad, 2700 full)
+- 판정: `python -B k82_gate.py --out <출력 루트> --k7 <스크래치 k8> --unit-log <pytest 로그> --json <판정.json>`

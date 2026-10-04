@@ -2,7 +2,10 @@
 
     python -B worker.py <job.pickle> <result.pickle>
 
-job = {template, action: 'REFERENCE' | {'meters': {ramp: green}}, mode: 'scalar' | 'ad', patches: [..]}
+job = {template, action: 'REFERENCE' | {'meters': {ramp: green}}, mode: 'scalar' | 'ad' | 'ad_full', patches: [..]}
+mode ad_full (K8-0b): non-surrogate reverse AD (scalar witness + tangent + full state_error, sdmpc_tangent_worker
+  default path); the two diagnostic-only options central_multiplier / prediction_hotpath are switched off in this
+  process only (they require the surrogate worker; model arithmetic unchanged; amend1/s1 S1_OWNER §5 recipe).
 patches (scratch, compiled from the method's own source text in the code root with one-line edits, run through the same
 tangent AST transform when the module was transformed; nothing on disk is edited):
   s1  PhysicalRampBoundary.current_admission_space / finish_interval: admission space limited to the pre-head
@@ -10,6 +13,9 @@ tangent AST transform when the module was transformed; nothing on disk is edited
   s3  zero-mass transfer keeps an active derivative: `if served/admitted/amount:` -> has_transfer(x), and
       ModelAreaLedger.transfer no early return for a zero-primal Dual
 Summary: block-end stocks (ramps, ramp buffers, ramp-feeding movement queues, ledger), Omega costs, objective.
+K8-0b passive records: result['kind_service'] = per call of area_leader_objective.shared_urban_quantities, the
+  owner signals' accepted_event_count and net_inflow_veh primal (reads only; the call itself is unchanged);
+  result['trace'] = the worker's trace metadata (event counts, discrete/tie axes).
 Code root: env K8G_ROOT (set by jobs.py through k8common.base_env), else this worktree (k8_gates/../../..).
 """
 import copy
@@ -173,6 +179,24 @@ def summarize_state(s, cfg):
                 arrival_buffer_total=sum(_f(n) for d in s.urban_arrival_buffer.values() for n in d.values()))
 
 
+KIND_SERVICE = []
+
+
+def patch_alo(module):
+    original = module.shared_urban_quantities
+
+    def shared_urban_quantities(*args, **kwargs):
+        out = original(*args, **kwargs)
+        try:
+            KIND_SERVICE.append({sig: {'accepted_event_count': row.get('accepted_event_count'),
+                                       'net_inflow_veh': _f(row.get('net_inflow_veh', 0.0))}
+                                 for sig, row in (out.get('owners') or {}).items()})
+        except Exception as exc:  # passive record only
+            KIND_SERVICE.append({'record_error': repr(exc)[:200]})
+        return out
+    module.shared_urban_quantities = shared_urban_quantities
+
+
 def patch_sdmpc(module):
     original = module.omega_costs
 
@@ -197,6 +221,7 @@ def main():
             'evaluation.controllers.physical_ramp_boundary': lambda m: patch_prb(m, patches),
             'evaluation.controllers.control_area_objective': lambda m: patch_cao(m, patches),
             'evaluation.controllers.area_freeway_accounting': lambda m: patch_afa(m, patches),
+            'evaluation.controllers.area_leader_objective': patch_alo,
             'evaluation.controllers.sdmpc': patch_sdmpc}))
         from evaluation.controllers import sdmpc_tangent_worker as standard
         request = pickle.loads(Path(job['template']).read_bytes())
@@ -213,16 +238,23 @@ def main():
                 action.diagnostics['rw_meter_green_' + ramp] = float(g)
                 action.ramp_metering[ramp] = meter_rate(float(g), rows[ramp])
         request['action'] = copy.deepcopy(action)
-        request['surrogate_evaluation'] = job.get('mode', 'scalar')
-        from evaluation.controllers.sdmpc_tangent_surrogate import token
-        request['surrogate_context_sha256'] = token((request['owned'], request['runtime'], request['bootstrap'],
-                                                     request['horizon']))
+        if job.get('mode') == 'ad_full':
+            opts = follower.cfg.network.sdmpc_options
+            opts['central_multiplier'] = False
+            opts['prediction_hotpath'] = False
+        else:
+            request['surrogate_evaluation'] = job.get('mode', 'scalar')
+            from evaluation.controllers.sdmpc_tangent_surrogate import token
+            request['surrogate_context_sha256'] = token((request['owned'], request['runtime'], request['bootstrap'],
+                                                         request['horizon']))
         out = standard.run(request, finder, result)
         result['out_keys'] = sorted(out.keys())
         result['costs'] = [_f(x) for x in out.get('costs', [])]
         sp = out.get('surrogate_prediction') or {}
         result['objective_veh_h'] = sp.get('objective_veh_h')
-        for k in ('cost_jacobian', 'resource_jacobian', 'ad_axes', 'fallback_reasons', 'resources'):
+        for k in ('cost_jacobian', 'resource_jacobian', 'ad_axes', 'fallback_reasons', 'resources',
+                  'max_primal_state_error', 'complete_primal_state_match', 'scalar_rollouts', 'tangent_rollouts',
+                  'trace', 'transformed_source_sha256', 'scalar_sec', 'tangent_sec', 'reverse_sec'):
             if k in out:
                 result[k] = out[k]
         result['surrogate_keys'] = sorted(sp.keys()) if isinstance(sp, dict) else None
@@ -234,6 +266,7 @@ def main():
     except Exception:
         result['error'] = traceback.format_exc()
     result['patched'] = PATCHED
+    result['kind_service'] = KIND_SERVICE
     result['wall_sec'] = time.perf_counter() - started
     Path(result_path).write_bytes(pickle.dumps(result, protocol=5))
     return 1 if 'error' in result else 0
