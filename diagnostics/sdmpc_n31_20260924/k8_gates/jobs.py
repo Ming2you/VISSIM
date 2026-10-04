@@ -4,7 +4,7 @@
         -> <out>/out/<T>/jobs/<label>/{job.pickle, result.pickle, log.txt, hook/, brief.json}
 
 capvariant: capture folder cap_<capvariant> (capture.py);  mode: scalar | ad | ad_full (non-surrogate, worker.py)
-action: REF | M2ALL | M2E | M2W | M5ALL ;  patches: comma list of worker.py patches (s1, s3, s3f) or '-'"""
+action: REF | M2ALL | M2E | M2W | M5ALL ;  patches: comma list of worker.py patches (s1, s3, s3f, own_off) or '-'"""
 import json
 import pickle
 import sys

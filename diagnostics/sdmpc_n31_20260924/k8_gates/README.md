@@ -93,3 +93,20 @@ K8-2 관문 전에 넣는 도구 커밋입니다. 런타임 코드는 0줄입니
   - `out/2700/full_k81`, `full_ctrl`, `full_k82` : 배포 결정. ctrl = 기준 + 고친 네 파일 끝에 주석 한 줄(줄 번호 불변, 원천 해시만 바뀜)로, 원천 해시에서 나오는 실행 출처 경로를 판정 전에 실측합니다
   - `k81_table_s3.json`, `k82_table_s3.json` : `table_s3.py`(2700 REF ad, 2700 M2ALL ad, 4950 REF ad, 2700 full)
 - 판정: `python -B k82_gate.py --out <출력 루트> --k7 <스크래치 k8> --unit-log <pytest 로그> --json <판정.json>`
+
+## K8-0c (S1-OWN·N_P 관문 도구, 보충 1 §D·보충 2 §2, K8-3 관문 전)
+
+K8-3 관문 전에 넣는 도구 커밋입니다. 런타임 코드는 0줄입니다.
+
+| 도구 | 내용 |
+|---|---|
+| `worker.py` | 패치 `own_off`: `evaluation.controllers.meter_spill`의 S1-OWN 지점 진입 함수 6개를 그 프로세스에서만 no-op으로 바꿉니다(관문 (h)·(h′) I-5 확인, 런타임 키 아님). 수동 기록 추가: 블록 끝 원장 넘침 재고 `summary.blocks[k].meter_spill`(원시값, 항목 없으면 `{}`), `sdmpc.omega_costs` 호출마다 분할의 `meter_spill_veh_h`·소유자 비용·합·원장 TTT(`summary.omega_calls`), 요청의 결정 축(`result['axes']`)·소유자 순서(`result['costs_order']`) |
+| `jobs.py` | docstring에 `own_off` 패치 |
+| `k83_gate.py` | K8-3 판정기(읽기만). 선언값(보충 1 r2 §2 K8-3 행 (a)–(h′)·(N_P-1…4)·(i)–(iv), 보충 2 §2·§5)은 코드 상수입니다. 계산 줄은 스크래치 `amend1/s1/an_own.py`·`an_ad.py`, `amend1r2/np_check.py`, `review_a1/rv_adrows.py`, `review_a1r2/rc_cols.py`·`rc_ab1.py`에서 옮겼고, 기준을 K7 스크래치 대신 K8-2 산출물(K8-2 (f) `result.pickle` sha256 `f4a5abac…`)로 둡니다. 판정 항목 안의 예외는 그 항목 실패입니다 |
+
+- K8-3 관문 배치(출력 루트 `gates_out/k83` 하나)
+  - `out/<T>/cap_k82`, `cap_k83` : K8-2 런타임(5eef6be)·K8-3 후보 포착
+  - `out/<T>/jobs/k82_{REF,M2ALL}_scalar`, `k83_{REF,M2ALL}_scalar` : REF 900/1800/2700/4950/6300, M2ALL 1800/2700/4950
+  - `out/002700/jobs/k83_REF_ad`(대리 AD), `k83_M2ALL_adfull`, `k83_M2ALL_adfull_ownoff`(비대리 AD, `own_off`)
+  - `out/002700/full_k83` : 배포 결정
+- 판정: `python -B k83_gate.py --out <gates_out/k83> --k82 <gates_out/k82> --unit-log <pytest -v 로그> --json <판정.json>`. 단위 시험 T-OWN-6은 `K8_CAPTURED_TEMPLATE=<gates_out/k83>/out/002700/cap_k83/template.pickle`로 돌립니다.

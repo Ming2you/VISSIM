@@ -8,11 +8,18 @@ mode ad_full (K8-0b): non-surrogate reverse AD (scalar witness + tangent + full 
   process only (they require the surrogate worker; model arithmetic unchanged; amend1/s1 S1_OWNER §5 recipe).
 patches (scratch, compiled from the method's own source text in the code root with one-line edits, run through the same
 tangent AST transform when the module was transformed; nothing on disk is edited):
+  own_off (K8-0c) S1-OWN updates switched off in this process only (gate (h): I-5 check, not a runtime key): the
+      six site entry points of evaluation.controllers.meter_spill become no-ops, so no meter_spill entry is ever
+      created; S1 itself, the ledger and the Omega partition code are those of the code root
   s1  PhysicalRampBoundary.current_admission_space / finish_interval: admission space limited to the pre-head
       compartment  min(total free, head_pos*lanes/spacing - (upstream travelling + head ready))  (head_pos 0: unchanged)
   s3  zero-mass transfer keeps an active derivative: `if served/admitted/amount:` -> has_transfer(x), and
       ModelAreaLedger.transfer no early return for a zero-primal Dual
 Summary: block-end stocks (ramps, ramp buffers, ramp-feeding movement queues, ledger), Omega costs, objective.
+K8-0c records (reads only): summary.blocks[k].meter_spill = the candidate ledger's S1-OWN spill E[ramp][feeder]
+  (primal; {} when the ledger has no entry), summary.omega_calls = per sdmpc.omega_costs call the partition's
+  meter_spill_veh_h (None when absent), owner costs, total and ledger TTT; result['axes'] / result['costs_order'] =
+  the request's decision axes (owner, kind, key, block, scale) and owner order.
 K8-0b passive records: result['kind_service'] = per call of area_leader_objective.shared_urban_quantities, the
   owner signals' accepted_event_count and net_inflow_veh primal (reads only; the call itself is unchanged);
   result['trace'] = the worker's trace metadata (event counts, discrete/tie axes).
@@ -176,7 +183,9 @@ def summarize_state(s, cfg):
                 storage_available={k: _f(v) for k, v in s.urban_link_storage.items()},
                 storage_available_total=sum(_f(v) for v in s.urban_link_storage.values()),
                 origin_queue={k: _f(v) for k, v in s.mainline_origin_queue.items()},
-                arrival_buffer_total=sum(_f(n) for d in s.urban_arrival_buffer.values() for n in d.values()))
+                arrival_buffer_total=sum(_f(n) for d in s.urban_arrival_buffer.values() for n in d.values()),
+                meter_spill={r: {f: _f(v) for f, v in by.items()}
+                             for r, by in ((getattr(L, 'meter_spill', None) or {}).items() if L else [])})
 
 
 KIND_SERVICE = []
@@ -201,11 +210,35 @@ def patch_sdmpc(module):
     original = module.omega_costs
 
     def omega_costs(point, cfg):
+        out = original(point, cfg)
+        try:
+            part = out[1]
+            SUMMARY.setdefault('omega_calls', []).append(dict(
+                meter_spill_veh_h=part.get('meter_spill_veh_h'),
+                costs={k: _f(v) for k, v in part['costs'].items()}, total=_f(part['total_veh_h']),
+                ledger_ttt=_f(point.control_area['ttt_veh_h'])))
+        except Exception as exc:  # passive record only
+            SUMMARY.setdefault('omega_calls', []).append({'record_error': repr(exc)[:200]})
         if 'blocks' not in SUMMARY:
             SUMMARY['blocks'] = [summarize_state(s, cfg) for s in point.states]
             SUMMARY['objective'] = _f(point.objective)
-        return original(point, cfg)
+        return out
     module.omega_costs = omega_costs
+
+
+OWN_SITES = ('movement_virtual', 'movement_commit', 'shared_branch', 'sc2001_branches', 'legsplit_request',
+             'legsplit_accepted')
+
+
+def patch_meter_spill(module, patches):
+    """own_off (K8-0c, gate (h)): the S1-OWN site entry points become no-ops in this process."""
+    if 'own_off' not in patches:
+        return
+    for name in OWN_SITES:
+        if not callable(getattr(module, name, None)):
+            raise RuntimeError('own_off: meter_spill has no site entry point ' + name)
+        setattr(module, name, lambda *args, **kwargs: None)
+    PATCHED.append('meter_spill.' + ','.join(OWN_SITES) + ':noop')
 
 
 def main():
@@ -222,6 +255,7 @@ def main():
             'evaluation.controllers.control_area_objective': lambda m: patch_cao(m, patches),
             'evaluation.controllers.area_freeway_accounting': lambda m: patch_afa(m, patches),
             'evaluation.controllers.area_leader_objective': patch_alo,
+            'evaluation.controllers.meter_spill': lambda m: patch_meter_spill(m, patches),
             'evaluation.controllers.sdmpc': patch_sdmpc}))
         from evaluation.controllers import sdmpc_tangent_worker as standard
         request = pickle.loads(Path(job['template']).read_bytes())
@@ -263,6 +297,9 @@ def main():
                 if k in sp:
                     result['sp_' + k] = sp[k]
         result['summary'] = dict(SUMMARY)
+        result['axes'] = [dict(owner=a['owner'], kind=a['kind'], key=a['key'], block=a.get('block', 0),
+                               scale=a.get('scale')) for a in request['axes']]
+        result['costs_order'] = list(request['costs_order'])
     except Exception:
         result['error'] = traceback.format_exc()
     result['patched'] = PATCHED
