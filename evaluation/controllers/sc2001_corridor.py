@@ -16,6 +16,7 @@ from evaluation.controllers.network_provenance import snapshot_network_sha256
 from evaluation.controllers.projection_support import complete_records
 from evaluation.controllers.physical_movement_routes import invalidate_topology_cache
 from evaluation.controllers.control_area_objective import emit_transfer, physical_membership_from_ledger
+from evaluation.controllers import meter_spill as _spill
 
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / 'vendor/NumSim-mine').is_dir())
 
@@ -308,9 +309,12 @@ def advance(state, control, demand, cfg, urban_step_index):
             branch_limits[key] = (receiving, service)
     # Aggregate78 has two lanes. Preserve each destination's blockage rather
     # than reallocating its prior; proportionally share the common service.
+    pre_factor = dict(accepted)
     shared_service = sat*spec['lanes']*dt_h
     factor = min(1., shared_service/sum(accepted.values())) if sum(accepted.values()) else 1.
     accepted = {key: value*factor for key, value in accepted.items()}
+    # S1-OWN (K8-3): pre-head spill of the ramp branches (meter_spill), before any stock moves.
+    _spill.sc2001_branches(state, spec, ready, pre_factor, accepted, sat, dt_h)
     if capture:
         for key, amount in accepted.items():
             receiving, service = branch_limits[key]

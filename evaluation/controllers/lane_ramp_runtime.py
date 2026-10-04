@@ -71,6 +71,22 @@ class LaneRampRuntime:
             raise ArithmeticError('Urban receiver removed uncommitted ramp stock')
         return max(0., buffer.current_admission_space()-max(0., pending))
 
+    def total_receiving_space(self, state, name):
+        """Pre-S1 (K7) whole-connector room for urban arrivals.
+
+        Never an admission limit; only the S1-OWN counterfactual (meter_spill) reads it.
+        """
+        buffer = self.buffers[name]
+        pending = state.ramp_queue[name]-buffer.snapshot()['connector_veh']
+        return max(0., buffer.total_admission_space()-max(0., pending))
+
+    def total_receiving_space_primal(self, state, name):
+        """The same room from primal values only (no AD operation or branch record)."""
+        buffer = self.buffers[name]
+        queue = state.ramp_queue[name]
+        pending = float(getattr(queue, '_validation_primal', queue))-buffer.connector_primal_veh()
+        return max(0., buffer.total_admission_space_primal()-max(0., pending))
+
     def advance(self, state, control, demand, freeway, *, service):
         """Advance old ramp cohorts, debit merges, then expose finite entry room."""
         from evaluation.controllers import area_freeway_accounting as accounting

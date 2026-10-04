@@ -14,6 +14,7 @@ from evaluation.controllers.control_area_objective import (
     emit_transfer, emit_input, integrate_residence, get_ledger,
 )
 from evaluation.controllers.lane_ramp_runtime import receiving_space as _ramp_receiving_space
+from evaluation.controllers import meter_spill as _spill
 from evaluation.controllers.lane_urban_runtime import observe_ready as _lane_ready, is_local_movement
 
 def _resource_ledger(state):
@@ -480,6 +481,8 @@ def urban_substep_accounted(
                    else float(net.ramp_queue_max_veh))
         ramp_space = _ramp_receiving_space(state, cfg, ramp)
         scale = 1.0 if requested_total <= ramp_space else ramp_space / max(requested_total, 1.0e-9)
+        # S1-OWN (K8-3): pre-head spill of this ramp's feeders, decided on primal values (meter_spill).
+        spill_virtual = _spill.movement_virtual(state, cfg, ramp, requests, ramp_space)
         released_total = 0.0
         accepted_sources = {} if resource_ledger is not None else None
         for movement, requested in requests.items():
@@ -494,6 +497,7 @@ def urban_substep_accounted(
                     before, {'movement:' + movement: actual})
             state.urban_movement_queue[movement] = max(0.0, before - actual)
             released_total += actual
+            _spill.movement_commit(state, ramp, movement, spill_virtual, actual)
             emit_transfer(state, cfg, 'movement:' + movement, 'ramp:' + ramp, actual, target_inside=True, route_key='movement:' + movement)
             total_departures_veh += actual
             outbound_service_veh += actual
@@ -789,6 +793,7 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
     exit_cap_h = float(getattr(net_a, "boundary_out_capacity_veh_h", 0.0) or 0.0)
     finite_exit = exit_cap_h > 0.0
     conn_caps = dict(getattr(net_a, "ramp_capacity_veh_h", {}) or {})
+    spill_memo = {}   # S1-OWN (K8-3): stage-1 K7 room per (W_out, ramp) for meter_spill.legsplit_accepted
     for link, spec in table.items():
         arrived = _adapter._legsplit_arrived_at_link(state, net_a, str(link), idx)
         if arrived <= 0.0:
@@ -812,6 +817,8 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
             entry_cap = min(space, conn) if conn > 0.0 else space
             request = reach * sh if known_requests is None else known_requests.get(str(ramp), 0.)
             allowed = min(request, entry_cap)
+            _spill.legsplit_request(state, spill_memo, str(link), str(ramp), request, reach, arrived, conn,
+                                    allowed, space)
             if leg_limits is not None:
                 leg_limits[(str(link), str(ramp))] = (request, entry_cap)
             if allowed > 0.0:
@@ -861,6 +868,7 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         adjust[source_link] -= requested - accepted
         reconciled_transfers.append((source_link, ramp, accepted))
     accepted_transfers = reconciled_transfers
+    _spill.legsplit_accepted(state, spill_memo, accepted_transfers)
     if resource_ledger is not None:
         for ramp, (room, accepted_sources) in receiving_evidence.items():
             resource_ledger.record_resource_allocation(

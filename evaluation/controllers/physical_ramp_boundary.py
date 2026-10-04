@@ -322,7 +322,7 @@ class PhysicalRampBoundary:
         self._require_phase("admit")
         requested = _number(request_arrivals_veh, "request_arrivals_veh")
         available = _sum((self.backlog_veh, requested), "approach available")
-        free = max(0.0, self.capacity_veh-self._stocks()["connector_veh"])
+        free = self._admission_space_veh()
         admitted = min(available, free)
         backlog = available-admitted
         total_requested = _sum((self.cumulative_requested_veh, requested), "cumulative requests")
@@ -355,7 +355,42 @@ class PhysicalRampBoundary:
         self._require_phase('idle')
         if self.backlog_veh:
             raise ValueError('Coupled admission cannot own an upstream backlog')
+        return self._admission_space_veh()
+
+    def _admission_space_veh(self) -> float:
+        """S1 (K8-3): entry room is the free pre-head compartment, never post-head storage.
+
+        Arrivals enter upstream of the head, [0, h); [h, L) fills only through head
+        service. Room = min(total free, h*lanes/spacing - (upstream travelling +
+        head ready)). An observed initial pre-head excess is kept, never deleted; the
+        room stays 0 until it clears. h = 0 keeps the point-queue convention (whole
+        connector). Rejected traffic stays with its upstream owner (lane_ramp_runtime).
+        """
+        stocks = self._stocks()
+        total_free = max(0.0, self.capacity_veh - stocks['connector_veh'])
+        if self.head_position_m == 0:
+            return total_free
+        prehead_capacity = self.head_position_m * self.lanes / self.spacing_m
+        prehead_stock = stocks['upstream_travelling_veh'] + stocks['head_ready_veh']
+        return min(total_free, max(0.0, prehead_capacity - prehead_stock))
+
+    def total_admission_space(self):
+        """Pre-S1 whole-connector room max(0, capacity - connector) (the K7 rule).
+
+        Never an admission limit: only the S1-OWN counterfactual (meter_spill) reads it.
+        """
         return max(0., self.capacity_veh-self._stocks()['connector_veh'])
+
+    def connector_primal_veh(self) -> float:
+        """Connector stock from primal values only: no AD operation or branch record."""
+        def primal(value):
+            return float(getattr(value, '_validation_primal', value))
+        return fsum((fsum(primal(n) for _, n in self._upstream), primal(self._head_ready),
+                     fsum(primal(n) for _, n in self._downstream), primal(self._merge_ready)))
+
+    def total_admission_space_primal(self) -> float:
+        """total_admission_space from primal values only (S1-OWN creation gates)."""
+        return max(0., self.capacity_veh-self.connector_primal_veh())
 
     def admit_current(self, vehicles: float) -> None:
         """Commit an already accepted urban transfer without advancing time.
@@ -626,6 +661,20 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
     def current_admission_space(self):
         # A zero-share lane cannot lend storage to the declared arrival mixture.
         return min((buffer.current_admission_space()/share
+                    for buffer, share in zip(self._lane_buffers, self.lane_arrival_shares)
+                    if share > 0), default=0.)
+
+    def total_admission_space(self):
+        # Pre-S1 lane rule (K7), min over lanes of whole-lane room / share: S1-OWN only.
+        rooms = [buffer.total_admission_space()/share
+                 for buffer, share in zip(self._lane_buffers, self.lane_arrival_shares) if share > 0]
+        return rooms[0] if len(rooms) == 1 else (min(*rooms) if rooms else 0.)
+
+    def connector_primal_veh(self):
+        return fsum(buffer.connector_primal_veh() for buffer in self._lane_buffers)
+
+    def total_admission_space_primal(self):
+        return min((buffer.total_admission_space_primal()/share
                     for buffer, share in zip(self._lane_buffers, self.lane_arrival_shares)
                     if share > 0), default=0.)
 

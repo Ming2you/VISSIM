@@ -259,18 +259,28 @@ def install_cost_ownership(cfg, detector_mapping):
 
 
 def omega_costs(point, cfg):
-    """같은 적분 기록에서 Ω TTT를 한 번씩 합산한다. 외부 queue는 더하지 않는다."""
+    """같은 적분 기록에서 Ω TTT를 한 번씩 합산한다. 외부 queue는 더하지 않는다.
+
+    S1-OWN (K8-3, D-K8-2): a row's pre-head meter spill (meter_spill_veh) moves that
+    part of its feeder's residence to the ramp's meter owner. The total and Omega are
+    unchanged; meter_spill_veh_h (moved veh*h per ramp and feeder) only when nonempty.
+    """
+    from evaluation.controllers import meter_spill
     owners = tuple(cfg.network.signals) + tuple(cfg.network.freeway_links)
     pieces = {owner: [] for owner in (*owners, PASSIVE)}
     passive = {}
+    attributed = {}
     table = cfg.network.sdmpc_cost_ownership
     for row in point.control_area_response['residence']:
         dt = float(row['dt_h'])
+        moved = meter_spill.spill_inside(row) if 'meter_spill_veh' in row else {}
         for stock, count in row['inside_veh'].items():
             value = dt * count
             if not math.isfinite(value) or value < -1e-10:
                 raise ValueError('Invalid Omega residence')
             owner = table.get(stock, PASSIVE)
+            if stock in moved:
+                value = meter_spill.move(pieces, table, PASSIVE, moved[stock], dt, value, stock, attributed)
             pieces[owner].append(value)
             if owner == PASSIVE and value:
                 passive[stock] = passive.get(stock, 0.) + value
@@ -279,9 +289,12 @@ def omega_costs(point, cfg):
     if not math.isclose(total, point.control_area['ttt_veh_h'], rel_tol=1e-10, abs_tol=1e-8):
         raise ValueError('SDMPC cost partition differs from original Omega ledger')
     local = {owner: {'cost': costs[owner], 'scope': 'disjoint_omega_residence'} for owner in owners}
-    return local, {'schema': 'sdmpc-omega-partition/v1', 'costs': costs,
+    partition = {'schema': 'sdmpc-omega-partition/v1', 'costs': costs,
         'total_veh_h': total, 'residual_veh_h': total-point.control_area['ttt_veh_h'],
         'passive_stocks_veh_h': passive}
+    if attributed:
+        partition['meter_spill_veh_h'] = attributed
+    return local, partition
 
 
 class Coordinates:

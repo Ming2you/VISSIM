@@ -19,6 +19,7 @@ from evaluation.controllers.network_provenance import snapshot_network_sha256
 from evaluation.controllers.projection_support import complete_records
 from evaluation.controllers.physical_movement_routes import invalidate_topology_cache
 from evaluation.controllers.control_area_objective import emit_input, emit_transfer
+from evaluation.controllers import meter_spill as _spill
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -296,6 +297,9 @@ def advance(state, control, demand, cfg, urban_step_index):
             available = uqm._effective_available_space(state, cfg, target)
         service = cfg.network.movement_capacity_veh_h * branch['lanes'] * dt_h
         accepted = min(ready, available, service)
+        if branch['target_kind'] == 'ramp':
+            # S1-OWN (K8-3): pre-head spill of this branch (meter_spill), before any stock moves.
+            _spill.shared_branch(state, target, 'storage:' + source, ready, service, accepted)
         if capture:
             sources = {'shared:' + source + ':branch:' + key: accepted}
             ledger.record_resource_allocation('shared_approach_ready', source + ':' + key, ready, sources)
