@@ -241,7 +241,16 @@ RunContinuousStaticMode
         decision = re.search(r"(?m)^Sub RunControllerDecision\(.*?^End Sub", source, re.S | re.M).group(0)
         self.assertIn("simSec < controlStartSec", decision)
         self.assertIn("effController = warmupControllerName", decision)
-        self.assertIn('Q(RW_ALLOWED_VSL_SPEEDS)', decision)
+        # K8-1 (S6): the decision command is built by BuildDecisionCommand. RunControllerDecision
+        # hands it RW_ALLOWED_VSL_SPEEDS in the allowedVsl slot, which it quotes after the flag.
+        build = re.search(r"(?m)^Function BuildDecisionCommand\((.*?)\)\n.*?^End Function", source, re.S | re.M)
+        call = re.search(r"cmd = BuildDecisionCommand\((.*?)\)\n", decision, re.S)
+        params = re.findall(r"[A-Za-z]\w*", build.group(1))
+        args = re.findall(r"[A-Za-z]\w*", call.group(1))
+        self.assertEqual(len(args), len(params))
+        self.assertEqual(args[params.index("allowedVsl")], "RW_ALLOWED_VSL_SPEEDS")
+        self.assertIn('" --diagnostic-allowed-vsl-speeds " & Q(allowedVsl)', build.group(0))
+        self.assertIn("exitCode = RunDecisionCapture(cmd, ", decision)
         static = extracted[-1]
         self.assertNotIn("ApplyRuntimeSignals", static)
         # Urban COM handover is confined to signal rows, which this alias forbids.

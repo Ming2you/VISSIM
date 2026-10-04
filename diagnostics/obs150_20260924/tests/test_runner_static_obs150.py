@@ -112,9 +112,14 @@ class WiringTests(unittest.TestCase):
 
     def test_meters_go_under_com_after_the_first_bundle(self):
         decision = procedure(self.text, 'RunControllerDecision')
+        # K8-1 (S6): the decision call is BuildDecisionCommand + RunDecisionCapture (file capture),
+        # no longer RunCapture3; the meters still go under COM before it and before its action rows.
         ordered(self, decision, ['WriteStateJson simSec, stateJsonPath, True',
                                  'If obs150Mode And CLng(simSec) = 1 Then InitializeComRampMeterControl',
-                                 'exitCode = RunCapture3(cmd, outText, errText)', 'ApplyActionCsv(simSec'])
+                                 'cmd = BuildDecisionCommand(',
+                                 'exitCode = RunDecisionCapture(cmd, captureOutPath, captureErrPath, outText, errText)',
+                                 'ApplyActionCsv(simSec'])
+        self.assertNotIn('RunCapture3(', '\n'.join(code_lines(decision)))
 
     def test_state_writer(self):
         writer = procedure(self.text, 'WriteStateJson')

@@ -122,6 +122,14 @@ def build_harness(tmp, controller, config_name, *, failure=None):
             # Observe, without replacing, the actual shell.Exec invocation.
             body = body.replace('    Set exec = shell.Exec(cmd)',
                                 '    WScript.Echo "CAPTURE_CMD=" & cmd\n    Set exec = shell.Exec(cmd)')
+        elif match[1] == "RunDecisionCapture":
+            # K8-1 (S6): the decision call runs here (file capture), not through RunCapture3.
+            # Observe, without replacing, its actual shell.Exec invocation.
+            observed = body.replace('    Set exec = shell.Exec(wrapped)',
+                                    '    WScript.Echo "DECISION_EXEC=" & wrapped\n    Set exec = shell.Exec(wrapped)')
+            if observed == body:
+                raise AssertionError("RunDecisionCapture has no 'Set exec = shell.Exec(wrapped)' line to observe")
+            body = observed
         functions.append(body)
     declarations = re.findall(r"(?m)^(?:Dim|Const) [^\n]+", source)
     dictionaries = re.findall(r'(?m)^Set (\w+) = CreateObject\("Scripting.Dictionary"\)', source)
@@ -197,10 +205,15 @@ class ProfileRunnerInvocationTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertIn(f"COUNTS=2,0,{signals}", result.stdout)
                 self.assertNotIn("ERROR=", result.stdout)
-                commands = [x for x in result.stdout.splitlines() if x.startswith("CAPTURE_CMD=")]
+                commands = [x for x in result.stdout.splitlines() if x.startswith("DECISION_EXEC=")]
                 self.assertEqual(len(commands), 2)
                 self.assertNotIn("--diagnostic-allowed-vsl-speeds", commands[0])
                 self.assertIn('--diagnostic-allowed-vsl-speeds "50,60,70,80,90,100,115,120"', commands[1])
+                # K8-1 (S6): each decision is cmd /d /s /c "<command> 1> <out> 2> <err>", and no
+                # decision command passes through RunCapture3 (its other callers are unchanged).
+                self.assertTrue(all(x.startswith('DECISION_EXEC=cmd /d /s /c "') for x in commands), commands)
+                self.assertEqual([x for x in result.stdout.splitlines()
+                                  if x.startswith("CAPTURE_CMD=") and "--state-json" in x], [])
                 action = json.loads((tmp / "action_000900.json").read_text(encoding="utf-8"))
                 self.assertEqual(action["metadata"]["controller_status"], "ok")
                 with (tmp / "signalTraceFile.csv").open(newline="") as stream:
