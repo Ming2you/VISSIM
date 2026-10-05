@@ -431,14 +431,21 @@ def test_g3_g6_on_synthetic_outputs(out_root):
                                         first_block_t={'10491': T + 200.0}))
     I = si.Inputs(tree)
     g3 = sa_gates.g3(I, None)
-    assert g3['items']['a_bias']['pass_'] is True and g3['items']['a_mae']['pass_'] is True
-    assert g3['items']['b_G6_7']['pass_'] is True and g3['items']['c_ports']['pass_'] is True
-    assert g3['items']['N5_exclusions']['value'] == [(53, 4950)]
+    # K8 amendment 13: the FH 45 values are reports (the former judged form: 45 minus the H-5 list), never judged
+    fh = g3['items']['FH_report']
+    assert fh['judged'] is False and fh['pass_'] is None and fh['value']['states_used'] == 44
+    assert fh['value']['H5_excluded'] == [(53, 4950)] and fh['value']['N5_exclusion_ok'] is True
+    assert abs(fh['value']['a']['bias']) <= sc.G3_BIAS_MAX and fh['value']['a']['mae'] <= 10.0
+    assert fh['value']['c']['10491']['iid']['lo'] <= 0.0 and fh['value']['c']['10491']['cluster']['n_clusters'] == 5
+    # without TL3m inputs (no R-obs validity record, no TL3m job) every judged item is INCOMPLETE
+    assert all(g3['items'][k]['pass_'] is None and g3['items'][k]['judged'] for k in ('a_bias', 'a_mae', 'b_G6_7',
+                                                                                     'c_ports'))
     assert g3['items']['d_W_out_DP']['pass_'] is None and g3['verdict'] == 'INCOMPLETE'
+    assert any('validity' in m for m in g3['missing'])
     g6 = sa_gates.g6(I, None)
-    assert g6['items']['e_hit_rate']['value']['hits'] == 3 and g6['items']['e_hit_rate']['pass_'] is None
-    assert g6['items']['c_timing']['pass_'] is None
-    assert g6['items']['a_10481']['pass_'] is None            # 3 event states, not the declared 14 (amendment 5 §1)
+    rep = g6['items']['FH_report']
+    assert rep['judged'] is False and rep['value']['e_hit_rate']['hits'] == 3 and rep['value']['e_hit_rate']['n_states'] == 3
+    assert all(g6['items'][k]['pass_'] is None for k in ('a_10481', 'b_nonevent', 'c_timing', 'e_hit_rate'))
 
 
 def test_h5_exclusion_and_range(out_root):
@@ -467,7 +474,9 @@ def test_operationalisations_declared():
                 'H-2b lane stock', 'G-EB-3(d)', 'G-EB-5 10491 flow', 'G-EB-5 EB discharge', 'unit log',
                 'G-EB-2 complete', 'G-EB-5 series', 'G-EB-2 SAG', 'capture records', 'G-EB-13 instrument',
                 'job inputs', 'G-EB-13 run complete', 'G-EB-14 capture rows', 'failure classification',
-                'G-EB-1 runs', 'G-EB-13 positive control', 'G-EB-11(d) instrument', 'G-EB-11(e) S3 rule'):
+                'G-EB-1 runs', 'G-EB-13 positive control', 'G-EB-11(d) instrument', 'G-EB-11(e) S3 rule',
+                'TL3m sample', 'R-obs validity', 'G-EB-3 TL3m', 'G-EB-6 TL3m', 'G-EB-14 R-obs seeds', 'G-EB-2 TL3m',
+                'G-EB-4/5/7/8 TL3m'):
         assert key in sc.OPERATIONALISATIONS
     assert sc.G13_JUDGED_HOOK_JOB == sc.job_label('TL3', sc.G13_HOOK_T, 'SAF', 'OBS', 3, variant='HOOK')
     assert sc.G13_JUDGED_HOOK_JOB in sc.OPERATIONALISATIONS['G-EB-13 complete']
@@ -505,55 +514,20 @@ def _fh_jobs_for_g6(tree, *, saf_blocked=0.0, base_blocked=0.0, sag_blocked=0.0,
                         _write_job(tree, sc.job_label('FH', T, arm, 'OBS', 6, seed=s), _summary(arm, T, [blk]))
 
 
-def test_g6a_is_judged_on_saf_only(out_root):
-    """B-1 / amendment 5 section 1: SAG or BASE blocking 10481 never fails (a); SAF needs all 45 H3 + 14 H6."""
+def test_g6_fh_values_are_a_report_per_arm(out_root):
+    """K8 amendment 13: the FH 45 H3 + 14 event H6 values of G-EB-6 are reports (the former judged form, every arm
+    listed: SAF and BASE H3 + H6, SAG H6 only); FH blocking never fails or holds the gate.  The judged TL3m rules are
+    in test_sa_tl3m.py."""
     tree = 'k86'
     sc.write_json(sc.sa_out() / 'vissim_ref.json', _fake_ref(EVENTS14))
-    _fh_jobs_for_g6(tree, sag_blocked=5.0, base_blocked=2.0)
+    _fh_jobs_for_g6(tree, sag_blocked=5.0, base_blocked=2.0, saf_blocked=1.0)
     g = sa_gates.g6(si.Inputs(tree), None)
-    a = g['items']['a_10481']
-    assert a['pass_'] is True and a['value']['n_H3'] == 45 and a['value']['n_H6'] == 14
-    rep = g['items']['a_10481_BASE_SAG_report']
-    assert rep['judged'] is False and rep['value']['SAG']['blocked_steps'] == 70.0
-    assert rep['value']['SAG']['n_H3'] == 0 and rep['value']['BASE']['blocked_steps'] == 2.0 * 59
-
-
-def test_g6a_missing_saf_job_is_incomplete_and_saf_blocking_fails(out_root):
-    tree = 'k86'
-    sc.write_json(sc.sa_out() / 'vissim_ref.json', _fake_ref(EVENTS14))
-    s0, T0 = sorted(EVENTS14)[0]
-    _fh_jobs_for_g6(tree, drop=(s0, T0, 'SAF', 6))
-    g = sa_gates.g6(si.Inputs(tree), None)
-    assert g['items']['a_10481']['pass_'] is None and any('H6' in m for m in g['missing'])
-
-
-def test_g6a_base_absence_does_not_block_and_saf_blocking_fails(out_root):
-    tree = 'k86'
-    sc.write_json(sc.sa_out() / 'vissim_ref.json', _fake_ref(EVENTS14))
-    _fh_jobs_for_g6(tree, drop=(41, 900, 'BASE', 3))          # a missing BASE job does not block (a)
-    assert sa_gates.g6(si.Inputs(tree), None)['items']['a_10481']['pass_'] is True
-
-
-def test_g6a_saf_blocking_fails(out_root):
-    tree = 'k86'
-    sc.write_json(sc.sa_out() / 'vissim_ref.json', _fake_ref(EVENTS14))
-    _fh_jobs_for_g6(tree, saf_blocked=1.0)
-    assert sa_gates.g6(si.Inputs(tree), None)['items']['a_10481']['pass_'] is False
-
-
-def test_g3c_needs_base_but_a_b_do_not(out_root):
-    """Amendment 5 section 1: BASE is the comparator of (c) only; its absence leaves (a)(b) judged, (c) INCOMPLETE."""
-    tree = 'k86'
-    sc.write_json(sc.sa_out() / 'vissim_ref.json', _fake_ref())
-    sc.write_json(sc.sa_out() / 'gates' / f'smoke_{tree}.json',
-                  {'checks': {'H-5': {'excluded_G_EB_3': [], 'n5_exclusion_ok': True}}})
-    for s in sc.FH_SEEDS:
-        for T in sc.GRID9:
-            _write_job(tree, sc.job_label('FH', T, 'SAF', 'OBS', 3, seed=s),
-                       _summary('SAF', T, [_block(1, 205.0 + (T % 3), 2.5, ready=49.0 + (T % 7))]))
-    g3 = sa_gates.g3(si.Inputs(tree), None)
-    assert g3['items']['a_bias']['pass_'] is True and g3['items']['b_G6_7']['pass_'] is True
-    assert g3['items']['c_ports']['pass_'] is None and any('BASE' in m for m in g3['missing'])
+    rep = g['items']['FH_report']
+    assert rep['judged'] is False and rep['pass_'] is None
+    a = rep['value']['a_10481']
+    assert a['SAF']['n_H3'] == 45 and a['SAF']['n_H6'] == 14 and a['SAF']['blocked_steps'] == 59.0
+    assert a['SAG']['n_H3'] == 0 and a['SAG']['blocked_steps'] == 70.0 and a['BASE']['blocked_steps'] == 2.0 * 59
+    assert g['items']['a_10481']['pass_'] is None and g['verdict'] == 'INCOMPLETE'     # no TL3m input: never FAIL
 
 
 def _long_summary(T, H, *, rate_vph=600.0, tail_vph=0.0, dep_vph=1200.0, cut=sc.G5_PLANT_END_S):
@@ -1120,12 +1094,14 @@ def test_g2_needs_every_declared_key_on_run(out_root):
     tree = 'k86'
     sc.write_json(sc.sa_out() / 'vissim_ref.json', _fake_ref(EVENTS14))
     labels, caps, n_sag = _declared_outputs(tree)
-    assert n_sag == sc.SAG_JOBS_DECLARED == 23 and len(labels) == 294 + 23 and len(caps) == 254
+    assert n_sag == sc.SAG_JOBS_DECLARED == 23 and len(labels) == 294 + 27 + 23 and len(caps) == 254 + 18 + 122
+    assert 'TL3_2700_s43_SAF_OBS_H3' in labels and 'TL3_2700_SAF_OBS_H6' in labels      # amendment 13 TL3m
+    assert str(sc.cap_dir(tree, 'ROBS61', 150, 'SAF', seed=47)) in caps
     assert sc.G13_JUDGED_HOOK_JOB in labels and 'TL3_2700_SAG_OBS_H3' in labels
     assert not [lb for lb in labels if '_SAG_' in lb and not (lb.startswith('TL3_') and lb.endswith('_OBS_H3')
                                                               or lb.endswith('_OBS_H6'))]
     g = sa_gates.g2(si.Inputs(tree), None)
-    assert g['verdict'] == 'PASS' and g['items']['declared_runs']['value']['jobs'] == 317
+    assert g['verdict'] == 'PASS' and g['items']['declared_runs']['value']['jobs'] == 344
     sag = next(lb for lb in labels if lb.endswith('_SAG_OBS_H6'))
     (sc.job_dir(tree, sag) / 'summary.json').unlink()
     g = sa_gates.g2(si.Inputs(tree), None)
@@ -1310,7 +1286,7 @@ def test_g2_counts_an_sag_job_not_started_for_its_failed_capture(out_root):
     assert g['verdict'] == 'PASS' and _combine_with('G-EB-2', g) == 'PROMOTE_ELIGIBLE'
     assert g['items']['sag_reported']['value'] == 2 and [label, 'not_started'] in [r[:2] for r in
                                                                                     g['items']['sag_reported']['rows']]
-    assert g['items']['declared_runs']['value'] == {'jobs': 317, 'captures': 254, 'sag_jobs': 23, 'absent_jobs': 0,
+    assert g['items']['declared_runs']['value'] == {'jobs': 344, 'captures': 394, 'sag_jobs': 23, 'absent_jobs': 0,
                                                     'absent_captures': 0}
     # a killed capture (parent-only record) and a child failure written to capture.json are attempt records too
     assert g2_with(capture_failed={'ok': False, 'exit': 1, 'error_kind': 'killed', 'child_record': False})[
@@ -1396,10 +1372,20 @@ def test_g2_truncated_capture_record_is_an_unreadable_row(out_root):
         assert sa_gates.g2(si.Inputs(tree), None)['verdict'] == 'PASS'
 
 
+def _valid_robs(seeds=sc.TL3M_SEEDS, status='valid'):
+    """K8 amendment 13: R-obs validity records (sa_tl3m.py validity) for the TL3m seeds."""
+    for s in seeds:
+        sc.write_json(sc.validity_path(s), {'schema': sc.VALIDITY_SCHEMA, 'seed': s, 'status': status,
+                                            'reasons': [] if status == 'valid' else ['synthetic']})
+
+
 def _g14_captures(tree):
     ok = {'schema': sc.CAPTURE_SCHEMA, 'ok': True, 'metadata': {'stopline_approach_install_check': {'ok': True}}}
     folders = [sc.cap_dir(tree, 'ROBS61', T, 'SAF') for T in sc.ROBS61_T]
     folders += [sc.cap_dir(tree, 'FH', T, 'SAF', seed=s) for s in sc.FH_SEEDS for T in sc.GRID9]
+    folders += [sc.cap_dir(tree, 'ROBS61', T, 'SAF', seed=s) for s in sc.TL3M_SEEDS if not sc.is_robs3(s)
+                for T in sc.ROBS61_T]                                  # amendment 13: every R-obs seed
+    _valid_robs()
     for d in folders:
         d.mkdir(parents=True, exist_ok=True)
         (d / 'capture.json').write_text(json.dumps(ok), encoding='utf-8')
@@ -1778,6 +1764,8 @@ def test_g14_rows_without_probes_or_metadata_are_incomplete(out_root):
     args = type('A', (), {'unit_log': None})()
     folders = [sc.cap_dir(tree, 'ROBS61', T, 'SAF') for T in sc.ROBS61_T]
     folders += [sc.cap_dir(tree, 'FH', T, 'SAF', seed=s) for s in sc.FH_SEEDS for T in sc.GRID9]
+    folders += [sc.cap_dir(tree, 'ROBS61', T, 'SAF', seed=s) for s in (43, 47) for T in sc.ROBS61_T]   # amendment 13
+    _valid_robs()
 
     def write(rec, only=None):
         for f in ([only] if only is not None else folders):

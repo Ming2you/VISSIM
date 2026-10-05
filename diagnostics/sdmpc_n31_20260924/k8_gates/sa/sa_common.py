@@ -46,6 +46,10 @@ summary.json  schema k8-sa-job/v1        (sa_worker.py; one fresh process per ro
 vissim_ref.json schema k8-sa-vissim-ref/v1 (sa_vissim_ref.py; read-only FZP/EO/R-obs3 summaries)
   seeds{seed: {states{T: {...}}, spill_windows_W[[a,b]], ...}}, rules{...}
   s31 also: robs3{t}, eb_crossings_by_block{b}, eb_crossing_times[], eo_cells30_FW_W, eo_or_d_w_signal_cum{t}
+tl3m/robs_validity_s<seed>.json schema k8-sa-robs-validity/v1 (sa_tl3m.py validity; K8 amendment 13)
+  seed, name, status valid|invalid|not_finished|error, reasons[], checks{exit, decisions, fzp}, inputs{...}
+  (valid = run exit 0, 61 decisions, FZP trajectory = the same-seed v3c3 NC FZP by the GB-6 method; invalid = the
+  seed leaves the TL3m judging sample, reported; anything else -> INCOMPLETE)
 """
 from __future__ import annotations
 
@@ -98,6 +102,20 @@ ENTRIES = ('OBS', 'A1')
 HARNESSES = ('TL3', 'DP', 'FH', 'ROBS61')
 BLOCK_SEC = 150
 STEP_SEC = 1
+# K8 amendment 13 (595eb450, D-K8-7): FH smoke H-5 failed -> fallback judging sample TL3m = R-obs seeds {31, 43, 47}
+# x GRID9, the deployed template of each seed's own R-obs run (no transplant), OBS entry.  VISSIM classification
+# p4 958275ac: events 12 (s31 5, s43 4, s47 3), non-events 15.  A seed is judged only with a valid R-obs record.
+ROBS_SEED = 31                           # R-obs3: TL3 / ROBS61 folders and labels of s31 carry no seed tag (as before)
+TL3M_SEEDS = (31, 43, 47)
+ROBS_SEEDED_HARNESSES = ('TL3', 'ROBS61')   # captured from the R-obs run of their seed (s43 / s47: tag _s<seed>)
+ROBS_NAME = 'sdmpc31_v3c3_nc_s{seed}'    # R-obs run folder name under the R-obs runs root (amendment 13)
+NC_FZP_REL = 's{seed}_v3c3nc/run/vissim_eval/baseline_s{seed}_v3c3nc_001.fzp'   # under NC3 (GB-6 pair)
+TL3M_EVENTS_DECLARED = {31: 5, 43: 4, 47: 3}
+TL3M_NONEVENTS_DECLARED = {31: 4, 43: 5, 47: 6}
+TL3M_CLASSIFICATION_SHA8 = '958275ac'    # opt1v2/out/p4_states_grid9_v3c3.json (vissim_ref.json inputs.p4)
+ROBS_PRE_T = (1, 150)                    # G-EB-14: SAF failure identical to BASE -> reported (amendment 9 precedent)
+VALIDITY_SCHEMA = 'k8-sa-robs-validity/v1'
+VALIDITY_STATUSES = ('valid', 'invalid', 'not_finished', 'error')
 
 # ------------------------------------------------------------------------------------------------ network names
 GATE = 'in_SC1001_W'
@@ -141,8 +159,12 @@ G5_EO_END_S = 8970.1                     # amendment 5 §2-4: EO last complete 3
 G5_PLANT_END_S = round(G5_EO_END_S - 0.1, 1)   # the same instant on the plant clock (plant t <-> VISSIM t + 0.1)
 G5_ORIGIN_MAX = 100.0
 G5_10638_BLOCK_SHARE = 0.5               # D-EB-7 demotion trigger
-G6_B_MAX_STATES = 6                      # of the 31 VISSIM non-event states (0.2)
-G6_E_MIN_HITS = 7                        # of the 14 VISSIM event states
+G6_B_MAX_STATES = 6                      # of the 31 VISSIM non-event states (0.2)      FH: report since amendment 13
+G6_E_MIN_HITS = 7                        # of the 14 VISSIM event states                FH: report since amendment 13
+G6_B_SHARE = 0.2                         # amendment 13 TL3m (b): <= 0.2 x non-event states (15 -> 3)
+G6_E_SHARE = 0.5                         # amendment 13 TL3m (e): >= half the event states (12 -> 6; 7/14 rate)
+TL3M_G6_B_MAX = 3                        # full TL3m sample (amendment 13 text)
+TL3M_G6_E_MIN = 6
 G6_EXTENT_M = 500.0                      # VISSIM 127 queue range trigger
 G6_SLACK_S = 30.0
 G7_RATIO_SLACK = 0.05
@@ -224,7 +246,8 @@ OPERATIONALISATIONS = {
                   'the job once the inputs exist (review r4 B-r4-1)',
     'SAG scope': 'SAG jobs only at the declared places: FH event 14 states H6 and TL3 9 states H3 OBS; never long, '
                  'c11, tan, DP, A1 or the smoke families (sa_jobs.py refuses; amendment 5 §1, review N-7)',
-    'G-EB-3(c)': 'per port (10491, 10481) separately; increment = |model-obs|(SAF) - |model-obs|(BASE) per FH state; '
+    'G-EB-3(c)': 'per port (10491, 10481) separately; increment = |model-obs|(SAF) - |model-obs|(BASE) per state '
+                 '(amendment 13: the TL3m states are judged, the FH states reported); '
                  'two-sided percentile 95 % CI, lower bound = 2.5th percentile; iid = states resampled with '
                  'replacement, cluster = seeds resampled with replacement (all states of a drawn seed); '
                  'numpy.random.default_rng(0), 2000 draws each; pass <=> all four lower bounds <= 0 (amendment 5 '
@@ -245,9 +268,9 @@ OPERATIONALISATIONS = {
                      '(seconds with a W member departure only, so sparse by construction) strictly increasing, and '
                      'recorder_errors == [] (absent -> not verified); otherwise every item of that job INCOMPLETE',
     'G-EB-6 blocked': 'a step end with port stock >= capacity - 1 (N9); first time = that step end',
-    'G-EB-6(a)': 'judged on SAF: 10481 blocked steps summed over all 45 FH H3 jobs and all 14 VISSIM event state H6 '
-                 'jobs = 0; any of those SAF jobs missing or failed -> INCOMPLETE; BASE and SAG values reported '
-                 '(amendment 5 §1, review B-1)',
+    'G-EB-6(a)': 'judged on SAF: 10481 blocked steps summed over all 27 TL3m H3 jobs and all 12 TL3m VISSIM event '
+                 'state H6 jobs = 0 (amendment 13; the FH form -- 45 H3 + 14 event H6 -- is reported); any of those '
+                 'SAF jobs missing or failed -> INCOMPLETE; BASE and SAG values reported (amendment 5 §1, review B-1)',
     'G-EB-6(c) window': 'event states: the H6 job horizon; VISSIM side = first 5 s frame >= T with '
                         '621.6 - min POS(127, v < 5 km/h) >= 500 m (a1_stopline q127 extent); never -> +inf',
     'G-EB-6(e) window': '[T, T+450] of the H3 job',
@@ -264,7 +287,8 @@ OPERATIONALISATIONS = {
                       '"no axis" and the p3 axes\' green_vector is reported instead (amendment 5 §2-10, review N-5)',
     'H-5 exclusion': 'center-frame (frame_T = T) H-5 job of the judging arm, block 1: '
                      'sum_m receiving-limited seconds / sum_m green seconds over the three W members > 0.10; '
-                     'at most 5 of 45 excluded (amendment 1 N5)',
+                     'at most 5 of 45 excluded (amendment 1 N5); amendment 13: FH only, so since the FH G-EB-3 '
+                     'values are reports the exclusion list and N5 are reported with them and not applied to TL3m',
     'G-EB-13 classes': 'module:function table CLASSIFY in sa_hookcount.py',
     'G-EB-13 complete': 'judged runs = the full 2700 and 4950 SAF hook runs + the fixed TL3 2700 SAF hook job '
                         'TL3_2700_SAF_OBS_H3_HOOK (sa_jobs.py tl3 --hooks --T 2700 --arms SAF) + every other TL3 SAF '
@@ -348,6 +372,58 @@ OPERATIONALISATIONS = {
     'G-EB-3(d)': 'strict reading fixed by amendment 5 §2-2: (d) is judged (the row text "DP·TL3 판정, FH 보고" wins over '
                  'the verdict column "(a)(b)(c)"); DP 17 (A1 H1) and TL3 9 (OBS H3) judged separately, both |b| <= 5; '
                  'FH reported',
+    # ---- K8 amendment 13 (595eb450, D-K8-7; tool commit K8-0h): FH smoke H-5 failed -> fallback judging on TL3m
+    'TL3m sample': 'amendment 13: R-obs seeds {31, 43, 47} x GRID9 = 27 states, each seed\'s own deployed template '
+                   '(sa_capture.py tl3 --robs-seed S from the replay states of R-obs run sdmpc31_v3c3_nc_s<S>, '
+                   'make_replay_state_v2.prepare, no transplant), OBS entry = the seed\'s EO s<S>_v3c2nc (the FH '
+                   'convention); s31 = the existing TL3 captures / jobs (no seed tag), s43 / s47 tagged _s<S>; VISSIM '
+                   'side = vissim_ref.json states of the seed (x2 extract of the same-seed v3c3 NC FZP, T+150.1 and '
+                   'T+0.1 frames; event / non-event from p4 958275ac: events 12 = 5/4/3, non-events 15 = 4/5/6, '
+                   'checked per seed; another classification sha or count -> INCOMPLETE); a job counts only when its '
+                   'summary names the expected seed; a seed is in the judging sample only with its R-obs validity '
+                   'record status valid; status invalid -> the seed leaves the sample (reported); no record or '
+                   'status not_finished / error -> INCOMPLETE',
+    'R-obs validity': 'amendment 13 (sa_tl3m.py validity, binding): (1) run exit 0 = the last "EXIT <name> code=<n>" '
+                      'line of <runs root>/wmi_<name>.log has n = 0 (no EXIT line -> not_finished, nothing in the run '
+                      'folder is read); (2) 61 decisions = state_<T>.json and action_<T>.json for every T of '
+                      'ROBS61_T (no other state file) and the runlog DECISIONS_OK=61, DECISIONS_FAILED=0, '
+                      'STAGE=SIM_DONE; (3) FZP trajectory = the same-seed v3c3 NC FZP by the GB-6 method '
+                      '(c1 header lines differ only in "* File:" / "* Date:", c2 the R-obs-only data lines before '
+                      'SIMSEC 5.1 are the 0.10 s frame and the NC file has none, the rest (from the first 5.10 line) '
+                      'byte-identical, c3 size difference = header difference + those 0.10 s bytes); GB-6 c4 (pairing '
+                      'metrics) follows from c2 and c5 (.err) is not part of the record.  Any of (1)-(3) false on a '
+                      'finished run -> invalid (the seed leaves the judging sample, reported); a missing input file '
+                      '(runlog, NC FZP, wmi log) -> error (INCOMPLETE)',
+    'G-EB-3 TL3m': 'amendment 13: judged on the 27 TL3m states (judging arm SAF, H3 OBS, block 1 = T+150): (a) model = '
+                   'block-1 w_ports.total, observed = FZP T+150.1 counts on 32 + 10778 + 129 + 10777 + 127 + 10491 + '
+                   '10481, |mean bias| <= 50 and MAE <= the FZP persistence MAE (|count(T+0.1) - count(T+150.1)|) of '
+                   'the same states; (b) G6-7: block-1 w_ready vs FZP 127 stopped (< 5 km/h) at T+150.1, |b| <= 20 '
+                   'and r >= 0.5; (c) the G-EB-3(c) rule on the TL3m states with BASE H3 OBS as comparator, cluster = '
+                   'R-obs seed (3 clusters); (d) unchanged (DP 17 and TL3 s31 9); the H-5 pre-exclusion is FH only and '
+                   'not applied; the FH 45 values of (a)(b)(c) are reported (with the H-5 list and N5)',
+    'G-EB-6 TL3m': 'amendment 13, judging arm SAF: (a) 10481 blocked steps = 0 over the 27 TL3m H3 jobs and the 12 event '
+                   'H6 jobs; (b) non-event states with a 10491 block in [T, T+450] (H3 job) <= floor(0.2 x n non-event) '
+                   '(15 -> 3); (c) every event state whose H6 job blocks 10491: plant first block >= VISSIM 127 extent '
+                   '>= 500 m first time - 30 s (never -> +inf); (e) event states with a 10491 block in [T, T+450] (H3 '
+                   'job) >= ceil(0.5 x n event) (12 -> 6); harness reading: when a seed leaves the sample (invalid R-obs '
+                   'run) the (b)/(e) bounds keep these declared ratios on the remaining states; the FH 45 / 14 values '
+                   'are reported',
+    'G-EB-14 R-obs seeds': 'amendment 13: (i) is judged per R-obs seed of the judging sample (31, 43, 47 with a valid '
+                           'record) on its capturable ROBS61 states + FH 45; an SAF capture at T = 1 or 150 that failed '
+                           'identically to the BASE capture of the same seed and T (both child-written failure records; '
+                           'the adapter traceback action_<T>.error.txt, else the record error: same exception line and '
+                           'same runtime frame path (file from its runtime folder, line, function), at least one runtime '
+                           'frame) is reported and leaves the sample (amendment 9 precedent); any other failure keeps the '
+                           'G-EB-14 capture-row rule; (ii)(iii) rows from every ok ROBS61 capture of a judged seed + FH',
+    'G-EB-2 TL3m': 'amendment 13: the declared key-on list also holds the tl3m family SAF jobs (H3 OBS x GRID9, event '
+                   'H6 OBS) of every TL3m seed whose validity record is not invalid, their template folders and the '
+                   'ROBS61 61 SAF captures of those seeds; harness reading (G-EB-14 rule applied to the same capture '
+                   'folders): an ROBS61 SAF capture at T = 1 / 150 that failed identically to BASE is listed as '
+                   'reported (robs_identical_to_base), not as unreadable',
+    'G-EB-4/5/7/8 TL3m': 'amendment 13: judged on TL3 s31 as before; G-EB-4 reports s43 / s47 from the TL3m H3 OBS jobs '
+                         '(FW_W(T+450) vs the seed\'s FZP chain count); G-EB-5 / 7 / 8 s43 / s47 report rows need '
+                         'long / C00 / C11 / TAN jobs and per-seed EO references that the TL3m job list does not hold: '
+                         'reported as not computed',
 }
 
 # GB-7' A_K8 (amendment 1 r2 §E rule 1): keys the SA diff writes.  k8_gates has no gb7_allowed.py yet (P10), so the
@@ -366,9 +442,19 @@ def sa_out() -> Path:
     return c.OUT / 'sa'
 
 
+def seed_tagged(harness, seed) -> bool:
+    """Whether a folder / label carries _s<seed>: FH always (island seed); TL3 / ROBS61 (amendment 13 TL3m) only for an
+    R-obs seed other than R-obs3 s31, so every s31 folder and label is the one written before amendment 13."""
+    if seed is None:
+        return False
+    if harness == 'FH':
+        return True
+    return harness in ROBS_SEEDED_HARNESSES and int(seed) != ROBS_SEED
+
+
 def cap_dir(tree, harness, T, arm, seed=None, frame_T=None) -> Path:
     tag = f'{int(T):06d}'
-    if seed is not None and harness == 'FH':
+    if seed_tagged(harness, seed):
         tag += f'_s{int(seed)}'
     if frame_T is not None and int(frame_T) != int(T):
         tag += f'_f{int(frame_T):06d}'
@@ -377,7 +463,7 @@ def cap_dir(tree, harness, T, arm, seed=None, frame_T=None) -> Path:
 
 def job_label(harness, T, arm, entry, H, *, seed=None, frame_T=None, variant='REF', mode='scalar', rep=None):
     parts = [harness, f'{int(T)}']
-    if seed is not None and harness == 'FH':
+    if seed_tagged(harness, seed):
         parts.append(f's{int(seed)}')
     if frame_T is not None and int(frame_T) != int(T):
         parts.append(f'f{int(frame_T)}')
@@ -397,6 +483,136 @@ def job_dir(tree, label) -> Path:
 
 def full_dir(tree, T, arm, tag='') -> Path:
     return sa_out() / 'full' / tree / (f'{int(T):06d}_{arm}' + (f'_{tag}' if tag else ''))
+
+
+# ------------------------------------------------------------------------------------------------ amendment 13 (TL3m)
+def is_robs3(seed) -> bool:
+    return seed is None or int(seed) == ROBS_SEED
+
+
+def robs_dir(seed=None) -> Path:
+    """R-obs run folder of an R-obs seed (read only): s31 = the configured R-obs3 (--robs / K8G_ROBS), others
+    sdmpc31_v3c3_nc_s<seed> next to it (amendment 13 RunsRoot)."""
+    return c.ROBS if is_robs3(seed) else c.ROBS.parent / ROBS_NAME.format(seed=int(seed))
+
+
+def robs_wmi_log(seed=None) -> Path:
+    """The detached launcher log of the run (in the runs root, outside the run folder)."""
+    d = robs_dir(seed)
+    return d.parent / f'wmi_{d.name}.log'
+
+
+def replay_dir(T, seed=None) -> Path:
+    """Replay state of an R-obs decision: s31 <out>/replays/<T> (k8_gates/prep.py, as before), other R-obs seeds
+    <out>/replays/s<seed>/<T> (sa_tl3m.py prep)."""
+    return c.REPLAYS / f'{int(T):06d}' if is_robs3(seed) else c.REPLAYS / f's{int(seed)}' / f'{int(T):06d}'
+
+
+def nc_fzp(seed) -> Path:
+    return c.NC3 / NC_FZP_REL.format(seed=int(seed))
+
+
+def validity_path(seed) -> Path:
+    return sa_out() / 'tl3m' / f'robs_validity_s{int(seed)}.json'
+
+
+def validity_status(rec, seed):
+    """(status, reason) of an R-obs validity record (amendment 13): 'valid' (in the judging sample), 'invalid' (the
+    seed leaves the sample, reported) or None (no readable record of this seed, or not_finished / error ->
+    INCOMPLETE)."""
+    if not isinstance(rec, dict):
+        return None, 'no R-obs validity record (sa_tl3m.py validity)'
+    if rec.get('schema') != VALIDITY_SCHEMA or rec.get('seed') != int(seed):
+        return None, 'validity record of another schema / seed'
+    status = rec.get('status')
+    if status == 'valid':
+        return 'valid', ''
+    if status == 'invalid':
+        return 'invalid', '; '.join(str(r) for r in rec.get('reasons') or []) or 'invalid'
+    return None, f'validity status {status!r}: ' + '; '.join(str(r) for r in rec.get('reasons') or [])
+
+
+def read_validity(seed):
+    try:
+        return read_json(validity_path(seed))
+    except ValueError:                                   # truncated record: unknown (INCOMPLETE)
+        return None
+
+
+def tl3m_seeds_not_invalid():
+    """TL3m seeds whose runs stay on the declared lists (G-EB-2): every seed whose record is not 'invalid'."""
+    return tuple(s for s in TL3M_SEEDS if validity_status(read_validity(s), s)[0] != 'invalid')
+
+
+def guard_tl3m_seed(seed):
+    guard_seed(seed)
+    if int(seed) not in TL3M_SEEDS:
+        raise SystemExit(f'seed s{seed} is not a TL3m R-obs seed {TL3M_SEEDS} (amendment 13)')
+
+
+def base_env_for(seed=None, **kw):
+    """c.base_env() with the provenance (run env) of the R-obs run of `seed` (amendment 13: an s43 / s47 template
+    is replayed with its own run's provenance); s31 / None = the configured R-obs3, unchanged."""
+    if is_robs3(seed):
+        return c.base_env(**kw)
+    saved = (c.R, c.OUT, c.ROBS, c.NC3)
+    c.configure(root=saved[0], out=saved[1], robs=robs_dir(seed), nc3=saved[3])
+    try:
+        return c.base_env(**kw)
+    finally:
+        c.configure(root=saved[0], out=saved[1], robs=saved[2], nc3=saved[3])
+
+
+def failed_capture_record(folder):
+    """(record, None) of a capture folder whose capture failed with a child-written record (capture.json ok false,
+    else capture_failed.json of the child), or (None, why)."""
+    folder = Path(folder)
+    try:
+        ok = read_json(folder / 'capture.json')
+    except ValueError:
+        return None, 'capture.json unreadable'
+    if isinstance(ok, dict):
+        return (ok, None) if ok.get('ok') is False else (None, 'capture ok')
+    try:
+        rec = read_json(folder / 'capture_failed.json')
+    except ValueError:
+        return None, 'capture_failed.json unreadable'
+    if not isinstance(rec, dict):
+        return None, 'no capture record'
+    if capture_failure_kind(rec) == 'killed':
+        return None, 'killed (no child record)'
+    return rec, None
+
+
+def robs_identical_failure(tree, seed, T):
+    """Amendment 13 G-EB-14 (amendment 9 precedent): whether the judging-arm ROBS61 capture of R-obs `seed` at T (1 or
+    150 only) failed identically to the BASE capture of the same seed and T.  Each side needs a child-written failure
+    record; its traceback is the adapter's decision failure report action_<T>.error.txt in the capture folder, else
+    the record's error text; identical = equal sa_errors.traceback_signature (exception line + runtime frame path)
+    with at least one runtime frame.  Returns a row dict with 'identical' (bool) and the reason / signature."""
+    row = {'seed': int(seed), 'T': int(T), 'identical': False}
+    if int(T) not in ROBS_PRE_T:
+        row['reason'] = 'T not in %s' % (ROBS_PRE_T,)
+        return row
+    sigs = {}
+    for arm in (JUDGING_ARM, COMPARATOR_ARM):
+        d = cap_dir(tree, 'ROBS61', T, arm, seed=seed)
+        rec, why = failed_capture_record(d)
+        if rec is None:
+            row['reason'] = f'{arm}: {why}'
+            return row
+        p = d / f'action_{int(T):06d}.error.txt'
+        text = p.read_text(encoding='utf-8', errors='replace') if p.is_file() else rec.get('error')
+        sig = sa_errors.traceback_signature(text)
+        if sig is None or not sig[1]:
+            row['reason'] = f'{arm}: no traceback with a runtime frame (action error file / record)'
+            return row
+        sigs[arm] = sig
+    a, b = sigs[JUDGING_ARM], sigs[COMPARATOR_ARM]
+    row.update(identical=a == b, exception=a[0][:300], site=list(a[1][-1]))
+    if a != b:
+        row.update(reason='SAF and BASE failures differ', base_exception=b[0][:300], base_site=list(b[1][-1]))
+    return row
 
 
 CAPTURE_SCHEMA = 'k8-sa-capture/v1'      # sa_cap_child.py record (capture.json / child-written capture_failed.json)

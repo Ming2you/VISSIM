@@ -15,6 +15,10 @@ family   jobs (label = sa_common.job_label)                                     
   h4       one FH job (s41 @2700, judging arm, H3 OBS) run twice (rep1, rep2)                    H-4
   h5       FH frames T-150 / T / T+150 (same FZP island of T), H1 OBS, judging arm             H-5, G-EB-3 exclusion
   adfull   2700 REF / M2ALL, judging arm, non-surrogate AD (state_error), H3 A1                  G-EB-11(e)
+  tl3m     amendment 13: TL3m = R-obs seeds 31/43/47 (--seeds, default 31,43,47) x 9 T x arms,   G-EB-3/6 (judged)
+           H3 OBS on each seed's own template (TL3 capture --robs-seed S; s31 = the tl3 labels),
+           + the judging arm's H6 OBS on the seed's VISSIM event states (vissim_ref.json); OBS
+           entry = the seed's EO; a seed whose R-obs validity record is 'invalid' is left out
 --arms default: BASE,SAF,SAG for tl3 (SAG on the OBS entry only) and fh (SAG only on the event states' H6),
 BASE,SAF for long/c11/tan/dp/h0/h3, SAF for h4/h5/adfull.  SAG (report arm, D-K8-1) runs only at the declared places
 FH event 14 H6 and TL3 9 H3 OBS (AMENDMENT_1 r2 §3.0, AMENDMENT_5 §1): any other SAG request is refused.
@@ -41,10 +45,11 @@ sys.path.insert(0, str(HERE))
 import sa_common as sc  # noqa: E402
 
 c = sc.c
-FAMILIES = ('tl3', 'long', 'c11', 'tan', 'dp', 'fh', 'h0', 'h3', 'h4', 'h5', 'adfull')
+FAMILIES = ('tl3', 'long', 'c11', 'tan', 'dp', 'fh', 'h0', 'h3', 'h4', 'h5', 'adfull', 'tl3m')
 DEFAULT_ARMS = {'tl3': 'BASE,SAF,SAG', 'long': 'BASE,SAF', 'c11': 'BASE,SAF', 'tan': 'BASE,SAF',
                 'dp': 'BASE,SAF', 'fh': 'BASE,SAF,SAG', 'h0': 'BASE,SAF', 'h3': 'BASE,SAF', 'h4': 'SAF',
-                'h5': 'SAF', 'adfull': 'SAF'}
+                'h5': 'SAF', 'adfull': 'SAF', 'tl3m': 'BASE,SAF'}
+DEFAULT_SEEDS = {'tl3m': sc.TL3M_SEEDS}       # every other family: the FH fit seeds (sc.FH_SEEDS)
 SAG_FAMILIES = ('tl3', 'fh')          # the only families with a declared SA-G place (amendment 5 §1)
 DEFAULT_EO = Path(r'D:\VISSIM_runs\20260930_v3c2\reports\nc_analysis\eo')   # v3c2 EO = v3c3 bytes (PREDECL §0 TL3)
 LONG_SEGMENT = 6
@@ -60,7 +65,7 @@ def parse():
     ap.add_argument('--tree', default='k86')
     ap.add_argument('--arms')
     ap.add_argument('--T', help='comma list of T (default: the family default)')
-    ap.add_argument('--seeds', default='31,41,43,47,53')
+    ap.add_argument('--seeds', help='comma list (default: 31,41,43,47,53; tl3m: 31,43,47)')
     ap.add_argument('--eo-root', default=str(DEFAULT_EO))
     ap.add_argument('--hooks', action='store_true')
     ap.add_argument('--chain', choices=('site', 's3site'), default='site')
@@ -95,7 +100,9 @@ def base_job(args, harness, T, arm, entry, H, *, seed=None, frame_T=None, varian
     frame_T = T if frame_T is None else frame_T
     if getattr(args, 'hooks', False) and variant == 'REF':
         variant = 'HOOK'                 # hooked REFERENCE job: its own label (G-EB-13), never a plain TL3 job
-    cap = sc.cap_dir(args.tree, cap_harness or harness, T, arm, seed=seed if harness == 'FH' else None, frame_T=frame_T)
+    # FH: the island seed; TL3 (amendment 13 TL3m): the R-obs seed (s31 / None = the R-obs3 folder, no tag)
+    cap = sc.cap_dir(args.tree, cap_harness or harness, T, arm, seed=seed if harness in ('FH', 'TL3') else None,
+                     frame_T=frame_T)
     if fh_off:
         cap = cap.parent / (cap.name + '_fhoff')
     label = sc.job_label(harness if not fh_off else 'FH0', T, arm, entry, H, seed=seed, frame_T=frame_T,
@@ -108,7 +115,7 @@ def base_job(args, harness, T, arm, entry, H, *, seed=None, frame_T=None, varian
                obs_entry=None, gate_demand=None, vsl110=False, segment=(LONG_SEGMENT if H > LONG_SEGMENT else H))
     if entry == 'OBS' and not labels_only:
         import sa_fh
-        eo_seed = seed if (harness == 'FH' and seed is not None) else 31
+        eo_seed = seed if (harness in ('FH', 'TL3') and seed is not None) else 31   # TL3m: the seed's own EO
         job['obs_entry'] = sa_fh.eo_entry_rates(Path(args.eo_root) / f's{eo_seed}_v3c2nc', T, H)
         job['eo_dir'] = str(Path(args.eo_root) / f's{eo_seed}_v3c2nc')
     if variant in PROFILES:
@@ -141,9 +148,11 @@ def plan(args):
         raise SystemExit(f'SAG is a report arm run only at FH event H6 and TL3 9 H3 OBS (K8 amendment 5 §1); '
                          f'refused in family {fam}')
     Ts = [int(x) for x in args.T.split(',')] if args.T else None
-    seeds = [int(s) for s in args.seeds.split(',') if s]
+    seeds_arg = getattr(args, 'seeds', None)
+    seeds = ([int(s) for s in seeds_arg.split(',') if s] if seeds_arg
+             else list(DEFAULT_SEEDS.get(fam, sc.FH_SEEDS)))
     for s in seeds:
-        sc.guard_seed(s)
+        sc.guard_tl3m_seed(s) if fam == 'tl3m' else sc.guard_seed(s)
     jobs = []
     if fam == 'tl3':
         for T in Ts or sc.GRID9:
@@ -209,6 +218,23 @@ def plan(args):
                 job = base_job(args, 'TL3', int(T), arm, 'A1', 3, variant='AD' + act, mode='ad_full')
                 job['action'] = ACTIONS_AD[act]
                 jobs.append(job)
+    elif fam == 'tl3m':
+        # amendment 13: each R-obs seed's own deployed template (TL3 capture --robs-seed S), OBS entry, H3 for every
+        # arm, H6 for the judging arm on the seed's VISSIM event states; a seed with an invalid R-obs record leaves
+        events = event_states()
+        if events is None:
+            raise SystemExit('vissim_ref.json missing (sa_vissim_ref.py) - needed for the event states')
+        keep = sc.tl3m_seeds_not_invalid()
+        for seed in seeds:
+            if seed not in keep:
+                if not getattr(args, 'labels_only', False):
+                    print(f'SA_TL3M_SEED_LEFT_OUT s{seed}: R-obs validity record invalid (amendment 13)', flush=True)
+                continue
+            for T in Ts or sc.GRID9:
+                for arm in arms:
+                    jobs.append(base_job(args, 'TL3', T, arm, 'OBS', 3, seed=seed))
+                    if arm == sc.JUDGING_ARM and (seed, T) in events:
+                        jobs.append(base_job(args, 'TL3', T, arm, 'OBS', 6, seed=seed))
     events = event_states() if fam == 'fh' else None
     for job in jobs:
         if job['arm'] == sc.REPORT_ARM and not sc.sag_allowed(
@@ -221,11 +247,16 @@ def plan(args):
 def declared_keyed(tree):
     """AMENDMENT_6 §3 (G-EB-2): the declared key-on runs = every SAF job of every family at its defaults (T, seeds)
     + the SAG 23 (FH event H6 14 + TL3 OBS H3 9) + the G-EB-13 judged hook job; captures = the template folders of
-    those jobs + ROBS61 61 (SAF).  Labels and folders only (no EO, parquet or evidence read); needs vissim_ref.json
-    for the event states (SystemExit otherwise).  Returns (job labels, capture folders, n SAG jobs)."""
+    those jobs + ROBS61 61 (SAF).  Amendment 13: the tl3m family is one of those families (SAF H3 OBS + event H6 of
+    every TL3m seed whose R-obs validity record is not invalid) and ROBS61 61 SAF is listed for each such R-obs seed.
+    Labels and folders only (no EO, parquet or evidence read); needs vissim_ref.json for the event states (SystemExit
+    otherwise).  Returns (job labels, capture folders, n SAG jobs)."""
     jobs = declared_keyed_jobs(tree)
     labels = sorted({j['label'] for j in jobs})
     caps = {str(Path(j['template']).parent) for j in jobs}
+    # ROBS61 61 SAF of R-obs3 and (amendment 13) of every other TL3m R-obs seed whose validity record is not invalid
+    caps |= {str(sc.cap_dir(tree, 'ROBS61', T, sc.JUDGING_ARM, seed=s)) for s in sc.tl3m_seeds_not_invalid()
+             for T in sc.ROBS61_T}
     caps |= {str(sc.cap_dir(tree, 'ROBS61', T, sc.JUDGING_ARM)) for T in sc.ROBS61_T}
     return labels, sorted(caps), sum(1 for j in jobs if j['arm'] == sc.REPORT_ARM)
 
@@ -234,10 +265,9 @@ def declared_keyed_jobs(tree):
     """The declared key-on job dicts behind declared_keyed() (labels-only plans: label, arm, template, H,
     forecast_long; G-EB-2 reads an SAG job's capture inputs from them, AMENDMENT_8 §2)."""
     from types import SimpleNamespace
-    seeds = ','.join(str(s) for s in sc.FH_SEEDS)
 
-    def args_of(family, arms, T=None, hooks=False):
-        return SimpleNamespace(family=family, arms=arms, T=T, seeds=seeds, tree=tree, eo_root='.', hooks=hooks,
+    def args_of(family, arms, T=None, hooks=False):   # seeds None = the family default (FH seeds; tl3m: 31,43,47)
+        return SimpleNamespace(family=family, arms=arms, T=T, seeds=None, tree=tree, eo_root='.', hooks=hooks,
                                chain='site', s3_table=None, plan_only=False, dry_run=True, labels_only=True)
     jobs = []
     for fam in FAMILIES:
@@ -290,7 +320,9 @@ def run_job(args, job):
     (out / 'job.pickle').write_bytes(pickle.dumps(job, protocol=5))
     if args.plan_only:
         return
-    env = c.base_env(hook_dir=(out / 'hook') if args.hooks else None)
+    # amendment 13: a TL3m job of R-obs s43 / s47 runs with that run's provenance env (s31 / FH: R-obs3, as before)
+    env = sc.base_env_for(job.get('seed') if job.get('harness') == 'TL3' else None,
+                          hook_dir=(out / 'hook') if args.hooks else None)
     if args.hooks:
         chain = sc.GATES_DIR / ('s3site' if args.chain == 's3site' else 'site') / 'sitecustomize.py'
         env.update(K8_SA_CHAIN_SITE=str(chain), K8_SA_HOOK='1')

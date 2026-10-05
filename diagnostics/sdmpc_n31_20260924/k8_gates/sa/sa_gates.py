@@ -7,8 +7,10 @@ judging arm SA-F = storage observed_full, D-K8-1).  Pure functions of precompute
         -> <out>/sa/gates/gates_<tree>.{json,md}
 
 Inputs (all produced before this runs; a missing input makes the gate INCOMPLETE, never PASS):
-  job summaries   sa_jobs.py families tl3 long c11 tan dp fh h5 adfull (+ the base tree's tl3 for G-EB-1)
-  captures        sa_capture.py tl3 / dp / robs61 / fh (capture.json or capture_failed.json)
+  job summaries   sa_jobs.py families tl3 long c11 tan dp fh h5 adfull tl3m (+ the base tree's tl3 for G-EB-1)
+  captures        sa_capture.py tl3 / dp / robs61 / fh (capture.json or capture_failed.json); tl3 / robs61
+                  --robs-seed 43|47 (amendment 13 TL3m)
+  R-obs validity  sa_tl3m.py validity (<out>/sa/tl3m/robs_validity_s<S>.json, S = 31, 43, 47)
   vissim_ref.json sa_vissim_ref.py          compare/*.json  sa_compare.py g1 g9
   hooks_<tree>.json sa_hookcount.py         gates/smoke_<tree>.json  sa_smoke.py (H-5 exclusions, N5)
   --evidence-log  stdout of `python -B diagnostics/sdmpc_n31_20260924/stopline/build_sc1001eb_evidence.py --check`
@@ -27,6 +29,13 @@ run counts as a FAIL only when its child recorded a traceback raised in runtime 
 capture folder with capture.json is a capture (a capture_failed.json beside it is stale); a capture_failed.json the
 child never wrote is 'killed' = unreadable (B-r3-3).  G-EB-11(d) / G-EB-13 need a valid instrument of a finished run
 and G-EB-13 the BASE positive control (AMENDMENT_7 §3).
+K8 amendment 13 (595eb450, D-K8-7; FH smoke H-5 failed): G-EB-3 (a)(b)(c) and G-EB-6 (a)(b)(c)(e) are judged on
+TL3m = R-obs seeds {31, 43, 47} x GRID9 (27 states, events 12 / non-events 15; tl3m_sample: a seed counts only with
+its R-obs validity record <out>/sa/tl3m/robs_validity_s<S>.json status valid, an invalid run leaves the sample and is
+reported, anything else is INCOMPLETE); the FH 45 values are reports; G-EB-3 (d) and G-EB-4/5/7/8 stay TL3 s31
+(G-EB-4 reports s43 / s47); G-EB-14 (i) is judged per valid R-obs seed on its capturable ROBS61 states (an SAF
+failure at T = 1 / 150 identical to BASE is reported, amendment 9 precedent); the G-EB-2 list holds the tl3m jobs,
+their templates and ROBS61 61 SAF of each R-obs seed (the same T = 1 / 150 rule makes those folders reported rows).
 Verdict per gate: PASS (every judged item passes), FAIL (a judged item fails), INCOMPLETE (a judged item lacks
 inputs).  Combination (§3.3 as amended): the judging arm SAF passes every judged item of G-EB-0..11 (11 with (d)(e)),
 13 and 14 -> PROMOTE_ELIGIBLE (K8-7); any FAIL -> STOP (J1 held, D-K8-4; SA-G never changes the arm);
@@ -412,8 +421,16 @@ def g2(I, args):
     jobs = sorted((sc.sa_out() / 'jobs' / I.tree).glob('*/summary.json'))
     root = sc.sa_out() / 'cap' / I.tree
     folders_seen = sorted({p.parent for name in ('capture.json', 'capture_failed.json') for p in root.glob('**/' + name)})
-    rows = {'viol': [], 'other': [], 'unreadable': [], 'sag': []}
+    rows = {'viol': [], 'other': [], 'unreadable': [], 'sag': [], 'robs_identical': []}
     checked, no_checks = 0, []
+    # amendment 13 (harness reading, OPERATIONALISATIONS 'G-EB-2 TL3m'): an ROBS61 SAF capture at T = 1 / 150 that
+    # failed identically to the BASE capture of the same R-obs seed and T is the G-EB-14 reported state, not unreadable
+    exempt = {}
+    for s in sc.tl3m_seeds_not_invalid():
+        for T in sc.ROBS_PRE_T:
+            row = sc.robs_identical_failure(I.tree, s, T)
+            if row['identical']:
+                exempt[os.path.normcase(str(sc.cap_dir(I.tree, 'ROBS61', T, J, seed=s)))] = row
     for p in jobs:
         s = json.loads(p.read_text(encoding='utf-8'))
         name = p.parent.name
@@ -455,6 +472,10 @@ def g2(I, args):
             rows['unreadable'].append([rel, None, f'{name} is not a JSON object: rerun the capture', ''])
             continue
         if name == 'capture.json' and r.get('ok') is not False:
+            continue
+        ex = exempt.get(os.path.normcase(str(d)))
+        if ex is not None:
+            rows['robs_identical'].append([rel, ex.get('exception', '')[:160], ex.get('site')])
             continue
         tail = (r.get('error') or r.get('log_tail') or '')[-200:]
         if sc.capture_failure_kind(r) == 'killed':
@@ -500,6 +521,11 @@ def g2(I, args):
                                                       'arm, truncated / non-object capture record (N-r8-2) -> '
                                                       'INCOMPLETE (rerun), never FAIL',
                                      None if unreadable else (True if complete else None), rows=unreadable[:30]),
+             'robs_identical_to_base': item(len(rows['robs_identical']), 'report (amendment 13, the G-EB-14 rule on the '
+                                                                         'same folders): ROBS61 SAF captures at T = 1 / '
+                                                                         '150 that failed identically to BASE (not '
+                                                                         'unreadable, never judged)', None,
+                                            judged=False, rows=rows['robs_identical'][:30]),
              'sag_reported': item(len(sag_reported), 'report: SAG failures other than an invariant violation raised in '
                                                      'runtime code, SAG jobs without SA.end_step, SAG jobs not started '
                                                      'for a failed / input-lacking capture (never hold G-EB-2, '
@@ -530,61 +556,141 @@ def g2(I, args):
                        'are reported only; stale capture_failed.json beside capture.json ignored (B-r3-3)'])
 
 
-# ================================================================================================ G-EB-3
-def g3(I, args):
-    smoke = I.smoke()
-    excl = {tuple(x) for x in ((smoke or {}).get('checks', {}).get('H-5', {}).get('excluded_G_EB_3') or [])}
-    n5 = None if smoke is None else (smoke['checks']['H-5'].get('n5_exclusion_ok'))
-    states = [st for st in I.fh_states() if st not in excl]
-    rows, model, obs, pers, ready, stop, missing, missing_base = [], [], [], [], [], [], [], []
-    inc = {off: [] for off in sc.PORTS}
-    clusters = []
+# ================================================================================================ amendment 13 (TL3m)
+def tl3m_sample(I):
+    """K8 amendment 13 (595eb450, D-K8-7): the fallback judging sample TL3m = R-obs seeds {31, 43, 47} x GRID9.
+
+    A seed is judged only with its R-obs validity record status valid (sa_tl3m.py validity); status invalid -> the
+    seed leaves the sample and is reported; no record / not_finished / error -> unknown (INCOMPLETE).  The VISSIM
+    classification must be p4 958275ac with the declared per-seed counts (events 5/4/3, non-events 4/5/6), else
+    INCOMPLETE.  The (b)/(e) bounds keep the declared ratios on the judged states: floor(0.2 x non-events) (15 -> 3)
+    and ceil(0.5 x events) (12 -> 6)."""
+    st = robs_seed_status(I)
+    seeds, excluded, unknown, problems = st['seeds'], st['excluded'], st['unknown'], []
+    p4 = str(((I.ref.get('inputs') or {}).get('p4') or {}).get('sha256') or '')
+    if not p4.startswith(sc.TL3M_CLASSIFICATION_SHA8):
+        problems.append(f'vissim_ref.json classification sha {p4[:8] or None} != {sc.TL3M_CLASSIFICATION_SHA8} '
+                        '(amendment 13)')
+    events, nonevents, per_seed = [], [], {}
+    for s in sc.TL3M_SEEDS:
+        ev = [T for T in sc.GRID9 if (I.state_ref(s, T) or {}).get('event_state') is True]
+        ne = [T for T in sc.GRID9 if (I.state_ref(s, T) or {}).get('nonevent_state') is True]
+        per_seed[s] = {'events': ev, 'nonevents': ne}
+        if (len(ev), len(ne)) != (sc.TL3M_EVENTS_DECLARED[s], sc.TL3M_NONEVENTS_DECLARED[s]) or set(ev) & set(ne):
+            problems.append(f's{s}: {len(ev)} event / {len(ne)} non-event states in vissim_ref.json, declared '
+                            f'{sc.TL3M_EVENTS_DECLARED[s]} / {sc.TL3M_NONEVENTS_DECLARED[s]} (amendment 13)')
+        if s in seeds:
+            events += [(s, T) for T in ev]
+            nonevents += [(s, T) for T in ne]
+    states = [(s, T) for s in seeds for T in sc.GRID9]
+    return dict(seeds=seeds, excluded=excluded, unknown=unknown, problems=problems, states=states, events=events,
+                nonevents=nonevents, per_seed=per_seed,
+                b_max=math.floor(sc.G6_B_SHARE * len(nonevents) + 1e-9),
+                e_min=math.ceil(sc.G6_E_SHARE * len(events) - 1e-9),
+                complete=bool(seeds) and not unknown and not problems)
+
+
+def tl3m_missing(S):
+    """Missing-input lines of the TL3m sample itself (an unknown seed, a classification problem)."""
+    out = [f'TL3m R-obs s{s}: {why}' for s, why in sorted(S['unknown'].items())] + list(S['problems'])
+    return out + ([] if S['seeds'] or S['unknown'] else ['TL3m: no R-obs seed with a valid record'])
+
+
+def tl3m_sample_item(S):
+    return item({'judged_seeds': S['seeds'], 'excluded_invalid_robs': S['excluded'], 'unknown': S['unknown'],
+                 'problems': S['problems'], 'n_states': len(S['states']), 'n_events': len(S['events']),
+                 'n_nonevents': len(S['nonevents']), 'b_max': S['b_max'], 'e_min': S['e_min']},
+                'report: amendment 13 TL3m sample (valid R-obs seeds; an invalid run leaves the sample and is listed)',
+                None, judged=False)
+
+
+def tl3m_not_computed():
+    """G-EB-5 / 7 / 8 (amendment 13: judged on TL3 s31, s43 / s47 side by side as reports)."""
+    return item(None, 'report (amendment 13): s43 / s47 side-by-side values not computed: they need long / C00 / C11 / '
+                      'TAN jobs and per-seed EO references outside the TL3m job list (OPERATIONALISATIONS '
+                      '"G-EB-4/5/7/8 TL3m")', None, judged=False)
+
+
+def _g3_collect(states, saf_of, base_of, ref_of, label):
+    """Per-state G-EB-3 (a)(b)(c) inputs (judging arm block 1 = T+150, VISSIM reference of the state's seed)."""
+    d = dict(rows=[], model=[], obs=[], pers=[], ready=[], stop=[], inc={off: [] for off in sc.PORTS}, clusters=[],
+             missing=[], missing_base=[])
     for seed, T in states:
-        sj = I.jobx('FH', T, J, 'OBS', 3, seed=seed)
-        sb = I.jobx('FH', T, 'BASE', 'OBS', 3, seed=seed)
-        ref = I.state_ref(seed, T)
-        b1, bb = si.block(sj, 1), si.block(sb, 1)
-        if b1 is None or ref is None or not ref.get('w_ports_T150') or not ref.get('w_ports_T'):
-            missing.append(f'FH s{seed} {T}')
+        b1, bb, ref = si.block(saf_of(seed, T), 1), si.block(base_of(seed, T), 1), ref_of(seed, T)
+        if b1 is None or not ref or not ref.get('w_ports_T150') or not ref.get('w_ports_T') \
+                or ref.get('stop127_T150') is None:
+            d['missing'].append(f'{label} s{seed} {T} ({J} H3 OBS job or VISSIM reference)')
             continue
         m, o, o0 = b1['w_ports']['total'], ref['w_ports_T150']['total'], ref['w_ports_T']['total']
-        model.append(m)
-        obs.append(o)
-        pers.append(abs(o0 - o))
-        ready.append(b1['w_ready'])
-        stop.append(ref['stop127_T150'])
-        row = [seed, T, m, o, o0, b1['w_ready'], ref['stop127_T150']]
+        d['model'].append(m)
+        d['obs'].append(o)
+        d['pers'].append(abs(o0 - o))
+        d['ready'].append(b1['w_ready'])
+        d['stop'].append(ref['stop127_T150'])
         if bb is not None:
             for off in sc.PORTS:
                 oo = ref['w_ports_T150'][off]
-                inc[off].append(abs(b1['w_ports']['port_' + off] - oo) - abs(bb['w_ports']['port_' + off] - oo))
-            clusters.append(seed)
+                d['inc'][off].append(abs(b1['w_ports']['port_' + off] - oo) - abs(bb['w_ports']['port_' + off] - oo))
+            d['clusters'].append(seed)
         else:
-            missing_base.append(f'FH BASE s{seed} {T}')
-        rows.append(row)
+            d['missing_base'].append(f'{label} BASE s{seed} {T}')
+        d['rows'].append([seed, T, m, o, o0, b1['w_ready'], ref['stop127_T150']])
+    return d
+
+
+def _g3_values(d):
+    a, b = ss.pair_stats(d['model'], d['obs']), ss.pair_stats(d['ready'], d['stop'])
+    cvals = {}
+    for off in sc.PORTS:
+        cvals[off] = {'iid': ss.boot_ci_iid(d['inc'][off], n=sc.BOOT_N, seed=sc.BOOT_SEED),
+                      'cluster': ss.boot_ci_cluster(d['inc'][off], d['clusters'], n=sc.BOOT_N, seed=sc.BOOT_SEED)}
+    return a, ss.mean(d['pers']), b, cvals
+
+
+def g3(I, args):
+    """G-EB-3 (amendment 13): (a)(b)(c) judged on TL3m (27 states, SAF H3 OBS, BASE comparator for (c), seed
+    clusters); (d) unchanged on DP 17 and TL3 s31 9; the FH 45 values (and the H-5 list / N5) are reports."""
+    S = tl3m_sample(I)
+    d = _g3_collect(S['states'], lambda s, T: I.tl3m_job(T, J, 'OBS', 3, s),
+                    lambda s, T: I.tl3m_job(T, 'BASE', 'OBS', 3, s), I.state_ref, 'TL3m')
+    missing = tl3m_missing(S) + d['missing'] + d['missing_base']
     # judging-arm completeness for (a)(b); (c) also needs the comparator BASE (AMENDMENT_5 §1)
-    complete = not missing and len(model) == len(states)
-    complete_c = complete and not missing_base
-    a = ss.pair_stats(model, obs)
-    pmae = ss.mean(pers)
-    items = {}
-    items['N5_exclusions'] = item(sorted(excl), '<= 5 of 45 pre-excluded (H-5), else G-EB-3 fails', n5)
-    items['a_bias'] = item(a['bias'], '|mean bias| <= 50', None if not complete or a['bias'] is None
-                           else abs(a['bias']) <= sc.G3_BIAS_MAX)
-    items['a_mae'] = item(a['mae'], f'MAE <= persistence MAE of the same states ({pmae})',
-                          None if not complete or a['mae'] is None else a['mae'] <= pmae)
-    b = ss.pair_stats(ready, stop)
-    items['b_G6_7'] = item({'bias': b['bias'], 'r': b['r'], 'n': b['n']}, '|b| <= 20 and r >= 0.5',
+    complete = S['complete'] and not d['missing'] and len(d['model']) == len(S['states'])
+    complete_c = complete and not d['missing_base']
+    a, pmae, b, cvals = _g3_values(d)
+    items = {'TL3m_sample': tl3m_sample_item(S)}
+    items['a_bias'] = item(a['bias'], '|mean bias| <= 50 (TL3m states, amendment 13)',
+                           None if not complete or a['bias'] is None else abs(a['bias']) <= sc.G3_BIAS_MAX)
+    items['a_mae'] = item(a['mae'], f'MAE <= FZP persistence MAE of the same TL3m states ({pmae})',
+                          None if not complete or a['mae'] is None or pmae is None else a['mae'] <= pmae)
+    items['b_G6_7'] = item({'bias': b['bias'], 'r': b['r'], 'n': b['n']}, '|b| <= 20 and r >= 0.5 (TL3m states)',
                            None if not complete or b['bias'] is None
                            else abs(b['bias']) <= sc.G3_G67_BIAS_MAX and b['r'] is not None and b['r'] >= sc.G3_G67_R_MIN)
-    cvals, cok = {}, []
-    for off in sc.PORTS:
-        iid = ss.boot_ci_iid(inc[off], n=sc.BOOT_N, seed=sc.BOOT_SEED)
-        clu = ss.boot_ci_cluster(inc[off], clusters, n=sc.BOOT_N, seed=sc.BOOT_SEED)
-        cvals[off] = {'iid': iid, 'cluster': clu}
-        cok += [iid['lo'] is not None and iid['lo'] <= 0.0, clu['lo'] is not None and clu['lo'] <= 0.0]
-    items['c_ports'] = item(cvals, '95 % CI lower bound <= 0 for |err| increment (SAF - BASE), per port, iid and seed '
-                                   'cluster bootstrap (2000, seed 0)', None if not complete_c else all(cok))
+    cok = [x['lo'] is not None and x['lo'] <= 0.0 for off in sc.PORTS for x in cvals[off].values()]
+    items['c_ports'] = item(cvals, '95 % CI lower bound <= 0 for |err| increment (SAF - BASE), per port, iid and R-obs '
+                                   'seed cluster bootstrap (2000, rng 0): all four lower bounds <= 0 (TL3m states)',
+                            None if not complete_c else all(cok))
+    # FH 45: reports only since amendment 13 (smoke H-5 failed; the H-5 pre-exclusion and N5 are FH only)
+    smoke = I.smoke()
+    excl = {tuple(x) for x in ((smoke or {}).get('checks', {}).get('H-5', {}).get('excluded_G_EB_3') or [])}
+    n5 = None if smoke is None else (smoke['checks']['H-5'].get('n5_exclusion_ok'))
+    fh = _g3_collect([st for st in I.fh_states() if st not in excl],
+                     lambda s, T: I.jobx('FH', T, J, 'OBS', 3, seed=s),
+                     lambda s, T: I.jobx('FH', T, 'BASE', 'OBS', 3, seed=s), I.state_ref, 'FH')
+    fa, fpmae, fb, fc = _g3_values(fh)
+    items['FH_report'] = item({'states_used': len(fh['model']), 'missing': len(fh['missing']),
+                               'missing_base': len(fh['missing_base']), 'H5_excluded': sorted(excl),
+                               'N5_exclusion_ok': n5, 'a': fa, 'persistence_mae': fpmae,
+                               'b': {'bias': fb['bias'], 'r': fb['r'], 'n': fb['n']}, 'c': fc},
+                              'report only (amendment 13): FH 45 minus the H-5 list, the former judged form', None,
+                              judged=False, rows=fh['rows'][:60])
+    if excl:
+        fh45 = _g3_collect(I.fh_states(), lambda s, T: I.jobx('FH', T, J, 'OBS', 3, seed=s),
+                           lambda s, T: I.jobx('FH', T, 'BASE', 'OBS', 3, seed=s), I.state_ref, 'FH')
+        items['FH_all45_a_b_report'] = item({'a': ss.pair_stats(fh45['model'], fh45['obs']),
+                                             'b': ss.pair_stats(fh45['ready'], fh45['stop'])},
+                                            'report (amendment 1 N5: the 45-state values next to the list)', None,
+                                            judged=False)
     # (d) G6-6 W_out on DP and TL3 (declared "DP·TL3 판정, FH 보고")
     for name, pairs in (('d_W_out_DP', [(T, I.jobx('DP', T, J, 'A1', 1)) for T in sc.DP_T]),
                         ('d_W_out_TL3', [(T, I.jobx('TL3', T, J, 'OBS', 3)) for T in sc.GRID9])):
@@ -621,16 +727,23 @@ def g3(I, args):
             r2.append(r['stop127'])
         rep[harness] = {'a': ss.pair_stats(xs, ys), 'b': ss.pair_stats(r1, r2)}
     items['a_b_DP_TL3_report'] = item(rep, 'report (gate arrival not oracle there)', None, judged=False)
-    base10695 = {}
+
+    def rearrival(cap):
+        return (((cap.get('probes') or {}).get('provenance') or {}).get('10695') or {}).get('storage:' + sc.GATE, 0.0)
+    base10695 = {'TL3m': {}, 'FH': {}}
+    for seed, T in S['states']:          # amendment 1 B1 note next to the judged (c): the TL3m BASE templates
+        cap = I.cap('TL3', T, 'BASE', seed=seed)
+        if cap and cap.get('ok'):
+            base10695['TL3m'][f's{seed}_{T}'] = rearrival(cap)
     for seed, T in I.fh_states():
         cap = I.cap('FH', T, 'BASE', seed=seed)
         if cap and cap.get('ok'):
-            base10695[f's{seed}_{T}'] = (((cap.get('probes') or {}).get('provenance') or {}).get('10695') or {}) \
-                .get('storage:' + sc.GATE, 0.0)
+            base10695['FH'][f's{seed}_{T}'] = rearrival(cap)
     items['B1_base_10695_rearrival'] = item(base10695, 'report (AMENDMENT_1 G-EB-3 B1 note)', None, judged=False)
-    return gate('G-EB-3', 'one step T+150 (W+ports, G6-7, port increments, G6-6)', 'FH 45 minus H-5 exclusions; '
-                'DP 17 / TL3 9 for (d)', items, missing=missing + missing_base, notes=[f'states used {len(model)}', 'rows: seed, T, '
-                'model W+ports, FZP T+150, FZP T, W ready, 127 stopped'] + [str(r) for r in rows[:60]])
+    return gate('G-EB-3', 'one step T+150 (W+ports, G6-7, port increments, G6-6)', 'TL3m 27 states (amendment 13) for '
+                '(a)(b)(c); DP 17 / TL3 s31 9 for (d); FH 45 reported', items, missing=missing,
+                notes=[f'TL3m states used {len(d["model"])} of {len(S["states"])}', 'rows: seed, T, model W+ports, '
+                       'FZP T+150, FZP T, W ready, 127 stopped'] + [str(r) for r in d['rows'][:60]])
 
 
 # ================================================================================================ G-EB-4
@@ -667,6 +780,18 @@ def g4(I, args):
             (I.robs3(T + 450) or {}).get('fw_w_stock')] for T in sc.GRID9]
     items['SAG_report'] = item(sag, 'report arm SAG, TL3 9 H3 OBS (never judged, D-K8-1 / AMENDMENT_5 §1)', None,
                                judged=False)
+    # amendment 13: judged on TL3 s31 as before; s43 / s47 reported side by side from the TL3m H3 OBS jobs (VISSIM =
+    # the seed's FZP FW_W chain count at T+450.1, the FH report's reference; s31 above reads the R-obs3 state)
+    tl3m = []
+    for s in sc.TL3M_SEEDS:
+        if sc.is_robs3(s):
+            continue
+        for T in sc.GRID9:
+            m = (si.block(I.tl3m_job(T, J, 'OBS', 3, s), 3) or {}).get('fw_w_stock')
+            v = ((I.state_ref(s, T) or {}).get('fw_w_stock') or {}).get(str(T + 450))
+            tl3m.append([s, T, m, v, None if m is None or v is None else m - v])
+    items['TL3m_s43_s47_report'] = item(tl3m, 'report (amendment 13): FW_W(T+450) TL3m s43 / s47, never judged', None,
+                                        judged=False, header=['seed', 'T', 'model', 'VISSIM FZP', 'error'])
     cells = [((s or {}).get('or_d_w_cell')) for s in (I.jobx('TL3', T, J, 'OBS', 3) for T in sc.GRID9)]
     return gate('G-EB-4', '450 s FW_W', 'TL3 9 H3 OBS (judging arm)', items,
                 notes=['OR_D_W cells reported by the worker (cell 9 audit): %s' % cells[:2]])
@@ -737,6 +862,7 @@ def g5(I, args):
     a1 = {T: [[b['t_end'], b['fw_w_stock']] for b in (I.jobx('TL3', T, J, 'A1', H) or {}).get('blocks') or []
               if b['t_end'] in sc.LONG_CHECKPOINTS] for T, H in sc.LONG_H.items()}
     items['A1_report'] = item(a1, 'report', None, judged=False)
+    items['TL3m_s43_s47_report'] = tl3m_not_computed()
     return gate('G-EB-5', 'long horizon (2700 H42, 4950 H27 judged; 900 H24 report)', 'TL3 OBS judging arm', items)
 
 
@@ -810,91 +936,122 @@ def g5_eb_discharge(summary, cross, T, H):
 
 
 # ================================================================================================ G-EB-6
-def g6(I, args):
-    items, missing = {}, []
-    ev, nev = I.event_states(), I.nonevent_states()
-    evset = set(ev)
-    # (a) AMENDMENT_5 §1: judged on SAF only (45 H3 + 14 event H6, every job present and ok); BASE / SAG reported.
-    blocks10481 = {}
-    for arm in sc.ARMS:
+def _g6_eval(states, events, nonevents, job_of, ref_of, a_arms, base_h6):
+    """G-EB-6 (a)(b)(c)(e) inputs on one sample.  job_of(arm, seed, T, H) -> summary; (a) sums 10481 blocked steps
+    per arm over the H3 jobs (not SAG) and the event H6 jobs (BASE H6 only where planned: base_h6); (b) / (e) read the
+    H3 job blocks 1-3 = [T, T+450]; (c) the event H6 job first 10491 block vs the VISSIM 127 extent >= 500 m."""
+    evset = set(events)
+    a = {}
+    for arm in a_arms:
         row = {'blocked_steps': 0.0, 'n_H3': 0, 'n_H6': 0, 'missing': []}
-        for seed, T in I.fh_states():
+        for seed, T in states:
             for H in (3, 6):
                 if H == 6 and (seed, T) not in evset:
                     continue
-                if arm == sc.REPORT_ARM and H == 3:
+                if (arm == sc.REPORT_ARM and H == 3) or (arm == sc.COMPARATOR_ARM and H == 6 and not base_h6):
                     continue                                    # SAG runs H6 on the event states only
-                v = si.blocked_steps(I.jobx('FH', T, arm, 'OBS', H, seed=seed), '10481')
+                v = si.blocked_steps(job_of(arm, seed, T, H), '10481')
                 if v is None:
-                    row['missing'].append(f'FH s{seed} {T} H{H}')
+                    row['missing'].append(f's{seed} {T} H{H}')
                     continue
                 row['blocked_steps'] += v
                 row['n_H%d' % H] += 1
-        blocks10481[arm] = row
-    saf = blocks10481[J]
-    complete = (len(ev) == sc.EVENT_STATES_DECLARED and saf['n_H3'] == len(I.fh_states())
-                and saf['n_H6'] == len(ev) and not saf['missing'])
-    missing += [f'{J} ' + m for m in saf['missing']]
-    items['a_10481'] = item({k: (v if k != 'missing' else len(v)) for k, v in saf.items()},
-                            '10481 blocked steps = 0 on the judging arm SAF: all 45 FH H3 + all 14 event H6 jobs '
-                            '(a missing SAF job -> INCOMPLETE; AMENDMENT_5 §1)',
-                            None if not complete else saf['blocked_steps'] == 0)
-    items['a_10481_BASE_SAG_report'] = item({arm: {k: (v if k != 'missing' else len(v)) for k, v in blocks10481[arm].items()}
-                                             for arm in (sc.COMPARATOR_ARM, sc.REPORT_ARM)},
-                                            'report (BASE comparator, SAG report arm; never judged)', None,
-                                            judged=False)
-    hits_b, b_rows = 0, []
-    for seed, T in nev:
-        s = I.jobx('FH', T, J, 'OBS', 3, seed=seed)
+        a[arm] = row
+    out = dict(a=a, b_hits=0, b_rows=[], b_missing=[], c_rows=[], c_ok=[], c_missing=[], e_hits=0, e_rows=[],
+               e_missing=[])
+    for seed, T in nonevents:
+        s = job_of(J, seed, T, 3)
         x = si.blocked_any(s, '10491', 3)
         if x is None:
-            missing.append(f'FH s{seed} {T} H3')
+            out['b_missing'].append(f's{seed} {T} H3')
             continue
-        hits_b += x
-        b_rows.append([seed, T, x, ((s.get('sa') or {}).get('first_block_lanes'))])
-    items['b_nonevent'] = item({'blocked_states': hits_b, 'n_states': len(nev)},
-                               f'<= {sc.G6_B_MAX_STATES} of the {len(nev)} VISSIM non-event states with 10491 blocking',
-                               None if len(b_rows) != len(nev) or len(nev) != sc.NONEVENT_STATES_DECLARED
-                               else hits_b <= sc.G6_B_MAX_STATES,
-                               rows=b_rows, note='N15 report: first-block lane stock by origin in rows')
-    c_rows, c_ok = [], []
-    for seed, T in ev:
-        s = I.jobx('FH', T, J, 'OBS', 6, seed=seed)
+        out['b_hits'] += x
+        out['b_rows'].append([seed, T, x, ((s.get('sa') or {}).get('first_block_lanes'))])
+    for seed, T in events:
+        s = job_of(J, seed, T, 6)
         if not _ok(s):
-            missing.append(f'FH s{seed} {T} H6')
-            c_ok.append(None)
+            out['c_missing'].append(f's{seed} {T} H6')
+            out['c_ok'].append(None)
             continue
         tp = (s.get('first_block_t') or {}).get('10491')
-        tv = (I.state_ref(seed, T) or {}).get('ext127_first500')
+        tv = (ref_of(seed, T) or {}).get('ext127_first500')
         if tp is None:
-            c_rows.append([seed, T, None, tv, 'not blocked'])
+            out['c_rows'].append([seed, T, None, tv, 'not blocked'])
             continue
         ok = tv is not None and tp >= tv - sc.G6_SLACK_S
-        c_ok.append(ok)
-        c_rows.append([seed, T, tp, tv, ok])
-    items['c_timing'] = item(c_rows, 'plant first block >= VISSIM 127 extent >= 500 m first time - 30 s (blocked '
-                                     'event states; consistency check, N8)',
-                             None if any(o is None for o in c_ok) or len(ev) != sc.EVENT_STATES_DECLARED
-                             else all(c_ok))
-    hits_e, e_rows = 0, []
-    for seed, T in ev:
-        x = si.blocked_any(I.jobx('FH', T, J, 'OBS', 3, seed=seed), '10491', 3)
+        out['c_ok'].append(ok)
+        out['c_rows'].append([seed, T, tp, tv, ok])
+    for seed, T in events:
+        x = si.blocked_any(job_of(J, seed, T, 3), '10491', 3)
         if x is None:
+            out['e_missing'].append(f's{seed} {T} H3')
             continue
-        hits_e += x
-        e_rows.append([seed, T, x])
-    items['e_hit_rate'] = item({'hits': hits_e, 'n': len(e_rows)}, f'>= {sc.G6_E_MIN_HITS} of the 14 VISSIM event '
-                               'states with 10491 blocking in [T, T+450]',
-                               None if len(e_rows) != len(ev) or len(ev) != sc.EVENT_STATES_DECLARED
-                               else hits_e >= sc.G6_E_MIN_HITS,
-                               rows=e_rows)
-    items['d_report'] = item([[r[0], r[1], (r[2] - r[3]) if (r[2] is not None and r[3] is not None) else None]
-                              for r in c_rows], 'report: hit time error (plant - VISSIM); throughput at 3,276 m is not '
-                                                'recorded by the worker', None, judged=False)
-    sag = {f's{s}_{T}': si.blocked_any(I.jobx('FH', T, sc.REPORT_ARM, 'OBS', 6, seed=s), '10491', 3) for s, T in ev}
-    items['SAG_report'] = item(sag, 'report arm (never judged, D-K8-1)', None, judged=False)
-    return gate('G-EB-6', 'event regime', 'FH 45 H3 + event 14 H6 (judging arm)', items, missing=missing,
-                notes=[f'event states {len(ev)}, non-event {len(nev)} (declared 14 / 31)'])
+        out['e_hits'] += x
+        out['e_rows'].append([seed, T, x])
+    return out
+
+
+def _a_value(row):
+    return {k: (v if k != 'missing' else len(v)) for k, v in row.items()}
+
+
+def g6(I, args):
+    """G-EB-6 (amendment 13): (a)(b)(c)(e) judged on TL3m (SAF: 27 H3 OBS + 12 event H6 OBS); (d) report; the FH 45 /
+    14 values are reports."""
+    S = tl3m_sample(I)
+    items = {'TL3m_sample': tl3m_sample_item(S)}
+    missing = tl3m_missing(S)
+    ev, nev = S['events'], S['nonevents']
+    r = _g6_eval(S['states'], ev, nev, lambda arm, s, T, H: I.tl3m_job(T, arm, 'OBS', H, s), I.state_ref,
+                 (J, sc.COMPARATOR_ARM), base_h6=False)
+    saf = r['a'][J]
+    missing += [f'TL3m {J} ' + m for m in saf['missing'] + r['b_missing'] + r['c_missing'] + r['e_missing']]
+    complete_a = S['complete'] and saf['n_H3'] == len(S['states']) and saf['n_H6'] == len(ev) and not saf['missing']
+    items['a_10481'] = item(_a_value(saf), '10481 blocked steps = 0 on the judging arm SAF: all TL3m H3 jobs (27) + all '
+                                           'TL3m event H6 jobs (12) (a missing SAF job -> INCOMPLETE; amendment 13, '
+                                           'AMENDMENT_5 §1)', None if not complete_a else saf['blocked_steps'] == 0)
+    items['a_10481_BASE_report'] = item(_a_value(r['a'][sc.COMPARATOR_ARM]), 'report (BASE comparator, TL3m H3; never '
+                                                                             'judged)', None, judged=False)
+    items['b_nonevent'] = item({'blocked_states': r['b_hits'], 'n_states': len(nev), 'max_states': S['b_max']},
+                               f'<= floor(0.2 x n) = {S["b_max"]} of the {len(nev)} TL3m VISSIM non-event states with '
+                               '10491 blocking in [T, T+450] (amendment 13: 15 -> 3)',
+                               None if not S['complete'] or len(r['b_rows']) != len(nev) else r['b_hits'] <= S['b_max'],
+                               rows=r['b_rows'], note='N15 report: first-block lane stock by origin in rows')
+    items['c_timing'] = item(r['c_rows'], 'plant first block >= VISSIM 127 extent >= 500 m first time - 30 s (blocked '
+                                          'TL3m event states, H6; consistency check, N8)',
+                             None if not S['complete'] or any(o is None for o in r['c_ok']) else all(r['c_ok']))
+    items['e_hit_rate'] = item({'hits': r['e_hits'], 'n': len(r['e_rows']), 'min_hits': S['e_min']},
+                               f'>= ceil(0.5 x n) = {S["e_min"]} of the {len(ev)} TL3m VISSIM event states with 10491 '
+                               'blocking in [T, T+450] (amendment 13: 12 -> 6)',
+                               None if not S['complete'] or len(r['e_rows']) != len(ev) else r['e_hits'] >= S['e_min'],
+                               rows=r['e_rows'])
+    items['d_report'] = item([[x[0], x[1], (x[2] - x[3]) if (x[2] is not None and x[3] is not None) else None]
+                              for x in r['c_rows']], 'report: hit time error (plant - VISSIM), TL3m event H6; '
+                                                     'throughput at 3,276 m is not recorded by the worker', None,
+                             judged=False)
+    items['TL3_s31_SAG_report'] = item({T: si.blocked_any(I.jobx('TL3', T, sc.REPORT_ARM, 'OBS', 3), '10491', 3)
+                                        for T in sc.GRID9}, 'report arm SAG, TL3 s31 9 H3 OBS 10491 blocking in [T, '
+                                                            'T+450] (never judged, D-K8-1)', None, judged=False)
+    # FH 45 H3 + 14 event H6: reports only since amendment 13 (the former judged form, AMENDMENT_5 §1 arms)
+    fev, fnev = I.event_states(), I.nonevent_states()
+    f = _g6_eval(I.fh_states(), fev, fnev, lambda arm, s, T, H: I.jobx('FH', T, arm, 'OBS', H, seed=s), I.state_ref,
+                 sc.ARMS, base_h6=True)
+    items['FH_report'] = item({'a_10481': {arm: _a_value(f['a'][arm]) for arm in sc.ARMS},
+                               'b_nonevent': {'blocked_states': f['b_hits'], 'n_read': len(f['b_rows']),
+                                              'n_states': len(fnev), 'declared_max': sc.G6_B_MAX_STATES},
+                               'c_timing': f['c_rows'],
+                               'e_hit_rate': {'hits': f['e_hits'], 'n_read': len(f['e_rows']), 'n_states': len(fev),
+                                              'declared_min': sc.G6_E_MIN_HITS},
+                               'SAG_H6_10491': {f's{s}_{T}': si.blocked_any(I.jobx('FH', T, sc.REPORT_ARM, 'OBS', 6,
+                                                                                    seed=s), '10491', 3)
+                                                for s, T in fev}},
+                              'report only (amendment 13): FH 45 H3 + event 14 H6, the former judged form', None,
+                              judged=False)
+    return gate('G-EB-6', 'event regime', 'TL3m 27 H3 + event 12 H6 (judging arm SAF, amendment 13); FH reported',
+                items, missing=missing,
+                notes=[f'TL3m event states {len(ev)}, non-event {len(nev)} (declared 12 / 15 with all three R-obs seeds '
+                       f'valid); bounds (b) <= {S["b_max"]}, (e) >= {S["e_min"]}',
+                       f'FH event states {len(fev)}, non-event {len(fnev)} (declared 14 / 31; report)'])
 
 
 # ================================================================================================ G-EB-7
@@ -945,6 +1102,7 @@ def g7(I, args):
                                         'cells 10-30 v < 60 km/h block ratio <= VISSIM + 0.05 (non-event blocks)',
                                         None if pr is None else pr <= vr + sc.G7_RATIO_SLACK)
     items['event_windows_report'] = item(windows, 'report', None, judged=False)
+    items['TL3m_s43_s47_report'] = tl3m_not_computed()
     return gate('G-EB-7', 'FW_W blocking', 'TL3 OBS judging arm (900 H24, 2700 H42, 4950 H27)', items)
 
 
@@ -990,6 +1148,7 @@ def g8(I, args):
     items['p3_axis_green_vectors_report'] = item(vectors, 'report: green_vector of the SC1001 p3 axes (the balanced '
                                                  '(+p3, -p4) pair; p4 has no axis of its own, AMENDMENT_5 §2-10)',
                                                  None, judged=False)
+    items['TL3m_s43_s47_report'] = tl3m_not_computed()
     return gate('G-EB-8', 'fictitious lever', 'TL3 non-event 4 states (judging arm)', items,
                 notes=['tangent per second = axis derivative / axis scale; p3 axes summed over the blocks '
                        '(sa_common OPERATIONALISATIONS G-EB-8)'])
@@ -1400,14 +1559,60 @@ def g14_row_problems(cap):
     return why
 
 
+def g14_robs_rows(I, missing):
+    """Amendment 13 (i) on the R-obs seeds: per judged seed (valid record) its capturable ROBS61 states.  An SAF
+    capture at T = 1 / 150 that failed identically to the BASE capture of the same seed and T (sc.robs_identical_failure)
+    is reported and leaves the sample (amendment 9 precedent); every other state keeps the g14_init_row rule.  Returns
+    (init counts {key: [ok, judged]}, ok captures [(name, capture)], identical rows, pre-T check rows, seed status)."""
+    status = robs_seed_status(I)
+    for s, why in sorted(status['unknown'].items()):
+        missing.append(f'G-EB-14 R-obs s{s}: {why}')
+    if not status['seeds'] and not status['unknown']:
+        missing.append('G-EB-14: no R-obs seed with a valid record')
+    init_ok, caps, identical, pre = {}, [], [], []
+    for seed in status['seeds']:
+        key = 'ROBS61' if sc.is_robs3(seed) else f'ROBS61_s{seed}'
+        tag = '' if sc.is_robs3(seed) else f's{seed} '
+        init_ok[key] = [0, 0]
+        for T in sc.ROBS61_T:
+            label = f'ROBS61 {tag}{T}'
+            cap = I.cap('ROBS61', T, J, seed=seed)
+            if T in sc.ROBS_PRE_T and not (cap and cap.get('ok')):
+                row = sc.robs_identical_failure(I.tree, seed, T)
+                pre.append(row)
+                if row['identical']:
+                    identical.append([seed, T, row.get('exception'), row.get('site')])
+                    continue
+            init_ok[key][1] += 1
+            if cap is not None and cap.get('seed') not in (None, seed):
+                missing.append(f'{label} capture records seed {cap.get("seed")}')
+                continue
+            if g14_init_row(cap, label, missing):
+                init_ok[key][0] += 1
+            if cap and cap.get('ok'):
+                caps.append((f'robs_{tag.replace(" ", "_")}{T}', cap))
+    return init_ok, caps, identical, pre, status
+
+
+def robs_seed_status(I):
+    """R-obs validity per TL3m seed (amendment 13): seeds (valid), excluded {seed: reason} (invalid, reported),
+    unknown {seed: reason} (INCOMPLETE)."""
+    seeds, excluded, unknown = [], {}, {}
+    for s in sc.TL3M_SEEDS:
+        status, why = sc.validity_status(I.robs_validity(s), s)
+        if status == 'valid':
+            seeds.append(s)
+        elif status == 'invalid':
+            excluded[s] = why
+        else:
+            unknown[s] = why
+    return {'seeds': seeds, 'excluded': excluded, 'unknown': unknown}
+
+
 def g14(I, args):
     items, rows, missing = {}, [], []
-    init_ok = {'ROBS61': [0, 0], 'FH': [0, 0]}
-    for T in sc.ROBS61_T:
-        cap = I.cap('ROBS61', T, J)
-        init_ok['ROBS61'][1] += 1
-        if g14_init_row(cap, f'ROBS61 {T}', missing):
-            init_ok['ROBS61'][0] += 1
+    init_ok, robs_caps, identical, pre, status = g14_robs_rows(I, missing)
+    init_ok['FH'] = [0, 0]
     fh_caps = []
     for seed, T in I.fh_states():
         cap = I.cap('FH', T, J, seed=seed)
@@ -1415,8 +1620,15 @@ def g14(I, args):
         if g14_init_row(cap, f'FH s{seed} {T}', missing):
             init_ok['FH'][0] += 1
             fh_caps.append((f's{seed}_{T}', cap))
-    items['i_init'] = item(init_ok, 'initialization 61/61 and 45/45 with 0 errors, install_check present',
-                           None if missing else all(a == b for a, b in init_ok.values()))
+    items['i_init'] = item(init_ok, 'initialization of every capturable ROBS61 state of each judged R-obs seed (61 '
+                                    'less the T = 1 / 150 failures identical to BASE, amendment 13) and 45/45 FH with '
+                                    '0 errors, install_check present',
+                           None if missing or not status['seeds'] else all(a == b for a, b in init_ok.values()),
+                           judged_seeds=status['seeds'], excluded_invalid_robs=status['excluded'],
+                           reported_identical_to_base=identical)
+    items['robs_pre_T_report'] = item(pre, 'report (amendment 13): T = 1 / 150 ROBS61 SAF failures vs the BASE capture '
+                                           '(identical -> reported, outside the sample; otherwise the capture-row rule)',
+                                      None, judged=False)
     # declared harness rows T9b (deployed captured template) and T9c (scratch-projection equivalence +-1e-9):
     # judged from the unit log of the captured-state tests (AMENDMENT_5 §4, review B-4)
     # AMENDMENT_6 §1: each row also needs the capture provenance of the captures it reads (TL3 BASE; T9c also the
@@ -1428,10 +1640,7 @@ def g14(I, args):
                                   'support table (+-1e-9)',
                                   provenance=captured_provenance(unit, I.tree, (('TL3', 'BASE'), ('T9C', 'BASE'))))
     ok_ii, n_ii = [], 0
-    for T in sc.ROBS61_T:
-        cap = I.cap('ROBS61', T, J)
-        if cap and cap.get('ok'):
-            fh_caps.append((f'robs_{T}', cap))
+    fh_caps += robs_caps
     for name, cap in fh_caps:
         why = g14_row_problems(cap)                       # review r4 B-r4-3: a probe failure is not judged
         if why:
@@ -1485,7 +1694,8 @@ def g14(I, args):
                                               'report: post-head shares kept as 127 head packets for want of receiver '
                                               'room, branches (a) and (d) (AMENDMENT_7/8 §1 frequency)', None,
                                               judged=False, rows=kept_rows[:60])
-    return gate('G-EB-14', 'post-head vehicles (B8 + B1)', 'R-obs3 61 key-on captures, FH 45 captures (SAF), unit '
+    return gate('G-EB-14', 'post-head vehicles (B8 + B1)', 'ROBS61 key-on captures of each judged R-obs seed '
+                '(31 / 43 / 47 with a valid record, capturable states, amendment 13), FH 45 captures (SAF), unit '
                 'T9b / T9c (captured-state tests)', items, missing=missing)
 
 

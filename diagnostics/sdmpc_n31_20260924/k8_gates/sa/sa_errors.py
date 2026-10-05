@@ -87,3 +87,41 @@ def log_error_site(text, trailing=LOG_TRAILING_LINES):
 def classify(text):
     """(kind, site) of a recorded traceback text, as a child writes them into its record."""
     return error_kind(text), error_site(text)
+
+
+_FRAME_FULL = re.compile(r'^\s*File "(?P<path>[^"]+)", line (?P<line>\d+), in (?P<func>\S+)\s*$')
+
+
+def _runtime_rel(path):
+    """The runtime frame path from its runtime folder on (evaluation/..., vendor/..., diagnostics/...), lower case
+    with '/', so the same code under two roots compares equal."""
+    parts = [p for p in str(path).replace('\\', '/').lower().split('/') if p]
+    for i, p in enumerate(parts):
+        if p in RUNTIME_DIRS:
+            return '/'.join(parts[i:])
+    return '/'.join(parts)
+
+
+def traceback_signature(text):
+    """K8 amendment 13 (G-EB-14 R-obs T=1/150, amendment 9 precedent "same place, same exception"): the signature of
+    the LAST traceback in `text` = (exception line, runtime frames as (path from the runtime folder, line, function),
+    innermost last).  None when the text holds no traceback with an exception line.  Two failures are "identical"
+    when their signatures are equal: the same exception type and message and the same runtime call path to the same
+    line (harness, standard library and installed-package frames are left out)."""
+    text = str(text or '')
+    at = text.rfind(TRACEBACK)
+    if at < 0:
+        return None
+    frames_, exc = [], None
+    for ln in text[at:].splitlines()[1:]:
+        m = _FRAME_FULL.match(ln)
+        if m:
+            if frame_site(m.group('path')) == 'runtime':
+                frames_.append((_runtime_rel(m.group('path')), int(m.group('line')), m.group('func')))
+            continue
+        if ln.strip() and ln[:1] not in (' ', '\t'):
+            exc = ln.strip()                                # the exception line ends the traceback
+            break
+    if exc is None:
+        return None
+    return exc, tuple(frames_)

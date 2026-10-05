@@ -95,6 +95,25 @@ class Inputs:
     def nonevent_states(self):
         return [(s, T) for s, T in self.fh_states() if (self.state_ref(s, T) or {}).get('nonevent_state')]
 
+    # ------------------------------------------------------------------ amendment 13 (TL3m)
+    def robs_validity(self, seed):
+        """R-obs validity record of a TL3m seed (sa_tl3m.py validity), or None (absent / unreadable)."""
+        rec = sc.read_validity(seed)
+        if rec is None:
+            self.missing.append(f'R-obs validity record s{seed}')
+        return rec
+
+    def tl3m_job(self, T, arm, entry, H, seed):
+        """TL3m job of an R-obs seed (s31 = the TL3 label without a seed tag).  A summary whose job does not name this
+        seed and harness TL3 is not this job: None, listed missing."""
+        s = self.jobx('TL3', T, arm, entry, H, seed=seed)
+        job = (s or {}).get('job') or {}
+        if s is not None and (job.get('seed') != int(seed) or job.get('harness') != 'TL3'):
+            self.missing.append(f'job seed/harness mismatch TL3 s{seed} {T} {arm} {entry} H{H}: '
+                                f'{job.get("seed")} {job.get("harness")}')
+            return None
+        return s
+
     # ------------------------------------------------------------------ side files
     def compare(self, name):
         d = sc.read_json(sc.sa_out() / 'compare' / f'{name}.json')

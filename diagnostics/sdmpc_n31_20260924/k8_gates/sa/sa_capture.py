@@ -20,6 +20,10 @@ kind      what                                                         default T
           tests/test_stopline_approach_captured.py T9c next to TL3/<T>/BASE.
 arm: BASE | SAF | SAG (tunings from sa_arms.py).  --tree labels the code root (k86 = this K8-6 head; e.g. k85/k84 for
 the previous runtime commit unpacked by `git archive` and passed as --root, G-EB-1).
+--robs-seed S (tl3 / robs61 only; K8 amendment 13 TL3m): capture from the R-obs run of seed S instead of R-obs3 s31:
+the R-obs folder becomes <runs root>/sdmpc31_v3c3_nc_s<S> (its decisions, provenance and previous actions), the
+replay states <out>/replays/s<S>/<T> (sa_tl3m.py prep) and the output folders carry _s<S>; refused unless
+sa_tl3m.py validity wrote status valid for S (the run is finished and its FZP equals the same-seed NC FZP).
 Outputs <out>/sa/cap/<tree>/<KIND>/<T>[_s<seed>][_f<frameT>]/<arm>/ and <out>/sa/full/<tree>/<T>_<arm>[_<tag>]/.
 A failed attempt leaves capture_failed.json (error_kind 'killed' when the child wrote no record, else the child's own
 error_kind / error_site of its full traceback, sa_errors, K8 amendment 7 §2; the log tail is reported only,
@@ -52,6 +56,8 @@ def parse():
     ap.add_argument('T', nargs='*', type=int)
     ap.add_argument('--tree', default='k86', help='label of the code root (output folder level)')
     ap.add_argument('--seeds', default='31,41,43,47,53', help='fh: seeds (v3c3 NC fit seeds only)')
+    ap.add_argument('--robs-seed', type=int, default=sc.ROBS_SEED,
+                    help='tl3 / robs61: R-obs run seed (31 = R-obs3; 43 / 47 = amendment 13 TL3m runs)')
     ap.add_argument('--frames', default='T', help="fh: template frames relative to T, e.g. 'T-150,T,T+150' (H-5)")
     ap.add_argument('--fh-disabled', action='store_true', help='fh: install the hook but transplant nothing (H-0)')
     ap.add_argument('--data', help='x2 ext parquet folder (default <out>/opt1v2/data)')
@@ -92,7 +98,10 @@ def plan(args):
                     rows.append(dict(harness='FH', T=T, seed=s, frame_T=f))
     else:
         harness = {'tl3': 'TL3', 'dp': 'DP', 'robs61': 'ROBS61', 'full': 'FULL', 't9c': 'T9C'}[kind]
-        rows = [dict(harness=harness, T=T, seed=31 if kind != 'full' else None, frame_T=T) for T in Ts]
+        seed = int(getattr(args, 'robs_seed', sc.ROBS_SEED) or sc.ROBS_SEED)
+        if not sc.is_robs3(seed) and harness not in sc.ROBS_SEEDED_HARNESSES:
+            raise SystemExit(f'--robs-seed {seed}: only tl3 / robs61 capture from another R-obs run (amendment 13)')
+        rows = [dict(harness=harness, T=T, seed=seed if kind != 'full' else None, frame_T=T) for T in Ts]
     return rows
 
 
@@ -160,7 +169,10 @@ def run_capture(args, row, tuning):
     out = sc.cap_dir(args.tree, row['harness'], row['T'], args.arm, seed=row.get('seed'), frame_T=row['frame_T'])
     if args.kind == 'fh' and args.fh_disabled:
         out = out.parent / (out.name + '_fhoff')
-    replay = c.REPLAYS / f'{row["frame_T"]:06d}'
+    # amendment 13: TL3 / ROBS61 replay the state of their own R-obs seed (s31 = <out>/replays/<T> as before); FH
+    # templates stay R-obs3 frames (the FH seed is the island seed)
+    rseed = row.get('seed') if row['harness'] in sc.ROBS_SEEDED_HARNESSES else None
+    replay = sc.replay_dir(row['frame_T'], rseed)
     if args.dry_run:
         ok = (replay / 'replay_manifest.json').is_file()
         print(f'DRY {row} -> {out}  replay={"ok" if ok else "MISSING " + str(replay)}  tuning={tuning["path"]}')
@@ -172,11 +184,14 @@ def run_capture(args, row, tuning):
     if (out / 'capture.json').is_file():
         print(f'SA_CAPTURE_SKIP exists {out}', flush=True)
         return
+    bad = replay_source_problem(replay) if rseed is not None else None
+    if bad:
+        raise SystemExit(f'{replay}: {bad} (amendment 13: a TL3 / ROBS61 state replays its own R-obs run)')
     out.mkdir(parents=True, exist_ok=True)
     stale = set_aside_failure(out)
     spec = {k: row.get(k) for k in ('harness', 'T', 'seed', 'frame_T')}
     spec.update(arm=args.arm, tree=args.tree, tuning={'path': tuning['path'], 'sha256': tuning['sha256']},
-                h_long=H_LONG[args.kind], fh=None)
+                h_long=H_LONG[args.kind], fh=None, robs=str(c.ROBS), replay=str(replay))
     if args.kind == 'fh':
         spec['fh'] = {'spec_path': str(build_fh_spec(args, row['seed'], row['T'], row['frame_T'])),
                       'enabled': not args.fh_disabled}
@@ -188,6 +203,23 @@ def run_capture(args, row, tuning):
     if not (out / 'capture.json').is_file():
         sc.write_json(out / 'capture_failed.json', failure_record(out, code, wall, stale))
     print(f'SA_CAPTURE {row} arm={args.arm} exit={code} wall={wall} out={out}', flush=True)
+
+
+def replay_source_problem(replay):
+    """Amendment 13: a TL3 / ROBS61 replay state must come from the decisions of the configured R-obs run (c.DEC,
+    i.e. --robs-seed): the manifest's source_decisions.  None = fine or no manifest (a missing replay fails in the
+    child as before)."""
+    try:
+        man = sc.read_json(Path(replay) / 'replay_manifest.json')
+    except ValueError:
+        return 'replay_manifest.json unreadable'
+    if man is None:
+        return None
+    norm = lambda p: os.path.normcase(os.path.abspath(str(p)))
+    src = man.get('source_decisions')
+    if not src or norm(src) != norm(c.DEC):
+        return f'replay source {src} is not the R-obs decisions {c.DEC}'
+    return None
 
 
 def set_aside_failure(out):
@@ -282,9 +314,27 @@ def run_full(args, row, tuning):
     print('SA_FULL', json.dumps(rec, default=str), flush=True)
 
 
+def use_robs_seed(args):
+    """Amendment 13: point the process at the R-obs run of --robs-seed (decisions, provenance, previous actions) and
+    refuse a seed without a valid R-obs validity record (sa_tl3m.py validity: the run finished and its FZP equals
+    the same-seed NC FZP), so nothing is read from a run still in progress.  s31 = R-obs3, unchanged."""
+    seed = int(args.robs_seed)
+    if sc.is_robs3(seed):
+        return
+    sc.guard_tl3m_seed(seed)
+    if args.kind not in ('tl3', 'robs61'):
+        raise SystemExit(f'--robs-seed {seed}: only tl3 / robs61 capture from another R-obs run (amendment 13)')
+    status, why = sc.validity_status(sc.read_validity(seed), seed)
+    if status != 'valid' and not args.dry_run:
+        raise SystemExit(f'R-obs s{seed} not usable ({status or "unknown"}: {why}); run sa_tl3m.py validity first')
+    c.configure(root=c.R, out=c.OUT, robs=sc.robs_dir(seed), nc3=c.NC3)
+    print(f'SA_CAPTURE_ROBS s{seed} validity={status or "unknown"} robs={c.ROBS}', flush=True)
+
+
 def main():
     args = parse()
     c.apply(args)
+    use_robs_seed(args)
     rows = plan(args)
     tuning = tuning_of(args.arm, args.dry_run)
     if args.kind == 't9c':
