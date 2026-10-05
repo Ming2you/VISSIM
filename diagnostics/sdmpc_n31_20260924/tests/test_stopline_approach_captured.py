@@ -19,7 +19,8 @@ equivalence asserts run outside subTest, so a failure fails the progress row its
 unittest subTest only as a SUBFAILED summary line under a PASSED row).
 
 T8b / T9b / T9c are in-process (templates unpickled, SA.initialize on a copy of the deployed BASE state with synthetic
-vehicle records).  T6b / T3-N7 / T15b share ONE sa_worker.py rollout of the TL3 SAF template (H3, A1 entry, REFERENCE,
+vehicle records).  K8 amendment 11 (D-K8-6): branch (a) post-head vehicles are departures of step t0 - 1, the
+pre-head clock runtime_setup leaves in that state (T8b, T9b and the T9b pre-head clock row).  T6b / T3-N7 / T15b share ONE sa_worker.py rollout of the TL3 SAF template (H3, A1 entry, REFERENCE,
 job probes T3N7 + T15b) in a BELOW_NORMAL subprocess (k8common.run), i.e. the gate harness's own worker path.
 """
 from __future__ import annotations
@@ -359,6 +360,19 @@ class T8bLedgerOnDeployedTemplateTests(CapturedRowTests):
         expected = (math.fsum(before.urban_arrival_buffer.get(GATE, {}).values()) - removed - counts['n_tail129']
                     + tags + info['tiny_moving_veh'])
         self.assertAlmostEqual(math.fsum(st.urban_arrival_buffer.get(GATE, {}).values()), expected, delta=TOL)
+        # K8 amendment 11 (D-K8-6): the post-head bookings are departures of t0 - 1; their receiver reservations are
+        # t0 - 1 + delay (delay >= 1), so the initialization adds no reservation cell before t0, and the corridor
+        # clocks stay where runtime_setup left them (last_step = t0 - 1).
+        t0 = info['step']
+        for name in ('urban_arrival_buffer', 'urban_storage_release_buffer'):
+            for key, row in getattr(st, name).items():
+                old = getattr(before, name).get(key, {})
+                early = sorted(d for d, v in row.items() if d < t0 and float(v) > float(old.get(d, 0.0)) + TOL)
+                self.assertEqual(early, [], f'{name}[{key}] gains reservations before t0 = {t0}')
+        for attr in ('native_input_prehead_state', 'native_input_route_state', 'route_choice_corridor_state',
+                     'sc2001_corridor_state'):
+            if getattr(before, attr, None) is not None:
+                self.assertEqual(getattr(st, attr)['last_step'], getattr(before, attr)['last_step'], attr)
         # I1 / I3 / I7 / I8 at t0 and the provenance audit (spec step 8).
         SA._check_index(st, cfg, spec, s, info['step'])
         audit_projection_provenance(prov, _occupancy(st, cfg), st.urban_movement_queue, st.ramp_queue)
@@ -366,8 +380,8 @@ class T8bLedgerOnDeployedTemplateTests(CapturedRowTests):
 
 # ================================================================================================ T9b
 class T9bPostheadDeployedTemplateTests(CapturedRowTests):
-    """Branch (a) on the deployed captured template (N11): side effects = the UFA departure path's.  Asserts outside
-    subTest (AMENDMENT_6 section 1)."""
+    """Branch (a) on the deployed captured template (N11): side effects = the UFA departure path's at the same step
+    t0 - 1 (K8 amendment 11, D-K8-6: the pre-head clock).  Asserts outside subTest (AMENDMENT_6 section 1)."""
 
     def test_posthead_side_effects_equal_the_departure_path(self):
         from src.models import urban_queue_model as uqm
@@ -390,7 +404,7 @@ class T9bPostheadDeployedTemplateTests(CapturedRowTests):
         specs = uqm.movement_specs(cfg)
         for call in calls:
             movement = call['movement']
-            self.assertEqual(call['step'], t0, movement)
+            self.assertEqual(call['step'], t0 - 1, movement)                    # amendment 11: departures of t0 - 1
             self.assertEqual(call['receiving_link'], str(specs[movement].get('receiving_link', '')), movement)
             old = copy.deepcopy(call['pre'])
             _old_post_block(old, cfg, movement, call['actual'], call['step'], call['routing'], specs[movement])
@@ -401,6 +415,44 @@ class T9bPostheadDeployedTemplateTests(CapturedRowTests):
             probe = copy.deepcopy(call['pre'])
             self.assertIs(ufa._receive_corridor(probe, cfg, movement, call['actual'], call['step']), False,
                           movement)                                           # W members: receive_accepted False
+
+    def test_posthead_departure_on_the_prehead_clock(self):
+        """K8 amendment 11 (D-K8-6) on the deployed TL3 BASE frame: runtime_setup leaves the native pre-head clock at
+        t0 - 1 (native_input_prehead.initialize: last_step = finished_step = t0 - 1, before SA.initialize).  Post-head
+        vehicles injected into that frame initialize; every booked share goes through the departure path at t0 - 1
+        (the same departure at t0, the K8-6 a68953c booking, raises in the pre-head accept hook), the corridor clocks
+        stay at t0 - 1, and the next step t0 advances the pre-head (and the route tags) on the SA state as on BASE.
+        Asserts outside subTest (AMENDMENT_6 section 1)."""
+        from evaluation.controllers import native_input_prehead as nip
+        from evaluation.controllers import native_input_routes as nir
+        from evaluation.controllers import urban_flow_accounting as ufa
+        run = _deployed_init(posthead=True, spy=True)
+        cfg, before, st, calls = run['cfg'], run['before'], run['state'], run['calls']
+        t0 = run['meta']['stopline_approach_initial']['step']
+        local0 = getattr(before, 'native_input_prehead_state', None)
+        if local0 is None or not nip._inputs(cfg):
+            raise unittest.SkipTest('captured BASE frame has no native pre-head state: the t0 - 1 clock is not there')
+        self.assertEqual((local0['last_step'], local0['finished_step']), (t0 - 1, t0 - 1))
+        if not calls:
+            raise unittest.SkipTest('no post-head share fits its receiver in this frame: the departure path is not '
+                                    'reached')
+        self.assertEqual(sorted({c['step'] for c in calls}), [t0 - 1])
+        first = calls[0]
+        with self.assertRaisesRegex(ValueError, 'clock mismatch|wrong step'):
+            ufa._post_service(copy.deepcopy(first['pre']), cfg, first['movement'], first['actual'], t0,
+                              first['routing'], first['receiving_link'])
+        local = st.native_input_prehead_state
+        self.assertEqual((local['last_step'], local['finished_step']), (t0 - 1, t0 - 1))
+        for attr in ('native_input_route_state', 'route_choice_corridor_state', 'sc2001_corridor_state'):
+            if getattr(before, attr, None) is not None:
+                self.assertEqual(getattr(st, attr)['last_step'], t0 - 1, attr)
+        for label, frame in (('BASE', before), ('SA', st)):
+            nxt = copy.deepcopy(frame)
+            nip.advance(nxt, cfg, t0)
+            self.assertEqual(nxt.native_input_prehead_state['last_step'], t0, label)
+            if getattr(nxt, 'native_input_route_state', None) is not None:
+                nir.advance(nxt, cfg, t0)
+                self.assertEqual(nxt.native_input_route_state['last_step'], t0, label)
 
 
 # ================================================================================================ T9c

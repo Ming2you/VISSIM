@@ -745,19 +745,61 @@ class InitLedgerTests(unittest.TestCase):
             self.assertTrue(all(d >= T0 + 1 for d in dues))
 
     def test_posthead_vehicles_use_the_departure_side_effects(self):
+        """Spec 5.8-4(a) with K8 amendment 11 (D-K8-6): each post-head vehicle is an accepted departure of the previous
+        step T0 - 1 (the pre-head clock): _post_service runs at T0 - 1 and the receiver reservation (release, and
+        arrival for a routed receiver) is T0 - 1 + delay of the debited receiver (UFA order), never before T0.  The
+        N receiver also gets the 10695 seed cells moved by branch (d) (T0 + 15; its stopped seed is 0)."""
         case = init_case()
         cfg, st = case[0], case[1]
         debited = copy.deepcopy(st)
         for target in T.RECV.values():
             debited.urban_link_storage[target] -= 1.0     # _post_service debits before the delay (UFA order)
         delays = {k: uqm._link_delay_steps(debited, cfg, k) for k in T.RECV.values()}
-        cfg, st, meta = run_init(case)
+        routing = uqm.approach_routing(cfg)
+        names = ('urban_storage_release_buffer', 'urban_arrival_buffer')
+        before = {(n, k): dict(getattr(st, n).get(k, {})) for n in names for k in T.RECV.values()}
+        steps = []
+        real = ufa._post_service
+
+        def spy(state, cfg_, movement, actual, step, routing_, receiving_link):
+            steps.append((movement, actual, step))
+            return real(state, cfg_, movement, actual, step, routing_, receiving_link)
+        with mock.patch.object(ufa, '_post_service', spy):
+            cfg, st, meta = run_init(case)
+        self.assertEqual(sorted(steps), sorted((m, 1.0, T0 - 1) for m in (E, S, N)))
         for member, target in T.RECV.items():
-            release = st.urban_storage_release_buffer.get(target, {})
-            self.assertIn(T0 + delays[target], release)
+            self.assertGreaterEqual(T0 - 1 + delays[target], T0)
+            for name in names:
+                if name == 'urban_arrival_buffer' and target not in routing:
+                    continue
+                want = {T0 - 1 + delays[target]: 1.0}
+                if target == T.RECV[N]:
+                    want[T0 + 15] = want.get(T0 + 15, 0.0) + 1.0        # branch (d): the 10695 moving seed cell
+                row, old = getattr(st, name).get(target, {}), before[(name, target)]
+                added = {d: row.get(d, 0.0) - old.get(d, 0.0) for d in set(row) | set(old)
+                         if abs(row.get(d, 0.0) - old.get(d, 0.0)) > 1e-12}
+                self.assertEqual(added.keys(), want.keys(), (name, target))
+                for d, v in want.items():
+                    self.assertAlmostEqual(added[d], v, places=12, msg=(name, target, d))
         packets = [p for l in SA.LANES for p in st.stopline_approach_state['lanes'][l]]
         # five queued vehicles; the 590 m one has no 1117 route and splits into E, S (lane 1) and N (lane 3)
         self.assertEqual(len([p for p in packets if p[0] == T0]), 7)
+
+    def test_posthead_departure_meets_the_corridor_clock(self):
+        """K8 amendment 11 (D-K8-6) regression on the toy: runtime_setup initializes every corridor state before SA with
+        last_step = t0 - 1, and each accept hook requires last_step == step (sdmpc_aggregate.prehead_accept 'clock
+        mismatch', native_input_prehead 'wrong step', route_choice / sc2001 receipts).  A stand-in corridor with that
+        contract receives the three post-head departures at T0 - 1 (K8-6 a68953c booked them at T0 and raised)."""
+        received = []
+
+        def corridor(state, cfg, movement, vehicles, step):
+            if step != T0 - 1:
+                raise ValueError('Aggregate pre-head service clock mismatch')
+            received.append((movement, vehicles, step))
+            return False
+        with mock.patch.object(ufa, '_receive_corridor', corridor):
+            run_init(init_case())
+        self.assertEqual(sorted(received), sorted((m, 1.0, T0 - 1) for m in (E, S, N)))
 
     def test_provenance_and_seed_failures(self):
         case = init_case()
@@ -783,7 +825,8 @@ class InitLedgerTests(unittest.TestCase):
 
     def test_posthead_branch_a_keeps_the_shortfall_on_127(self):
         """N-2 / K8 amendment 7 section 1 rule (A) (replaces amendment 6 section 2, review B-r3-1): a short receiver is
-        not refused in branch (a).  The share that fits the room is booked through _post_service (the receiver ends
+        not refused in branch (a).  The share that fits the room is booked through _post_service at T0 - 1 (K8
+        amendment 11, the pre-head clock; the receiver ends
         exactly full, never negative); the rest stays a head ready packet of the 127 lane the vehicle passed (due t0,
         its origin tag).  Mass is preserved, the deployed area-ledger inventory (control_area_objective
         model_stock_values, its _nonnegative) and the step-8 provenance audit pass, the kept share is reported and
@@ -804,7 +847,7 @@ class InitLedgerTests(unittest.TestCase):
             return real(state, cfg, movement, actual, step, routing, receiving_link)
         with mock.patch.object(ufa, '_post_service', spy):
             cfg, st, meta = run_init(case)                      # no StoplineInitError, no ProjectionError
-        self.assertIn((S, 0.5, T0, recv, 0.5), calls)            # only the share that fits the room is booked
+        self.assertIn((S, 0.5, T0 - 1, recv, 0.5), calls)        # only the share that fits the room is booked
         self.assertEqual(len(calls), 3)
         info = meta['stopline_approach_initial']
         self.assertEqual(info['posthead_veh'], 3.0)
@@ -855,7 +898,7 @@ class InitLedgerTests(unittest.TestCase):
         case = init_case(extra_provenance={'39': {'storage:' + recv: T.CAPS[recv] - 1.0}})
         with mock.patch.object(ufa, '_post_service', spy):
             cfg, st, meta = run_init(case)
-        self.assertIn((S, 1.0, T0, recv, 1.0), calls)
+        self.assertIn((S, 1.0, T0 - 1, recv, 1.0), calls)
         self.assertEqual(meta['stopline_approach_initial']['posthead_receiver_shortfall_veh'], 0.0)
         self.assertEqual(st.urban_link_storage[recv], 0.0)
         _cfg, ample, _meta = run_init(init_case())

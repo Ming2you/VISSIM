@@ -45,6 +45,17 @@ table is k8_gates/sa/README.md):
   urban storage goes negative, and the kept share is reported
   (posthead_receiver_shortfall_veh) and enters the lane-stock identity as
   N_shortfall_kept.  With room >= n nothing changes (bit equal).
+- Branch (a) departure step (K8 amendment 11, user decision D-K8-6): a
+  post-head vehicle crossed the stop line before the decision, so its booked
+  share is an accepted departure of the previous step t0 - 1, the clock that
+  runtime_setup leaves in the corridor states before SA.initialize
+  (native_input_prehead / native_input_routes / route_choice_corridor /
+  sc2001_corridor initialize last_step = t0 - 1, and their accept hooks
+  require last_step == step).  _post_service runs at t0 - 1, so receiver
+  reservations are t0 - 1 + delay (delay >= 1, never before t0).  Kept
+  shares stay head ready packets due t0 (amendments 7/8).  Branch (d) books
+  no departure (spec 5.8-4(d): its projection cells move unchanged, T9c), so
+  no step enters it.
 - Branch (d) posthead connector rehome (K8 amendment 8 section 1, review
   N-r6-1): the same rule (A) replaces the "Posthead rehome overfills"
   refusal.  Branch (a) still takes the receiver room first; of the
@@ -684,7 +695,7 @@ def initialize(state, cfg, state_json, detector_mapping, seed_split, *, tuning=N
     """RS hook #3 (after lane_plant_runtime.initialize, before area configure); {} when absent.
 
     Spec 5.8 as amended: install check, LOR approach rows, 127/10777 provenance
-    reversal, vehicle placement (a) post-head via _post_service, (b) ready,
+    reversal, vehicle placement (a) post-head via _post_service at t0 - 1 (K8 amendment 11), (b) ready,
     (c) moving, (d) posthead rehome, 129 tail, other-link ready mass, exact seed
     subtraction (K8-4 interface), speed, invariants, provenance audit.
     """
@@ -708,6 +719,9 @@ def initialize(state, cfg, state_json, detector_mapping, seed_split, *, tuning=N
     receiver = spec['receiver']
     L127, L10777, L129 = spec['stopline_link'], spec['connector_link'], spec['tail_link']
     t0 = _uqm._urban_step_index(state, cfg)
+    # K8 amendment 11 (D-K8-6): branch (a) books its post-head vehicles as departures of the previous step, the clock
+    # the corridor states hold at initialization (last_step = t0 - 1); receiver reservations follow from t0 - 1.
+    t_depart = t0 - 1
     routing = _uqm.approach_routing(cfg)
     records = complete_records(state_json)
     routes = complete_vehicle_routes(state_json, required=True)
@@ -791,15 +805,16 @@ def initialize(state, cfg, state_json, detector_mapping, seed_split, *, tuning=N
             for dest, w in _destinations(spec, route, spec['posthead_lane_prior'][l_obs]):
                 member = spec['member_of'][dest]
                 target = spec['receiver_of'][member]
-                # Spec 5.8-4(a): booked like an accepted departure, no refusal here (N-2; amendment 8 section 1:
-                # nor in branch (d)). Amendment 7 section 1 rule (A): only the share that fits
-                # the receiver room goes to the receiver (_post_service, never below 0); the rest stays a head
-                # ready packet of the 127 lane this vehicle passed (due t0, its origin tag; the lane's init_excess
-                # below covers a lane over its cap) and is reported. Room >= w: fit is w, nothing else runs.
+                # Spec 5.8-4(a): booked like an accepted departure of step t0 - 1 (K8 amendment 11, the pre-head
+                # clock), no refusal here (N-2; amendment 8 section 1: nor in branch (d)). Amendment 7 section 1
+                # rule (A): only the share that fits the receiver room goes to the receiver (_post_service, never
+                # below 0); the rest stays a head ready packet of the 127 lane this vehicle passed (due t0, its origin
+                # tag; the lane's init_excess below covers a lane over its cap) and is reported. Room >= w: fit is w,
+                # nothing else runs.
                 fit = min(w, max(0.0, state.urban_link_storage[target]))
                 kept = w - fit
                 if fit > 0.0:
-                    _post_service(state, cfg, member, fit, t0, routing, str(target))
+                    _post_service(state, cfg, member, fit, t_depart, routing, str(target))
                     new127['storage:' + target] += fit
                 if kept > 0.0:
                     if source is None:
