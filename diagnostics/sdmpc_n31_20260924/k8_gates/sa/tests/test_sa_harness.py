@@ -1990,6 +1990,37 @@ def test_full_run_records_the_site_of_its_last_traceback(out_root, monkeypatch):
     assert sc.full_outcome({'exit': 1}, log_text='x\n' + _tb(INV)) == 'failed'      # run.json without error_site
 
 
+def test_full_run_records_the_selected_objective(out_root, monkeypatch):
+    """K8 amendment 11 (K8-0f): run.json objective is joint_leader_selection.selected_objective of the action JSON (the
+    deployed key; the former read of the absent key 'objective' was None on every run) with objective_key, next to
+    held_objective and the CSV sha256; an action JSON without the key leaves objective None (no fallback key)."""
+    import sa_capture
+    from types import SimpleNamespace
+    monkeypatch.setattr(sc.c, 'adapter_args', lambda replay, out, tuning=None: (2700, []))
+    monkeypatch.setattr(sc.c, 'base_env', lambda *a, **k: {'PYTHONPATH': 'a;b'})
+    selections = [{'selected_objective': 496.8425457870215, 'held_objective': 506.0624474786317,
+                   'warm_start_objective': 499.5, 'selection_status': 'best_observed_feasible_sdmpc'},
+                  {'objective': 1.0, 'held_objective': 2.0}]
+
+    def fake_run(cmd, log, env, cwd=None):
+        Path(log).write_text('start\n', encoding='utf-8')
+        out = Path(log).parent
+        (out / 'action_002700.json').write_text(json.dumps({'metadata': {'joint_leader_selection': selections.pop(0)}}),
+                                                encoding='utf-8')
+        (out / 'action_002700.csv').write_bytes(b'a,b\n1,2\n')
+        return 0, 0.1
+    monkeypatch.setattr(sc.c, 'run', fake_run)
+    tuning = {'path': 'tuning.json', 'sha256': None}
+    assert sa_capture.FULL_OBJECTIVE_KEY == 'selected_objective'
+    for tag, objective, held in (('sel', 496.8425457870215, 506.0624474786317), ('old', None, 2.0)):
+        args = SimpleNamespace(tree='k86', arm='BASE', tag=tag, chain='site', s3_table=None, dry_run=False)
+        sa_capture.run_full(args, {'T': 2700}, tuning)
+        run = sc.read_json(sc.full_dir('k86', 2700, 'BASE', tag) / 'run.json')
+        assert repr(run['objective']) == repr(objective) and repr(run['held_objective']) == repr(held), tag
+        assert run['objective_key'] == 'selected_objective' and run['csv_sha256'] and run['exit'] == 0, tag
+        assert sc.full_outcome(run) == 'ok', tag
+
+
 def _g1_world(tree, base, *, dp=None, tl3=None, full=None):
     """Synthetic G-EB-1 inputs: DP 17 BASE captures, TL3 9 x 2 BASE summaries and the full 2700 BASE run of both
     trees, all finished and equal; dp/tl3/full map a side ('tree' | 'base_tree') to a record override."""
@@ -2077,6 +2108,24 @@ def test_g1_pairs_need_both_runs_finished(out_root, monkeypatch):
         assert items['full2700'] is want, full
     assert sa_compare.pair_state({'tree': 'ok', 'base_tree': 'ok'}) is None
     assert sa_compare.pair_state({'tree': 'failed', 'base_tree': 'ok'})['equal'] is False
+
+
+def test_g1_full_objective_absent_is_incomplete(out_root, monkeypatch):
+    """K8 amendment 11 (K8-0f): both full 2700 runs finished but a side without objective or held objective (the
+    pre-K8-0f run.json, objective None on both sides) is missing -> INCOMPLETE, never None == None -> PASS; equal
+    values pass, a differing objective fails."""
+    import pickle
+    monkeypatch.setattr(sa_compare, 'load_pickle', lambda p: pickle.loads(Path(p).read_bytes()))
+    done = {'exit': 0, 'action_json_bytes': 99, 'objective': 2.0, 'held_objective': 2.0, 'csv_sha256': 'a'}
+    pre = dict(done, objective=None)
+    for full, want in (({}, True), ({'tree': pre, 'base_tree': pre}, None), ({'tree': pre}, None),
+                       ({'base_tree': dict(done, held_objective=None)}, None),
+                       ({'tree': dict(done, objective=2.5)}, False)):
+        _g1_world('k86', 'k85', full=full)
+        items, res = _g1_items()
+        assert items['full2700'] is want, full
+        assert items['dp17'] is True and items['tl3'] is True
+        assert ('missing' in res['full']['2700']) is (want is None), full
 
 
 def test_g1_t11_follows_the_g9_missing_rule(out_root):

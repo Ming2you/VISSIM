@@ -228,6 +228,9 @@ def failure_record(out, code, wall, stale=None):
 
 
 error_kind = sc.error_kind               # the one table (sa_errors, amendment 7 §2; review N-r4-2)
+# K8 amendment 11 (K8-0f): the key under which the deployed leader selection (action JSON metadata
+# joint_leader_selection) records the objective of the selected plan (with held_objective, warm_start_objective).
+FULL_OBJECTIVE_KEY = 'selected_objective'
 
 
 def run_full(args, row, tuning):
@@ -267,9 +270,12 @@ def run_full(args, row, tuning):
     action = out / f'action_{row["T"]:06d}.json'
     if action.is_file():
         d = json.loads(action.read_text(encoding='utf-8'))
-        m = d.get('metadata', {})
-        rec.update(action_json_bytes=action.stat().st_size, objective=(m.get('joint_leader_selection') or {}).get('objective'),
-                   held_objective=(m.get('joint_leader_selection') or {}).get('held_objective'),
+        selection = d.get('metadata', {}).get('joint_leader_selection') or {}
+        # K8 amendment 11 (K8-0f): the former read of the absent key 'objective' left run.json objective None on
+        # every run, so G-EB-1 compared None with None.  No fallback key: an absent objective stays None and
+        # sa_compare.g1 reads it as missing (INCOMPLETE).
+        rec.update(action_json_bytes=action.stat().st_size, objective=selection.get(FULL_OBJECTIVE_KEY),
+                   objective_key=FULL_OBJECTIVE_KEY, held_objective=selection.get('held_objective'),
                    csv_sha256=(sc.sha256_file(out / f'action_{row["T"]:06d}.csv')
                                if (out / f'action_{row["T"]:06d}.csv').is_file() else None))
     sc.write_json(out / 'run.json', rec)

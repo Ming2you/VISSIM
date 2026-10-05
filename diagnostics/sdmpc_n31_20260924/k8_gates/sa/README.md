@@ -7,6 +7,8 @@ SC1001 EB 안 1 v2(차로 FIFO 패킷, 모듈 SA)의 관문 G-EB-0…14와 FH �
 - 규칙은 상위 k8_gates와 같습니다. VISSIM·cscript 실행은 없고, 무거운 작업(●)은 한 번에 하나만 돌립니다. `python -B`, `PYTHONHASHSEED=0`, BELOW_NORMAL(도구가 스스로 낮춤)을 씁니다. 출력은 `--out`(기본 `k8common.DEFAULT_OUT`) 아래 `sa/`이고, 저장소 안이면 거부합니다.
 - **이 커밋(K8-0e, K8 head ec063ff = K8-4 런타임 위로 rebase)에서는 `--help`, `--dry-run`, 컴파일, 합성 입력 단위 시험(`tests/test_sa_harness.py`, 보충 10 규칙 시험 (a)(b)(c) 포함), `sa_anchors.py --from-rev 5eef6be`(31곳 모두 앵커 대응, 탐색 대체 0)만 돌렸습니다.** 포착·롤아웃·관문 계산은 아직 한 번도 돌리지 않았습니다.
 
+- **K8-0f(보충 11, 도구 커밋)**: `sa_capture.run_full`의 run.json `objective`는 action JSON `metadata.joint_leader_selection.selected_objective`(`sa_capture.FULL_OBJECTIVE_KEY`, `objective_key`로 기록)입니다. 이전에는 없는 키 `objective`를 읽어 늘 None이었고 G-EB-1 full 2700 비교가 None == None으로 비어 있었습니다. 이제 `sa_compare.py g1`은 두 run이 끝났는데 한쪽이라도 objective·held_objective가 None이면 그 행을 missing(INCOMPLETE)으로 둡니다. 출력 루트는 `--out`/`K8G_OUT`로 줍니다(보충 11 단계: `D:/VISSIM-merge/k8_gates_out_v2`, 기준 트리 사본 `D:/VISSIM-merge/k8_gate_trees/`). 문턱·표본·정의는 바꾸지 않았습니다.
+
 ## 단계와 도구
 
 | 순서 | 도구 | 하는 일 | 출력(`<out>/sa/…`) |

@@ -7,6 +7,8 @@ what
          DP 17 BASE templates <tree> vs <base-tree>: every numeric field equal (timing excluded, p3_compare.py rule)
          TL3 9 x {OBS, A1} BASE H3 summaries: objective repr + every numeric field equal
          2700 full decision (full/<tree>/002700_BASE vs <base-tree>): objective / held_objective repr, CSV sha256
+         (objective = joint_leader_selection.selected_objective, sa_capture.FULL_OBJECTIVE_KEY; an absent objective
+         or held objective on either side is missing -> INCOMPLETE, K8 amendment 11 / K8-0f)
   g9   T11 (G-EB-9): DP templates BASE vs SAF (same tree): the 8 meters' service_by_green_veh_h, the capture's
        lane_ramp_head_service_normalisation, SC109's movements (spec + final capacity) byte-identical (canonical JSON)
   h0   H-0: FH captures with the transplant disabled (FH0_* jobs) vs the TL3 jobs (same T, arm, OBS, H3)
@@ -159,6 +161,16 @@ def g1(args):
             out['full'][str(T)] = row
             continue
         ra, rb = runs['tree'], runs['base_tree']
+        # K8 amendment 11 (K8-0f): both runs finished but a side without its objective / held objective (run.json of
+        # an older harness, or an action JSON without the key) cannot show equality: missing (INCOMPLETE), never
+        # None == None.
+        absent = ['%s run.json %s absent' % (s, k) for s, r in (('tree', ra), ('base_tree', rb))
+                  for k in ('objective', 'held_objective') if r.get(k) is None]
+        if absent:
+            out['full'][str(T)] = {'missing': absent, 'objective': [repr(ra.get('objective')), repr(rb.get('objective'))],
+                                   'held_objective': [repr(ra.get('held_objective')), repr(rb.get('held_objective'))],
+                                   'csv_sha256': [ra.get('csv_sha256'), rb.get('csv_sha256')]}
+            continue
         out['full'][str(T)] = {'objective': [repr(ra.get('objective')), repr(rb.get('objective'))],
                                'held_objective': [repr(ra.get('held_objective')), repr(rb.get('held_objective'))],
                                'csv_sha256': [ra.get('csv_sha256'), rb.get('csv_sha256')],
