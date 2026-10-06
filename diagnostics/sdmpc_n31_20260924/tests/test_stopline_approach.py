@@ -1500,6 +1500,76 @@ class OutsideCohortTests(unittest.TestCase):
         self.assertEqual(SA.depart(st, cfg, E, realized[E], 75, T.RECV[E]), 0.0)
 
 
+# ------------------------------------- K8-6c fold-site visit counters (K8 amendment 14)
+
+FOLD_EVENT_KEYS = ('fold_service_residual_events', 'fold_city_share_events', 'merge_tiny_transfer_events',
+                   'untagged_port_share_events')
+FOLD_VEH_KEYS = ('fold_carry_veh', 'merge_tiny_transfer_veh', 'untagged_port_share_veh')
+
+
+def tiny_dual(value=1e-17):
+    """The tangent run's value where the scalar witness holds exactly 0.0 (primal differs by arithmetic order)."""
+    from evaluation.controllers import sdmpc_dual as ad
+    return ad.Dual(value, {0: 1.0}, ad.Trace([1.0]))
+
+
+class FoldVisitCounterTests(unittest.TestCase):
+    """K8 amendment 14 (user decision D-K8-8, K8-6c): the *_events counters of the four fold sites count site visits,
+    not primal != 0.  Every caller enters its site on the primal <= 1e-12 predicate (N19), so the scalar witness
+    (primal 0.0) and the tangent run (primal 1e-17) hold identical counters.  The *_veh sums stay |primal| sums: they
+    differ by the folded primals only (<= 1e-12 per visit), inside the 1e-8 state comparison tolerance."""
+
+    def visit_sites(self, value):
+        _cfg, st = T.bare(75)
+        s = st.stopline_approach_state
+        SA._fold_service_residual(s, 1, E, value)
+        SA._fold_city_share(s, 2, E, value)
+        SA._merge_tiny_transfer(s, 0.5, value)
+        SA._skip_tiny_port_share(s, 3, N, value)
+        return s['counters']
+
+    def test_zero_and_tiny_primal_count_the_same_visits(self):
+        scalar, tangent = self.visit_sites(0.0), self.visit_sites(tiny_dual())
+        for key in FOLD_EVENT_KEYS:
+            with self.subTest(key=key):
+                self.assertEqual(scalar[key], 1.0)
+                self.assertEqual(tangent[key], scalar[key])
+        for key in FOLD_VEH_KEYS:
+            with self.subTest(key=key):
+                self.assertEqual(scalar[key], 0.0)
+                self.assertLessEqual(abs(tangent[key] - scalar[key]), 2e-17)
+        for key in SA.COUNTER_KEYS:
+            if key not in FOLD_EVENT_KEYS + FOLD_VEH_KEYS:
+                self.assertEqual((key, tangent[key]), (key, scalar[key]))
+
+    def test_admission_fold_of_the_adfull_failure(self):
+        """The G-EB-11(e) adfull site (amendment 14): _admit folds both E lane shares of a primal <= 1e-12 city amount;
+        a scalar 0.0 and a Dual 1e-17 count the same two visits and create no packet."""
+        out = []
+        for value in (0.0, tiny_dual()):
+            cfg, st = T.bare(75)
+            s = st.stopline_approach_state
+            SA._admit(s, SA.view(cfg), 75, E, value, 'city')
+            self.assertEqual(s['lanes'], {1: [], 2: [], 3: []})
+            out.append(s['counters'])
+        self.assertEqual(out[0]['fold_city_share_events'], 2.0)
+        self.assertEqual(out[1]['fold_city_share_events'], out[0]['fold_city_share_events'])
+        self.assertLessEqual(abs(out[1]['fold_carry_veh'] - out[0]['fold_carry_veh']), 2e-17)
+
+    def test_pure_city_departure_visits_the_merge_site(self):
+        """depart (UFA hook #10) with a port share of primal exactly 0.0 enters _merge_tiny_transfer: one visit."""
+        cfg, st = T.bare(75)
+        T.add_ready(st, cfg, 1, E, 0.3, 70, source='city')
+        ledger = T.attach_ledger(st, cfg, capture=True)
+        ledger.begin_response_step('urban', 75, 76)
+        SA.split_arrival(st, cfg, 75, 0.0, uqm.approach_routing(cfg)[IN])
+        realized = SA.resolve(st, cfg, dict(SA.intended(st, T.control(), cfg, 75)))
+        self.assertEqual(SA.depart(st, cfg, E, realized[E], 75, T.RECV[E]), realized[E])
+        c = st.stopline_approach_state['counters']
+        self.assertEqual(c['merge_tiny_transfer_events'], 1.0)
+        self.assertEqual(c['merge_tiny_transfer_veh'], 0.0)
+
+
 # ------------------------------------------------- T13/T13b/T20 (tangent probe)
 
 def probe(backend, scenario):

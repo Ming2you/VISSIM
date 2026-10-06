@@ -19,7 +19,8 @@ AD rules (amendment section 5.9, N19)
   Finder instruments them; float() coercion is not used on traffic values.
 - The four fold sites are named functions (hook anchors that survive rebases):
   _fold_service_residual, _fold_city_share, _merge_tiny_transfer,
-  _skip_tiny_port_share.
+  _skip_tiny_port_share.  Their *_events counters count site visits (K8
+  amendment 14, user decision D-K8-8).
 
 Key absent: nothing here runs and no attribute is created (configure and
 initialize return {} before touching cfg or state).
@@ -198,30 +199,35 @@ def _due(step, distance_m, sigma, stock_ahead, speed_kmh):
 # ------------------------------------------------------ fold sites (anchors)
 # Counters live in the compared state, so they read primal values only: the
 # scalar witness and the tangent run must hold identical counters (N19). The
-# tangent-side event counts of G-EB-11 (d) and N-A4 belong to the gate hooks
+# *_events counters count site visits (K8 amendment 14, D-K8-8): every caller
+# enters its site on the primal <= 1e-12 predicate, so a visit is the same in
+# both runs, whereas primal != 0 is not (0.0 in the scalar witness, 1e-17 in
+# the tangent run by arithmetic order). The *_veh sums add |primal| (<= 1e-12
+# per visit; adding a zero is skipped, bit equal), inside the state tolerance.
+# The tangent-side event counts of G-EB-11 (d) and N-A4 belong to the gate hooks
 # that wrap these four named functions (K8-0e), not to the model state.
 
 def _fold_service_residual(st, lane, member, residual):
     """Rule 2 site 1: a deleted packet's residual (primal <= 1e-12) joins carry."""
     st['carry'][lane][member] = st['carry'][lane][member] + residual
+    _count(st, 'fold_service_residual_events', 1.0)
     if _p(residual) != 0.0:
         _count(st, 'fold_carry_veh', abs(_p(residual)))
-        _count(st, 'fold_service_residual_events', 1.0)
 
 
 def _fold_city_share(st, lane, member, amount):
     """Rule 2 site 2: a primal <= 1e-12 city/initial ready share joins carry."""
     st['carry'][lane][member] = st['carry'][lane][member] + amount
     st['stock'][lane] = st['stock'][lane] + amount
+    _count(st, 'fold_city_share_events', 1.0)
     if _p(amount) != 0.0:
         _count(st, 'fold_carry_veh', abs(_p(amount)))
-        _count(st, 'fold_city_share_events', 1.0)
 
 
 def _merge_tiny_transfer(st, kept, tiny):
     """Rule 2 site 3: a primal <= 1e-12 transfer share merges into its sibling."""
+    _count(st, 'merge_tiny_transfer_events', 1.0)
     if _p(tiny) != 0.0:
-        _count(st, 'merge_tiny_transfer_events', 1.0)
         _count(st, 'merge_tiny_transfer_veh', abs(_p(tiny)))
     return kept + tiny
 
@@ -232,8 +238,8 @@ def _skip_tiny_port_share(st, lane, member, amount):
     Its mass and tangent stay in the paired in_SC1001_W reservation and
     arrive untagged (gate beta split): redistributed, never discarded.
     """
+    _count(st, 'untagged_port_share_events', 1.0)
     if _p(amount) != 0.0:
-        _count(st, 'untagged_port_share_events', 1.0)
         _count(st, 'untagged_port_share_veh', abs(_p(amount)))
 
 
