@@ -98,6 +98,8 @@ def run(entry, argv=None):
         full = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__))
         try:
             preferred = report_path(argv)
+            if preferred is not None and '--hold-previous-action' in argv:
+                preferred = preferred.with_name(preferred.stem + '.hold.txt')
         except ValueError:  # e.g. an --out-action-json without a file name
             preferred = None
         path = _write_report(full, preferred)

@@ -637,7 +637,8 @@ class LaneOfframpRuntime:
         from src.models import urban_queue_model as uqm
         from evaluation.controllers.control_area_objective import get_ledger,emit_transfer
         from evaluation.controllers.urban_flow_accounting import _receive_corridor
-        from evaluation.controllers.route_choice_corridor import known_legsplit_receive, direct_exit_receive
+        from evaluation.controllers.route_choice_corridor import (
+            known_legsplit_receive, direct_exit_receive, direct_exit_receiving_space)
         if self.last_drain is not None and step!=self.last_drain+1:
             raise ValueError('Noncontiguous physical off-ramp drainage')
         self.assert_mirrors(state,cfg)
@@ -677,6 +678,7 @@ class LaneOfframpRuntime:
                 target=row['target']
                 service=row['drain_service_veh_h']/3600.
                 room=uqm._effective_available_space(state,cfg,target)
+                room=direct_exit_receiving_space(state,cfg,off,step,room)
                 requests.append((None,target,min(service,room),service,room))
             else:
                 # Distinct movements retain the existing conditional weights;

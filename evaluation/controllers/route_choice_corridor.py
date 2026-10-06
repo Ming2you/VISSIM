@@ -1031,6 +1031,9 @@ def configure_known_legsplit(cfg, tuning, state, raw):
     enabled = tuning.get('urban', {}).get('preserve_known_wout_routes', False)
     native_prior = tuning.get('urban', {}).get('known_wout_native_choice_prior', False)
     physical_travel = tuning.get('urban', {}).get('known_wout_physical_travel', False)
+    physical_speed = tuning.get('urban', {}).get('known_wout_physical_speed', False)
+    if type(physical_speed) is not bool or (physical_speed and not physical_travel):
+        raise ValueError('known_wout_physical_speed requires physical known W_out travel')
     if type(physical_travel) is not bool or (physical_travel and not native_prior):
         raise ValueError('known_wout_physical_travel requires the native future choice prior')
     if type(native_prior) is not bool or (native_prior and not enabled):
@@ -1118,11 +1121,14 @@ def configure_known_legsplit(cfg, tuning, state, raw):
         spec['future_choice_weights'], spec['future_choice_evidence'] = _known_native_choice_prior(tree, proof, destination_names)
     if physical_travel:
         spec['physical_travel'] = _known_travel_geometry(tree, proof, destination_names)
+        if physical_speed:
+            spec['physical_travel']['speed_source'] = 'physical_observation'
     net.known_legsplit_routes = spec
     initialize_known_legsplit(state, cfg, raw)
     return {'known_wout_routes_enabled':1., 'known_wout_initial_veh':_known_total(state),
             'known_wout_native_choice_prior':float(native_prior),
             'known_wout_physical_travel':float(physical_travel),
+            **({'known_wout_physical_observation_speed':1.} if physical_speed else {}),
             'known_wout_future_direct_native_path_prior':1., **diagnostics(state,cfg)}
 
 
@@ -1248,7 +1254,9 @@ def known_legsplit_receive(state,cfg,vehicles,due,*,movement=None,off_ramp=None,
             entry=travel['direct_entry']
             distance=_known_remaining(travel['destinations']['free'],entry['link'],entry['position_m'])
             origin=spec['storage']
-        speed=_speed(state,cfg,state.urban_link_speed_kph.get(origin))
+        speed=(_observed_travel_speed(state,cfg,origin)
+               if travel.get('speed_source') == 'physical_observation'
+               else _speed(state,cfg,state.urban_link_speed_kph.get(origin)))
         due=_due(cfg,entry_step,distance,speed)
         extra['speed_kph']=speed
     local['cohorts'].append({'target':target,'vehicles':float(vehicles),'due':int(due),
@@ -1348,6 +1356,9 @@ def configure_direct_exit_legsplit(cfg, tuning, state, raw):
     """Tag proven future10483 receipts; do not invent routes for initial124 stock."""
     enabled = tuning.get('urban', {}).get('preserve_direct_offramp_destinations', False)
     travel = tuning.get('urban', {}).get('sc1001_destination_travel')
+    shared_lane = tuning.get('urban', {}).get('sc1001_shared_lane_receiving', False)
+    if type(shared_lane) is not bool or (shared_lane and (not enabled or travel is None)):
+        raise ValueError('Shared-lane receiving requires direct destination travel')
     if type(enabled) is not bool:
         raise ValueError('preserve_direct_offramp_destinations must be boolean')
     if travel is not None and not enabled:
@@ -1405,9 +1416,54 @@ def configure_direct_exit_legsplit(cfg, tuning, state, raw):
         if travel.get('speed_source') == 'physical_observation':
             net.direct_exit_legsplit['travel']['speed_source'] = 'physical_observation'
             metadata['sc1001_physical_observation_speed'] = 1.
+        if shared_lane:
+            metadata['sc1001_shared_lane_receiving'] = _configure_direct_shared_lane(state,cfg,tree)
         return metadata
     _direct_exit_check(state, cfg)
     return {'direct_exit10483_destination_preserved':1., 'direct_exit10483_initial_tagged_veh':0.}
+
+
+def _configure_direct_shared_lane(state,cfg,tree):
+    """Finite queue reach from the existing meter head to the off-ramp entry.
+
+    No new stock or capacity gain: the ramp buffer and destination-labelled
+    city cohorts retain their sole owners. Only the inaccessible receiving
+    space of the shared physical lane is removed from the aggregate bound.
+    """
+    links={x.get('no'):x for x in tree.findall('./links/link')}
+    entry=links['10483'].find('toLinkEndPt')
+    branch=links['10480'].find('fromLinkEndPt')
+    if entry.get('lane')!='124 1' or branch.get('lane')!=entry.get('lane'):
+        raise ValueError('10483 and10480 no longer share the declared receiving lane')
+    distance=float(branch.get('pos'))-float(entry.get('pos'))
+    buffer=state.lane_ramp_runtime.buffers['RM_C10480']
+    if distance<=0 or buffer.lanes!=1 or buffer.head_position_m<=0:
+        raise ValueError('Shared-lane queue reach requires positive one-lane storage')
+    spec=dict(ramp='RM_C10480',physical_link='124',lane=1,
+              entry_position_m=float(entry.get('pos')),branch_position_m=float(branch.get('pos')),
+              head_position_m=buffer.head_position_m,spacing_m=buffer.spacing_m,
+              storage_veh_to_entry=(distance+buffer.head_position_m)/buffer.spacing_m,
+              approximation='Ready destination cohorts form the upstream queue; travel cohorts retain their ETA')
+    cfg.network.direct_exit_legsplit['shared_lane_receiving']=spec
+    return dict(spec)
+
+
+def direct_exit_receiving_space(state,cfg,connector,step,aggregate_room):
+    """Limit10483 drainage when10480's queue reaches its entry in124 lane1."""
+    direct=getattr(cfg.network,'direct_exit_legsplit',None) or {}
+    spec=direct.get('shared_lane_receiving')
+    if spec is None or str(connector)!=direct.get('connector'):
+        return aggregate_room
+    ramp=spec['ramp']
+    snapshot=state.lane_ramp_runtime.buffers[ramp].snapshot()
+    prehead=snapshot['upstream_travelling_veh']+snapshot['head_ready_veh']
+    pending=max(0.,state.ramp_queue[ramp]-snapshot['connector_veh'])
+    ready=sum(c['vehicles'] for c in state.direct_exit_route_state['cohorts']
+              if c['target']==ramp and c['due']<=step)
+    # Cars beyond the signal cannot extend a RED queue. Pending admissions
+    # have left the urban owner but have not yet entered the buffer this step.
+    room=max(0.,spec['storage_veh_to_entry']-prehead-pending-ready)
+    return min(aggregate_room,room)
 
 
 def _direct_exit_check(state, cfg):
@@ -1553,13 +1609,17 @@ def _direct_travel_speed(state,cfg,origin):
     travel=cfg.network.direct_exit_legsplit['travel']
     if travel.get('speed_source') != 'physical_observation':
         return _speed(state,cfg,state.urban_link_speed_kph.get(origin))
+    return _observed_travel_speed(state,cfg,origin)
+
+
+def _observed_travel_speed(state,cfg,origin):
     # The state field is lane-multiplied for the legacy vehicle-count distance.
     # These routes instead use metres from native geometry. The observation
     # summary retains the physical moving speed before that lane correction.
     summary=getattr(state,'local_observation_summary',{})
     speeds=summary.get('urban_link_speed_kph') if isinstance(summary,dict) else None
     if not isinstance(speeds,dict):
-        raise ValueError('SC1001 physical speed observation provenance is missing')
+        raise ValueError('Physical travel speed observation provenance is missing')
     return _speed(state,cfg,speeds.get(origin))
 
 

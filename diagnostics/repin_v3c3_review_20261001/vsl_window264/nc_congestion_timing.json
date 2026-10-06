@@ -1,0 +1,140 @@
+{
+  "source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\interim261\\to8100\\nc_snapshots.npz",
+  "source_sha256": "d3b6bddb62f9747c9925c694f092cee3689df5581c919af3bd6bccd1f834e1f4",
+  "arm": "no_control",
+  "seed": 29,
+  "last_snapshot_sec": 8100,
+  "measurement": "Actual native vehicle snapshot cell means, not plant prediction",
+  "criterion": "At least one physical31 cell in region has mean speed below60kmh and at least3 vehicles at the150s snapshot. Short isolated observations separately retained. No claim of continuous between-sample congestion.",
+  "regions": {
+    "front_ramp_group": {
+      "cells_zero_based": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "km": [
+        4.210303384615385,
+        5.262879230769231
+      ],
+      "episodes": [
+        {
+          "first_observed_sec": 300,
+          "last_observed_sec": 300,
+          "observations": 1
+        },
+        {
+          "first_observed_sec": 900,
+          "last_observed_sec": 1050,
+          "observations": 2
+        },
+        {
+          "first_observed_sec": 1350,
+          "last_observed_sec": 7950,
+          "observations": 45
+        }
+      ]
+    },
+    "between_ramp_groups": {
+      "cells_zero_based": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "km": [
+        5.262879230769231,
+        7.041711150016619
+      ],
+      "episodes": [
+        {
+          "first_observed_sec": 2250,
+          "last_observed_sec": 5400,
+          "observations": 22
+        }
+      ]
+    },
+    "rear_ramp_group": {
+      "cells_zero_based": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "km": [
+        7.041711150016619,
+        8.320099875
+      ],
+      "episodes": [
+        {
+          "first_observed_sec": 300,
+          "last_observed_sec": 450,
+          "observations": 2
+        },
+        {
+          "first_observed_sec": 900,
+          "last_observed_sec": 900,
+          "observations": 1
+        },
+        {
+          "first_observed_sec": 1200,
+          "last_observed_sec": 1500,
+          "observations": 3
+        },
+        {
+          "first_observed_sec": 1950,
+          "last_observed_sec": 5250,
+          "observations": 23
+        },
+        {
+          "first_observed_sec": 5550,
+          "last_observed_sec": 5550,
+          "observations": 1
+        },
+        {
+          "first_observed_sec": 7500,
+          "last_observed_sec": 7650,
+          "observations": 2
+        }
+      ]
+    }
+  },
+  "main_periods_sec": {
+    "front": [
+      1350,
+      7950
+    ],
+    "between": [
+      2250,
+      5400
+    ],
+    "rear": [
+      1950,
+      5250
+    ]
+  },
+  "rear_late_isolated_sec": 5550,
+  "proposed_comparison_only": {
+    "vsl90_sec": [
+      1800,
+      5700
+    ],
+    "otherwise_kmh": 110,
+    "reason": "One150s interval before sustained rear bottleneck; one interval beyond late5550 observation. Heuristic, not optimized or performance-validated.",
+    "applies_to": "Current downstream-target VSL zone; not a claim that upstream front bottleneck clears at5700.",
+    "current_run_changed": false,
+    "new_run_started": false
+  },
+  "limitations": [
+    "150s snapshots; boundary time precision is approximately one control interval or coarser.",
+    "The same activation window is not necessarily appropriate for front and rear bottlenecks.",
+    "NC clock windows are an experimental baseline, not proof of the best closed-loop activation window."
+  ]
+}

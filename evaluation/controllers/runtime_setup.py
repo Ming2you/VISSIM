@@ -88,6 +88,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         raise ValueError('Native timetable requires the verified native_internal_inputs source contract')
     a = adapter
     lane_context=None
+    ramp_contract={}
     lane_manifest=(tuning or {}).get('freeway',{}).get('lane_plant')
     spillback_projection=(tuning or {}).get('freeway',{}).get('lane_initial_spillback_projection',False)
     if type(spillback_projection) is not bool or (spillback_projection and lane_manifest is None):
@@ -97,7 +98,10 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
             raise ValueError('freeway.lane_plant requires an explicit pinned manifest')
         from evaluation.controllers import lane_plant_runtime
         lane_context=lane_plant_runtime.load_sources(lane_manifest)
+        ramp_contract=lane_plant_runtime.check_ramp_reference(tuning,lane_context)
         lane_context['initial_spillback_projection']=spillback_projection
+        lane_context['projection_capacity_policy']=(tuning.get('observation',{}).get(
+            'physical_branch_projection',{}) or {}).get('capacity_policy','strict')
         if lane_context.get('plant_mode')=='v2':
             # coupled-lane-plant/v2 (obs150): the effective tuning must match
             # the manifest, and every consumer below reads the MERGED state.
@@ -111,6 +115,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     local_observation = bool(a._link_counts_from_local_observation(state_json)
                              and (detector_mapping or physical_projection_input is not None))
     metadata = dict(a.install_vissim_calibration_runtime_patches(cfg, calibration))
+    metadata.update(ramp_contract)
     metadata.update(a.install_tau_length_cap_patch(cfg))
     # Phase correction precedes beta pruning; measured beta needs a second prune.
     metadata.update(a.apply_movement_phase_correction(cfg, tuning))
@@ -222,7 +227,12 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     if lane_context is None:
         metadata.update(offramp_routing.configure_inventory(cfg, tuning, state_json, mapping))
     metadata.update(observation_projection.configure_head_queue_lanes(cfg, tuning, state_json))
-    metadata.update(observation_projection.configure_kinematic_queue_projection(cfg, tuning, state_json))
+    from evaluation.controllers import urban_storage_guard
+    metadata.update(urban_storage_guard.configure(cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
+    metadata.update(observation_projection.configure_kinematic_queue_projection(cfg, tuning, state_json, detector_mapping))
+    if lane_context is not None:
+        metadata.update(lane_plant_runtime.prepare_offramp_projection(
+            lane_context,lane_observation,cfg,detector_mapping))
     state = a.traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input)

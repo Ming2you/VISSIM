@@ -1,0 +1,39 @@
+{
+  "schema": "offramp-route-inventory/v1",
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "mapping": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/cellwise_calibration/freeway_first/route_inventory/mapping31.json",
+    "sha256": "075467c61ee386d0c98e0762bb3ad9c579ea57c304a0a22ef2cd9c3b4449ca0d"
+  },
+  "groups": {
+    "OR_D_E": {
+      "decision": "1131",
+      "decision_link": "2",
+      "direct_connector": "10483",
+      "signal_connector": "10481"
+    },
+    "OR_D_W": {
+      "decision": "1132",
+      "decision_link": "26",
+      "direct_connector": "10479",
+      "signal_connector": "10491"
+    },
+    "OR_F_E": {
+      "decision": "1130",
+      "decision_link": "74",
+      "direct_connector": "10682",
+      "signal_connector": "10643"
+    },
+    "OR_F_W": {
+      "decision": "1133",
+      "decision_link": "120",
+      "direct_connector": "10645",
+      "signal_connector": "10638"
+    }
+  },
+  "semantics": "Selected network paths/decisions compiled and checked against physical31 geometry. Existing observed route retained; expected future choices only; no destination rerandomization.",
+  "route_free_policy": "next_all_connector"
+}

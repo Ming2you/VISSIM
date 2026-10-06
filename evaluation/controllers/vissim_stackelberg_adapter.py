@@ -12755,6 +12755,7 @@ def main() -> None:
     parser.add_argument("--previous-action-json", default="")
     parser.add_argument("--out-action-json", default="")
     parser.add_argument("--out-action-csv", default="")
+    parser.add_argument("--hold-previous-action", action="store_true")
     parser.add_argument("--b1a-required", action="store_true")
     parser.add_argument("--projection-only", action="store_true")
     parser.add_argument("--run-manifest", default="")
@@ -12828,6 +12829,11 @@ def main() -> None:
                 projection_preparse
             )
         raise
+
+    if args.hold_previous_action:
+        from evaluation.controllers.control_hold import write_hold
+        write_hold(args, load_optional_json(args.tuning_json))
+        return
 
     if args.projection_only:
         sidecar_path = None

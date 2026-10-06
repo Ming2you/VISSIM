@@ -22,6 +22,83 @@ def digest(p): return hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
 def read(p): return json.loads((ROOT / p).read_text(encoding='utf-8'))
 def sorted_ids(xs): return sorted(xs, key=int)
 
+def expand_controlled_intersection_area(document, tree, mapping, territory):
+    """User revision: retain old Omega and add controlled approaches only.
+
+    Use the 17 controller IDs from the actual mapping, their existing approach
+    territories' road links and native signal-head links. Add connectors only
+    between already included roads; do not add downstream exit roads.
+    This is a finite physical-link union, not a graph flood or route-dependent
+    vehicle weight. Historic PN movement classifications remain unchanged.
+    """
+    import copy
+    output=copy.deepcopy(document)
+    links={x.get('no'):x for x in tree.findall('./links/link')}
+    controllers={str(row['sc_no']) for row in mapping['signals']}
+    controlled_names={'SC'+x for x in controllers}
+    assert len(controllers)==17
+    old=set(document['inside_links']);inside=set(old);reasons={}
+    def include(link,reason):
+        assert link in links, f'Unknown controlled-area element: {link}'
+        inside.add(link)
+        if link not in old:reasons.setdefault(link,set()).add(reason)
+    for sc,legs in territory['territory']['urban'].items():
+        if sc in controlled_names:
+            for leg,ids in legs.items():
+                for link in ids:
+                    if links[str(link)].find('fromLinkEndPt') is None:
+                        include(str(link),f'controlled_approach_territory:{sc}:{leg}')
+    approaches=set()
+    for head in tree.findall('./signalHeads/signalHead'):
+        sc=head.get('sg').split()[0]
+        if sc in controllers:
+            link=head.get('lane').split()[0];approaches.add(link)
+            include(link,f'native_controlled_signal_head:SC{sc}')
+    edges={}
+    for no,node in links.items():
+        a,b=node.find('fromLinkEndPt'),node.find('toLinkEndPt')
+        if a is None:continue
+        assert b is not None
+        source,target=a.get('lane').split()[0],b.get('lane').split()[0]
+        edges[no]={'connector':no,'from_link':source,'to_link':target,
+                   'from_pos_m':float(a.get('pos')),'to_pos_m':float(b.get('pos'))}
+    for no,e in edges.items():
+        if e['from_link'] in inside and e['to_link'] in inside:
+            include(no,'direct_connector_between_included_roads')
+    transitions=[]
+    for no,e in edges.items():
+        path=[e['from_link'],no,e['to_link']];flags=[x in inside for x in path]
+        if len(set(flags))==1:continue
+        row=dict(e,from_inside=flags[0],connector_inside=flags[1],to_inside=flags[2],
+                 source_inside=flags[0],target_inside=flags[2],outward_edges=[],inward_edges=[])
+        for a,b,ia,ib in zip(path,path[1:],flags,flags[1:]):
+            if ia and not ib:row['outward_edges'].append([a,b])
+            elif not ia and ib:row['inward_edges'].append([a,b])
+        transitions.append(row)
+    outgoing={e['from_link'] for e in edges.values()}
+    terminals={str(x['chain_links'][-1]) for x in mapping['freeway_model_links'].values()}
+    terminals|={link for link in inside if link not in edges and link not in outgoing}
+    output.update(inside_links=sorted_ids(inside),outside_links=sorted_ids(set(links)-inside),
+                  connector_transitions=sorted(transitions,key=lambda x:int(x['connector'])),
+                  natural_inside_terminal_links=sorted_ids(terminals),terminal_inside_links=sorted_ids(terminals))
+    output['definition']='User 2026-10-06 clarified revision: previous physical Omega plus the 17 controlled intersections\' approach road links, native signal-head links, and direct connectors between included roads. No downstream exit road is newly included. Whole physical approach links, all vehicles and lanes, counted once. PN inflow/outflow definitions and controller ownership are unchanged.'
+    output['counts'].update(inside_total=len(inside),outside_total=len(links)-len(inside),
+                            controlled_intersection_added=len(inside-old))
+    output['controlled_intersection_expansion']={
+        'controllers':sorted_ids(controllers),'previous_inside_links':sorted_ids(old),
+        'added_links':[{'link':link,'reasons':sorted(reasons[link])} for link in sorted_ids(inside-old)],
+        'boundary_rule':'Approaches only, no new downstream exit roads. Preserve previous Omega, add road links in the controlled approach territories and native head links; close connectors between included roads. Each vehicle belongs to exactly one side.',
+        'np_rule':'N_P remains the existing 17-player PN net inflow quantity; changing TTT membership does not redefine PN resources.'}
+    paths=document.get('verified_all_inside_paths',[])+document.get('verified_incoming_paths',[])
+    output['verified_all_inside_paths']=[p for p in paths if all(x in inside for x in p)]
+    output['verified_incoming_paths']=[p for p in paths if not all(x in inside for x in p)]
+    for row in output.get('ramp_checks',[]):
+        row['inside_to_inside']=all(row[k] in inside for k in ('from_link','connector','to_link'))
+        row['to_inside']=row['to_link'] in inside
+    assert old<=inside and inside|set(output['outside_links'])==set(links)
+    assert not inside&set(output['outside_links']) and '66' in inside and '38' not in inside
+    return output
+
 def build():
     assert digest(NETWORK) == SHA, 'Re-review geometry before changing the pinned network.'
     tree = ET.parse(ROOT / NETWORK)

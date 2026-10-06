@@ -2,6 +2,9 @@ param([switch]$PreflightOnly,[string]$FrozenTree='', [string]$ResultsRoot='', [s
       [switch]$Detached,
       [string]$StatusPath='',
       [string]$TuningRelativePath='',
+      [string]$PythonExe='C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe',
+      [string]$PowerShellExe='C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe',
+      [string]$DependenciesPath='C:/Users/alsrj/Desktop/학술/찐찐막/Codex/VISSIM/.review-deps/sdmpc',
       [ValidateRange(1,2147483647)][int]$Seed=29,
       [ValidateRange(150,9000)][int]$SimPeriod=3000,
       [ValidateSet('nc','sdmpc')][string[]]$Arms=@('nc','sdmpc'))
@@ -18,8 +21,14 @@ if ($FrozenTree) {$frozen=[IO.Path]::GetFullPath($FrozenTree)}
 if ($ResultsRoot) {$runsRoot=[IO.Path]::GetFullPath($ResultsRoot)}
 if (-not $StatusPath) {$StatusPath=Join-Path $taskDir ('closedloop'+$SimPeriod+'_status.json')}
 $StatusPath=[IO.Path]::GetFullPath($StatusPath)
-$pythonExe='C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe'
-$pwshExe='C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe'
+$pwshExe=$PowerShellExe
+if (-not (Test-Path -LiteralPath $PythonExe -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $pwshExe -PathType Leaf)) {
+    throw 'Provide existing -PythonExe and -PowerShellExe paths for this computer'
+}
+if ($DependenciesPath -and -not (Test-Path -LiteralPath $DependenciesPath -PathType Container)) {
+    throw 'Provide -DependenciesPath or an empty value to use packages installed in PythonExe'
+}
 $selectedRoot=Join-Path $frozen 'diagnostics/sdmpc_n31_20260924/integration_20260926/selected'
 $tuningPath=Join-Path $selectedRoot 'config_n31_v2.json'
 if ($TuningRelativePath) {
@@ -65,6 +74,7 @@ if ($Detached) {
         }
         $argv+=@('-Seed',[string]$Seed)
     }
+    $argv+=@('-PythonExe',$PythonExe,'-PowerShellExe',$pwshExe,'-DependenciesPath',$DependenciesPath)
     if(@($argv | Where-Object {$_ -match '["\r\n]'}).Count){throw 'Invalid command-line argument'}
     $arguments=($argv | ForEach-Object {'"'+$_+'"'}) -join ' '
     $action=New-ScheduledTaskAction -Execute $pwshExe -Argument $arguments -WorkingDirectory $frozen
@@ -102,7 +112,7 @@ try {
     $env:RW_PYTHON=$pythonExe; $env:RW_MAINLINE_SG_ONLY='1'; $env:RW_OFFSET_WRITER='experiment'
     $env:RW_RAMP_AMBER_SEC='0'; $env:RW_DECISION_FAIL_FAST='1'; $env:RW_QUEUE_COUNTER='1'
     $env:PYTHONUTF8='1'; $env:PYTHONDONTWRITEBYTECODE='1'
-    $env:PYTHONPATH='C:/Users/alsrj/Desktop/학술/찐찐막/Codex/VISSIM/.review-deps/sdmpc;'+$frozen
+    $env:PYTHONPATH=if($DependenciesPath){$DependenciesPath+';'+$frozen}else{$frozen}
     $env:NUMSIM_REPO_ROOT=Join-Path $frozen 'vendor/NumSim-mine'
     $env:OMP_NUM_THREADS='1'; $env:OPENBLAS_NUM_THREADS='1'; $env:MKL_NUM_THREADS='1'
     & $pythonExe -B (Join-Path $frozen 'diagnostics/sdmpc_n31_20260924/tools/freeze_manifest.py') verify $frozen

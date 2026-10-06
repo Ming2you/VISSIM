@@ -1,0 +1,946 @@
+{
+  "tests": 38,
+  "tests_passed": true,
+  "canonical_preflight_passed": true,
+  "native_runs_started": 0,
+  "new_policy_native_gain_qualified": false,
+  "cold_prices_diagnostic_only": true,
+  "checks": {
+    "verify1500": {
+      "completion": {
+        "status": "complete",
+        "seconds": 65.27345090010203
+      },
+      "expanded_area_check": {
+        "observed_inside_veh": 3597,
+        "seeded_inside_veh": 3597.0,
+        "link66_inside": true,
+        "link38_outside": true,
+        "urban_signals": 17,
+        "link66_guard_lanes": [
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 3,
+            "head_id": "90030876",
+            "vehicles": 7,
+            "capacity_veh": 443.1283837810444,
+            "fill_fraction": 0.015796776411097134,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 3,
+                "position": 0.8379425049869887,
+                "vehicles": 6,
+                "capacity_veh": 155.4985302675672,
+                "fill_fraction": 0.03858557370076596
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 2,
+            "head_id": "90030877",
+            "vehicles": 16,
+            "capacity_veh": 443.13714951906803,
+            "fill_fraction": 0.036106203276716084,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 2,
+                "position": 0.8379425049869887,
+                "vehicles": 11,
+                "capacity_veh": 155.46516990879078,
+                "fill_fraction": 0.0707553981798852
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 1,
+            "head_id": "90030878",
+            "vehicles": 38,
+            "capacity_veh": 443.1403222355926,
+            "fill_fraction": 0.08575161882875906,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 1,
+                "position": 0.8379425049869887,
+                "vehicles": 6,
+                "capacity_veh": 156.15883079665164,
+                "fill_fraction": 0.03842241882441561
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p2",
+            "link": "66",
+            "lane": 4,
+            "head_id": "90030875",
+            "vehicles": 65,
+            "capacity_veh": 443.10289455130925,
+            "fill_fraction": 0.1466927903186453,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10633",
+                "source_pos": 2660.00849036297,
+                "link": "68",
+                "lane": 4,
+                "position": 2.361151130014316,
+                "vehicles": 1,
+                "capacity_veh": 19.27047481161358,
+                "fill_fraction": 0.05189285732582667
+              }
+            ],
+            "pressure": 0.0
+          }
+        ],
+        "gate66": {
+          "status": "unique",
+          "target_inside": true,
+          "physical_sources": [
+            {
+              "input": "1100",
+              "link": "66",
+              "inside": true,
+              "gate_map_status": "mapped",
+              "name": ""
+            }
+          ],
+          "event_kind": "generation",
+          "unresolved_reason": null,
+          "crossing_semantics": "Generation at a physical input; creation itself is not an observed Omega boundary crossing."
+        }
+      },
+      "scheduled_vsl": [
+        {
+          "sim_sec": 1500.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 110.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 110.0,
+            "FW_E__seg14": 110.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        },
+        {
+          "sim_sec": 1650.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 110.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 110.0,
+            "FW_E__seg14": 110.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        },
+        {
+          "sim_sec": 1800.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 90.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 90.0,
+            "FW_E__seg14": 90.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        }
+      ],
+      "protocol": {
+        "frozen_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926",
+        "tuning_sha256": "6bb22225be1985fd4a829c6c15ece3b4c3659edf285a291d26baf36a7df69ec9",
+        "state": "D:\\VISSIM_runs\\20261006_min2_storage90_fixed90_s29_9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001500.json",
+        "max_predictions": 0,
+        "native_runs": 0,
+        "optimization_iterations": 0,
+        "live_files_readonly": true,
+        "cold_prices": true
+      },
+      "writer_proof": {
+        "blocks": 3,
+        "interval_sec": 150.0,
+        "applied_block": 0,
+        "all_actuator_and_step_constraints_checked": true
+      }
+    },
+    "verify1650_fixed": {
+      "completion": {
+        "status": "complete",
+        "seconds": 41.84033010015264
+      },
+      "expanded_area_check": {
+        "observed_inside_veh": 3664,
+        "seeded_inside_veh": 3664.0,
+        "link66_inside": true,
+        "link38_outside": true,
+        "urban_signals": 17,
+        "link66_guard_lanes": [
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 3,
+            "head_id": "90030876",
+            "vehicles": 13,
+            "capacity_veh": 443.1283837810444,
+            "fill_fraction": 0.02933687047775182,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 3,
+                "position": 0.8379425049869887,
+                "vehicles": 6,
+                "capacity_veh": 155.4985302675672,
+                "fill_fraction": 0.03858557370076596
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 2,
+            "head_id": "90030877",
+            "vehicles": 11,
+            "capacity_veh": 443.13714951906803,
+            "fill_fraction": 0.02482301475274231,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 2,
+                "position": 0.8379425049869887,
+                "vehicles": 5,
+                "capacity_veh": 155.46516990879078,
+                "fill_fraction": 0.03216154462722055
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 1,
+            "head_id": "90030878",
+            "vehicles": 31,
+            "capacity_veh": 443.1403222355926,
+            "fill_fraction": 0.0699552679918824,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 1,
+                "position": 0.8379425049869887,
+                "vehicles": 9,
+                "capacity_veh": 156.15883079665164,
+                "fill_fraction": 0.057633628236623415
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p2",
+            "link": "66",
+            "lane": 4,
+            "head_id": "90030875",
+            "vehicles": 70,
+            "capacity_veh": 443.10289455130925,
+            "fill_fraction": 0.15797685111238724,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10633",
+                "source_pos": 2660.00849036297,
+                "link": "68",
+                "lane": 4,
+                "position": 2.361151130014316,
+                "vehicles": 1,
+                "capacity_veh": 19.27047481161358,
+                "fill_fraction": 0.05189285732582667
+              }
+            ],
+            "pressure": 0.0
+          }
+        ],
+        "gate66": {
+          "status": "unique",
+          "target_inside": true,
+          "physical_sources": [
+            {
+              "input": "1100",
+              "link": "66",
+              "inside": true,
+              "gate_map_status": "mapped",
+              "name": ""
+            }
+          ],
+          "event_kind": "generation",
+          "unresolved_reason": null,
+          "crossing_semantics": "Generation at a physical input; creation itself is not an observed Omega boundary crossing."
+        }
+      },
+      "scheduled_vsl": [
+        {
+          "sim_sec": 1650.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 110.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 110.0,
+            "FW_E__seg14": 110.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        },
+        {
+          "sim_sec": 1800.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 90.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 90.0,
+            "FW_E__seg14": 90.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        },
+        {
+          "sim_sec": 1950.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 90.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 90.0,
+            "FW_E__seg14": 90.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        }
+      ],
+      "protocol": {
+        "frozen_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926",
+        "tuning_sha256": "6bb22225be1985fd4a829c6c15ece3b4c3659edf285a291d26baf36a7df69ec9",
+        "state": "D:\\VISSIM_runs\\20261006_min2_storage90_fixed90_s29_9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_001650.json",
+        "max_predictions": 0,
+        "native_runs": 0,
+        "optimization_iterations": 0,
+        "live_files_readonly": true,
+        "cold_prices": true
+      },
+      "writer_proof": {
+        "blocks": 3,
+        "interval_sec": 150.0,
+        "applied_block": 0,
+        "all_actuator_and_step_constraints_checked": true
+      }
+    },
+    "verify5550_v2": {
+      "completion": {
+        "status": "complete",
+        "seconds": 109.18536290014163
+      },
+      "expanded_area_check": {
+        "observed_inside_veh": 3009,
+        "seeded_inside_veh": 3009.0,
+        "link66_inside": true,
+        "link38_outside": true,
+        "urban_signals": 17,
+        "link66_guard_lanes": [
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 3,
+            "head_id": "90030876",
+            "vehicles": 6,
+            "capacity_veh": 443.1283837810444,
+            "fill_fraction": 0.013540094066654686,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 3,
+                "position": 0.8379425049869887,
+                "vehicles": 2,
+                "capacity_veh": 155.4985302675672,
+                "fill_fraction": 0.012861857900255319
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 2,
+            "head_id": "90030877",
+            "vehicles": 2,
+            "capacity_veh": 443.13714951906803,
+            "fill_fraction": 0.0045132754095895105,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 2,
+                "position": 0.8379425049869887,
+                "vehicles": 3,
+                "capacity_veh": 155.46516990879078,
+                "fill_fraction": 0.01929692677633233
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "link": "66",
+            "lane": 1,
+            "head_id": "90030878",
+            "vehicles": 16,
+            "capacity_veh": 443.1403222355926,
+            "fill_fraction": 0.03610594477000382,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10631",
+                "source_pos": 2659.9026180564097,
+                "link": "47",
+                "lane": 1,
+                "position": 0.8379425049869887,
+                "vehicles": 2,
+                "capacity_veh": 156.15883079665164,
+                "fill_fraction": 0.01280747294147187
+              }
+            ],
+            "pressure": 0.0
+          },
+          {
+            "signal": "SC1004",
+            "phase": "SC1004_p2",
+            "link": "66",
+            "lane": 4,
+            "head_id": "90030875",
+            "vehicles": 174,
+            "capacity_veh": 443.10289455130925,
+            "fill_fraction": 0.3926853156222197,
+            "crowded": false,
+            "all_receivers_full": false,
+            "receiver_known": true,
+            "receivers": [
+              {
+                "connector": "10633",
+                "source_pos": 2660.00849036297,
+                "link": "68",
+                "lane": 4,
+                "position": 2.361151130014316,
+                "vehicles": 0,
+                "capacity_veh": 19.27047481161358,
+                "fill_fraction": 0.0
+              }
+            ],
+            "pressure": 0.0
+          }
+        ],
+        "gate66": {
+          "status": "unique",
+          "target_inside": true,
+          "physical_sources": [
+            {
+              "input": "1100",
+              "link": "66",
+              "inside": true,
+              "gate_map_status": "mapped",
+              "name": ""
+            }
+          ],
+          "event_kind": "generation",
+          "unresolved_reason": null,
+          "crossing_semantics": "Generation at a physical input; creation itself is not an observed Omega boundary crossing."
+        }
+      },
+      "scheduled_vsl": [
+        {
+          "sim_sec": 5550.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 90.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 90.0,
+            "FW_E__seg14": 90.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        },
+        {
+          "sim_sec": 5700.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 110.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 110.0,
+            "FW_E__seg14": 110.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        },
+        {
+          "sim_sec": 5850.0,
+          "vsl": {
+            "FW_W": 110.0,
+            "FW_E": 110.0,
+            "FW_W__seg0": 110.0,
+            "FW_W__seg1": 110.0,
+            "FW_W__seg2": 110.0,
+            "FW_W__seg3": 110.0,
+            "FW_W__seg4": 110.0,
+            "FW_W__seg5": 110.0,
+            "FW_W__seg6": 110.0,
+            "FW_W__seg7": 110.0,
+            "FW_W__seg8": 110.0,
+            "FW_W__seg9": 110.0,
+            "FW_W__seg10": 110.0,
+            "FW_W__seg11": 110.0,
+            "FW_W__seg12": 110.0,
+            "FW_W__seg13": 110.0,
+            "FW_W__seg14": 110.0,
+            "FW_W__seg15": 110.0,
+            "FW_W__seg16": 110.0,
+            "FW_W__seg17": 110.0,
+            "FW_W__seg18": 110.0,
+            "FW_W__seg19": 110.0,
+            "FW_W__seg20": 110.0,
+            "FW_E__seg0": 110.0,
+            "FW_E__seg1": 110.0,
+            "FW_E__seg2": 110.0,
+            "FW_E__seg3": 110.0,
+            "FW_E__seg4": 110.0,
+            "FW_E__seg5": 110.0,
+            "FW_E__seg6": 110.0,
+            "FW_E__seg7": 110.0,
+            "FW_E__seg8": 110.0,
+            "FW_E__seg9": 110.0,
+            "FW_E__seg10": 110.0,
+            "FW_E__seg11": 110.0,
+            "FW_E__seg12": 110.0,
+            "FW_E__seg13": 110.0,
+            "FW_E__seg14": 110.0,
+            "FW_E__seg15": 110.0,
+            "FW_E__seg16": 110.0,
+            "FW_E__seg17": 110.0,
+            "FW_E__seg18": 110.0,
+            "FW_E__seg19": 110.0,
+            "FW_E__seg20": 110.0
+          }
+        }
+      ],
+      "protocol": {
+        "frozen_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926",
+        "tuning_sha256": "6bb22225be1985fd4a829c6c15ece3b4c3659edf285a291d26baf36a7df69ec9",
+        "state": "D:\\VISSIM_runs\\20261006_min2_storage90_fixed90_s29_9000\\sdmpc\\decisions_sdmpc31_sdmpc9000_s29\\state_005550.json",
+        "max_predictions": 1,
+        "native_runs": 0,
+        "optimization_iterations": 0,
+        "live_files_readonly": true,
+        "cold_prices": true
+      },
+      "writer_proof": {
+        "blocks": 3,
+        "interval_sec": 150.0,
+        "applied_block": 0,
+        "all_actuator_and_step_constraints_checked": true
+      },
+      "prediction": {
+        "name": "protected_seed",
+        "model_feasible": true,
+        "objective_veh_h": 393.57261263966734
+      }
+    }
+  },
+  "rounding_failure_old_policy": {
+    "signal": "SC6",
+    "values": {
+      "p1": 64.238,
+      "p2": 20.409,
+      "p3": 33.354,
+      "p4": 19.999
+    },
+    "bounds": {
+      "p1": [
+        20.0,
+        78.0
+      ],
+      "p2": [
+        20.0,
+        78.0
+      ],
+      "p3": [
+        20.0,
+        78.0
+      ],
+      "p4": [
+        20.0,
+        78.0
+      ]
+    }
+  },
+  "canonical_python312_tests": {
+    "passed": 44,
+    "subtests_passed": 14
+  }
+}

@@ -22,7 +22,7 @@ class ProjectionError(ValueError):
     pass
 
 
-def configure_kinematic_queue_projection(cfg, tuning, raw):
+def configure_kinematic_queue_projection(cfg, tuning, raw, detectors=None):
     """Preserve observed zeros for origins using the same kinematic queue walk."""
     setting=(tuning or {}).get('urban',{}).get('arrival',{}).get('kinematic_contract')
     if setting is None:
@@ -52,8 +52,16 @@ def configure_kinematic_queue_projection(cfg, tuning, raw):
                 or math.fsum(row[0] for row in counts)!=len(vehicles)
                 or math.fsum(row[1] for row in counts)!=sum(bool(v['stopped']) for v in vehicles)):
             raise ProjectionError('Kinematic queue bins do not cover current vehicle records')
+    metadata = {}
+    native_path = doc.get('native_choice_evidence_path')
+    if native_path is not None:
+        if detectors is None:
+            raise ProjectionError('Kinematic native choices require physical detector mapping')
+        from evaluation.controllers.physical_movement_routes import configure_native_choice_groups
+        metadata.update({'kinematic_' + key: value for key, value in configure_native_choice_groups(cfg, detectors,
+            {'urban': {'movements': {'physical_route_topology': native_path}}}, state_json=raw).items()})
     cfg.network.kinematic_queue_zero_links=frozenset(links)
-    return {'kinematic_observed_zero_queue_links':sorted(links)}
+    return {'kinematic_observed_zero_queue_links':sorted(links), **metadata}
 
 
 def initialize_kinematic_arrivals(adapter, state, cfg, tuning, raw, detectors):
@@ -90,6 +98,15 @@ def initialize_kinematic_arrivals(adapter, state, cfg, tuning, raw, detectors):
     now = int(round(state.time_sec / dt))
     routing = approach_routing(cfg)
     receipt = {}
+    native_groups, current_routes = {}, None
+    if doc.get('native_choice_evidence_path') is not None:
+        from evaluation.controllers.physical_movement_routes import load_evidence
+        from evaluation.controllers.vehicle_routes import complete_vehicle_routes
+        native_doc, native_routes, _ = load_evidence(doc['native_choice_evidence_path'])
+        if native_doc['network'] != doc['network']:
+            raise ProjectionError('Kinematic routing and geometry evidence differ')
+        native_groups = native_doc.get('native_choice_groups', {})
+        current_routes = complete_vehicle_routes(raw, required=True)
     for source, spec in doc['sources'].items():
         link = str(spec['link'])
         support = dict(provenance.get(link, {}))
@@ -110,6 +127,17 @@ def initialize_kinematic_arrivals(adapter, state, cfg, tuning, raw, detectors):
                 raise ProjectionError('Kinematic movement does not leave its physical link')
             first = int(start.get('lane').split()[1])
             geometry[m] = (float(start.get('pos')), set(range(first, first + len(connector.findall('./lanes/lane')))))
+        group_key = spec.get('native_choice_group')
+        native_group = native_groups.get(group_key) if group_key is not None else None
+        if group_key is not None:
+            if (native_group is None or native_group['origin'] != source
+                    or native_group['stopline'] != link
+                    or set(native_group['route_to_movement'].values()) != set(movements)):
+                raise ProjectionError('Kinematic current-route group differs from this source')
+            for rid, m in native_group['route_to_movement'].items():
+                if native_routes[rid]['path'][:2] != [link, str(movements[m]['connector'])]:
+                    raise ProjectionError('Kinematic current-route connector changed')
+            decision_position = float(native_routes[next(iter(native_group['route_to_movement']))]['decision']['pos'])
         vehicles = [v for v in records['records'] if str(v['link_no']) == link]
         if abs(math.fsum(support.values()) - len(vehicles)) > 1e-7:
             raise ProjectionError('Kinematic source stock differs from current records')
@@ -142,9 +170,26 @@ def initialize_kinematic_arrivals(adapter, state, cfg, tuning, raw, detectors):
         mean_speed = math.fsum(v['speed_kph'] for v in vehicles) / len(vehicles) if vehicles else floor
         queues = dict.fromkeys(movements, 0.)
         tags = {}
+        known_count, prechoice_count = 0, 0
         for v in vehicles:
             choices = {m: beta for m, beta in routing[source] if v['lane_no'] in geometry[m][1]
                        and v['position_m'] <= geometry[m][0] + 1e-6}
+            if native_group is not None:
+                observed = current_routes[v['veh_no']]
+                rid = f"{observed['route_decision_no']}:{observed['route_no']}"
+                selected = native_group['route_to_movement'].get(rid)
+                if observed['route_decision_type'] == 'STATIC' and selected is not None:
+                    # Current lane need not be the destination lane yet. Retain
+                    # intent; do not resample a known destination from beta.
+                    if v['position_m'] > geometry[selected][0] + 1e-6:
+                        raise ProjectionError('Known destination is behind current vehicle position')
+                    choices = {selected: 1.}
+                    known_count += 1
+                elif v['position_m'] < decision_position:
+                    choices = dict(routing[source])
+                    prechoice_count += 1
+                else:
+                    raise ProjectionError('Missing current destination after native decision; cannot redraw')
             total = math.fsum(choices.values())
             if total <= 0:
                 raise ProjectionError('Current lane/position has no supported movement')
@@ -178,6 +223,9 @@ def initialize_kinematic_arrivals(adapter, state, cfg, tuning, raw, detectors):
         receipt[source] = dict(link=link, queue_veh=queues, residual_veh=len(residual),
                                last_arrival_delay_sec=(max(tags)-now)*dt if tags else 0.,
                                gate_travel_sec=gate_delay, future_traffic_inputs=False)
+        if native_group is not None:
+            receipt[source].update(known_destination_veh=known_count,
+                                   before_choice_veh=prechoice_count, native_choice_group=group_key)
     return {'kinematic_arrivals': receipt}
 
 

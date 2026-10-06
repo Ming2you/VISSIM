@@ -380,7 +380,7 @@ ValidateObs150Startup
 ' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
 ' interpreter here means every decision fails, so failing now costs seconds
 ' instead of surfacing after a multi-hour run.
-Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures, optionalAttSkips
+Dim pythonExe, decisionsOk, decisionsFailed, decisionsHeld, observationFailures, signalFailures, actionFormatFailures, comFailures, optionalAttSkips
 Dim signalWriteAttempts, signalReadbackOk, signalPersistenceChecks, signalPersistenceOk, signalTraceSimSec
 Dim signalWriteSkips, sgPlanMidblockSkips, sgEnableMidblockSkips
 ' 결정 시점 스캔 캐시 — WriteStateJson 이 채우고 LogStateCsv 가 재사용한다(추가 스캔 0).
@@ -390,6 +390,7 @@ Dim scanCacheFreewayMeanSpeed, scanCacheStopped
 pythonExe = ""
 decisionsOk = 0
 decisionsFailed = 0
+decisionsHeld = 0
 observationFailures = 0
 signalFailures = 0
 actionFormatFailures = 0
@@ -561,6 +562,7 @@ On Error GoTo 0
 PerfReport
 WScript.Echo "DECISIONS_OK=" & CStr(decisionsOk)
 WScript.Echo "DECISIONS_FAILED=" & CStr(decisionsFailed)
+WScript.Echo "DECISIONS_HELD_PREVIOUS=" & CStr(decisionsHeld)
 WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
 If obsEnabled Then
     WScript.Echo "HEAD_OBSERVATION_BULK_READS=" & CStr(obsBulkReads)
@@ -585,7 +587,7 @@ WScript.Echo "SIGNAL_SG_PLAN_GROUPS=" & CStr(sgPlanExpected.Count)
 WScript.Echo "SIGNAL_SG_PLAN_ROWS=" & CStr(signalSgPlanRows)
 WScript.Echo "SIGNAL_NAME_RULE_FALLBACKS=" & CStr(signalNameRuleFallbacks)
 WScript.Echo "SIGNAL_COGREEN_BLOCKS=" & CStr(signalCoGreenBlocks)
-If decisionsFailed > 0 Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Or comFailures > 0 Then
+If decisionsFailed > decisionsHeld Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Or comFailures > 0 Then
     WScript.Echo "ERROR=RUN_INTEGRITY_FAILURE decisions_failed=" & CStr(decisionsFailed) & _
         " observation_failures=" & CStr(observationFailures) & " signal_failures=" & CStr(signalFailures) & _
         " action_format_failures=" & CStr(actionFormatFailures) & " com_failures=" & CStr(comFailures)
@@ -1202,7 +1204,8 @@ End Function
 
 Sub RunControllerDecision(simSec)
     Dim stateJsonPath, outJsonPath, outCsvPath, cmd, result, effController
-    Dim wallT0, wallSec, exitCode, outText, errText, perfT0
+    Dim wallT0, wallSec, exitCode, outText, errText, perfT0, heldDecision, holdOut, holdErr, decisionTimeout
+    heldDecision = False
     perfT0 = PerfNow()
     stateJsonPath = fso.BuildPath(decisionDir, "state_" & Pad6(simSec) & ".json")
     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
@@ -1252,12 +1255,35 @@ Sub RunControllerDecision(simSec)
         exitCode = CopyRecordedAction(RW_COMMAND_REPLAY_DIR, "action_" & Pad6(simSec), outJsonPath, outCsvPath, errText)
         outText = "fixed_command_replay; no controller calculation"
     Else
-        exitCode = RunCapture3(cmd, outText, errText)
+        decisionTimeout = 0
+        If EnvText("RW_DECISION_HOLD_PREVIOUS") = "1" Then decisionTimeout = CDbl(EnvText("RW_DECISION_TIMEOUT_SEC"))
+        If decisionTimeout > 0 Then
+            exitCode = RunCapture3Timeout(cmd, decisionTimeout, outText, errText)
+        Else
+            exitCode = RunCapture3(cmd, outText, errText)
+        End If
     End If
     wallSec = ElapsedSec(wallT0)
     PerfAdd "decision.python", wallT0
     result = "exit=" & exitCode & " stdout=" & OneLine(outText) & " stderr=" & OneLine(errText)
     WScript.Echo "CONTROLLER_DECISION sim_sec=" & simSec & " wall_sec=" & CStr(Round(wallSec, 2)) & " result=" & result
+    ' Only recover before ApplyActionCsv has touched an actuator. Observation
+    ' capture and COM/write failures retain the existing fail-closed behavior.
+    If (exitCode <> 0 Or Not fso.FileExists(outCsvPath)) And _
+            EnvText("RW_DECISION_HOLD_PREVIOUS") = "1" And lastActionJson <> "" And _
+            LCase(CStr(controllerName)) = "wu-link" And Trim(CStr(RW_COMMAND_REPLAY_DIR)) = "" Then
+        WScript.Echo "DECISION_HOLD_ATTEMPT sim_sec=" & CStr(simSec) & " cause=" & result
+        exitCode = RunCapture3Timeout(cmd & " --hold-previous-action", 30, holdOut, holdErr)
+        If exitCode = 0 And fso.FileExists(outJsonPath) And fso.FileExists(outCsvPath) Then
+            heldDecision = True
+            decisionsFailed = decisionsFailed + 1
+            decisionsHeld = decisionsHeld + 1
+            If InStr(holdOut, "HOLD_NATIVE_SIGNALS=1") > 0 Then effController = "no-control"
+            WScript.Echo "DECISION_HELD_PREVIOUS sim_sec=" & CStr(simSec) & " source=" & lastActionJson
+        Else
+            errText = errText & " HOLD_FAILED " & holdErr
+        End If
+    End If
     ' A failed decision leaves the plant uncontrolled for this interval. That is
     ' an error, not a warning - see the DECISIONS_OK/DECISIONS_FAILED summary.
     If exitCode <> 0 Then
@@ -1270,7 +1296,7 @@ Sub RunControllerDecision(simSec)
         decisionsFailed = decisionsFailed + 1
         WScript.Echo "ERROR=ACTION_CSV_INCOMPLETE sim_sec=" & simSec & " controller=" & effController
     Else
-        decisionsOk = decisionsOk + 1
+        If Not heldDecision Then decisionsOk = decisionsOk + 1
         lastActionJson = outJsonPath
         ' SDMPC 가격 상태는 실제 ApplyActionCsv 성공 이후에만 확정 가능하다.
         If fso.FileExists(outJsonPath & ".sdmpc_pending") Then
@@ -1286,7 +1312,7 @@ Sub RunControllerDecision(simSec)
     ' A diagnostic intervention is fixed at its first decision. Continuing
     ' after a failed decision would run the warmup action until the final
     ' integrity check. Include warmup failures in the selected diagnostic run.
-    If decisionsFailed > 0 And (Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Or _
+    If decisionsFailed > decisionsHeld And (Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Or _
             EnvText("RW_DECISION_FAIL_FAST") = "1" Or RW_OFFSET_WRITER = "experiment") Then
         If Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Then
             WScript.Echo "ERROR=DIAGNOSTIC_DECISION_FAILED sim_sec=" & CStr(simSec) & _

@@ -484,7 +484,7 @@ def probe_levers(captured, reference, output, *, only_reference=False, selected_
                  four_arm_receipt=None, diagnostic_sources=None, first_interval_audit=False,
                  first_interval_terms=False, onset_factorial=False, candidate_names=None,
                  early_ramp_factorial=False, east_meter_first8_screen=False,
-                 east_meter_progressive_screen=False):
+                 east_meter_progressive_screen=False, prepared_probe_callback=None):
     """Small legal one-lever sequences, using the installed SDMPC decoder.
 
     This is sensitivity diagnosis, not selection, calibration, or a native
@@ -829,6 +829,10 @@ def probe_levers(captured, reference, output, *, only_reference=False, selected_
         assert names and names[0] == 'held_actual' and len(set(names)) == len(names)
         assert set(names) <= candidates.keys()
         candidates = {name: candidates[name] for name in names}
+    if prepared_probe_callback is not None:
+        # Read-only short diagnostics may reuse the exact prepared/validated
+        # commands without duplicating this initializer or action construction.
+        return prepared_probe_callback(captured,candidates,coord,output)
     results={}
     initial_gate_stats=copy.deepcopy(getattr(state,'gate_future_accounting',None))
     for name,action in candidates.items():
@@ -1739,12 +1743,16 @@ def probe_closedloop_meters(*, tail=False, selected_sec=None, signal_probe=False
 
 
 def replay_vsl_history(initialize, context, raw, state, cfg, output, *, derived_directory=None,
-                       compare_online=True):
+                       compare_online=True, allow_missing_current_online=False,
+                       known_missing_online_cutoffs=()):
     """Rebuild a trial model's past cohorts without changing native evidence."""
     from types import SimpleNamespace as NS
     from evaluation.controllers import obs150_contract as oc
     from evaluation.controllers.lane_plant_runtime import bin_frame
     obs=raw[oc.RAW_STATE_KEY];cutoff=int(obs['sim_sec']);directory=Path(obs['directory'])
+    missing_cutoffs=set(known_missing_online_cutoffs)
+    if missing_cutoffs and (not compare_online or any(type(t) is not int or t<=0 or t>cutoff or t%150 for t in missing_cutoffs)):
+        raise ValueError('Known missing online witnesses require explicit past observation cutoffs')
     history=output/'vsl_history';history.mkdir(exist_ok=False)
     pins={};checks=[]
     def read(path):
@@ -1775,8 +1783,16 @@ def replay_vsl_history(initialize, context, raw, state, cfg, output, *, derived_
             inputs={oc.RAW_STATE_KEY:observed,oc.MERGED_DERIVED_KEY:derived}
         metadata=initialize(context,inputs,target_state,cfg,history_directory=history)
         actual=json.loads((history/f'vsl_cohorts_{end:06d}.json').read_bytes())
-        if compare_online:
-            expected=read(directory/'obs150'/f'vsl_cohorts_{end:06d}.json')
+        expected_path=directory/'obs150'/f'vsl_cohorts_{end:06d}.json'
+        missing_current=(compare_online and not expected_path.exists()
+                         and (end==cutoff and allow_missing_current_online or end in missing_cutoffs))
+        if missing_current:
+            # A failed initialization may also precede the current observation.
+            # Explicitly listed missing witnesses are reconstructed from actual
+            # past frames/readbacks; every existing witness is still compared.
+            assert all(abs(row['conservation_max'])<1e-7 for row in actual['audit'].values())
+        elif compare_online:
+            expected=read(expected_path)
             for key in ('run_id','cutoff','frame_sha256','derived_sha256','applied_readbacks_sha256','cohorts','audit'):
                 assert actual[key]==expected[key], ('Rebuilt physical VSL history differs',end,key)
         else:
@@ -1784,8 +1800,10 @@ def replay_vsl_history(initialize, context, raw, state, cfg, output, *, derived_
             # recover that fact from actual readbacks and conserved past frames.
             assert all(float(cmd)==110. for rows in actual['cohorts'].values() for row in rows for cmd in row)
             assert all(abs(row['conservation_max'])<1e-7 for row in actual['audit'].values())
-        checks.append(dict(cutoff=end,online_cache_compared=compare_online,
-                           cohorts_exact=True if compare_online else None,audit_exact=True if compare_online else None))
+        compared=compare_online and not missing_current
+        checks.append(dict(cutoff=end,online_cache_compared=compared,
+                           cohorts_exact=True if compared else None,audit_exact=True if compared else None,
+                           **({'missing_online_witness':str(expected_path)} if missing_current else {})))
     for path,digest in pins.items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest
     receipt=dict(cutoff=cutoff,manifest_sha256=context['manifest_sha256'],checks=checks,
                  original_files_unchanged=True,original_files=pins,

@@ -317,6 +317,23 @@ if ($Tuning -ne "") {
   }
 }
 "RW_DECISION_FAIL_FAST=$($env:RW_DECISION_FAIL_FAST) (control_area_objective.enabled)"
+# Opt-in decision recovery is configured in the same tuning, never inherited.
+$env:RW_DECISION_HOLD_PREVIOUS = '0'
+$env:RW_DECISION_TIMEOUT_SEC = '0'
+if ($Tuning -ne '') {
+  $runtimeTuning = Get-Content -LiteralPath (Resolve-RepoPath $Tuning) -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+  if ($runtimeTuning.runtime.decision_error_policy) {
+    if ($runtimeTuning.runtime.decision_error_policy -ne 'hold_previous' -or $Controller -ne 'wu-link') {
+      throw 'Decision recovery is supported only for wu-link and hold_previous'
+    }
+    $seconds = $runtimeTuning.runtime.decision_timeout_sec
+    if ($null -eq $seconds -or $seconds -lt 30 -or $seconds -ge $StallSec) {
+      throw 'Decision timeout must be >=30 and shorter than the no-progress watchdog'
+    }
+    $env:RW_DECISION_HOLD_PREVIOUS = '1'
+    $env:RW_DECISION_TIMEOUT_SEC = [string]$seconds
+  }
+}
 # 2026-09-05. RW_MAINLINE_SG_ONLY 를 config(urban.plan.mainline_only) 로 러너가 직접 세운다.
 # 종전엔 launch_*/queue_* 스크립트가 env 로 세우고 러너는 믿기만 했다. 그래서 Bash 로 띄운
 # 체인(2026-09-04 16:31 이후 22런)이 env 없이 돌아 SG 9+ (미드블록 횡단)까지 ContrByCOM 이

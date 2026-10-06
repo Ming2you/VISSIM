@@ -1,0 +1,106 @@
+{
+  "schema": "head-queue-lane-support/v1",
+  "network": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "authority": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_init_hp\\initial.json",
+    "sha256": "9346518c8a7f2f0b4535b69377ca076fb34174cb850f1cb8a4ee05715a0a39ee"
+  },
+  "movements": {
+    "SC1001_E_SC1002_to_W_RAMP": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p3",
+        "origin": "SC1002_to_SC1001",
+        "receiving_link": "SC1001_W_out",
+        "kind": "boundary_out"
+      },
+      "from_link": "29",
+      "connector": "10119",
+      "to_link": "31",
+      "lanes": [
+        2,
+        3
+      ]
+    },
+    "SC1001_E_SC1002_to_N_SC2002": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p3",
+        "origin": "SC1002_to_SC1001",
+        "receiving_link": "SC1001_to_SC2002",
+        "kind": "internal"
+      },
+      "from_link": "29",
+      "connector": "10122",
+      "to_link": "38",
+      "lanes": [
+        1
+      ]
+    },
+    "SC1001_E_SC1002_to_S_SC1003": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p4",
+        "origin": "SC1002_to_SC1001",
+        "receiving_link": "SC1001_to_SC1003",
+        "kind": "internal"
+      },
+      "from_link": "29",
+      "connector": "10696",
+      "to_link": "39",
+      "lanes": [
+        4
+      ]
+    },
+    "SC1002_E_SC101_to_W_SC1001": {
+      "expected_spec": {
+        "signal": "SC1002",
+        "phase": "SC1002_p3",
+        "origin": "SC101_to_SC1002",
+        "receiving_link": "SC1002_to_SC1001",
+        "kind": "internal"
+      },
+      "from_link": "329",
+      "connector": "10691",
+      "to_link": "29",
+      "lanes": [
+        2,
+        3
+      ]
+    },
+    "SC1002_E_SC101_to_N_SC2004": {
+      "expected_spec": {
+        "signal": "SC1002",
+        "phase": "SC1002_p3",
+        "origin": "SC101_to_SC1002",
+        "receiving_link": "SC1002_to_SC2004",
+        "kind": "internal"
+      },
+      "from_link": "329",
+      "connector": "10692",
+      "to_link": "73",
+      "lanes": [
+        1
+      ]
+    },
+    "SC1002_E_SC101_to_S_SC105": {
+      "expected_spec": {
+        "signal": "SC1002",
+        "phase": "SC1002_p4",
+        "origin": "SC101_to_SC1002",
+        "receiving_link": "SC1002_to_SC105",
+        "kind": "internal"
+      },
+      "from_link": "329",
+      "connector": "10693",
+      "to_link": "420",
+      "lanes": [
+        4
+      ]
+    }
+  },
+  "scope": "Only observed head-phase queues on29 and329; connector source lanes, not future destination observations."
+}

@@ -47,6 +47,16 @@ def configure(cfg, tuning, mapping, detectors, raw):
     if not math.isfinite(jam) or jam <= 0:
         raise ValueError('Positive declared ramp storage density required')
     settings = tuning['actuation']['real_world_ramp_metering']
+    allow_zero = settings.get('allow_zero_green', True)
+    guard = settings.get('storage_release_guard', {})
+    if type(allow_zero) is not bool or not isinstance(guard, dict):
+        raise ValueError('Invalid physical meter operating bounds')
+    if guard:
+        if (set(guard) != {'enabled', 'trigger_fraction'} or type(guard['enabled']) is not bool
+                or type(guard['trigger_fraction']) not in (int, float)
+                or not math.isfinite(guard['trigger_fraction'])
+                or not 0 < guard['trigger_fraction'] <= 1):
+            raise ValueError('Meter storage guard requires a finite capacity fraction in (0,1]')
     if settings['cycle_sec'] != 10 or settings['max_green_sec'] != 10 or settings.get('amber_sec') != 0:
         raise ValueError('Physical ramp migration requires the declared10s RED/GREEN-only meter cycle')
     table = settings['per_lane_veh_per_cycle']
@@ -132,6 +142,7 @@ def configure(cfg, tuning, mapping, detectors, raw):
         'writer_mapping': copy.deepcopy(mapping['ramp_meters']),
         'network': spec['network'], 'cycle_sec': settings['cycle_sec'],
         'minimum_green_sec': settings['min_green_sec'], 'legacy_groups': sorted(old),
+        'allow_zero_green': allow_zero, 'storage_release_guard': copy.deepcopy(guard),
         'max_green_change_sec': spec['max_green_change_sec'],
         'unresolved': copy.deepcopy(spec.get('unresolved', []))}
     if city is not None:
@@ -845,9 +856,56 @@ def candidate_from_greens(incumbent, actual_reference, cfg, greens):
             raise ValueError('Outside fixed actual-green box: '+mid)
         if value != int(value) or str(int(value)) not in spec['ramps'][mid]['service_by_green_veh_h']:
             raise ValueError('Unrealizable physical meter green: '+mid)
+        if not operating_green_allowed(spec, value):
+            raise ValueError('Physical meter green is below the operating minimum: '+mid)
         candidate.diagnostics[key] = float(value)
         candidate.ramp_metering[mid] = spec['ramps'][mid]['service_by_green_veh_h'][str(int(value))]
     return prepare_control(candidate, cfg)
+
+
+def operating_green_allowed(spec, green):
+    """Historical closed commands remain readable; new candidates obey policy."""
+    return spec.get('allow_zero_green', True) if green == 0 else green >= spec['minimum_green_sec']
+
+
+def configure_operating_bounds(state, cfg, reference):
+    """Capacity-triggered command constraints, without changing traffic capacity.
+
+    Reserve the final part of each actual pre-head reservoir. If any represented
+    lane is at the trigger, require one legal green increase this interval.
+    This observed-state protection is not a predictive no-spillback certificate:
+    downstream receiving can prevent discharge even with a fully open meter.
+    """
+    spec = cfg.network.physical_ramp_branches
+    policy = spec.get('storage_release_guard', {})
+    enabled = policy.get('enabled', False)
+    floors = {}; evidence = {}
+    base = 0. if spec.get('allow_zero_green', True) else spec['minimum_green_sec']
+    if enabled and getattr(state, 'lane_ramp_runtime', None) is None:
+        raise ValueError('Storage release guard requires actual physical ramp buffers')
+    for ramp in spec['ramps']:
+        floor = base; lanes = []; triggered = False
+        old = reference.diagnostics['rw_meter_green_'+ramp]
+        if enabled:
+            buffer = state.lane_ramp_runtime.buffers[ramp]
+            for lane, part in enumerate(getattr(buffer, '_lane_buffers', [buffer]), 1):
+                s = part.snapshot()
+                capacity = part.head_position_m*part.lanes/part.spacing_m
+                occupied = s['upstream_travelling_veh']+s['head_ready_veh']
+                if not math.isfinite(capacity) or capacity <= 0 or not math.isfinite(occupied) or occupied < 0:
+                    raise ValueError('Invalid observed pre-head storage: '+ramp)
+                ratio = occupied/capacity
+                triggered |= ratio >= policy['trigger_fraction']-1e-10
+                lanes.append(dict(lane=lane,prehead_veh=occupied,capacity_veh=capacity,fill_fraction=ratio))
+            if triggered:
+                floor = max(base, min(spec['cycle_sec'], old+spec['max_green_change_sec']))
+        floors[ramp] = floor
+        evidence[ramp] = dict(previous_green_sec=old,minimum_green_sec=floor,
+                             triggered=triggered,lanes=lanes)
+    cfg.network.ramp_operating_green_floors = floors
+    return dict(schema='observed-ramp-storage-release-constraints/v1',enabled=enabled,
+                allow_zero_green=spec.get('allow_zero_green',True),policy=policy,ramps=evidence,
+                scope='Current pre-head occupancy; command floor only. No capacity, stock, flow or objective override.')
 
 
 def candidate_from_services(incumbent, actual_reference, cfg, services):

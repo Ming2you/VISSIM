@@ -17,6 +17,24 @@ import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[2]
 
 
+def check_ramp_reference(tuning, context):
+    """Reject contradictory head/merge declarations instead of hiding an override."""
+    fw = (tuning or {}).get('freeway', {})
+    enabled = fw.get('ramp_reference_contract', False)
+    if type(enabled) is not bool:
+        raise ValueError('freeway.ramp_reference_contract requires a boolean')
+    if not enabled:
+        return {}
+    reference = json.loads(context['paths']['reference_config'].read_bytes()).get('freeway', {})
+    declared = {k: v for k, v in fw.items() if k.startswith('physical_ramp_')}
+    effective = {k: v for k, v in reference.items() if k.startswith('physical_ramp_')}
+    if declared != effective:
+        different = sorted(k for k in declared.keys() | effective.keys() if declared.get(k) != effective.get(k))
+        raise ValueError('Ramp declarations disagree with pinned component: '+', '.join(different))
+    return {'ramp_reference_contract': dict(source=context['document']['sources']['reference_config'],
+                                           parameters=copy.deepcopy(effective), matched=True)}
+
+
 def install_direct_drain_services(descriptions,profile,default_veh_h_per_lane):
     """Install declared connector totals; retain the ordinary urban default elsewhere."""
     declared=profile.get('drain_service_vph',{})
@@ -292,6 +310,60 @@ def local_history(frames,cutoff,routes,exits,*,sample_interval_sec=1):
                 history_start_s=start,endogenous_background=True)
 
 
+def prepare_offramp_projection(context,observation,cfg,detectors):
+    """Reserve temporary observation space for ports migrated by initialize().
+
+    Undedicated direct connectors first pass through the legacy urban store.
+    Clipping there loses measured vehicles before move_link can transfer them
+    to their own finite port. These reservations are removed after migration;
+    they never supply receiving space to a prediction.
+    """
+    if context.get('offramp_projection_reservations'):
+        raise ValueError('Offramp projection reservation already active')
+    frame=next(f for f in observation['frames'] if f['time_s']==observation['information_cutoff_s'])
+    counts=Counter(int(v[1]) for v in frame['vehicles'])
+    groups=json.loads((ROOT/context['document']['off_groups']).read_text(encoding='utf-8'))['groups']
+    dedicated=detectors.get('physical_storage_projection',{}).get('link_to_storage',{})
+    reserved={}
+    for group in groups.values():
+        link=str(group['direct_connector'])
+        if link in dedicated or not counts[int(link)]:continue
+        origins=detectors.get('link_to_origins',{}).get(link,[])
+        if (len(origins)!=1 or origins[0] not in cfg.network.urban_link_storage_veh
+                or detectors.get('link_to_movements',{}).get(link)):
+            raise ValueError('Direct port temporary projection has ambiguous owner: '+link)
+        if counts[int(link)]>context['component'].offramps[link]['storage_capacity_veh']+1e-7:
+            raise ValueError('Observed direct port stock exceeds its physical capacity: '+link)
+        key=origins[0]
+        row=reserved.setdefault(key,dict(original_capacity_veh=cfg.network.urban_link_storage_veh[key],links={}))
+        row['links'][link]=counts[int(link)]
+    for key,row in reserved.items():
+        row['reserved_veh']=math.fsum(row['links'].values())
+        cfg.network.urban_link_storage_veh[key]=row['original_capacity_veh']+row['reserved_veh']
+    context['offramp_projection_reservations']=reserved
+    return {'offramp_projection_temporary_reservations':reserved}
+
+
+def restore_offramp_projection_capacity(context,cfg,state):
+    """Restore the declared capacity without changing the remaining stock."""
+    for key,row in context.get('offramp_projection_reservations',{}).items():
+        original=row['original_capacity_veh']
+        used=cfg.network.urban_link_storage_veh[key]-state.urban_link_storage[key]
+        if used < -1e-7:
+            raise ValueError('Negative remaining urban stock after port migration: '+key)
+        policy=context.get('projection_capacity_policy','strict')
+        if policy not in ('strict','observed_lower_bound'):
+            raise ValueError('Unknown lane projection capacity policy')
+        effective=max(original,used) if policy=='observed_lower_bound' else original
+        if used>effective+1e-7:
+            raise ValueError('Remaining urban stock exceeds capacity after port migration: '+key)
+        cfg.network.urban_link_storage_veh[key]=effective
+        state.urban_link_storage[key]=effective-used
+        row['restored']=True
+        row['observed_floor_added_veh']=effective-original
+        row['remaining_stock_veh']=used
+
+
 def initialize(context,observation,cfg,state,detectors,*,previous_action_path=None,shared_sc1001=None):
     from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.canonical_harness import DelayedPort
     from evaluation.controllers.physical_urban_transport import observe,history_inputs,CumulativeLane,CoupledPort,FIFO,tagged
@@ -406,6 +478,7 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
             if off!='10643':ports[off]=DelayedPort(row['storage_capacity_veh'],row['length_m'],
                 context['port_profile']['travel_speed_kmh'][off],
                 [[r[3],r[4],r[2]] for r in by_link[int(off)]],cutoff,interval_service=True)
+    restore_offramp_projection_capacity(context,cfg,state)
     install_direct_drain_services(descriptions,context['port_profile'],net.movement_capacity_veh_h)
     state.lane_offramp_runtime=LaneOfframpRuntime(ports,descriptions,coupled,physical)
     # Direct downstream tails use the existing explicit tail-exit allocator.
@@ -456,7 +529,17 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
         if key==local.origin:continue
         used=net.urban_link_storage_veh[key]-state.urban_link_storage[key]
         cap=net.urban_link_storage_veh[key]-removed
-        if cap<used-1e-7 or cap<=0:raise ValueError('Relocated road does not fit its remaining parent storage: '+key)
+        if cap<=0:raise ValueError('Relocated road has no remaining parent storage: '+key)
+        if cap<used-1e-7:
+            # The configured observation policy treats measured stock as a
+            # lower bound, not extra free receiving space. Never discard the
+            # excess or disable provenance checks to make initialization pass.
+            if context.get('projection_capacity_policy','strict')!='observed_lower_bound':
+                raise ValueError('Relocated road does not fit its remaining parent storage: '+key)
+            state.local_observation_summary.setdefault('lane_parent_capacity_floors',{})[key]={
+                'nominal_capacity_veh':cap,'observed_veh':used,'effective_capacity_veh':used,
+                'observed_floor_added_veh':used-cap,'initial_free_space_veh':0.}
+            cap=used
         net.urban_link_storage_veh[key]=cap;state.urban_link_storage[key]=cap-used
 
     before_start={}

@@ -1,0 +1,555 @@
+{
+  "schema": "physical-head-resource-join/v9",
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "resources": {
+    "10619": {
+      "group": "183|p3",
+      "heads": [
+        {
+          "head_id": "1070601",
+          "link": "183",
+          "lane": 1,
+          "position_m": 63.98146,
+          "sc": "107",
+          "sg": "6"
+        },
+        {
+          "head_id": "1070602",
+          "link": "183",
+          "lane": 2,
+          "position_m": 63.942838,
+          "sc": "107",
+          "sg": "6"
+        },
+        {
+          "head_id": "1070603",
+          "link": "183",
+          "lane": 3,
+          "position_m": 64.071871,
+          "sc": "107",
+          "sg": "6"
+        },
+        {
+          "head_id": "1070604",
+          "link": "183",
+          "lane": 4,
+          "position_m": 64.137704,
+          "sc": "107",
+          "sg": "6"
+        }
+      ],
+      "mode": "route_turn",
+      "members": {
+        "SC107_E_SC108_to_W_SC1005": {
+          "kind": "internal",
+          "signal": "SC107",
+          "phase": "SC107_p3",
+          "origin": "SC108_to_SC107",
+          "receiving_link": "SC107_W_choice"
+        }
+      },
+      "receiver": "SC107_W_choice",
+      "target_link": "1220000102",
+      "proof": {
+        "path": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/route_choice_corridor_1128_ver2_0fd58c.json",
+        "sha256": "2df3db23ad3ffc2968fdf2f553e68453f5216508f9f38fdc332163beb8162193"
+      }
+    },
+    "10629": {
+      "group": "52|p3",
+      "heads": [
+        {
+          "head_id": "90030884",
+          "link": "52",
+          "lane": 1,
+          "position_m": 463.38614254772256,
+          "sc": "1004",
+          "sg": "6"
+        },
+        {
+          "head_id": "90030885",
+          "link": "52",
+          "lane": 2,
+          "position_m": 463.3108544496501,
+          "sc": "1004",
+          "sg": "6"
+        },
+        {
+          "head_id": "90030886",
+          "link": "52",
+          "lane": 3,
+          "position_m": 463.43271083205224,
+          "sc": "1004",
+          "sg": "6"
+        }
+      ],
+      "mode": "regular_pool",
+      "members": {
+        "SC1004_E_SC1005_to_W": {
+          "kind": "boundary_out",
+          "signal": "SC1004",
+          "phase": "SC1004_p3",
+          "origin": "SC1005_to_SC1004",
+          "receiving_link": "SC1004_W_out"
+        },
+        "SC1004_E_SC107_to_W": {
+          "kind": "boundary_out",
+          "signal": "SC1004",
+          "phase": "SC1004_p3",
+          "origin": "SC107_to_SC1004",
+          "receiving_link": "SC1004_W_out"
+        }
+      },
+      "receiver": "SC1004_W_out",
+      "target_link": "68",
+      "proof": {
+        "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/dynamic_area_routes_ver2_dbaf86.json",
+        "sha256": "e9bb9500b1939ec45bc9058d22642f2a64535b67cee9d5a6dd08af07ee6ec7e0"
+      }
+    },
+    "10698": {
+      "group": "40|p2",
+      "heads": [
+        {
+          "head_id": "90030843",
+          "link": "40",
+          "lane": 4,
+          "position_m": 1253.7850344683677,
+          "sc": "1001",
+          "sg": "3"
+        }
+      ],
+      "mode": "regular_unique",
+      "members": {
+        "SC1001_S_SC1003_to_W_RAMP": {
+          "kind": "boundary_out",
+          "signal": "SC1001",
+          "phase": "SC1001_p2",
+          "origin": "SC1003_to_SC1001",
+          "receiving_link": "SC1001_W_out"
+        }
+      },
+      "receiver": "SC1001_W_out",
+      "target_link": "31",
+      "proof": {
+        "path": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/physical_projection_support_635_proposal_ec2393.json",
+        "sha256": "51f81ba27f213546c01f9758077c25032b00ff831e4cac960ea7110952054a45"
+      },
+      "green_exposure_windows": 4
+    },
+    "10633": {
+      "group": "66|p2",
+      "heads": [
+        {
+          "head_id": "90030875",
+          "link": "66",
+          "lane": 4,
+          "position_m": 2658.6173673078556,
+          "sc": "1004",
+          "sg": "3"
+        }
+      ],
+      "mode": "regular_unique",
+      "members": {
+        "SC1004_S_to_W": {
+          "kind": "boundary_in",
+          "signal": "SC1004",
+          "phase": "SC1004_p2",
+          "origin": "in_SC1004_S",
+          "receiving_link": "SC1004_W_out"
+        }
+      },
+      "receiver": "SC1004_W_out",
+      "target_link": "68",
+      "proof": {
+        "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\known_wout_routes_ver2_proposal_a424b4.json",
+        "sha256": "805adc91d5fad344e5a4b697cc1f640549d99c2a0f729545ff5fe118c36422a6"
+      },
+      "green_exposure_windows": 4
+    },
+    "10285": {
+      "group": "173|p3",
+      "heads": [
+        {
+          "head_id": "1090201",
+          "link": "173",
+          "lane": 3,
+          "position_m": 25.927629118318755,
+          "sc": "109",
+          "sg": "2"
+        },
+        {
+          "head_id": "1090202",
+          "link": "173",
+          "lane": 2,
+          "position_m": 25.745704856146823,
+          "sc": "109",
+          "sg": "2"
+        },
+        {
+          "head_id": "1090203",
+          "link": "173",
+          "lane": 1,
+          "position_m": 26.3422,
+          "sc": "109",
+          "sg": "2"
+        }
+      ],
+      "mode": "regular_exit",
+      "members": {
+        "SC109_W_SC108_to_E": {
+          "kind": "boundary_out",
+          "signal": "SC109",
+          "phase": "SC109_p3",
+          "origin": "SC108_to_SC109",
+          "receiving_link": "SC109_E_out"
+        }
+      },
+      "receiver": "SC109_E_out",
+      "target_link": "1220000803",
+      "proof": {
+        "path": "outputs/movement_connector_map_20260824.json",
+        "sha256": "2d12a82591b9fceab723f19045bcffce75b02dfcc4dbc9cb85de6e0c4e3fa585"
+      },
+      "membership": {
+        "path": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/membership.json",
+        "sha256": "efdfaeb1b9d0d670119c8e158eabd615033bb1127cabd84d187b064ba64cd473"
+      }
+    },
+    "10283": {
+      "group": "1210009402|p2",
+      "heads": [
+        {
+          "head_id": "1090701",
+          "link": "1210009402",
+          "lane": 1,
+          "position_m": 18.970456,
+          "sc": "109",
+          "sg": "7"
+        },
+        {
+          "head_id": "1090702",
+          "link": "1210009402",
+          "lane": 2,
+          "position_m": 18.799723,
+          "sc": "109",
+          "sg": "7"
+        },
+        {
+          "head_id": "1090703",
+          "link": "1210009402",
+          "lane": 3,
+          "position_m": 18.875333,
+          "sc": "109",
+          "sg": "7"
+        }
+      ],
+      "mode": "regular_exit",
+      "members": {
+        "SC109_N_SC16_to_E": {
+          "kind": "boundary_out",
+          "signal": "SC109",
+          "phase": "SC109_p2",
+          "origin": "SC16_to_SC109",
+          "receiving_link": "SC109_E_out"
+        }
+      },
+      "receiver": "SC109_E_out",
+      "target_link": "1220000803",
+      "proof": {
+        "path": "outputs/movement_connector_map_20260824.json",
+        "sha256": "2d12a82591b9fceab723f19045bcffce75b02dfcc4dbc9cb85de6e0c4e3fa585"
+      },
+      "membership": {
+        "path": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/membership.json",
+        "sha256": "efdfaeb1b9d0d670119c8e158eabd615033bb1127cabd84d187b064ba64cd473"
+      },
+      "green_exposure_windows": 4
+    },
+    "10119": {
+      "group": "29|p3",
+      "heads": [
+        {
+          "head_id": "90030837",
+          "link": "29",
+          "lane": 2,
+          "position_m": 537.1194077400183,
+          "sc": "1001",
+          "sg": "6"
+        },
+        {
+          "head_id": "90030838",
+          "link": "29",
+          "lane": 3,
+          "position_m": 536.9221093783098,
+          "sc": "1001",
+          "sg": "6"
+        }
+      ],
+      "mode": "regular_unique",
+      "members": {
+        "SC1001_E_SC1002_to_W_RAMP": {
+          "kind": "boundary_out",
+          "signal": "SC1001",
+          "phase": "SC1001_p3",
+          "origin": "SC1002_to_SC1001",
+          "receiving_link": "SC1001_W_out"
+        }
+      },
+      "receiver": "SC1001_W_out",
+      "target_link": "31",
+      "proof": {
+        "path": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/physical_projection_support_635_proposal_ec2393.json",
+        "sha256": "51f81ba27f213546c01f9758077c25032b00ff831e4cac960ea7110952054a45"
+      },
+      "green_exposure_windows": 4,
+      "disjoint_consumers": {
+        "SC1001_E_SC1002_to_N_SC2002": {
+          "expected_spec": {
+            "kind": "internal",
+            "signal": "SC1001",
+            "phase": "SC1001_p3",
+            "origin": "SC1002_to_SC1001",
+            "receiving_link": "SC1001_to_SC2002",
+            "turn": "right"
+          },
+          "path": [
+            "29",
+            "10122",
+            "38"
+          ],
+          "native_route": "1118:3",
+          "destination_mapping": {
+            "path": "evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json",
+            "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e"
+          }
+        }
+      }
+    },
+    "10691": {
+      "group": "329|p3",
+      "heads": [
+        {
+          "head_id": "90030853",
+          "link": "329",
+          "lane": 3,
+          "position_m": 117.24623518440761,
+          "sc": "1002",
+          "sg": "6"
+        },
+        {
+          "head_id": "90030854",
+          "link": "329",
+          "lane": 2,
+          "position_m": 117.48661920112617,
+          "sc": "1002",
+          "sg": "6"
+        }
+      ],
+      "mode": "regular_unique",
+      "members": {
+        "SC1002_E_SC101_to_W_SC1001": {
+          "signal": "SC1002",
+          "phase": "SC1002_p3",
+          "origin": "SC101_to_SC1002",
+          "receiving_link": "SC1002_to_SC1001",
+          "kind": "internal"
+        }
+      },
+      "receiver": "SC1002_to_SC1001",
+      "target_link": "29",
+      "proof": {
+        "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\head_lane_support.json",
+        "sha256": "36793ef39f2b5daded3b07207da60cce7ff880a6f45133458f09583e24c9b59a"
+      },
+      "disjoint_consumers": {
+        "SC1002_E_SC101_to_N_SC2004": {
+          "expected_spec": {
+            "signal": "SC1002",
+            "phase": "SC1002_p3",
+            "origin": "SC101_to_SC1002",
+            "receiving_link": "SC1002_to_SC2004",
+            "kind": "internal",
+            "turn": "right"
+          },
+          "path": [
+            "329",
+            "10692",
+            "73"
+          ],
+          "native_route": "1113:2",
+          "native_route_path": [
+            "321",
+            "10514",
+            "322",
+            "10517",
+            "325",
+            "10520",
+            "326",
+            "10523",
+            "329",
+            "10692",
+            "73"
+          ],
+          "destination_mapping": {
+            "path": "evaluation\\real_world_modi_control_ver2_20260907\\detector_local_mapping_ver2_20260907.json",
+            "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e"
+          }
+        }
+      }
+    },
+    "10539": {
+      "group": "1220011503|p2",
+      "heads": [
+        {
+          "head_id": "1010301",
+          "link": "1220011503",
+          "lane": 5,
+          "position_m": 206.27548299999998,
+          "sc": "101",
+          "sg": "3"
+        },
+        {
+          "head_id": "1010302",
+          "link": "1220011503",
+          "lane": 4,
+          "position_m": 207.12408199999996,
+          "sc": "101",
+          "sg": "3"
+        }
+      ],
+      "mode": "regular_unique",
+      "members": {
+        "SC101_S_SC1_to_W_SC1002": {
+          "signal": "SC101",
+          "phase": "SC101_p2",
+          "origin": "SC1_to_SC101",
+          "receiving_link": "SC101_to_SC1002",
+          "kind": "internal"
+        }
+      },
+      "receiver": "SC101_to_SC1002",
+      "target_link": "1220012402",
+      "green_exposure_windows": 4,
+      "proof": {
+        "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\source_sc101\\head_lane_support.json",
+        "sha256": "69c5a7c22a0450aef737b4fd843fedfc99911ad9bef16a5ff452273c957d2211"
+      }
+    },
+    "10631": {
+      "group": "66|p1",
+      "heads": [
+        {
+          "head_id": "90030876",
+          "link": "66",
+          "lane": 3,
+          "position_m": 2658.7703026862664,
+          "sc": "1004",
+          "sg": "8"
+        },
+        {
+          "head_id": "90030877",
+          "link": "66",
+          "lane": 2,
+          "position_m": 2658.822897114408,
+          "sc": "1004",
+          "sg": "8"
+        },
+        {
+          "head_id": "90030878",
+          "link": "66",
+          "lane": 1,
+          "position_m": 2658.8419334135556,
+          "sc": "1004",
+          "sg": "8"
+        }
+      ],
+      "mode": "regular_unique",
+      "members": {
+        "SC1004_S_to_N_SC1003": {
+          "kind": "boundary_in",
+          "signal": "SC1004",
+          "phase": "SC1004_p1",
+          "origin": "in_SC1004_S",
+          "receiving_link": "SC1004_to_SC1003"
+        }
+      },
+      "receiver": "SC1004_to_SC1003",
+      "target_link": "47",
+      "green_exposure_windows": 4,
+      "proof": {
+        "path": "diagnostics\\repin_v3c3_review_20261001\\urban66_u7\\contract.json",
+        "sha256": "a13788561272756a672d67e1e56553db43e54b487cebce2f70da5daa701853e4"
+      },
+      "disjoint_consumers": {
+        "SC1004_S_to_E_SC1005": {
+          "expected_spec": {
+            "kind": "boundary_in",
+            "signal": "SC1004",
+            "phase": "SC1004_p1",
+            "origin": "in_SC1004_S",
+            "receiving_link": "SC1004_to_SC1005",
+            "turn": "right"
+          },
+          "path": [
+            "66",
+            "10632",
+            "56"
+          ],
+          "native_route": "1124:3",
+          "destination_mapping": {
+            "path": "evaluation\\real_world_modi_control_ver2_20260907\\detector_local_mapping_ver2_20260907.json",
+            "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e"
+          },
+          "upstream_of_head": true,
+          "downstream_choice": {
+            "path": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/route_choice_corridor_sc1004_calibrated_9e6354.json",
+            "sha256": "5c5b44ec05e677542c923735ff751239bf2a5edf2c51029257ca3dab8da5e0a3"
+          }
+        }
+      }
+    }
+  },
+  "scope": "Existing v7 plus proven SC101 south left10539; existing4 past green-window pool, no fitted discharge parameter.",
+  "rate_policy": "route_turn:max(existing_single_service, observed_only_support); regular_pool:only activate measured single budget when observed support exceeds the previous independent-member aggregate; otherwise record unapplied support and preserve legacy behavior",
+  "note": "Canonical physical resource join. The regular_pool activation comparison is an old model envelope, not an inferred physical capacity.",
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/lane_plant_20260921/scenario/head_service_resource_contract_f40085.json",
+      "sha256": "d58259ce6437738b77a885583868cf1783c7054d1cc39af793f8f8efdda36a46"
+    },
+    "runtime_network": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+      "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+    },
+    "accuracy_validation": "pending",
+    "lineage": {
+      "source_declaration": {
+        "path": "diagnostics/head_service_resource_contract.json",
+        "sha256": "d275ce27e0b11e5ab53f157dc6ec3c15365a07e3138361238caf2dfd02121ad9"
+      },
+      "runtime_network": {
+        "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+        "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+      },
+      "accuracy_validation": "pending"
+    },
+    "repin": {
+      "tool": "diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py",
+      "plan": "SDMPC31_OBS150_PLAN_20260924 section 5",
+      "runtime_validation": "G1 t=1 decision: every validator runs in configure() before the first no-control action",
+      "rewritten": {
+        "network_pin": 1,
+        "pack_pin": 2,
+        "pack_path": 0
+      }
+    }
+  },
+  "diagnostic_source": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\sc1001_sources_20260929\\head_resources.json",
+    "sha256": "e9f2d658915792d8088f8d6128ea20f5d63ee89f21186669227a6e342d81b16d"
+  }
+}

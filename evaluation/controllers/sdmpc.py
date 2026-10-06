@@ -118,7 +118,7 @@ def configure(tuning, cfg, controller='wu-link'):
             pfo_cap_options[key] = sdmpc_budget.checked_margin(pfo_cap_options[key], key)
         options = dict(options, budget_caps=True, pfo_each_interval=True, pfo_cap_options=pfo_cap_options)
     for name in ('response_np_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
-                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant'):
+                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant', 'meter_neighbor_audit'):
         value = tuning.get('adapter', {}).get('sdmpc_'+name)
         if value is not None:
             if type(value) is not bool:
@@ -188,6 +188,8 @@ def configure(tuning, cfg, controller='wu-link'):
                 or cfg.simulation.T_c_sec != 150 or derivative_mode != 'tangent-v1'):
             raise ValueError('adapter.sdmpc_control_blocks requires 3 x 150s and tangent-v1')
         options = dict(options, control_blocks=blocks)
+    if options.get('meter_neighbor_audit') and options.get('control_blocks') != 3:
+        raise ValueError('Finite meter schedule audit requires three control blocks')
     if options.get('fast_primitives') and (backend != 'reverse-v1' or primal_audit is not True):
         raise ValueError('sdmpc_fast_primitives requires reverse-v1 and primal_audit')
     if options.get('compact_audit') and primal_audit is not True:
@@ -237,6 +239,11 @@ def configure(tuning, cfg, controller='wu-link'):
                 'dual_step', 'qp_tolerance', 'objective_tolerance'):
         if type(options[key]) not in (int, float) or not math.isfinite(options[key]) or options[key] <= 0:
             raise ValueError('SDMPC positive parameter required: '+key)
+    fixed_vsl = tuning.get('adapter', {}).get('sdmpc_fixed_vsl')
+    if fixed_vsl is not None:
+        from evaluation.controllers.control_hold import validate_fixed_vsl
+        validate_fixed_vsl(fixed_vsl, cfg.network.freeway_vsl_zone_heads)
+        options['fixed_vsl'] = copy.deepcopy(fixed_vsl)
     cfg.network.sdmpc_options = options
     from evaluation.controllers import sdmpc_terminal
     sdmpc_terminal.configure(tuning, cfg)
@@ -383,15 +390,21 @@ class Coordinates:
             _, limit, _ = self.limits['offsets', owner]
             axis(owner, 'offset', owner, cycle, options['fd_offset_sec'], -limit, limit)
         for ramp in net.ramps:
+            from evaluation.controllers.physical_ramp_branches import operating_green_allowed
             spec = net.physical_ramp_branches
             a, limit, _ = self.limits['diagnostics', 'rw_meter_green_'+ramp]
+            floor = getattr(net, 'ramp_operating_green_floors', {}).get(ramp, 0.)
             allowed = [int(g) for g in spec['ramps'][ramp]['service_by_green_veh_h']
-                       if abs(int(g)-a) <= limit and (int(g) == 0 or int(g) >= spec['minimum_green_sec'])]
+                       if abs(int(g)-a) <= limit and int(g) >= floor and operating_green_allowed(spec,int(g))]
+            if not allowed:
+                raise ValueError('No meter command satisfies operating bounds and actual-change limit: '+ramp)
             j = axis(net.ramp_to_freeway[ramp], 'meter', ramp, spec['cycle_sec'],
                      options['fd_meter_green_sec'], min(allowed)-a, max(allowed)-a)
             self.axes[j].update(allowed=allowed, reference_value=a)
         for owner in net.freeway_links:
             for zone in net.freeway_vsl_zone_free:
+                if options.get('fixed_vsl') is not None:
+                    continue  # Exogenous schedule, not an optimization coordinate.
                 head = net.freeway_vsl_zone_heads[owner][zone]
                 key = f'{owner}__seg{head}'
                 a, limit, _ = self.limits['vsl', key]
@@ -408,6 +421,8 @@ class Coordinates:
         self.ghi = np.array([r[2] for r in self.phase_rows])
         self.lower, self.upper = np.array(self.bounds).T
         self.owners = tuple(net.signals)+tuple(net.freeway_links)
+        from evaluation.controllers.urban_storage_guard import constrain
+        constrain(self)
 
     def encode(self, control):
         z = []
@@ -461,6 +476,17 @@ class Coordinates:
             pivot = 'p4' if concurrent else live[-1]
             others = ('p2',) if concurrent else live[:-1]
             out.green_times[owner+'_'+pivot] = round(self.cfg.network.signal_effective_green_total(owner)-sum(out.green_times[owner+'_'+p] for p in others), 3)
+            values = {p: out.green_times.get(owner+'_'+p, 0.) for p in signals.PHASES}
+            try:
+                signals.validate_vector(self.cfg.network, owner, values)
+            except ValueError:
+                # Rounding independent greens can push the residual pivot 1 ms
+                # past a bound. Repair only that precision loss before scoring;
+                # the unchanged move box and sequence constraints still apply.
+                repaired = signals.project_vector(self.cfg.network, owner, values)
+                if max(abs(repaired[p]-values[p]) for p in signals.PHASES) > .002+1e-9:
+                    raise
+                out.green_times.update({owner+'_'+p: v for p,v in repaired.items()})
         for owner in self.cfg.network.freeway_links:
             out.vsl[owner] = min(out.vsl[f'{owner}__seg{i}'] for i in range(len(self.cfg.network.freeway_vsl_zone_head_of_cell[owner])))
         out = physical_ramp_branches.candidate_from_greens(
@@ -511,6 +537,101 @@ def meter_activation_axes(coord, z, gradient, resources):
             and abs(axis['reference_value'] + z[j]*axis['scale'] - axis['scale']) < 1e-9
             and not np.any(gradient[:, j]) and not np.any(resources[:, j])
             and any(value < axis['scale'] for value in axis['allowed'])}
+
+
+def meter_neighbors(coord, action):
+    """One bounded set of tighten/release profiles, anchored to actual controls.
+
+    Include each ramp and each freeway's ramps together. Inspect finite legal
+    commands across all blocks; a zero derivative at OPEN must not hide them.
+    Signal/VSL controls and quantity caps stay fixed. No combinatorial search.
+    """
+    axes = {}
+    owners = {}
+    for j, axis in enumerate(coord.axes):
+        if axis['kind'] == 'meter':
+            axes.setdefault(axis['key'], []).append(j)
+            owners.setdefault(axis['owner'], set()).add(axis['key'])
+    groups = [(name, {name}) for name in axes]
+    groups += [(owner, ramps) for owner, ramps in owners.items() if len(ramps) > 1]
+    limits = {(field, key): limit for field, key, old, limit, cycle in coord.move_box.entries}
+    start = coord.encode(action)
+    seen = {tuple(start)}
+    result = []
+    for label, ramps in groups:
+        for direction in (-1, 1):
+            z = start.copy()
+            for ramp in sorted(ramps):
+                indices = sorted(axes[ramp], key=lambda j: coord.axes[j].get('block', 0))
+                previous = coord.axes[indices[0]]['reference_value']
+                limit = limits['diagnostics', 'rw_meter_green_'+ramp]
+                for j in indices:
+                    axis = coord.axes[j]
+                    allowed = [g for g in axis['allowed'] if abs(g-previous) <= limit+1e-9]
+                    if not allowed:
+                        raise ValueError('No legal successive meter value')
+                    value = min(allowed) if direction < 0 else max(allowed)
+                    z[j] = (value-axis['reference_value'])/axis['scale']
+                    previous = value
+            if tuple(z) in seen:
+                continue
+            candidate = coord.decode(z, action)
+            coord.validate(candidate)
+            actual = tuple(coord.encode(candidate))
+            if actual in seen:
+                continue
+            seen.add(actual)
+            result.append((label+(':tighten' if direction < 0 else ':release'), candidate))
+    return result
+
+
+def audit_meter_neighbors(coord, best, tolerance, evaluate, feasible):
+    """Choose only a lower-cost feasible finite candidate, retaining all caps."""
+    baseline = best[1]['objective_veh_h']
+    candidates = meter_neighbors(coord, best[0])
+    items = evaluate([action for _, action in candidates]) if candidates else []
+    if len(items) != len(candidates):
+        raise ValueError('Incomplete finite meter evaluation')
+    rows, selected = [], None
+    for (label, action), item in zip(candidates, items):
+        valid = feasible(action, item)
+        rows.append(dict(candidate=label, objective=item['objective_veh_h'], feasible=valid,
+                         delta_veh_h=item['objective_veh_h']-baseline))
+        if valid and item['objective_veh_h'] < best[1]['objective_veh_h']-tolerance:
+            best, selected = (action, item, None), label
+    return best, dict(baseline_objective=baseline, selected=selected, candidates=rows,
+                     additional_predictions=len(items), exhaustive=False)
+
+
+def audit_meter_budget_candidates(coord, best, budget_candidates, tolerance, evaluate, feasible):
+    """Audit discrete meters before discarding independently solved budgets.
+
+    Equal continuous controls can have different feasible meter neighbors under
+    different caps. Choosing a budget first hides those neighbors. Keep each
+    already feasible budget's incumbent, without expanding any candidate cap.
+    Work stays bounded by the solved budgets plus an optional held incumbent.
+    """
+    initial = best[1]['objective_veh_h']
+    seen, audits, rows, selected, predictions = set(), [], [], None, 0
+    for incumbent in (best, *budget_candidates):
+        identity = token(incumbent[0])
+        if identity in seen:
+            continue
+        seen.add(identity)
+        if not feasible(incumbent[0], incumbent[1]):
+            raise ValueError('Meter budget audit requires a feasible incumbent')
+        candidate, audit = audit_meter_neighbors(coord, incumbent, tolerance, evaluate, feasible)
+        context = dict(np_cap=incumbent[0].N_P_star, nuf_target=incumbent[0].N_UF_star,
+                       incumbent_action_token=identity)
+        audits.append(dict(audit, **context))
+        rows.extend(dict(row, **context) for row in audit['candidates'])
+        predictions += audit['additional_predictions']
+        if candidate[1]['objective_veh_h'] < best[1]['objective_veh_h']-tolerance:
+            best, selected = candidate, audit['selected']
+    return best, dict(baseline_objective=initial, selected=selected, candidates=rows,
+        additional_predictions=predictions, exhaustive=False, budget_audits=audits,
+        distinct_budget_incumbents=len(audits),
+        scope='Finite legal RM neighbors of every solved feasible budget; each cap remains fixed')
 
 
 def solve_qp(center, gradient, proximal, lower, upper, G, glo, ghi, options):
@@ -638,6 +759,15 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
     del state._sdmpc_interval_sec
     source_token = token(runtime_sources)
     reference = meters.prepare_held_actual_reference(historical, cfg)
+    from evaluation.controllers.physical_ramp_branches import configure_operating_bounds
+    meter_operating_bounds = configure_operating_bounds(state, cfg, reference)
+    if policy.get('fixed_vsl') is not None:
+        from evaluation.controllers.control_hold import fixed_vsl_reference
+        reference = fixed_vsl_reference(reference, policy['fixed_vsl'],
+            cfg.network.freeway_vsl_zone_heads, state.time_sec,
+            cfg.simulation.T_c_sec, policy.get('control_blocks', 1))
+        # historical remains the actual prior command for the writer/move box.
+        # The scheduled command is present in every prediction, including PFO.
     scale = np.array([policy['budget_scale_np_veh'], policy['budget_scale_nuf_veh_h']])
     with joint.shared_query_runtime_scope(), ExitStack() as derivative_tasks:
         adapter._PHASE_VECTOR_FOLLOWER['ref'] = follower
@@ -653,6 +783,20 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         budget.response_query = query
         coordinate_type = sequence.SequenceCoordinates if policy.get('control_blocks') == 3 else Coordinates
         coord = coordinate_type(cfg, reference, callbacks['move_box'], policy)
+        # A full reservoir may require opening relative to the last actual
+        # command. Keep the actual anchor; only project the new warm start.
+        if getattr(cfg.network, 'urban_storage_guard', None):
+            from evaluation.controllers.urban_storage_guard import operating_seed as protected_seed
+            operating_seed = protected_seed(coord, reference, policy)
+        else:
+            operating_seed = reference
+            if not coord.valid(coord.encode(reference)):
+                seed_z = coord.encode(reference)
+                for j, axis in enumerate(coord.axes):
+                    if axis['kind'] == 'meter':
+                        seed_z[j] = np.clip(seed_z[j],coord.lower[j],coord.upper[j])
+                operating_seed = coord.decode(seed_z,reference)
+                coord.validate(operating_seed)
         surrogate = bool(policy.get('surrogate_reuse'))
         if surrogate:
             from evaluation.controllers.sdmpc_tangent_surrogate import Query, MODEL
@@ -686,7 +830,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             return np.array([q['np']['actual'], q['nuf']['actual']])
         def feasible(action, item):
             coverage = item['model_constraint_coverage']
-            return (quantity(action, item)['feasible'] and item['conditional_model_feasibility_witness']
+            return (bool(coord.valid(coord.encode(action))) and quantity(action, item)['feasible'] and item['conditional_model_feasibility_witness']
                     and coverage['complete'] and coverage['conditional_model_feasibility_witness']
                     and item['resource_summary']['max_exceedance_veh'] <= options['shared_tolerance'])
         pfo_receipt = pfo_initial = None
@@ -695,7 +839,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             # Every solve is a fresh control interval. No persisted budget or
             # previous unexecuted plan may bypass this own-cost warm solve.
             warm_action, warm_item, pfo_receipt, pfo_initial = sdmpc_pfo.solve(
-                reference,coord,policy,options,evaluate,query.derivative,vector,budget.check,emit)
+                operating_seed,coord,policy,options,evaluate,query.derivative,vector,budget.check,emit)
             pfo_receipt['prediction_rollouts'] = query.stats()['total_rollouts']
             post_pfo_started = perf_counter()
             anchor, initialization = sdmpc_budget.initialize(follower,state,warm_action,warm_item,options)
@@ -707,10 +851,10 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         else:
             emit('sdmpc_hold_start', axes=len(coord.axes), owners=len(coord.owners))
             shared_initial = bool(policy.get('initial_shared_prediction'))
-            held_old = evaluate([reference], derivatives=shared_initial)[0]
-            anchor, initialization = joint.initialize_decision_nuf(follower, state, reference, held_old)
+            held_old = evaluate([operating_seed], derivatives=shared_initial)[0]
+            anchor, initialization = joint.initialize_decision_nuf(follower, state, operating_seed, held_old)
             if shared_initial:
-                query.bind_initial_target(reference, anchor)
+                query.bind_initial_target(operating_seed, anchor)
                 emit('sdmpc_initial_prediction_shared', removed_scalar_rollouts=1,
                      scope='Initial target binding only; unchanged physical commands and continuous-model AD')
         initial_derivative=None
@@ -733,7 +877,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         held = evaluate([anchor], derivatives=surrogate)[0]
         initialization['physical_commands_unchanged'] = (
             callbacks['command_evidence'](anchor, context)['owner_physical_sha256']
-            == callbacks['command_evidence'](warm_action if cap_mode else reference, context)['owner_physical_sha256'])
+            == callbacks['command_evidence'](warm_action if cap_mode else operating_seed, context)['owner_physical_sha256'])
         if not initialization['physical_commands_unchanged']:
             raise ValueError('SDMPC NUF refresh changed physical commands')
         hold_valid = feasible(anchor, held)
@@ -751,6 +895,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         if central_mode:
             targets = [(anchor.N_P_star if cap_mode else targets[0], anchor.N_UF_star)]
         central_rows, dual_updates = [], []
+        meter_budget_candidates = []
         candidate_rows, gradient_rows, local_rows, trials = [], [], [], []
         costs_order = (*coord.owners, PASSIVE)
         def costs(item):
@@ -1002,14 +1147,26 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                         limits,policy['central_options'])
                     if new_target is not None:
                         targets.append(tuple(new_target))
-            if candidate_best and (best is None or candidate_best[1]['objective_veh_h'] < best[1]['objective_veh_h']-policy['objective_tolerance']):
-                best = candidate_best
+            if candidate_best:
+                if policy.get('meter_neighbor_audit'):
+                    meter_budget_candidates.append(candidate_best)
+                if best is None or candidate_best[1]['objective_veh_h'] < best[1]['objective_veh_h']-policy['objective_tolerance']:
+                    best = candidate_best
         held_candidate = None
-        if cap_mode:
+        if cap_mode and coord.valid(coord.encode(reference)):
             best, held_candidate = retain_feasible_held(reference, pfo_initial['objective_veh_h'],
                 best, best[0] if best is not None else anchor, policy['objective_tolerance'], evaluate, feasible)
+        elif cap_mode:
+            held_candidate = dict(evaluated=False,selected=False,reason='outside_current_operating_bounds')
         if best is None:
             raise ValueError('SDMPC found no executable feasible candidate; hold was also infeasible')
+        meter_audit = None
+        if policy.get('meter_neighbor_audit'):
+            finish_trial_derivatives()
+            emit('sdmpc_meter_neighbors_start')
+            best, meter_audit = audit_meter_budget_candidates(coord, best, meter_budget_candidates,
+                policy['objective_tolerance'], evaluate, feasible)
+            emit('sdmpc_meter_neighbors_done', **meter_audit)
         selected, item, signal = best
         sequence_proof = coord.validate(selected) if policy.get('control_blocks') == 3 else None
         # 기존 검증의 물리/제약/명령 부분만 재사용한다. hold 또는 Nash로 명명하지 않는다.
@@ -1040,6 +1197,9 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             state_record.update(central_duals_scaled=initial_central_dual.tolist(),
                 next_central_duals_scaled=signal['candidate_dual'] if signal is not None else initial_central_dual.tolist())
         metadata = {'algorithm': SCHEMA, 'converged': False, 'feasible': True,
+            'meter_operating_bounds': meter_operating_bounds,
+            'urban_storage_guard': {'observation': getattr(cfg.network, 'urban_storage_guard', None),
+                'blocks': [b.urban_storage_receipt for b in getattr(coord, 'blocks', [coord])]},
             'selection_status': 'best_observed_feasible_sdmpc', 'candidates': candidate_rows,
             'nuf_initialization': initialization, 'held_feasible': hold_valid,
             'held_objective': held['objective_veh_h'], 'selected_objective': item['objective_veh_h'],
@@ -1054,7 +1214,9 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             **({'tangent_derivatives': derivative_receipts}
                if policy.get('derivatives') == 'tangent-v1' else {}),
             'trial_rows': trials, 'local_trial_traffic_rollouts': 0,
-            'finite_neighbor_audit_performed': False, 'policy': policy}
+            'finite_neighbor_audit_performed': meter_audit is not None, 'policy': policy}
+        if meter_audit is not None:
+            metadata['meter_neighbor_audit'] = meter_audit
         if central_mode:
             metadata.update(algorithm='sdmpc-central-reuse/v2',central_multiplier=central_rows,
                 iteration_dual_updates=dual_updates, price_update='each_lower_iteration_after_all_players',
