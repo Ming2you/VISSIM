@@ -2438,3 +2438,54 @@ def test_hookcount_records_final_flags(tmp_path):
     assert any(w.startswith('S3 hook hook_errors 2') for w in why)
     assert any('S3 hook files without their final record' in w for w in why)
     assert any('SA fold hook files without their final record' in w for w in why)
+
+
+TAN_PATCH_SCRIPT = textwrap.dedent("""
+    # K8-0i: the TAN instrument reaches the reverse module the tangent finder imported before the Post hook.
+    import json
+    import sys
+    from pathlib import Path
+    ROOT, SADIR = Path(sys.argv[1]), sys.argv[2]
+    sys.path.insert(0, SADIR)
+    import sa_worker as W                                     # before the finder: untransformed, as the worker
+    sys.path[:0] = [str(ROOT), str(ROOT / 'vendor/NumSim-mine')]
+    from evaluation.controllers.sdmpc_tangent_runtime import install
+    install(ROOT, 'reverse-v1')                               # as sa_worker.main
+    name = 'evaluation.controllers.sdmpc_tangent_reverse'
+    out = {'preloaded': name in sys.modules}
+    rev = sys.modules[name]
+    rev.Trace.jacobian = lambda self, outputs, workers=8: 'original'   # the compiled sweep needs the pinned Numba
+    callbacks = {name: W.patch_reverse}
+    sys.meta_path.insert(0, W.Post(callbacks))
+    out['late_patched'] = W.apply_loaded(callbacks)
+    out['instrument'] = bool(getattr(rev.Trace.jacobian, 'k8_tan_instrument', False))
+    tr = rev.Trace([0, 1])
+    x, y = rev.Dual(2.0, {0: 1.0}, tr), rev.Dual(3.0, {1: 1.0}, tr)
+    z = x * y + x
+    W.TANGENT.update(nodes=[z.node], axes=[{'index': 0}, {'index': 1}], trace_id=id(tr), values=None, error=None)
+    out['returned'] = tr.jacobian([z], 1)
+    out['values'] = W.TANGENT['values']
+    out['error'] = W.TANGENT['error']
+    out['again'] = W.apply_loaded({'not.imported.module': W.patch_reverse})
+    print('RESULT ' + json.dumps(out))
+    """)
+
+
+def test_tan_instrument_reaches_the_reverse_module_the_finder_preloaded(tmp_path):
+    """K8-0i (G-EB-8 INCOMPLETE on k86h): install(R, 'reverse-v1') imports sdmpc_tangent_reverse before sa_worker puts
+    its Post hook on sys.meta_path, so patch_reverse was never applied and every TAN summary kept tangent values None.
+    apply_loaded patches the already imported module; the wrapped Trace.jacobian then records d(sum of the recorded
+    nodes)/d(axis) by the forward sweep and still returns the original result (real reverse module, new process)."""
+    script = tmp_path / 'tan_patch_case.py'
+    script.write_text(TAN_PATCH_SCRIPT, encoding='utf-8')
+    env = {k: v for k, v in os.environ.items() if not k.startswith(('K8_', 'K8G_'))}
+    env.update(PYTHONHASHSEED='0', NUMBA_NUM_THREADS='1', OMP_NUM_THREADS='1')
+    p = subprocess.run([sys.executable, '-B', str(script), str(SA.parents[3]), str(SA)], env=env,
+                       capture_output=True, text=True, cwd=str(tmp_path), timeout=600)
+    assert p.returncode == 0, p.stdout[-3000:] + p.stderr[-3000:]
+    r = json.loads([x for x in p.stdout.splitlines() if x.startswith('RESULT ')][-1][7:])
+    assert r['preloaded'] is True                              # the premise: Post alone never sees this import
+    assert r['late_patched'] == ['evaluation.controllers.sdmpc_tangent_reverse'] and r['instrument'] is True
+    assert r['returned'] == 'original' and r['error'] is None
+    assert r['values'] == {'0': 4.0, '1': 2.0}                 # z = x*y + x at (2, 3): dz/dx = y + 1, dz/dy = x
+    assert r['again'] == []

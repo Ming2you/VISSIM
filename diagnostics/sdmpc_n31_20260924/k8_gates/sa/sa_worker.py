@@ -110,6 +110,21 @@ class Post(importlib.abc.MetaPathFinder):
         return spec
 
 
+def apply_loaded(callbacks):
+    """K8-0i: run the callback of every listed module that is already imported and return their names.  Post patches
+    a module when it is imported; the tangent finder (install(R, 'reverse-v1') in main) imports
+    evaluation.controllers.sdmpc_tangent_reverse itself before Post is on sys.meta_path, so the TAN instrument
+    (patch_reverse) was never applied and the G-EB-8 tangent values stayed None.  The modules imported later are
+    still patched by Post (a module is patched once: by Post on import, or here when it was already imported)."""
+    done = []
+    for name, cb in callbacks.items():
+        module = sys.modules.get(name)
+        if module is not None:
+            cb(module)
+            done.append(name)
+    return done
+
+
 # ------------------------------------------------------------------------------------------------ recorders
 def _note(exc):
     if len(REC['errors']) < 20:
@@ -525,6 +540,7 @@ def patch_reverse(module):
             except Exception:
                 TANGENT['error'] = traceback.format_exc()[-1500:]
         return original(self, *args, **kwargs)
+    jacobian.k8_tan_instrument = True
     cls.jacobian = jacobian
 
 
@@ -712,6 +728,7 @@ def main():
         if job.get('variant') == 'TAN':
             callbacks['evaluation.controllers.sdmpc_tangent_reverse'] = patch_reverse
         sys.meta_path.insert(0, Post(callbacks))
+        TANGENT['late_patched'] = apply_loaded(callbacks)      # K8-0i: install() above already imported the reverse
         from evaluation.controllers import sdmpc_tangent_worker as standard
         request = pickle.loads(Path(job['template']).read_bytes())
         follower, state, reference, forecast = request['owned']
@@ -801,7 +818,7 @@ def main():
     result['probes'] = {k: PROBES.get(k) for k in probes} if probes else None
     result['tangent'] = (dict(axes=TANGENT['axes'], values=TANGENT['values'], error=TANGENT['error'],
                               n_nodes=len(TANGENT['nodes'] or ()), n_trace_axes=TANGENT.get('n_trace_axes'),
-                              n_request_axes=TANGENT.get('n_request_axes'))
+                              n_request_axes=TANGENT.get('n_request_axes'), late_patched=TANGENT.get('late_patched'))
                          if TANGENT['axes'] is not None else None)
     Path(result_path).write_bytes(pickle.dumps(result, protocol=5))
     summary = to_summary(result)

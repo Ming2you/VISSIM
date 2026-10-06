@@ -11,6 +11,8 @@ SC1001 EB 안 1 v2(차로 FIFO 패킷, 모듈 SA)의 관문 G-EB-0…14와 FH �
 
 - **K8-0h(보충 13 595eb450, 사용자 결정 D-K8-7, 도구 커밋)**: FH 스모크 H-5 실패(1/45)로 원본 §3.1 끝 대체 규칙이 발동했고, G-EB-3 (a)(b)(c)·G-EB-6 (a)(b)(c)(e) 판정을 **TL3m**(R-obs 시드 {31, 43, 47} × GRID9 = 27상태)으로 옮겼습니다. FH 45상태의 G-EB-3·6 값은 보고만 합니다. 아래 "보충 13: TL3m 대체 판정" 절이 정의·도구·경로입니다. 이 커밋에서 돌린 것은 `--help`·`--dry-run`·`status`(쓰기 없음)와 합성 입력 단위 시험(`tests/test_sa_harness.py`, 새 `tests/test_sa_tl3m.py`)뿐이고, 유효성 검사·포착·잡·관문 계산은 돌리지 않았습니다.
 
+- **K8-0i(도구 커밋, k86h 판정 단계)**: G-EB-8 tangent 계측 결함 수정. `sa_worker.main`의 탄젠트 finder 설치(`install(R, 'reverse-v1')`)가 `evaluation.controllers.sdmpc_tangent_reverse`를 먼저 import해서, 그 뒤에 넣는 Post import 훅이 `patch_reverse`(Trace.jacobian 감싸기)를 한 번도 걸지 못했습니다. 그래서 TAN 잡 summary의 `tangent.values`가 늘 None이었고 G-EB-8이 INCOMPLETE였습니다. 이제 Post를 넣은 직후 `apply_loaded`가 이미 올라온 모듈에 같은 콜백을 겁니다(`tangent.late_patched`에 기록). 다른 Post 대상(lane_offramp_runtime·rollout_endpoint·stopline_approach·sdmpc)은 finder가 import하지 않으므로 그대로입니다. 시험 `test_tan_instrument_reaches_the_reverse_module_the_finder_preloaded`(실제 reverse 모듈, 새 프로세스). 정의·문턱·표본은 바꾸지 않았고, TAN 잡은 README "INCOMPLETE 다시 돌리기"대로 summary를 치운 뒤 같은 인자로 다시 돕니다.
+
 ## 단계와 도구
 
 | 순서 | 도구 | 하는 일 | 출력(`<out>/sa/…`) |
