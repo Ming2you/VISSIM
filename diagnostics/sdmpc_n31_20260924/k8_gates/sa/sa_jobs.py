@@ -33,7 +33,12 @@ forecast_long.pickle with capture.json forecast_long_len >= H and forecast_long_
 sa_common.job_inputs_missing) is not started and writes nothing (SA_JOB_SKIP_NO_CAPTURE -> absent -> INCOMPLETE,
 review r4 B-r4-1).  A summary.json whose run ended on its own missing capture input
 (sa_common.job_input_absent) is moved to stale_input_absent_<k>.json (hook/ to stale_hook_<k>/) and the job rerun
-once its inputs exist; any other summary.json keeps the label skipped."""
+once its inputs exist; any other summary.json keeps the label skipped.
+K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2): (1) blind guard (sections 0.2 / 5.4): a job whose arm tuning (arms.json)
+carries a K8b key on a judging state is refused before the worker starts unless --gates-stage k8bt --declaration-sha
+<amendment 16 sha> is given; (2) wall-clock pairs (section 5.3.1): every started job writes vissim_counts.json next to
+its summary (VISSIM process count right before the worker starts and right after it ends, Get-Process read only, the
+invocation id and its sequence number), which sa_wallpairs.py reads to find the clean BASE -> SAF pairs."""
 import json
 import os
 import pickle
@@ -72,6 +77,7 @@ def parse():
     ap.add_argument('--s3-table')
     ap.add_argument('--plan-only', action='store_true')
     ap.add_argument('--dry-run', action='store_true')
+    sc.add_k8b_stage_args(ap)
     return ap.parse_args()
 
 
@@ -301,9 +307,37 @@ def set_aside_input_absent(tree, out):
     return True
 
 
+RUN = {'invocation': None, 'seq': 0}
+
+
+def k8b_job_guard(args, job):
+    """K8b-0 blind guard (amendment 16 sections 0.2 / 5.4) on the tuning the job's template was captured with (the
+    capture record's tuning path, plus the K8b metadata keys of that record); without a capture record nothing runs
+    anyway (job_inputs_missing), so no tuning is read then."""
+    try:
+        rec = sc.read_json(Path(job['template']).parent / 'capture.json')
+    except ValueError:
+        rec = None
+    if not isinstance(rec, dict):
+        return []
+    path = (rec.get('tuning') or {}).get('path')
+    meta = rec.get('metadata') or {}
+    extra = [f'capture metadata {k}' for k in sc.K8B_META_KEYS if k in meta]
+    keys = sc.k8b_guard(path, job.get('seed'), job['T'], args, f'job {job["label"]}', extra_keys=extra)
+    if keys and int(job.get('frame_T', job['T'])) != int(job['T']):
+        sc.k8b_guard(path, sc.ROBS_SEED, job['frame_T'], args, f'job frame {job["label"]}', extra_keys=keys)
+    return keys
+
+
+def write_vissim_counts(out, rec):
+    sc.write_json(out / 'vissim_counts.json', rec)
+
+
 def run_job(args, job):
     out = sc.job_dir(args.tree, job['label'])
     lacking = sc.job_inputs_missing(job)             # review r4 B-r4-1: no worker without its capture inputs
+    if not args.dry_run and not args.plan_only:
+        k8b_job_guard(args, job)
     if args.dry_run:
         print(f'DRY {job["label"]} inputs={"ok" if not lacking else "MISSING " + ",".join(lacking)} -> {out}')
         return
@@ -329,8 +363,17 @@ def run_job(args, job):
         if args.chain == 's3site':
             env['K8_S3_TABLE_JSON'] = str(Path(args.s3_table).resolve())
         env['PYTHONPATH'] = str(HERE / 'sa_hooks') + ';' + env['PYTHONPATH'].split(';', 1)[1]
+    import time
+    if RUN['invocation'] is None:
+        RUN['invocation'] = '%s_%d' % (time.strftime('%Y%m%d_%H%M%S'), os.getpid())
+    RUN['seq'] += 1
+    pre, t_start = sc.vissim_count(), time.time()
     code, wall = c.run([c.PY, '-B', str(HERE / 'sa_worker.py'), str(out / 'job.pickle'), str(out / 'result.pickle')],
                        out / 'log.txt', env)
+    write_vissim_counts(out, {'schema': 'k8b-vissim-counts/v1', 'label': job['label'], 'arm': job['arm'],
+                              'invocation': RUN['invocation'], 'seq': RUN['seq'], 'vissim_count_pre': pre,
+                              'vissim_count_post': sc.vissim_count(), 'start': t_start, 'end': time.time(),
+                              'exit': code})
     s = sc.read_json(out / 'summary.json', {}) or {}
     print(f'SA_JOB {job["label"]} exit={code} wall={wall} ok={s.get("ok")} objective={s.get("objective_repr")}',
           flush=True)

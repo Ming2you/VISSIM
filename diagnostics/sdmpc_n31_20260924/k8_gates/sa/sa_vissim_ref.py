@@ -25,7 +25,18 @@ Definitions (each names its declared source):
   lane3 full    frames with a stopped (< 5 km/h) 127 lane-3 tail at POS < 30 m (s2_lanefull full_l rule), report (N6)
   10491 flow    EO OR_D_W_signal cumulative crossings differenced per block (G-EB-5 operationalisation)
   FW_W stock    s31: sum of freeway_segments FW_W counts of the R-obs3 state; other seeds: FW_W chain rows of the
-                frames parquet at T + 150 k + 0.1"""
+                frames parquet at T + 150 k + 0.1
+  k8b           K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2 sections 3.3 / 6 / 7.3), TL3m seeds 31 / 43 / 47:
+                states[T] (GRID9): first_appear{32, 10491, 10481, 10118, 10368, 10695} = vehicles whose first frame on
+                that link over the whole run lies in (T + 0.1, T + 150.1] (3.3 g, p, w); onW_T150 / onW_T150_slow =
+                link 32 rows with NEXTLINK 10482 at T + 150.1 (all / < 5 km/h, R2); wout_dest[k] (k = 1..3) = W_out
+                episodes (k8b/wout_episodes.py rule, any class, anomalies excluded) by destination R_D_E / R_D_W /
+                free / side_exit whose destination token's first frame lies in (T + 150(k-1) + 0.1, T + 150k + 0.1]
+                (R3b; 10484 / 10480 entries); long (s31 starts 900 / 2700 / 4950, blocks k = 1..H): stop127[k]
+                (127 rows < 5 km/h at T + 150k + 0.1, R4), onW[k] / onW_slow[k] (R2), wout_dest[k], city127[k] =
+                vehicles whose first 127 frame lies in the block and that have a 32 or 10778 frame before it (7.3
+                (i-c); a 10491 port vehicle lands on 129 and has neither); inputs w_s<seed>.parquet of
+                sa_fzp_frames.py (sha256 recorded)"""
 import json
 import sys
 from collections import defaultdict
@@ -44,8 +55,70 @@ def parse():
     ap = c.parser(__doc__)
     ap.add_argument('--data', help='x2 ext parquet folder (default <out>/opt1v2/data)')
     ap.add_argument('--eo-root', default=r'D:\VISSIM_runs\20260930_v3c2\reports\nc_analysis\eo')
+    ap.add_argument('--wout-data', help='K8b-0: W_out extracts folder (default <out>/sa/fzp, sa_fzp_frames.py)')
     ap.add_argument('--dry-run', action='store_true')
     return ap.parse_args()
+
+
+K8B_FIRST_LINKS = (32, 10491, 10481, 10118, 10368, 10695)
+K8B_WOUT_DESTS = ('R_D_E', 'R_D_W', 'free', 'side_exit')
+
+
+def _wout_rule():
+    path = c.R / 'diagnostics' / 'sdmpc_n31_20260924' / 'k8b'
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+    import wout_episodes
+    return wout_episodes
+
+
+def _block_counts(times, T, H):
+    """{k: n} of event times t in (T + 150(k-1) + 0.1, T + 150k + 0.1], k = 1..H (5 s frames end on .1)."""
+    out = {str(k): 0 for k in range(1, H + 1)}
+    for t in times:
+        k = int(-(-(t - T - 0.1 - 1e-6) // 150.0))
+        if 1 <= k <= H:
+            out[str(k)] += 1
+    return out
+
+
+def k8b_entry(ext, wdf, seed):
+    """K8b-0 VISSIM-side values of one TL3m seed (definitions in the module docstring)."""
+    rule = _wout_rule()
+    first = {L: ext[ext.LINK == L].groupby('NO').SIMSEC.min() for L in K8B_FIRST_LINKS}
+    eps = [r for r in rule.seed_rows(wdf[['SIMSEC', 'NO', 'LINK', 'POS']], seed) if not r[5] and r[6] is not None]
+    dest_times = {d: sorted(r[6] for r in eps if r[3] == d) for d in K8B_WOUT_DESTS}
+    onw = ext[(ext.LINK == 32) & (ext.NEXTLINK == 10482)]
+    onw_all = onw.groupby('SIMSEC').size()
+    onw_slow = onw[onw.SPEED < 5].groupby('SIMSEC').size()
+    stop127 = ext[(ext.LINK == 127) & (ext.SPEED < 5)].groupby('SIMSEC').size()
+    first127 = ext[ext.LINK == 127].groupby('NO').SIMSEC.min()
+    city_first = ext[ext.LINK.isin([32, 10778])].groupby('NO').SIMSEC.min()
+    city127 = sorted(float(t) for no, t in first127.items() if no in city_first.index and city_first[no] < t)
+    frames = sorted(set(float(t) for t in ext.SIMSEC.unique()))
+
+    def at(series, t):
+        f = nearest_frame(frames, t)
+        return int(series.get(f, 0)) if f is not None else None
+    out = {'states': {}, 'n_wout_episodes': len(eps)}
+    for T in sc.GRID9:
+        t0, t1 = T + 0.1, T + 150.1
+        row = {'first_appear': {str(L): int(((s > t0 + 1e-6) & (s <= t1 + 1e-6)).sum()) for L, s in first.items()},
+               'onW_T150': at(onw_all, t1), 'onW_T150_slow': at(onw_slow, t1),
+               'wout_dest': {d: _block_counts(dest_times[d], T, 3) for d in K8B_WOUT_DESTS}}
+        out['states'][str(T)] = row
+    if int(seed) == sc.ROBS_SEED:
+        out['long'] = {}
+        for T, H in sc.LONG_H.items():
+            ends = [T + 150.0 * k + 0.1 for k in range(1, H + 1)]
+            out['long'][str(T)] = {
+                'H': H,
+                'stop127': {str(k + 1): at(stop127, t) for k, t in enumerate(ends)},
+                'onW': {str(k + 1): at(onw_all, t) for k, t in enumerate(ends)},
+                'onW_slow': {str(k + 1): at(onw_slow, t) for k, t in enumerate(ends)},
+                'wout_dest': {d: _block_counts(dest_times[d], T, H) for d in K8B_WOUT_DESTS},
+                'city127': _block_counts(city127, T, H)}
+    return out
 
 
 def counts_at(df, t, links):
@@ -153,10 +226,13 @@ def main():
     data = Path(args.data) if args.data else c.OUT / 'opt1v2' / 'data'
     p4 = c.OUT / 'opt1v2' / 'out' / 'p4_states_grid9_v3c3.json'
     inputs = {'p4': p4, 'robs_decisions': c.DEC}
+    wdata = Path(args.wout_data) if args.wout_data else sc.sa_out() / 'fzp'
     for s in sc.FH_SEEDS:
         inputs[f'ext_s{s}'] = data / f'e_s{s}_ext.parquet'
         inputs[f'frames_s{s}'] = sc.sa_out() / 'fzp' / f's{s}_frames.parquet'
         inputs[f'eo_s{s}'] = Path(args.eo_root) / f's{s}_v3c2nc'
+        if s in sc.TL3M_SEEDS:
+            inputs[f'wout_s{s}'] = wdata / f'w_s{s}.parquet'          # K8b-0
     if args.dry_run:
         for k, v in inputs.items():
             print(f'DRY {k:12s} {"ok " if Path(v).exists() else "MISSING"} {v}')
@@ -206,6 +282,10 @@ def main():
             cells, cum = eo_tables(inputs['eo_s31'])
             entry['eo_cells30_FW_W'] = cells
             entry['eo_or_d_w_signal_cum'] = cum
+        if s in sc.TL3M_SEEDS:                                     # K8b-0 (amendment 16 r2 sections 3.3 / 6 / 7.3)
+            wpath = inputs[f'wout_s{s}']
+            entry['k8b'] = (k8b_entry(ext, pd.read_parquet(wpath), s) if Path(wpath).is_file()
+                            else {'missing': str(wpath)})
         ref['seeds'][str(s)] = entry
         print(f'SA_VISSIM_REF s{s} states={len(states)} spill_windows={len(entry["spill_windows_W"])}', flush=True)
     sc.write_json(sc.sa_out() / 'vissim_ref.json', ref)

@@ -1218,20 +1218,23 @@ def g10(I, args):
 # ================================================================================================ G-EB-11
 def g11(I, args):
     items = {}
-    ratios = []
-    for seed, T in I.fh_states():
-        a, b = I.jobx('FH', T, J, 'OBS', 3, seed=seed), I.jobx('FH', T, 'BASE', 'OBS', 3, seed=seed)
-        if _ok(a) and _ok(b):
-            ratios.append(a['wall_sec'] / b['wall_sec'])
-    for T in sc.GRID9:
-        for entry in sc.ENTRIES:
-            a, b = I.jobx('TL3', T, J, entry, 3), I.jobx('TL3', T, 'BASE', entry, 3)
-            if _ok(a) and _ok(b):
-                ratios.append(a['wall_sec'] / b['wall_sec'])
+    # K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2 section 5.3.1, D-K8b-2 Q8): the 63 declared pairs (FH 45 + TL3 s31 18)
+    # take their wall values only from a clean pair (VISSIM count 0 before BASE, between, after SAF): the first run
+    # when clean, else the first clean rerun under jobs/<tree>_wall/ (sa_wallpairs.py), which must equal its first
+    # run outside timing; a rerun mismatch fails (STOP), a pair without a clean value leaves the item INCOMPLETE.
+    import sa_wallpairs as WP
+    pair_rows = WP.select(I.tree)
+    mismatch = [r['saf'] for r in pair_rows if r['source'] == 'rerun_mismatch']
+    ratios = [r['ratio'] for r in pair_rows if r['source'] in ('first', 'rerun')]
     med = ss.median(ratios)
-    items['wall_ratio'] = item({'median': med, 'pairs': len(ratios)}, 'median H3 wall ratio (SAF / BASE) <= 1.05',
-                               None if med is None or len(ratios) < len(I.fh_states()) + 2 * len(sc.GRID9)
-                               else med <= sc.G11_WALL_RATIO)
+    items['wall_ratio'] = item({'median': med, 'pairs': len(ratios), 'declared': len(pair_rows),
+                                'from_rerun': sum(1 for r in pair_rows if r['source'] == 'rerun'),
+                                'rerun_mismatch': mismatch,
+                                'without_clean_value': [r['saf'] for r in pair_rows
+                                                        if r['source'] not in ('first', 'rerun', 'rerun_mismatch')]},
+                               'median H3 wall ratio (SAF / BASE) <= 1.05 over the 63 clean pairs (section 5.3.1)',
+                               False if mismatch else (None if med is None or len(ratios) < len(pair_rows)
+                                                       else med <= sc.G11_WALL_RATIO))
     sizes = {}
     for T in sc.DP_FULL_T:
         ra, rb = I.full_run(T, J, args.hooks_tag), I.full_run(T, 'BASE', args.hooks_tag)

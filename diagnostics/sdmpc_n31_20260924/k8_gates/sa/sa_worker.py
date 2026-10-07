@@ -25,7 +25,22 @@ Harness-side, in-memory changes only (nothing under the code root is edited):
 Per-second records for the G-EB-5 8970.1 s cut (amendment 5 section 2-4): steps.inflow_<off> (port landing veh in that
 second) and w_departures_steps (W member departures per response second).
 Output: result.pickle (everything) + summary.json next to it (sa_common contract k8-sa-job/v1); a failed run carries
-error_kind / error_site of its full traceback (sa_errors, the one table of K8 amendment 7 §2)."""
+error_kind / error_site of its full traceback (sa_errors, the one table of K8 amendment 7 §2).
+K8b-0 passive records (K8_PREDECLARATION_AMENDMENT_16 r2 sections 3.3, 6, 7.3; no new wrapper of a model function, only
+the existing LaneOfframpRuntime.drain / stopline_approach.end_step wrappers read more, plus one wrapper of the
+LaneFreewayRuntime.advance method that reads its returned diagnostics; primal reads only; exceptions go to
+recorder_errors like every recorder):
+  blocks[k].k8b0   signal_queue{signal: sum of movement queues} (R1), ramp_queue{RM_C10484, RM_C10480} (R3a),
+                   wout_store / wout_direct_pending_veh / wout_counters (P-4' / P-4b state at the block end, R6),
+                   city_arrival{counters, pending_veh, gate_w_veh} (P-2, R8), sa_ready{lane} (R4), and from the response
+                   transfer rows of the block: wout_accepted{free, RM_C10484, RM_C10480} (route legsplit:SC1001_W_out,
+                   R3b), wout_free_bind_steps (accepted free >= exit capacity x T_u - 1e-9, R3c), gate_input_veh
+                   (route input:gate:in_SC1001_W, R5 cross-check); from the drain wrapper: orde_release_veh (10483 ->
+                   SC1001_W_out), wout_reservation_added_veh, orde_room_limited_steps (W_out room < 10483 service, R3c);
+                   from the end_step wrapper: e_green_steps, e_green_ready0_steps{1, 2} (section 7.3 (i-c))
+  k8b0             block0{w_ports, gate_occ} of the template state (R5 M(T) cross-check), sa_steps{t, fifo_<off>,
+                   request_<off>} (section 7.3 (i-a) FIFO = 0 s), fw_steps{t, <FW_W diagnostic keys of OR_D_W /
+                   10491 / 10479>} (section 7.3 (i-b) request = landed + blocked), orde_room_min."""
 import copy
 import hashlib
 import json
@@ -62,6 +77,12 @@ REC = {'steps': defaultdict(list), 'cap': {}, 'inflow': defaultdict(lambda: defa
        'sa_lane': defaultdict(lambda: defaultdict(float)), 'samples30': {'t': [], 'fw_w_v': [], 'fw_w_n': []},
        'errors': []}
 TANGENT = {'nodes': None, 'axes': None, 'values': None, 'error': None}
+WOUT = 'SC1001_W_out'                                     # K8b-0 (amendment 16 r2 sections 3.3 / 6 / 7.3)
+WOUT_RAMPS = ('RM_C10484', 'RM_C10480')
+W_E_LANES = (1, 2)                                        # SA lanes receiving E (stopline_approach.LANE_DESTS)
+K8B0 = {'orde_release': defaultdict(float), 'wout_reservation': defaultdict(float), 'orde_limited': defaultdict(int),
+        'orde_room_min': None, 'e_green': defaultdict(int), 'e_ready0': defaultdict(lambda: defaultdict(int)),
+        'sa_steps': defaultdict(list), 'fw_steps': defaultdict(list), 'block0': None}
 S3PARITY = {'log': None}         # K8 amendment 10 (mode ad_full)
 SEGMENTS = {'sec': []}
 
@@ -176,11 +197,30 @@ def patch_lor(module):
 
     def drain(self, state, control, cfg, step, routing):
         before = {}
+        direct = {}
         if STATE['T0'] is not None:
             try:
                 before = {off: _f(self.ports[off].stock) for off in RECORD_OFFS if off in self.ports}
             except Exception as exc:
                 _note(exc)
+            try:                      # K8b-0 R3c / P-4b: the direct row(s) onto SC1001_W_out (10483)
+                from src.models import urban_queue_model as uqm
+                k0 = _block_of(float(step) + 1.0)
+                for off, row in self.descriptions.items():
+                    if row.get('direct') and row.get('target') == WOUT and off in self.ports:
+                        direct[off] = _f(self.ports[off].stock)
+                        room = _f(uqm._effective_available_space(state, cfg, WOUT))
+                        service = _f(cfg.network.movement_capacity_veh_h) * float(row['lanes']) / 3600.0
+                        if room < service - 1e-9:
+                            K8B0['orde_limited'][k0] += 1
+                        K8B0['orde_room_min'] = room if K8B0['orde_room_min'] is None else min(K8B0['orde_room_min'],
+                                                                                                room)
+                if direct:
+                    direct['_buf'] = math.fsum(_f(v) for v in (state.urban_storage_release_buffer.get(WOUT) or {})
+                                               .values())
+            except Exception as exc:
+                _note(exc)
+                direct = {}
         out = orig_drain(self, state, control, cfg, step, routing)
         if before:
             try:
@@ -189,8 +229,120 @@ def patch_lor(module):
                     REC['release'][off][k] += b - _f(self.ports[off].stock)
             except Exception as exc:
                 _note(exc)
+        if direct:
+            try:
+                k = _block_of(float(step) + 1.0)
+                for off, b in direct.items():
+                    if off != '_buf':
+                        K8B0['orde_release'][k] += b - _f(self.ports[off].stock)
+                K8B0['wout_reservation'][k] += math.fsum(
+                    _f(v) for v in (state.urban_storage_release_buffer.get(WOUT) or {}).values()) - direct['_buf']
+            except Exception as exc:
+                _note(exc)
         return out
     cls.land, cls.drain = land, drain
+
+
+def patch_lfr(module):
+    """K8b-0 section 7.3 (i-b): per freeway step the FW_W diagnostic values of the OR_D_W off-ramp (keys holding
+    OR_D_W, 10491 or 10479: landed flow and blocked flow, veh/h; request = landed + blocked) read from the returned
+    diagnostics of LaneFreewayRuntime.advance (the original runs first; its value is returned unchanged)."""
+    cls = module.LaneFreewayRuntime
+    orig = cls.advance
+
+    def advance(self, state, control, demand, **kwargs):
+        out = orig(self, state, control, demand, **kwargs)
+        if STATE['T0'] is not None:
+            try:
+                diag = (out[2] or {}).get('FW_W') or {}
+                rows = K8B0['fw_steps']
+                rows['t'].append(_f(state.time_sec))
+                for key, v in diag.items():
+                    if (key.startswith(('offramp_flow_', 'offramp_blocked_flow_'))
+                            and any(tag in key for tag in ('OR_D_W', '10491', '10479'))):
+                        rows[key].append(_f(v))
+            except Exception as exc:
+                _note(exc)
+        return out
+    cls.advance = advance
+
+
+def w_ports_of(s, cfg):
+    """block_row's w_ports for a state (K8b-0 R5 block 0: the template state at T0; the same expressions, no call
+    that could touch the state)."""
+    net = cfg.network
+    cap = net.urban_link_storage_veh
+    q = {m: _f(v) for m, v in s.urban_movement_queue.items()}
+    ports = getattr(s, 'lane_offramp_runtime', None)
+    port = {off: (_f(ports.ports[off].stock) if ports is not None and off in ports.ports else None)
+            for off in ('10491', '10481')}
+    transit_gate = math.fsum(_f(v) for v in (s.urban_inflow_transit_buffer.get('gate:' + GATE) or {}).values())
+    w_all = math.fsum(v for m, v in q.items() if m.startswith('SC1001_W_to_'))
+    gate_occ = _f(cap[GATE]) - _f(s.urban_link_storage.get(GATE, cap[GATE])) if GATE in cap else 0.0
+    return dict(movement_w_all=w_all, gate_occ=gate_occ, transit_gate=transit_gate, port_10491=port['10491'],
+                port_10481=port['10481'],
+                total=w_all + gate_occ + transit_gate + (port['10491'] or 0.0) + (port['10481'] or 0.0))
+
+
+def k8b0_block(s, cfg):
+    """K8b-0 block-end record (primal reads of the block-end state)."""
+    net = cfg.network
+    by_sig = {}
+    for m, spec in net.urban_movements.items():
+        sig = spec.get('signal')
+        if sig:
+            by_sig.setdefault(str(sig), []).append(_f(s.urban_movement_queue.get(m, 0.0)))
+    out = {'signal_queue': {k: math.fsum(v) for k, v in sorted(by_sig.items())},
+           'ramp_queue': {r: _f(s.ramp_queue.get(r, 0.0)) for r in WOUT_RAMPS}}
+    store = (getattr(s, 'wout_class_store', None) or {}).get(WOUT)
+    out['wout_store'] = ({str(c): {str(d): _f(x) for d, x in row.items()} for c, row in store.items()}
+                         if store is not None else None)
+    pend = (getattr(s, 'wout_direct_pending', None) or {}).get(WOUT)
+    out['wout_direct_pending_veh'] = math.fsum(_f(x) for x in pend.values()) if pend is not None else None
+    cnt = (getattr(s, 'wout_exit_counters', None) or {}).get(WOUT)
+    out['wout_counters'] = {str(k): _f(v) for k, v in cnt.items()} if cnt is not None else None
+    sa = getattr(s, 'stopline_approach_state', None)
+    city = sa.get('city_arrival') if isinstance(sa, dict) else None
+    out['city_arrival'] = ({'counters': {str(k): _f(v) for k, v in city['counters'].items()},
+                            'pending_veh': math.fsum(_f(x) for row in city['pending'].values() for x in row.values()),
+                            'gate_w_veh': math.fsum(_f(x) for x in city['gate_w'].values())}
+                           if isinstance(city, dict) else None)
+    t = int(round(_f(s.time_sec)))
+    out['sa_ready'] = ({str(l): math.fsum(_f(p[4]) for p in sa['lanes'][l] if p[0] <= t) for l in sa['lanes']}
+                       if isinstance(sa, dict) else None)
+    return out
+
+
+def k8b0_response(response, T0, dt, exit_cap_veh):
+    """Per block from the response transfer rows: accepted W_out transfers by destination (route
+    legsplit:SC1001_W_out), the steps whose accepted free exit reaches the exit capacity, and the gate input of
+    in_SC1001_W (route input:gate:in_SC1001_W)."""
+    acc = defaultdict(lambda: defaultdict(float))
+    free_step = defaultdict(float)
+    gate = defaultdict(float)
+    for row in (response or {}).get('transfers') or []:
+        try:
+            key = row.get('route_key')
+            if key == 'legsplit:' + WOUT:
+                end = _f(row['end_sec'])
+                k = max(1, int(math.ceil((end - T0 - 1e-9) / dt)))
+                tgt = row.get('target')
+                d = 'free' if tgt is None else str(tgt).split(':', 1)[-1]
+                acc[k][d] += _f(row['vehicles'])
+                if tgt is None:
+                    free_step[(k, round(end, 6))] += _f(row['vehicles'])
+            elif key == 'input:gate:' + GATE:
+                end = _f(row['end_sec'])
+                k = max(1, int(math.ceil((end - T0 - 1e-9) / dt)))
+                gate[k] += _f(row['vehicles'])
+        except Exception as exc:
+            _note(exc)
+    bind = defaultdict(int)
+    if exit_cap_veh is not None and exit_cap_veh > 0.0:
+        for (k, _end), v in free_step.items():
+            if v >= exit_cap_veh - 1e-9:
+                bind[k] += 1
+    return acc, bind, gate
 
 
 def lane_composition(state, t):
@@ -316,6 +468,25 @@ def patch_sa(module):
                 REC['sa_lane'][k][int(l)] += _f(v)
         except Exception as exc:
             _note(exc)
+        if STATE['T0'] is not None:
+            try:                      # K8b-0 section 7.3 (i-a) FIFO = 0 s and (i-c) E-lane starvation (primal reads)
+                st = state.stopline_approach_state
+                plan = st.get('plan') or {}
+                rows = K8B0['sa_steps']
+                rows['t'].append(int(step))
+                for off in ('10491', '10481'):
+                    p = (plan.get('ports') or {}).get(off)
+                    rows['fifo_' + off].append(_f(p['fifo']) if p is not None else None)
+                    rows['request_' + off].append(_f(p['request']) if p is not None else None)
+                k = _block_of(float(step) + 1.0)
+                if int(step) in REC['green'][k].get(W_E, ()):
+                    K8B0['e_green'][k] += 1
+                    for l in W_E_LANES:
+                        ready = math.fsum(_f(pk[4]) for pk in st['lanes'][l] if pk[0] <= int(step))
+                        if ready <= 1e-9:
+                            K8B0['e_ready0'][k][l] += 1
+            except Exception as exc:
+                _note(exc)
         out = orig(state, cfg, step)
         REC['sa_end_calls'] += 1
         REC['sa_last'] = {k: _f(v) for k, v in out.items()}
@@ -419,6 +590,11 @@ def block_row(k, s, cfg):
                e_approach_queue=math.fsum(v for m, v in q.items() if m.startswith('SC1001_E_to_')),
                w_queue={m: q.get(m, 0.0) for m in W_MEMBERS + ('SC1001_W_to_onW', ONE)},
                sa_stock=({str(l): _f(v) for l, v in sa['stock'].items()} if isinstance(sa, dict) else None))
+    try:
+        row['k8b0'] = k8b0_block(s, cfg)                 # K8b-0 passive block-end record
+    except Exception as exc:
+        _note(exc)
+        row['k8b0'] = None
     return row
 
 
@@ -464,6 +640,12 @@ def summarize_and_continue(point, cfg):
     blocks = [block_row(k + 1, s, cfg) for k, s in enumerate(point.states)]
     per_second = {}
     dep = transfer_flows(point.control_area_response, T0, dt, per_second)
+    try:
+        exit_cap = _f(getattr(cfg.network, 'boundary_out_capacity_veh_h', 0.0) or 0.0) * _f(cfg.simulation.T_u_h)
+    except Exception as exc:
+        _note(exc)
+        exit_cap = None
+    k8_resp = [k8b0_response(point.control_area_response, T0, dt, exit_cap)]
     if 'T15b' in (job.get('probes') or ()):
         probe_kind_service(point, cfg)
     if TANGENT['nodes'] is None and job.get('variant') == 'TAN':
@@ -493,6 +675,7 @@ def summarize_and_continue(point, cfg):
             for kk, row in transfer_flows(nxt.control_area_response, T0, dt, per_second).items():
                 for m, v in row.items():
                     dep[kk][m] += v
+            k8_resp.append(k8b0_response(nxt.control_area_response, T0, dt, exit_cap))
             done, last = done + seg, nxt.states[-1]
             SEGMENTS['sec'].append(time.perf_counter() - t1)
             del nxt
@@ -507,6 +690,16 @@ def summarize_and_continue(point, cfg):
         row['onE_threshold_steps'] = float(REC['onE_steps'].get(k, 0))
         row['vmin_steps_cells_6_9'] = float(REC['vmin_steps'].get(k, 0))
         row['sa_lane_served'] = ({str(l): v for l, v in REC['sa_lane'][k].items()} if REC['sa_end_calls'] else None)
+        if isinstance(row.get('k8b0'), dict):            # K8b-0: response rows and wrapper counts of block k
+            x = row['k8b0']
+            x['wout_accepted'] = {d: math.fsum(r[0][k].get(d, 0.0) for r in k8_resp) for d in ('free',) + WOUT_RAMPS}
+            x['wout_free_bind_steps'] = float(sum(r[1].get(k, 0) for r in k8_resp))
+            x['gate_input_veh'] = math.fsum(r[2].get(k, 0.0) for r in k8_resp)
+            x['orde_release_veh'] = K8B0['orde_release'].get(k, 0.0)
+            x['wout_reservation_added_veh'] = K8B0['wout_reservation'].get(k, 0.0)
+            x['orde_room_limited_steps'] = float(K8B0['orde_limited'].get(k, 0))
+            x['e_green_steps'] = float(K8B0['e_green'].get(k, 0))
+            x['e_green_ready0_steps'] = {str(l): float(K8B0['e_ready0'][k].get(l, 0)) for l in W_E_LANES}
     seconds = sorted(per_second)
     return {'blocks': blocks, 'w_departures_steps': {'t': seconds, 'veh': [per_second[t] for t in seconds]}}
 
@@ -724,7 +917,8 @@ def main():
         callbacks = {'evaluation.controllers.lane_offramp_runtime': patch_lor,
                      'src.controllers.rollout_endpoint': patch_endpoint,
                      'evaluation.controllers.stopline_approach': patch_sa,
-                     'evaluation.controllers.sdmpc': patch_sdmpc}
+                     'evaluation.controllers.sdmpc': patch_sdmpc,
+                     'evaluation.controllers.lane_freeway_runtime': patch_lfr}     # K8b-0 section 7.3 (i-b)
         if job.get('variant') == 'TAN':
             callbacks['evaluation.controllers.sdmpc_tangent_reverse'] = patch_reverse
         sys.meta_path.insert(0, Post(callbacks))
@@ -733,6 +927,10 @@ def main():
         request = pickle.loads(Path(job['template']).read_bytes())
         follower, state, reference, forecast = request['owned']
         STATE['follower'] = follower
+        try:                                                  # K8b-0 R5: block 0 M(T) of the template state
+            K8B0['block0'] = {'w_ports': w_ports_of(state, follower.cfg), 'time_sec': _f(state.time_sec)}
+        except Exception as exc:
+            _note(exc)
         sa0 = getattr(state, 'stopline_approach_state', None)
         STATE['sa_counters0'] = ({k: _f(v) for k, v in sa0['counters'].items()} if isinstance(sa0, dict) else None)
         H = int(job['H'])
@@ -814,6 +1012,10 @@ def main():
                      'first_block_lanes': REC.get('first_block_lanes')}
                     if REC['sa_end_calls'] else None)
     result['first_block_lanes'] = REC.get('first_block_lanes')
+    result['k8b0'] = {'schema': 'k8b0-records/v1', 'block0': K8B0['block0'],
+                      'sa_steps': {k: list(v) for k, v in K8B0['sa_steps'].items()},
+                      'fw_steps': {k: list(v) for k, v in K8B0['fw_steps'].items()},
+                      'orde_room_min': K8B0['orde_room_min']}
     probes = (STATE['job'] or {}).get('probes') or ()
     result['probes'] = {k: PROBES.get(k) for k in probes} if probes else None
     result['tangent'] = (dict(axes=TANGENT['axes'], values=TANGENT['values'], error=TANGENT['error'],
@@ -873,7 +1075,7 @@ def to_summary(result):
             'action_notes': result.get('action_notes'), 'entry_applied': result.get('entry_applied'),
             'or_d_w_cell': result.get('or_d_w_cell'), 'recorder_errors': result.get('recorder_errors'),
             'uqm_wraps': result.get('uqm_wraps'),
-            'segment_sec': result.get('segment_sec')}
+            'segment_sec': result.get('segment_sec'), 'k8b0': result.get('k8b0')}
 
 
 if __name__ == '__main__':

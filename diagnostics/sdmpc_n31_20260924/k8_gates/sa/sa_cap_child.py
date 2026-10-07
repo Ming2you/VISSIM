@@ -11,7 +11,11 @@ capture_failed.json.  Nothing under the code root is edited; the FH transplant w
 lane_plant_runtime.observe_state in memory (sa_fh.install).
 A failure record carries the child's own classification of its full traceback (error_kind / error_site, sa_errors;
 K8 amendment 7 §2); an exception of the harness stage after the template (forecast_long, coord, record writing) is
-marked harness_stage_error (a harness failure -> INCOMPLETE, whatever frame raised it)."""
+marked harness_stage_error (a harness failure -> INCOMPLETE, whatever frame raised it).
+K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2): the record's metadata also keeps the K8b capture metadata when the adapter
+wrote it (k8b_p1, k8b_p2, k8b_p2_init, k8b_p4, stopline_city_arrival_evidence_sha256; absent keys stay absent, so a
+key-off capture record is unchanged), and probes.signal_queue = per signal the sum of its movement queues of the
+captured state (report R1 Q_obs, section 6)."""
 import hashlib
 import json
 import os
@@ -38,7 +42,8 @@ REC = {'schema': 'k8-sa-capture/v1', **{k: SPEC.get(k) for k in ('harness', 'T',
                                                                   'tuning', 'h_long')}}
 STASH = {'bound': None}
 META_KEYS = ('stopline_approach_install_check', 'stopline_approach_initial', 'lane_ramp_head_service_normalisation',
-             'lane_plant_install_check')
+             'lane_plant_install_check',
+             'k8b_p1', 'k8b_p2', 'k8b_p2_init', 'k8b_p4', 'stopline_city_arrival_evidence_sha256')   # K8b-0
 PROBE_LINKS = ('32', '10778', '129', '10777', '127', '10695', '10118', '10368', '10491', '10481')
 W_MEMBERS = ('SC1001_W_to_E_SC1002', 'SC1001_W_to_S_SC1003', 'SC1001_W_to_N_SC2002')
 TRANSPLANT = None
@@ -100,6 +105,12 @@ def capture_probes(state, cfg, bound, shortfall_kept=None, rehome_kept=None):
            'freeway_density': {r: [_f(v) for v in vals] for r, vals in state.freeway_density.items()},
            'freeway_speed': {r: [(_f(v) if v is not None else None) for v in vals]
                              for r, vals in state.freeway_speed.items()}}
+    by_sig = {}
+    for m, s_ in net.urban_movements.items():            # K8b-0 R1: per-signal movement queue sums (report)
+        sig = s_.get('signal')
+        if sig:
+            by_sig[str(sig)] = by_sig.get(str(sig), 0.0) + _f(state.urban_movement_queue.get(m, 0.0))
+    out['signal_queue'] = dict(sorted(by_sig.items()))
     lor = getattr(state, 'lane_offramp_runtime', None)
     if lor is not None:
         out['ports'] = {off: {'stock': _f(lor.ports[off].stock), 'capacity': _f(lor.ports[off].capacity),

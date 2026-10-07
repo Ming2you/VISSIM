@@ -31,7 +31,12 @@ log_error_kind); a new attempt first moves an earlier capture_failed.json to sta
 B-r3-3; read by no gate).  A full run records in run.json the site of the traceback that ends its adapter log
 (error_site, sa_errors.log_error_site) when it exits != 0.
 Needs <out>/replays/<T> for every T used (k8_gates/prep.py; FH -frames also T-150 / T+150), sa_arms.py, and for fh
-the x2 ext parquets (<out>/opt1v2/data or --data) and sa_fzp_frames.py output."""
+the x2 ext parquets (<out>/opt1v2/data or --data) and sa_fzp_frames.py output.
+K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2 sections 0.2 / 5.4): a capture or full run whose arm tuning carries a K8b key
+(urban.sc1002w_saturation, urban.stopline_approach.city_arrival, urban.wout_exit_law) on a judging state
+(sa_common.k8b_judging_state: GRID9 / DP_T of every seed, the long judged starts, every non-probe R-obs state of the
+judging seeds) is refused before any child starts unless --gates-stage k8bt --declaration-sha <amendment 16 sha> is
+given (the judging stage; its first use is logged to <out>/sa/k8b_judging_stage.json)."""
 import json
 import os
 import sys
@@ -65,6 +70,7 @@ def parse():
     ap.add_argument('--s3-table', help='full --chain s3site: re-anchored 31-site table JSON (sa_anchors.py)')
     ap.add_argument('--tag', default='', help='full: output folder tag (e.g. hooks, base_recount)')
     ap.add_argument('--dry-run', action='store_true', help='print the plan and command lines only (writes nothing)')
+    sc.add_k8b_stage_args(ap)
     return ap.parse_args()
 
 
@@ -184,6 +190,10 @@ def run_capture(args, row, tuning):
     if (out / 'capture.json').is_file():
         print(f'SA_CAPTURE_SKIP exists {out}', flush=True)
         return
+    # K8b-0 blind guard (amendment 16 sections 0.2 / 5.4): the island seed and the template frame both count
+    sc.k8b_guard(tuning['path'], row.get('seed'), row['T'], args, f'capture {row["harness"]} {args.arm}')
+    if row['frame_T'] != row['T'] or row['harness'] == 'FH':
+        sc.k8b_guard(tuning['path'], sc.ROBS_SEED, row['frame_T'], args, f'capture frame {args.arm}')
     bad = replay_source_problem(replay) if rseed is not None else None
     if bad:
         raise SystemExit(f'{replay}: {bad} (amendment 13: a TL3 / ROBS61 state replays its own R-obs run)')
@@ -286,6 +296,7 @@ def run_full(args, row, tuning):
     if (out / 'run.json').is_file():
         print(f'SA_FULL_SKIP exists {out}', flush=True)
         return
+    sc.k8b_guard(tuning['path'], sc.ROBS_SEED, row['T'], args, f'full {args.arm}')     # K8b-0 blind guard
     if not chain.is_file():
         raise SystemExit(f'chained site missing: {chain}')
     out.mkdir(parents=True, exist_ok=True)

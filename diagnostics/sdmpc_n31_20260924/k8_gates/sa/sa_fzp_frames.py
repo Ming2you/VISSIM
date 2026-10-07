@@ -10,7 +10,12 @@ connectors 10479 / 10491 and the W_out links 31 / 124, at the frames
     every 5 s frame t = 5k + 0.1 with T - 155 < t <= T + 0.1          (FD3 exit-share window + its predecessor)
     t = T + 150 k + 0.1, k = 1..6                                      (FH VISSIM FW_W stock, W_out at T+150)
 for T in the FH grid (900 1200 1800 2250 2700 3000 3600 4200 4950).  Columns = x2_extract use_ext.
-Seeds: v3c3 NC fit seeds 31 41 43 47 53 only (sealed 37/59/61/67 and *_rm runs are never opened)."""
+Seeds: v3c3 NC fit seeds 31 41 43 47 53 only (sealed 37/59/61/67 and *_rm runs are never opened).
+K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2 sections 2.4.2 / 6 R3): the same FZP pass also writes
+<out>/sa/fzp/w_s<seed>.parquet = every frame of the W_out neighbourhood (rule of the P-4b extract, k8b_decl/p4b_extract.py
+sha 85156269: LINK in WOUT_KEEP_ALL at any POS, or a WOUT_PARTIAL link inside its POS window; columns WOUT_USE), read by
+sa_vissim_ref.py for the VISSIM W_out -> 10484 / 10480 / free counts (rule diagnostics/sdmpc_n31_20260924/k8b/
+wout_episodes.py) + w_s<seed>.json (rows, sha256)."""
 import sys
 import time
 from pathlib import Path
@@ -26,6 +31,10 @@ COLS = ['SIMSEC', 'NO', 'LINK', 'LANE', 'POS', 'POSLAT', 'SPEED', 'TMINNETTOT', 
 USE = ['SIMSEC', 'NO', 'LINK', 'LANE', 'POS', 'SPEED', 'LENGTH', 'ROUTDECNO', 'ROUTENO', 'NEXTLINK', 'DESTLANE', 'LNCHG',
        'INTERACTSTATE', 'INTERACTTARGTYPE', 'INTERACTTARGNO', 'ACCEL', 'ROUTDECTYPE']
 LINKS = (26, 10771, 120, 74, 10699, 2, 10613, 119, 10702, 24, 10479, 10491, 31, 124)
+WOUT_USE = ['SIMSEC', 'NO', 'LINK', 'LANE', 'POS', 'SPEED', 'NEXTLINK']          # K8b-0 (p4b_extract.py USE)
+WOUT_KEEP_ALL = (31, 124, 119, 10483, 10774, 10119, 10121, 10698, 10703, 10704, 10484, 10480, 10775, 10702, 10491)
+WOUT_PARTIAL = {29: (300.0, 1e9), 37: (250.0, 1e9), 40: (1000.0, 1e9), 78: (250.0, 1e9), 79: (-1.0, 150.0),
+                24: (-1.0, 400.0), 26: (3600.0, 4200.0), 125: (-1.0, 150.0)}
 
 
 def frame_set(grid=sc.GRID9):
@@ -72,6 +81,7 @@ def main():
         st = p.stat()
         t0 = time.time()
         parts, nrows = [], 0
+        wparts = []
         it = pd.read_csv(p, sep=';', skiprows=38, header=None, names=COLS, usecols=USE, chunksize=1_000_000,
                          encoding='latin-1',
                          dtype={'SIMSEC': np.float64, 'NO': np.int64, 'LINK': np.int64, 'LANE': np.int16,
@@ -85,6 +95,12 @@ def main():
             m = ch['LINK'].isin(LINKS) & t.isin(keys)
             if m.any():
                 parts.append(ch.loc[m, USE].copy())
+            L, P_ = ch['LINK'], ch['POS']                       # K8b-0 W_out neighbourhood, every frame
+            wm = L.isin(WOUT_KEEP_ALL)
+            for link, (lo, hi) in WOUT_PARTIAL.items():
+                wm |= (L == link) & (P_ >= lo) & (P_ <= hi)
+            if wm.any():
+                wparts.append(ch.loc[wm, WOUT_USE].copy())
         df = pd.concat(parts, ignore_index=True)
         for col in ('LNCHG', 'INTERACTSTATE', 'INTERACTTARGTYPE', 'ROUTDECTYPE'):
             df[col] = df[col].astype(str).astype('category')
@@ -94,6 +110,15 @@ def main():
                 'fzp_mtime': st.st_mtime, 'rows_in': nrows, 'rows_kept': int(len(df)), 'links': list(LINKS),
                 'frames': sorted(frames), 'parquet_sha256': sc.sha256_file(dest), 'sec': round(time.time() - t0, 1)}
         sc.write_json(out_dir / f's{s}_frames.json', meta)
+        wdf = pd.concat(wparts, ignore_index=True)
+        wdf['NEXTLINK'] = wdf['NEXTLINK'].astype('Int64')
+        wdest = out_dir / f'w_s{s}.parquet'
+        wdf.to_parquet(wdest, index=False)
+        sc.write_json(out_dir / f'w_s{s}.json', {'schema': 'k8b-wout-extract/v1', 'seed': s, 'fzp': str(p),
+                                                  'rows_in': nrows, 'rows_kept': int(len(wdf)),
+                                                  'keep_all': list(WOUT_KEEP_ALL),
+                                                  'partial': {str(k): list(v) for k, v in WOUT_PARTIAL.items()},
+                                                  'parquet_sha256': sc.sha256_file(wdest)})
         print(f'SA_FZP_FRAMES s{s} kept={len(df)} rows_in={nrows} sha256={meta["parquet_sha256"][:16]} '
               f'sec={meta["sec"]}', flush=True)
     return 0

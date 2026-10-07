@@ -909,3 +909,140 @@ def md_table(header, rows) -> str:
     out = ['| ' + ' | '.join(header) + ' |', '|' + '|'.join('---' for _ in header) + '|']
     out += ['| ' + ' | '.join(cell(v) for v in r) + ' |' for r in rows]
     return '\n'.join(out)
+
+
+# ================================================================================================ K8b (K8b-0)
+# K8_PREDECLARATION_AMENDMENT_16 r2 (sha below) as corrected by AMENDMENT_17 (5bb43134), user decisions
+# K8B_USER_DECISIONS_20261007 (D-K8b-1..4, variant A).  Harness only: the K8b runtime keys are config keys of the arm
+# tunings (urban.sc1002w_saturation, urban.stopline_approach.city_arrival, urban.wout_exit_law); nothing here runs in
+# the deployed path.
+K8B_AMENDMENT16_SHA256 = 'e8ad8a346d93fcb23eea4428eca213163860dc02a48e4c6e022bf0180263cbc4'
+K8B_AMENDMENT17_SHA256 = '5bb431346755ee45386746a0e926adba73a69e86ed3a342bdc8340a2ccc507b4'
+K8B_GATES_STAGE = 'k8bt'                  # amendment 16 section 5.4: the judging stage token
+K8B_KEY_PATHS = (('urban', 'stopline_approach', 'city_arrival'), ('urban', 'sc1002w_saturation'),
+                 ('urban', 'wout_exit_law'))                       # P-2, P-1, P-4' + P-4b (section 2.0-1)
+K8B_ARM_PATHS = (('urban', 'stopline_approach'),) + K8B_KEY_PATHS  # the four paths an arm may differ from BASE in
+K8B_ARM_FILE = 'config_n31_v2_stopline_{storage}_k8b.json'         # section 4 K8b-4 (make_config_n31 output)
+K8B_BASE_SHA256 = '319d07aac77472d4318ddf6266003916cb7afab98da35a06254952e393542bb8'   # section 5.2 (r2): condition
+K8B_BASE_BLOB = '132620aef90d2280d54e899cc7c0dffd21c3cf19'        # git hash-object --no-filters (record)
+K8B_K86H_ARM_SHA256 = {'SAF': '178de6c2c6a211eb811701455c7bfbb6b65d747b6e2698e2025c95bc766b7a6c',
+                       'SAG': '26e3be09c7ddcbe2cacbf628f0407ab2c1d1d2fbc85f8c79a84693e792759f70'}   # k86h arm files
+# Probe sample (D:/VISSIM-merge/k8b_probe/PROBE_SAMPLE.json sha 41aa5d87...): the only states a K8b-keyed capture /
+# job / unit test may open before the judging stage (amendment 16 section 0.2: H3 24 + long starts L1 s43 2400 and
+# L2 s47 4800; every other R-obs state of the judging seeds, T < 900 included, is refused).
+K8B_PROBE_SAMPLE_SHA256 = '41aa5d8761b83b7cf9a32fe2a59e408eb4a23a736b374cd8d0ad4da3376dde10'
+K8B_PROBE_H3 = ((31, 1050), (31, 1650), (31, 2100), (31, 2550), (31, 3300), (31, 4350), (31, 5100), (31, 6900),
+                (43, 1500), (43, 2100), (43, 2550), (43, 2850), (43, 3450), (43, 3900), (43, 4650), (43, 6150),
+                (47, 1500), (47, 2100), (47, 2550), (47, 2850), (47, 3450), (47, 4350), (47, 5250), (47, 5700))
+K8B_PROBE_LONG = ((43, 2400), (47, 4800))
+K8B_PROBE_STATES = frozenset(K8B_PROBE_H3 + K8B_PROBE_LONG)
+K8B_LONG_JUDGED = frozenset((31, T) for T in LONG_H)                # 900 H24 / 2700 H42 / 4950 H27 of s31
+K8B_WOUT = 'SC1001_W_out'
+K8B_WOUT_RAMPS = ('RM_C10484', 'RM_C10480')                         # R_D_E, R_D_W (physical_ramp_branches names)
+K8B_SC1002_W = ('SC1002_W_SC1001_to_E_SC101', 'SC1002_W_SC1001_to_S_SC105', 'SC1002_W_SC1001_to_N_SC2004')
+
+
+def k8b_keys_of(doc):
+    """The K8b key paths present in a tuning document (dotted names, declaration order)."""
+    out = []
+    for path in K8B_KEY_PATHS:
+        node = doc
+        for key in path:
+            node = node.get(key) if isinstance(node, dict) else None
+        if node is not None:
+            out.append('.'.join(path))
+    return out
+
+
+def k8b_strip(doc):
+    """A deep copy of `doc` without the three K8b key paths (section 5.2 r2 arm identity)."""
+    import copy
+    out = copy.deepcopy(doc)
+    for path in K8B_KEY_PATHS:
+        node = out
+        for key in path[:-1]:
+            node = node.get(key) if isinstance(node, dict) else None
+        if isinstance(node, dict):
+            node.pop(path[-1], None)
+    return out
+
+
+def k8b_judging_state(seed, T):
+    """Amendment 16 sections 0.2 / 5.4: the states a K8b-keyed computation may not open before the judging stage --
+    GRID9 and DP_T of every seed, the long judged starts of s31, every other R-obs decision state of the judging seeds
+    31 / 43 / 47 that is not a probe sample state (T < 900 included), and any state of a non-fit or sealed seed."""
+    seed, T = int(seed if seed is not None else ROBS_SEED), int(T)
+    if (seed, T) in K8B_PROBE_STATES:
+        return False
+    if T in GRID9 or T in DP_T or (seed, T) in K8B_LONG_JUDGED:
+        return True
+    if seed in TL3M_SEEDS:
+        return True                     # R-obs states of the judging seeds outside the probe sample (G-EB-14)
+    return seed not in FH_SEEDS or seed in SEALED_SEEDS
+
+
+def k8b_stage_open(args):
+    """True when the caller passed --gates-stage k8bt with the amendment 16 sha (section 5.4); a wrong token or sha
+    is refused (SystemExit), never ignored."""
+    stage = getattr(args, 'gates_stage', None)
+    sha = getattr(args, 'declaration_sha', None)
+    if stage is None and sha is None:
+        return False
+    if stage != K8B_GATES_STAGE or sha != K8B_AMENDMENT16_SHA256:
+        raise SystemExit(f'--gates-stage {stage!r} / --declaration-sha {sha!r}: the judging stage needs '
+                         f'--gates-stage {K8B_GATES_STAGE} --declaration-sha {K8B_AMENDMENT16_SHA256}')
+    return True
+
+
+K8B_META_KEYS = ('k8b_p1', 'k8b_p2', 'k8b_p2_init', 'k8b_p4')         # capture metadata of a keyed template
+
+
+def k8b_guard(tuning_path, seed, T, args, what, extra_keys=()):
+    """Refuse (SystemExit, before any child starts) a K8b-keyed capture / job on a judging state outside the judging
+    stage (amendment 16 sections 0.2 and 5.4).  Keyed = the tuning file carries a K8b key, or `extra_keys` is not
+    empty (the job guard passes the K8b metadata keys of the template's capture record, so a keyed template is caught
+    even when its tuning file is gone).  A tuning file that exists but cannot be parsed is refused; an absent file
+    adds no key (the adapter cannot load it either).  Returns the keys (empty = not keyed, no check).  With the stage
+    open the first keyed judging-state use is logged once to <out>/sa/k8b_judging_stage.json."""
+    keys = []
+    if tuning_path and Path(tuning_path).is_file():
+        try:
+            doc = json.loads(Path(tuning_path).read_text(encoding='utf-8-sig'))
+        except (OSError, ValueError) as exc:
+            raise SystemExit(f'K8b guard: tuning {tuning_path} unreadable ({exc!r}); refused')
+        keys = k8b_keys_of(doc)
+    keys = keys + [str(k) for k in extra_keys if str(k) not in keys]
+    if not keys:
+        return keys
+    if k8b_judging_state(seed, T):
+        if not k8b_stage_open(args):
+            raise SystemExit(f'K8B_BLIND_REFUSED {what}: s{seed} T={T} is a judging state and the tuning carries '
+                             f'{keys} (amendment 16 sections 0.2 / 5.4; pass --gates-stage {K8B_GATES_STAGE} '
+                             f'--declaration-sha <amendment 16 sha> only in the judging stage)')
+        mark = sa_out() / 'k8b_judging_stage.json'
+        if not mark.is_file():
+            import time
+            write_json(mark, {'schema': 'k8b-judging-stage/v1', 'started': time.strftime('%Y-%m-%d %H:%M:%S'),
+                              'first': {'what': what, 'seed': seed, 'T': T, 'tuning': str(tuning_path)},
+                              'amendment16_sha256': K8B_AMENDMENT16_SHA256, 'root': str(c.R)})
+    return keys
+
+
+def add_k8b_stage_args(parser):
+    g = parser.add_argument_group('K8b judging stage (amendment 16 section 5.4)')
+    g.add_argument('--gates-stage', help=f'{K8B_GATES_STAGE}: allow K8b-keyed runs on judging states')
+    g.add_argument('--declaration-sha', help='the amendment 16 sha256, required with --gates-stage')
+    return parser
+
+
+def vissim_count():
+    """Number of running VISSIM processes (read only: Get-Process -Name VISSIM*; never touches them).  None when the
+    query fails (an unknown count is never a clean pair, amendment 16 section 5.3.1)."""
+    import subprocess
+    try:
+        out = subprocess.run(['powershell', '-NoProfile', '-Command',
+                              '@(Get-Process -Name VISSIM* -ErrorAction SilentlyContinue).Count'],
+                             capture_output=True, text=True, timeout=120)
+        return int(out.stdout.strip().splitlines()[-1])
+    except Exception:
+        return None

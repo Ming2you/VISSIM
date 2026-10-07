@@ -13,6 +13,8 @@ SC1001 EB 안 1 v2(차로 FIFO 패킷, 모듈 SA)의 관문 G-EB-0…14와 FH �
 
 - **K8-0i(도구 커밋, k86h 판정 단계)**: G-EB-8 tangent 계측 결함 수정. `sa_worker.main`의 탄젠트 finder 설치(`install(R, 'reverse-v1')`)가 `evaluation.controllers.sdmpc_tangent_reverse`를 먼저 import해서, 그 뒤에 넣는 Post import 훅이 `patch_reverse`(Trace.jacobian 감싸기)를 한 번도 걸지 못했습니다. 그래서 TAN 잡 summary의 `tangent.values`가 늘 None이었고 G-EB-8이 INCOMPLETE였습니다. 이제 Post를 넣은 직후 `apply_loaded`가 이미 올라온 모듈에 같은 콜백을 겁니다(`tangent.late_patched`에 기록). 다른 Post 대상(lane_offramp_runtime·rollout_endpoint·stopline_approach·sdmpc)은 finder가 import하지 않으므로 그대로입니다. 시험 `test_tan_instrument_reaches_the_reverse_module_the_finder_preloaded`(실제 reverse 모듈, 새 프로세스). 정의·문턱·표본은 바꾸지 않았고, TAN 잡은 README "INCOMPLETE 다시 돌리기"대로 summary를 치운 뒤 같은 인자로 다시 돕니다.
 
+- **K8b-0(보충 16 r2 e8ad8a34 + 보충 17 5bb43134, 사용자 결정 D-K8b-1…4 변형 A; 도구 커밋, 런타임 변경 0)**: 아래 "K8b-0" 절. 예외 종류(`WoutExitInvariantError` → invariant), 블라인드 가드(K8b 키 + 판정 상태 → 거부, `--gates-stage k8bt --declaration-sha <보충 16 sha>`만 예외), 팔 동일성(`sa_arms.py --k8b`), 수동 기록기(`blocks[k].k8b0`, `k8b0`), vissim_ref 확장(`k8b`), W_out 추출(`fzp/w_s<S>.parquet`), 벽시계 짝(`sa_wallpairs.py`, `sa_gates.g11`), K8b 보고 도구(`k8b_report.py`), 커밋 관문 도구(`k8b_commit_gates.py`), 키 있는 단위 시험의 판정 상태 거부(`tests/k8b_test_guard.py`). 정의·문턱·표본은 바꾸지 않았습니다.
+
 ## 단계와 도구
 
 | 순서 | 도구 | 하는 일 | 출력(`<out>/sa/…`) |
@@ -158,6 +160,23 @@ SC1001 EB 안 1 v2(차로 FIFO 패킷, 모듈 SA)의 관문 G-EB-0…14와 FH �
 | D12 | 통과 뒤 (a)·(d) 갈래 모두 수신 여유 부족을 거부하지 않음("Posthead rehome overfills" 삭제). **규칙 (A)**: 수신 여유 안의 몫만 `_post_service`로 수신 링크에 기록(수신 저장은 0 밑으로 가지 않음). 넘는 몫은 그 차량이 지난 127 차로의 **머리 준비 패킷**(due = 초기화 시각, 출신 표지 그대로)으로 남기고, 그 차로가 상한을 넘으면 그 차로 `init_excess`(I3는 init_excess 만큼 완화). 그 차로가 경로상 목적지를 받지 못하면(예: 차로 1의 N) 남긴 몫은 목적지를 받는 차로의 머리 준비 패킷이 되고 `lane_reassigned_veh`에 더함(검토 N-r6-3). **(d) 커넥터 재배치(10695 → SC1001_to_SC2002)**: (a)가 같은 수신 여유를 먼저 쓰고, 커넥터의 in_SC1001_W 몫 a_c 가운데 fit = min(a_c, 남은 여유)만 수신 링크로 옮기며 투영 예약 칸(+15/+105)도 fit/a_c 만큼만 옮김. 나머지는 목적지(N)를 받는 차로(차로 3)의 머리 준비 패킷(due = 초기화 시각, 127의 모든 패킷보다 앞, 출신 표지 `init:unknown` — 투영 몫이라 차량별 출신을 모름, D11과 같음)이고 차로 상한을 넘으면 그 차로 `init_excess`. 그 몫의 provenance는 10695 위 N 대기로 남겨 링크별 합 = 관측 차량 수 유지(§5.8-6 뒤에 기록해 이중 포장 없음). 질량 보존, 배포 area 장부(`model_stock_values`의 `_nonnegative`) 통과, 두 갈래 부족분을 `posthead_receiver_shortfall_veh`에 합쳐 보고((d) 몫은 따로 `posthead_rehome_shortfall_veh`에도)하고 장부식 항 N_shortfall_kept로 더함. 여유가 충분하면 비트 동일. **(a) 갈래 출발 시각(보충 11 D-K8-6, 보충 12 정정, K8-6b 61ee9ed6)**: 수신 여유 안의 몫은 직전 스텝 t0−1의 수락된 출발로 `_post_service(…, t0−1, …)`에 넘김. `runtime_setup`이 SA 초기화 전에 통로 상태 넷(native_input_prehead·native_input_routes·route_choice_corridor·sc2001_corridor)을 last_step = t0−1로 두고 그 수락 hook은 last_step == step을 요구함(옛 t0 호출은 키 있는 결정에 127 헤드 너머 차량이 있으면 초기화에서 'Aggregate pre-head service clock mismatch'로 죽음). 수신 예약 칸 = t0−1 + 지연(지연 ≥ 1이라 t0 이전 칸 없음). T9b 기준 = 같은 스텝 t0−1의 UFA 출발 경로와 같은 부수효과. 남긴 몫(머리 준비 패킷)의 due는 초기화 시각 t0 그대로(보충 7·8). (d) 재배치는 출발 경로·통로 hook·시계 검사를 부르지 않으므로 t0−1 규칙 밖이고 명세 보충 1 r2 §5.8-4(d)대로 투영 예약 칸을 그대로 옮김(T9c 판정, 보충 12가 보충 11의 "(d) 포함" 문구를 정정) | 보충 5 N-2, **보충 7 §1**(보충 6 §2 철회), **보충 8 §1**, **보충 11**(D-K8-6), **보충 12** |
 | D13 | I11 양쪽 단언: \|새 이동 예약 − tags\| ≤ 1e-9 | 보충 5 N-1 |
 | D14 | 증거 빌더 입력(sha 고정, 약 263 KB)을 `stopline/inputs/`로 바이트 복사, 빌더 기본 경로. 증거 JSON은 builder sha 한 줄만 바뀜 | 보충 5 §6 |
+
+## K8b-0 (보충 16 r2 §4 K8b-0 행, 보충 17)
+
+| 무엇 | 어디 | 선언 |
+|---|---|---|
+| 예외 종류 `WoutExitInvariantError` → invariant | `sa_errors.KINDS` | §2.0-6: SAG에서만 난 P-4′/P-4b 불변식 위반도 G-EB-2 FAIL |
+| K8b 키 경로·판정 상태 목록·가드 | `sa_common` K8b 절: `k8b_keys_of`, `k8b_judging_state`(GRID9·DP_T 모든 시드, s31 장기 판정 시작, 판정 시드 31/43/47의 탐침 밖 R-obs 상태 — T < 900 포함, 비적합·봉인 시드), `k8b_guard` | §0.2·§5.4: 팔 튜닝(포착은 그 튜닝, 잡은 틀의 capture.json `tuning`)에 K8b 키가 있고 판정 상태이면 자식 프로세스 전에 거부. `--gates-stage k8bt --declaration-sha <보충 16 sha>`가 판정 단계이고, 첫 사용을 `<out>/sa/k8b_judging_stage.json`에 적음 |
+| 팔 생성·키 검사·팔 동일성 | `sa_arms.py --k8b` | §5.2 r2: BASE sha 319d07aa 조건, 네 경로 밖 차이 거부, K8b 세 키를 지운 값 = k86h 팔 파일(178de6c2 / 26e3be09), `arms.json`에 키 구성 |
+| 수동 기록기 | `sa_worker.py`: `blocks[k].k8b0`(신호별 큐 합, RM_C10484/10480 큐, W_out 부류 저장고·직결 대기·계수, P-2 계수·대기, SA 차로 준비 재고, 응답 이전 행의 W_out 수락 목적지별·free 구속 스텝·게이트 유입, 10483 방출·W_out 예약 증가·착지 제한 스텝, E 녹색·E 차로 준비 0 스텝), `k8b0`(블록 0 w_ports, SA 포트 fifo/request 스텝 기록, FW_W OR_D_W 진단 스텝 기록) | §3.3·§6·§7.3. 새 모형 함수 래퍼 없음(기존 LOR.drain·SA.end_step 래퍼가 더 읽고, LaneFreewayRuntime.advance 반환값만 읽음). 예외는 `recorder_errors` |
+| 포착 기록 | `sa_cap_child.py`: metadata `k8b_p1`·`k8b_p2`·`k8b_p2_init`·`k8b_p4`·`stopline_city_arrival_evidence_sha256`(있을 때만), probes `signal_queue` | §2.1·§2.2 포착 메타, R1 Q_obs |
+| VISSIM 쪽 | `sa_fzp_frames.py`가 같은 FZP 읽기에서 `fzp/w_s<S>.parquet`(P-4b 추출 규칙), `sa_vissim_ref.py`가 `seeds[S].k8b`(첫 등장, onW, W_out 목적지 블록별 — 규칙 `k8b/wout_episodes.py`, s31 장기 127 정지·onW·도시 127 진입) | §3.3·§6 R2–R4·§7.3 (i-c)(i-d) |
+| 벽시계 짝 | `sa_jobs.run_job`이 잡마다 `vissim_counts.json`(워커 직전·직후 VISSIM 수, 읽기만), `sa_wallpairs.py status|rerun`(깨끗하지 않은 짝은 VISSIM 0대일 때 `jobs/<tree>_wall/`에 BASE → SAF 재실행, 10분 간격 확인, 깨끗하지 않은 재실행은 `.stale_<k>`), `sa_gates.g11`이 같은 선택 규칙(첫 실행이 깨끗하면 그것, 아니면 첫 깨끗한 재실행; 재실행 ≠ 첫 실행이면 FAIL; 63짝 미완이면 INCOMPLETE) | §5.3.1 r2 |
+| 보고 도구 | `k8b_report.py --tree <tree>` → `gates/k8b_report_<tree>.{json,md}`, STOP이면 `gates/k8b_q7_diagnosis.json` | §6 R1–R8, §3.3 2단계, §7.3 |
+| 커밋 관문 도구 | `k8b_commit_gates.py extract|prep|anchor|g1|g2|g3|g4|unit|chain` → `D:/VISSIM-merge/k8b_commit_gates/<커밋>/gate_*.json`, 기준 `anchor_k84v3/` | §4.1 G1–G4 |
+| 키 있는 단위 시험의 판정 상태 거부 | `tests/k8b_test_guard.py` (`refuse_judging`, `keyed_capture`) | §0.2 r2 |
+
+- 시험: `tests/test_k8b_harness.py`(합성 입력).
 
 ## 운영: INCOMPLETE 다시 돌리기 (보충 8 §3, 검토 N-r6-4)
 

@@ -2,7 +2,9 @@
 sa_cap_child.py and the rollout worker sa_worker.py import it in their own processes, sa_common re-exports it).
 
 kind  error_kind(text): the first key of KINDS found in the traceback text ('Ledger' -> stocks, review N-r4-2: the
-      former capture table lacked it); 'other' for any other error, None without a text.
+      former capture table lacked it; K8b-0, amendment 16 r2 section 2.0-6: 'WoutExitInvariantError' -> invariant,
+      so a P-4' / P-4b invariant violation fails G-EB-2 on the report arm SAG too); 'other' for any other error, None
+      without a text.
 site  error_site(text): where the exception was raised, read from the traceback the child recorded -- the innermost
       frame of the project: 'harness' for the K8 gate harness (any path under k8_gates/: sa_worker, sa_cap_child,
       sa_fh, the hook sites sa_hooks / site / s3site), 'runtime' for the code the deployed adapter path runs:
@@ -21,7 +23,8 @@ counts -- the last one in the log, with at most LOG_TRAILING_LINES non-empty lin
 import re
 
 KINDS = (('StoplineInvariantError', 'invariant'), ('StoplineRouteError', 'route'), ('StoplineInitError', 'init'),
-         ('StoplineConfigError', 'config'), ('assert_stocks', 'stocks'), ('Ledger', 'stocks'))
+         ('StoplineConfigError', 'config'), ('assert_stocks', 'stocks'), ('Ledger', 'stocks'),
+         ('WoutExitInvariantError', 'invariant'))   # K8b-0 (amendment 16 r2 section 2.0-6): P-4' / P-4b invariants
 INVARIANT_KINDS = ('invariant', 'route', 'stocks')
 RUNTIME_DIRS = ('evaluation', 'vendor', 'diagnostics')   # diagnostics/ outside k8_gates/: runtime-imported modules
 HARNESS_DIRS = ('k8_gates',)
