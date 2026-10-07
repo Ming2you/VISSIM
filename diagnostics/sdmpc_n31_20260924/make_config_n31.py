@@ -74,6 +74,7 @@ Run from the worktree root:
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py [--check]
 K8-6 SA arms (separate files, key-only; see STOPLINE_EVIDENCE):
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric [--check]
+  python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric --k8b [--check]
 """
 from __future__ import annotations
 
@@ -588,8 +589,10 @@ def apply_k8b(doc, root=ROOT, parts=K8B_PARTS):
     return out
 
 
-def stopline_out(storage):
-    return HERE / ('config_n31_v2_stopline_%s.json' % storage)
+def stopline_out(storage, k8b=False):
+    """config_n31_v2_stopline_<storage>.json, or with k8b the K8b arm config_n31_v2_stopline_<storage>_k8b.json (K8b-4,
+    K8_PREDECLARATION_AMENDMENT_16 r2 section 4: the k86h arm + the three K8b keys of K8B_PARTS)."""
+    return HERE / ('config_n31_v2_stopline_%s%s.json' % (storage, '_k8b' if k8b else ''))
 
 
 def family_root(family, out_root):
@@ -617,6 +620,9 @@ def main():
                         help='K8-6 SA arm: write config_n31_v2_stopline_<storage>.json with this pinned evidence')
     parser.add_argument('--stopline-storage', choices=STOPLINE_STORAGES,
                         help='with --stopline-approach: observed_full (judging arm SA-F) or geometric (report arm SA-G)')
+    parser.add_argument('--k8b', action='store_true',
+                        help='with --stopline-approach: the K8b arm (the SA arm + urban.sc1002w_saturation, '
+                             'urban.wout_exit_law, urban.stopline_approach.city_arrival)')
     args = parser.parse_args()
     stopline = (args.stopline_approach, args.stopline_storage)
     if any(stopline) and not all(stopline):
@@ -625,9 +631,13 @@ def main():
         raise SystemExit('--stopline-approach builds only on the default tree tuning')
     components = tuple(c.strip().upper() for c in args.components.split(',') if c.strip())
     overlay = family_root(args.vsl_family, args.out_root)
+    if args.k8b and not all(stopline):
+        raise SystemExit('--k8b goes with --stopline-approach and --stopline-storage')
     if all(stopline):
-        out, name = stopline_out(args.stopline_storage), 'CONFIG_N31_STOPLINE_OK'
-        data = dumps(apply_stopline_approach(build(), *stopline))
+        out = stopline_out(args.stopline_storage, k8b=args.k8b)
+        name = 'CONFIG_N31_STOPLINE_K8B_OK' if args.k8b else 'CONFIG_N31_STOPLINE_OK'
+        doc = apply_stopline_approach(build(), *stopline)
+        data = dumps(apply_k8b(doc) if args.k8b else doc)
     elif args.urban_batch1:
         out, name = urban_batch1_out(components, overlay), 'CONFIG_N31_URBAN_B1_OK'
         data = dumps(build_urban_batch1(components=components, family=args.vsl_family, overlay=overlay))
