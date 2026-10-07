@@ -17,6 +17,11 @@ from evaluation.controllers.lane_ramp_runtime import receiving_space as _ramp_re
 from evaluation.controllers import meter_spill as _spill
 from evaluation.controllers.lane_urban_runtime import observe_ready as _lane_ready, is_local_movement
 
+
+class WoutExitInvariantError(RuntimeError):
+    """K8b P-4' / P-4b invariant (K8_PREDECLARATION_AMENDMENT_16 r2 section 2.0-6; the K8 harness kind invariant)."""
+
+
 def _resource_ledger(state):
     """Return the optional recorder; ordinary steps collect no resource maps."""
     ledger = get_ledger(state)
@@ -831,15 +836,31 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
     finite_exit = exit_cap_h > 0.0
     conn_caps = dict(getattr(net_a, "ramp_capacity_veh_h", {}) or {})
     spill_memo = {}   # S1-OWN (K8-3): stage-1 K7 room per (W_out, ramp) for meter_spill.legsplit_accepted
+    exit_law = getattr(net_a, "wout_exit_law", None)   # K8b-2 P-4' / P-4b (urban.wout_exit_law); None = former law
+    wout_ctx = {}
     for link, spec in table.items():
         arrived = _adapter._legsplit_arrived_at_link(state, net_a, str(link), idx)
+        wx = None
+        if exit_law is not None and str(link) in exit_law:
+            wx = _wout_store_update(state, exit_law[str(link)], str(link), arrived, idx)
+            wout_ctx[str(link)] = wx
         if arrived <= 0.0:
+            if wx is not None:
+                wx['a'] = {_d: 0.0 for _d in wx['spec']['dests']}
             continue
         spd = float(getattr(net_a, "leg_ramp_split_wout_speed_kmh", 40.0) or 40.0)
         reach = min(arrived, arrived * _adapter._legsplit_wout_rate(net_a, str(link), spd) * float(sim.T_u_h))
+        wreq = None
+        if wx is not None:
+            wreq = _wout_requests(wx, spd, float(sim.T_u_h))
+            reach = sum(wreq.values())
         known_requests = known_legsplit_requests(state, cfg_arg, str(link), reach, arrived, idx)
+        if wx is not None and known_requests is not None:
+            raise WoutExitInvariantError('W_out exit law: known legsplit routes on ' + str(link) + ' are not covered')
         free_share = max(0.0, float(spec.get("free", 0.0)))
         free_request = reach * free_share if known_requests is None else known_requests.get('free', 0.)
+        if wreq is not None:
+            free_request = wreq['free']
         exit_cap_veh = exit_cap_h * float(sim.T_u_h)
         intended_free = min(free_request, exit_cap_veh) if finite_exit else free_request
         intended_total = intended_free
@@ -853,9 +874,15 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
             conn = max(0.0, float(conn_caps.get(str(ramp), 0.0) or 0.0)) * float(sim.T_u_h)
             entry_cap = min(space, conn) if conn > 0.0 else space
             request = reach * sh if known_requests is None else known_requests.get(str(ramp), 0.)
+            if wreq is not None:
+                request = wreq[str(ramp)]
             allowed = min(request, entry_cap)
-            _spill.legsplit_request(state, spill_memo, str(link), str(ramp), request, reach, arrived, conn,
-                                    allowed, space)
+            if wreq is not None:     # section 2.3 step 4 (r2): request = reach = R_d, arrived = Y_d per ramp
+                _spill.legsplit_request(state, spill_memo, str(link), str(ramp), request, request,
+                                        wx['Y'][str(ramp)], conn, allowed, space)
+            else:
+                _spill.legsplit_request(state, spill_memo, str(link), str(ramp), request, reach, arrived, conn,
+                                        allowed, space)
             if leg_limits is not None:
                 leg_limits[(str(link), str(ramp))] = (request, entry_cap)
             if allowed > 0.0:
@@ -905,6 +932,8 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         adjust[source_link] -= requested - accepted
         reconciled_transfers.append((source_link, ramp, accepted))
     accepted_transfers = reconciled_transfers
+    if wout_ctx:
+        _wout_store_accept(state, wout_ctx, accepted_transfers)     # K8b-2 section 2.3 step 5
     _spill.legsplit_accepted(state, spill_memo, accepted_transfers)
     if resource_ledger is not None:
         for ramp, (room, accepted_sources) in receiving_evidence.items():
@@ -948,6 +977,8 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         state.urban_link_storage[link] = available + delta
         _adapter._LEGSPLIT_LAST["leg_ramp_split_storage_adjust_veh"] = (
             _adapter._LEGSPLIT_LAST.get("leg_ramp_split_storage_adjust_veh", 0.0) + delta)
+    if wout_ctx:
+        _wout_store_check(wout_ctx)                                 # K8b-2 section 2.3 step 6
     _adapter._LEGSPLIT_LAST["leg_ramp_split_injected_veh"] = (
         _adapter._LEGSPLIT_LAST.get("leg_ramp_split_injected_veh", 0.0) + sum(inject.values()))
     for source_link, ramp, amount in accepted_transfers:
@@ -959,6 +990,215 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
 
 
 _adapter = None
+
+
+# ---------------------------------------------------------------- K8b-2: W_out exit law per destination store
+# K8_PREDECLARATION_AMENDMENT_16 r2 sections 2.3 / 2.4 as corrected by AMENDMENT_17, variant A (D-K8b-4); key
+# urban.wout_exit_law, installed by runtime_setup.install_wout_exit_law as cfg.network.wout_exit_law = {link: spec}.
+# State (structure decided on primal values only; counters read primal values, N19):
+#   state.wout_class_store[link][class][dest]   arrived mass by entry class and destination (dest: 'free' + ramps)
+#   state.wout_direct_pending[link][due]        P-4b direct-class mass released by the LOR direct row and still
+#                                               inside its residence (due > step)
+#   state.wout_exit_counters[link]              fixed keys WOUT_COUNTER_KEYS + assigned|c|d / exited|c|d
+# Key absent: legsplit_substep_accounted and the LOR direct row take their former code path; nothing here runs.
+WOUT_COUNTER_KEYS = ('update_steps', 'i0_events', 'i0_veh', 'shrink_events', 'shrink_veh', 'shrink_tiny_events',
+                     'direct_release_events', 'direct_release_veh', 'direct_matured_events', 'direct_matured_veh')
+
+
+def _wout_p(x):
+    return getattr(x, '_validation_primal', x)
+
+
+def _wout_counters(state, link, spec):
+    table = getattr(state, 'wout_exit_counters', None)
+    if table is None:
+        table = {}
+        state.wout_exit_counters = table
+    row = table.get(link)
+    if row is None:
+        row = {k: 0.0 for k in WOUT_COUNTER_KEYS}
+        for kind in ('assigned', 'exited'):
+            for c in spec['classes']:
+                for d in spec['dests']:
+                    row[f'{kind}|{c}|{d}'] = 0.0
+        table[link] = row
+    return row
+
+
+def _wout_pending(state, link):
+    table = getattr(state, 'wout_direct_pending', None)
+    if table is None:
+        table = {}
+        state.wout_direct_pending = table
+    return table.setdefault(link, {})
+
+
+def wout_direct_delay(state, cfg, step, off, row, target, n):
+    """LOR direct-row hook (P-4b, AMENDMENT_17 items 1-2): called after the release n of connector `off` entered
+    `target`'s storage and before its reservation is scheduled.  None = the former uqm._link_delay_steps (no exit law
+    on `target`, or a variant without a direct class).  Otherwise the direct-class residence d = max(1, ceil(l_dir /
+    v / T_u)) steps (l_dir = 121.533 m from the evidence, v = leg_ramp_split_wout_speed_kmh), used for both
+    reservation buffers INSTEAD of the generic W_out delay; the mass is booked as direct pending at step + d (its
+    exit-law length is then 0, f = 1: l_dir is used once)."""
+    law = getattr(cfg.network, 'wout_exit_law', None)
+    spec = None if law is None else law.get(str(target))
+    if spec is None:
+        return None
+    direct = spec['direct']
+    if str(off) != direct['off'] or str(row.get('group')) != direct['group'] or not row.get('direct'):
+        raise WoutExitInvariantError('W_out exit law: unexpected direct row %r (group %r) onto %s'
+                                     % (off, row.get('group'), target))
+    if spec['direct_class'] is None:
+        return None
+    spd = float(getattr(cfg.network, 'leg_ramp_split_wout_speed_kmh', 40.0) or 40.0)
+    T_u_h = float(cfg.simulation.T_u_h)
+    d = max(1, int(math.ceil(float(direct['l_residence_km']) / spd / T_u_h)))
+    pend = _wout_pending(state, str(target))
+    due = int(step) + d
+    pend[due] = pend.get(due, 0.0) + n
+    cnt = _wout_counters(state, str(target), spec)
+    cnt['direct_release_events'] += 1.0
+    cnt['direct_release_veh'] += abs(_wout_p(n))
+    return d
+
+
+def _wout_store_update(state, spec, link, arrived, idx):
+    """Matured direct mass (due <= idx) -> X[direct][d] += s_direct_d x matured; then section 2.3 steps 1-2:
+    A = arrived; delta = A - sum X; delta > 0 -> X[i0 class][d] += s_d delta; delta < 0 -> every X x A / sum X
+    (|delta| > 1e-9 counted as shrink); the first call of a rollout (no store) is I0.  Returns the step context."""
+    store = getattr(state, 'wout_class_store', None)
+    if store is None:
+        store = {}
+        state.wout_class_store = store
+    classes, dests = spec['classes'], spec['dests']
+    fresh = link not in store
+    if fresh:
+        store[link] = {c: {d: 0.0 for d in dests} for c in classes}
+    X = store[link]
+    cnt = _wout_counters(state, link, spec)
+    cnt['update_steps'] += 1.0
+    if fresh:
+        cnt['i0_events'] += 1.0
+        cnt['i0_veh'] += abs(_wout_p(arrived))
+    c_dir = spec['direct_class']
+    if c_dir is not None:
+        pend = _wout_pending(state, link)
+        due_now = sorted(k for k in pend if int(k) <= int(idx))
+        if due_now:
+            matured = 0.0
+            for k in due_now:
+                matured = matured + pend.pop(k)
+            for d in dests:
+                add = spec['s'][c_dir][d] * matured
+                X[c_dir][d] = X[c_dir][d] + add
+                cnt[f'assigned|{c_dir}|{d}'] += _wout_p(add)
+            cnt['direct_matured_events'] += 1.0
+            cnt['direct_matured_veh'] += abs(_wout_p(matured))
+        buf = (getattr(state, 'urban_storage_release_buffer', None) or {}).get(link) or {}
+        for k, x in pend.items():
+            if _wout_p(x) - _wout_p(buf.get(k, 0.0)) > 1e-9:
+                raise WoutExitInvariantError('W_out exit law: direct pending %r at due %r exceeds the reservation %r'
+                                             % (_wout_p(x), k, _wout_p(buf.get(k, 0.0))))
+    tot = sum(X[c][d] for c in classes for d in dests)
+    delta = arrived - tot
+    pd = _wout_p(delta)
+    if pd > 0.0:
+        c0 = spec['i0_class']
+        for d in dests:
+            add = spec['s'][c0][d] * delta
+            X[c0][d] = X[c0][d] + add
+            cnt[f'assigned|{c0}|{d}'] += _wout_p(add)
+    elif pd < 0.0:
+        ratio = arrived / tot
+        for c in classes:
+            for d in dests:
+                X[c][d] = X[c][d] * ratio
+        if pd < -1e-9:
+            cnt['shrink_veh'] += abs(pd)
+            cnt['shrink_events'] += 1.0
+        else:
+            cnt['shrink_tiny_events'] += 1.0
+    for c in classes:
+        for d in dests:
+            if _wout_p(X[c][d]) < -1e-12:
+                raise WoutExitInvariantError('W_out exit law: negative store %s|%s = %r' % (c, d, _wout_p(X[c][d])))
+    return {'link': link, 'spec': spec, 'X': X, 'A': arrived, 'idx': int(idx)}
+
+
+def _wout_requests(ctx, speed_kmh, T_u_h):
+    """Section 2.3 steps 3-4: r[c][d] = X[c][d] f_cd, f_cd = 1 for l_cd = 0 (at the exit), min(1, T_u v / l_cd)
+    otherwise (l None: no stock allowed); R_d = sum_c r[c][d]; Y_d = sum_c X[c][d]."""
+    spec, X = ctx['spec'], ctx['X']
+    r = {}
+    R = {d: 0.0 for d in spec['dests']}
+    Y = {d: 0.0 for d in spec['dests']}
+    for c in spec['classes']:
+        r[c] = {}
+        for d in spec['dests']:
+            lk = spec['l_km'][c].get(d)
+            if lk is None:
+                if _wout_p(X[c][d]) > 0.0:
+                    raise WoutExitInvariantError('W_out exit law: stock in %s|%s without a declared length' % (c, d))
+                f = 0.0
+            elif lk == 0.0:
+                f = 1.0
+            else:
+                f = min(1.0, T_u_h * speed_kmh / lk)
+            r[c][d] = X[c][d] * f
+            R[d] = R[d] + r[c][d]
+            Y[d] = Y[d] + X[c][d]
+    ctx.update(r=r, R=R, Y=Y)
+    return R
+
+
+def _wout_store_accept(state, wout_ctx, accepted_transfers):
+    """Section 2.3 step 5: the final accepted a_d (after the receipt reconciliation) leaves its own destination store,
+    split over the classes by r[c][d] / R_d; unaccepted mass stays in its destination store."""
+    for link, ctx in wout_ctx.items():
+        spec = ctx['spec']
+        a = {d: 0.0 for d in spec['dests']}
+        for src, ramp, amount in accepted_transfers:
+            if src != link:
+                continue
+            d = 'free' if ramp is None else str(ramp)
+            if d not in a:
+                raise WoutExitInvariantError('W_out exit law: accepted transfer to undeclared destination %r' % (ramp,))
+            a[d] = a[d] + amount
+        if 'r' not in ctx:                         # arrived <= 0 this step: no request was prepared
+            if any(abs(_wout_p(x)) > 0.0 for x in a.values()):
+                raise WoutExitInvariantError('W_out exit law: accepted transfer without a request on ' + link)
+            ctx['a'] = a
+            continue
+        X, r, R = ctx['X'], ctx['r'], ctx['R']
+        cnt = _wout_counters(state, link, spec)
+        for d in spec['dests']:
+            if _wout_p(R[d]) > 0.0:
+                for c in spec['classes']:
+                    take = a[d] * r[c][d] / R[d]
+                    X[c][d] = X[c][d] - take
+                    cnt[f'exited|{c}|{d}'] += _wout_p(take)
+            elif abs(_wout_p(a[d])) > 1e-12:
+                raise WoutExitInvariantError('W_out exit law: accepted %r to %s with zero request' % (_wout_p(a[d]), d))
+        ctx['a'] = a
+
+
+def _wout_store_check(wout_ctx):
+    """Section 2.3 step 6 (after the storage adjust): |sum X - (A - sum_d a_d)| <= 1e-9, stores >= 0."""
+    for link, ctx in wout_ctx.items():
+        spec, X = ctx['spec'], ctx['X']
+        tot = sum(_wout_p(X[c][d]) for c in spec['classes'] for d in spec['dests'])
+        a = ctx.get('a')
+        if a is None:
+            raise WoutExitInvariantError('W_out exit law: store context without an acceptance step on ' + link)
+        want = _wout_p(ctx['A']) - sum(_wout_p(x) for x in a.values())
+        if abs(tot - want) > 1e-9:
+            raise WoutExitInvariantError('W_out exit law: |sum X - (A - sum a)| = %r > 1e-9 on %s'
+                                         % (abs(tot - want), link))
+        for c in spec['classes']:
+            for d in spec['dests']:
+                if _wout_p(X[c][d]) < -1e-12:
+                    raise WoutExitInvariantError('W_out exit law: negative store %s|%s = %r'
+                                                 % (c, d, _wout_p(X[c][d])))
 
 
 def schedule_offramp_arrivals_accounted(state, cfg, off_ramp, vehicles, urban_step_index, *, branch_vehicles=None):

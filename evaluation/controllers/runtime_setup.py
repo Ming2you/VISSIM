@@ -41,6 +41,73 @@ def load_k8b_evidence(pin, schema, key):
     return document, digest
 
 
+WOUT_EXIT_LAWS = ('per_destination_class_v1',)
+
+
+def install_wout_exit_law(cfg, tuning):
+    """K8b-2 P-4' + P-4b (K8_PREDECLARATION_AMENDMENT_16 r2 sections 2.3 / 2.4 as corrected by AMENDMENT_17, variant
+    of D-K8b-4; key urban.wout_exit_law = {"SC1001_W_out": {"law", "variant", "evidence", "evidence_sha256"}}):
+    after the physical ramp names are final, cfg.network.wout_exit_law = {link: spec} with the evidence's classes,
+    per-class destination shares, exit-law lengths (km) and the direct row (connector, group, residence length);
+    destinations are 'free' and the runtime ramp keys of R_D_E / R_D_W.  Key absent: {} and nothing is set."""
+    law = ((tuning or {}).get('urban') or {}).get('wout_exit_law')
+    if law is None:
+        return {}
+    if not isinstance(law, dict) or not law:
+        raise ValueError('urban.wout_exit_law must map W_out links to their exit law')
+    net = cfg.network
+    table = getattr(net, 'boundary_out_ramp_split', None) or {}
+    out, meta = {}, {}
+    for link, row in law.items():
+        if not isinstance(row, dict) or set(row) != {'law', 'variant', 'evidence', 'evidence_sha256'}:
+            raise ValueError('urban.wout_exit_law.%s must be {law, variant, evidence, evidence_sha256}' % link)
+        if row['law'] not in WOUT_EXIT_LAWS:
+            raise ValueError('urban.wout_exit_law.%s.law must be one of %s' % (link, WOUT_EXIT_LAWS))
+        document, digest = load_k8b_evidence({'evidence': row['evidence'], 'evidence_sha256': row['evidence_sha256']},
+                                             'k8b-wout-exit/v1', 'urban.wout_exit_law.' + link)
+        v = document['values']
+        if v['link'] != link or v['variant'] != row['variant'] or v['law'] != row['law']:
+            raise ValueError('urban.wout_exit_law.%s: link / variant / law differ from the evidence' % link)
+        if link not in table or not bool(getattr(net, 'leg_ramp_split_enabled', False)):
+            raise ValueError('urban.wout_exit_law.%s needs the leg ramp split of that link' % link)
+        ramp_of = v['ramp_of']
+        if sorted(str(r) for r in (table[link].get('ramps') or {})) != sorted(ramp_of.values()):
+            raise ValueError('urban.wout_exit_law.%s: runtime ramps %s differ from %s'
+                             % (link, sorted(table[link].get('ramps') or {}), ramp_of))
+        direct = v['direct']
+        tails = getattr(net, 'offramp_direct_tail_by_offramp', None) or {}
+        if direct is not None and tails.get(direct['group']) != link:
+            raise ValueError('urban.wout_exit_law.%s: the direct row %s does not land on it' % (link, direct))
+        dests = ('free',) + tuple(ramp_of[name] for name in ('R_D_E', 'R_D_W'))
+        to_dest = {'free': 'free', **{name: ramp_of[name] for name in ramp_of}}
+        shares, lengths = {}, {}
+        for c in v['classes']:
+            sh = {'free': float(v['shares'][c]['free'])}
+            for name, ramp in ramp_of.items():
+                sh[ramp] = float(v['shares'][c][name])
+            if abs(sum(sh.values()) - 1.0) > 1e-12 or any(x < 0.0 for x in sh.values()):
+                raise ValueError('urban.wout_exit_law.%s: shares of class %s must be >= 0 and sum to 1' % (link, c))
+            shares[c] = sh
+            lengths[c] = {to_dest[name]: (None if x is None else float(x)) for name, x in v['l_km'][c].items()}
+            if set(lengths[c]) != set(dests):
+                raise ValueError('urban.wout_exit_law.%s: lengths of class %s must name %s' % (link, c, dests))
+        spec = {'link': link, 'law': row['law'], 'variant': v['variant'], 'dests': dests,
+                'classes': tuple(v['classes']), 'i0_class': v['i0_class'], 'direct_class': v['direct_class'],
+                's': shares, 'l_km': lengths,
+                'direct': (None if direct is None else
+                           {'off': str(direct['off']), 'group': str(direct['group']),
+                            'l_residence_km': float(direct['l_residence_km'])}),
+                'evidence_sha256': digest}
+        if spec['i0_class'] not in spec['classes'] or (spec['direct_class'] is not None
+                                                        and spec['direct_class'] not in spec['classes']):
+            raise ValueError('urban.wout_exit_law.%s: i0 / direct class not among the classes' % link)
+        out[link] = spec
+        meta[link] = {'variant': v['variant'], 'law': row['law'], 'evidence_sha256': digest, 'dests': list(dests),
+                      'shares': shares, 'l_km': lengths, 'direct': spec['direct']}
+    net.wout_exit_law = out
+    return {'k8b_p4': meta}
+
+
 def install_sc1002w_saturation(cfg, tuning):
     """K8b-1 P-1 (K8_PREDECLARATION_AMENDMENT_16 r2 section 2.1, key urban.sc1002w_saturation): right after the
     measured movement capacity, the three SC1002 W internal movements take the U4 F2 saturation of their head groups
@@ -272,6 +339,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     detector_mapping, physical_ramp_metadata = physical_ramp_branches.configure(
         cfg, tuning, mapping, detector_mapping, state_json)
     metadata.update(physical_ramp_metadata)
+    metadata.update(install_wout_exit_law(cfg, tuning))     # K8b-2 P-4' / P-4b (urban.wout_exit_law); {} absent
     if lane_context is None:
         metadata.update(offramp_routing.configure_inventory(cfg, tuning, state_json, mapping))
     state = a.traffic_state_from_vissim(

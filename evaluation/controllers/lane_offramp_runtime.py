@@ -100,7 +100,10 @@ class LaneOfframpRuntime:
                     emit_transfer(state,cfg,'storage:'+key,'storage:'+target,n,
                         source_inside=self.membership[str(row['connector'])],
                         target_inside=self.membership[str(row['to_link'])])
-                    due=step+uqm._link_delay_steps(state,cfg,target)
+                    # K8b-2 P-4b (urban.wout_exit_law): the direct-class W_out residence replaces the link delay.
+                    from evaluation.controllers.urban_flow_accounting import wout_direct_delay
+                    delay=wout_direct_delay(state,cfg,step,off,row,target,n)
+                    due=step+(uqm._link_delay_steps(state,cfg,target) if delay is None else delay)
                     if getattr(cfg.network,'known_legsplit_routes',None):
                         known_legsplit_receive(state,cfg,n,due,off_ramp=row['group'])
                     if target in routing:uqm._schedule(state.urban_arrival_buffer,target,due,n)
