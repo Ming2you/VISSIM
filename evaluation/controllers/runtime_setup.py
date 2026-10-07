@@ -14,6 +14,65 @@ from evaluation.controllers import observation_projection
 from evaluation.controllers.freeway_fd import install_freeway_fd_runtime, configure_state_response, configure_literature_vsl
 
 
+def load_k8b_evidence(pin, schema, key):
+    """K8b config key value {"evidence": <repository-relative path>, "evidence_sha256": <sha256 of its bytes>} ->
+    (document, sha256).  Another shape, a path outside the repository, a sha mismatch or another schema is a
+    configuration error (ValueError; K8_PREDECLARATION_AMENDMENT_16 r2 sections 2.0-3 / 2.0-6)."""
+    import hashlib
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    if not isinstance(pin, dict) or set(pin) != {'evidence', 'evidence_sha256'}:
+        raise ValueError(key + ' must be {"evidence": path, "evidence_sha256": sha256}')
+    if not isinstance(pin['evidence'], str) or not pin['evidence'] or Path(pin['evidence']).is_absolute():
+        raise ValueError(key + '.evidence must be a repository-relative path')
+    digest = pin['evidence_sha256']
+    if not isinstance(digest, str) or len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest):
+        raise ValueError(key + '.evidence_sha256 must be 64 lowercase hex digits')
+    path = (root / pin['evidence']).resolve(strict=True)
+    if not path.is_relative_to(root.resolve()):
+        raise ValueError(key + ' evidence resolves outside the repository')
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != digest:
+        raise ValueError(key + ' evidence sha256 mismatch: ' + str(path))
+    document = json.loads(data.decode('utf-8'))
+    if not isinstance(document, dict) or document.get('schema') != schema:
+        raise ValueError(key + ' evidence schema must be ' + schema)
+    return document, digest
+
+
+def install_sc1002w_saturation(cfg, tuning):
+    """K8b-1 P-1 (K8_PREDECLARATION_AMENDMENT_16 r2 section 2.1, key urban.sc1002w_saturation): right after the
+    measured movement capacity, the three SC1002 W internal movements take the U4 F2 saturation of their head groups
+    (30|p3: 2 lanes, 30|p4: 1 lane, evidence k8b/sc1002w_saturation_v3c3_20261007.json) split by the template beta
+    of this hook: C_E = 2 s_p3 b_E / (b_E + b_S), C_S = 2 s_p3 b_S / (b_E + b_S), C_N = s_p4.  It replaces the online
+    measurement and the 206.53 constant of exactly these keys; every other movement keeps its bytes.  Key absent:
+    {} and nothing is touched."""
+    pin = ((tuning or {}).get('urban') or {}).get('sc1002w_saturation')
+    if pin is None:
+        return {}
+    document, digest = load_k8b_evidence(pin, 'k8b-sc1002w-saturation/v1', 'urban.sc1002w_saturation')
+    values = document['values']
+    net = cfg.network
+    caps = net.movement_capacity_by_movement_veh_h
+    members = values['members']
+    if set(members) != {'E', 'S', 'N'} or any(m not in net.urban_movements for m in members.values()):
+        raise ValueError('urban.sc1002w_saturation members must be the three SC1002 W movements')
+    s3, s4 = float(values['s_p3_veh_h_lane']), float(values['s_p4_veh_h_lane'])
+    lanes3, lanes4 = float(values['lanes_p3']), float(values['lanes_p4'])
+    beta = {d: float(net.urban_movements[m]['beta']) for d, m in members.items()}
+    if not beta['E'] + beta['S'] > 0.0:
+        raise ValueError('urban.sc1002w_saturation: beta_E + beta_S <= 0')
+    before = {members[d]: caps.get(members[d]) for d in members}
+    after = {members['E']: lanes3 * s3 * beta['E'] / (beta['E'] + beta['S']),
+             members['S']: lanes3 * s3 * beta['S'] / (beta['E'] + beta['S']),
+             members['N']: lanes4 * s4}
+    for movement, capacity in after.items():
+        caps[movement] = capacity
+    return {'k8b_p1': {'before': before, 'after': after, 'beta': beta, 's_p3': s3, 's_p4': s4,
+                       'evidence_sha256': digest}}
+
+
 def install_freeway_runtime(adapter, cfg, tuning=None):
     """Restore hooks after their values were configured; also safe in spawn."""
     from src.controllers import wu_faithful_follower
@@ -144,6 +203,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
     metadata.update(a.install_measured_movement_capacity(
         cfg, tuning, state_json, previous_action_path))
+    metadata.update(install_sc1002w_saturation(cfg, tuning))     # K8b-1 P-1 (urban.sc1002w_saturation); {} absent
     metadata.update(a.install_measured_far_reservoir_rates(
         cfg, tuning, state_json, previous_action_path))
     metadata.update(a.install_observed_backpressure_price(

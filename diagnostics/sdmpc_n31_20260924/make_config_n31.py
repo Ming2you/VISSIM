@@ -542,6 +542,37 @@ def apply_stopline_approach(doc, evidence_rel, storage, root=ROOT):
     return out
 
 
+# K8b (K8_PREDECLARATION_AMENDMENT_16 r2 section 2.0-1, AMENDMENT_17, D-K8b-1..4): config keys only, each pinning its
+# evidence file by the sha256 of its bytes.  apply_k8b adds them to an SA arm document (key-only arms; the K8b arm files
+# are written by K8b-4).  Parts: p1 urban.sc1002w_saturation.
+K8B_EVIDENCE = {'p1': N31D + '/k8b/sc1002w_saturation_v3c3_20261007.json'}
+K8B_PARTS = ('p1',)
+
+
+def k8b_pin(rel, root=ROOT):
+    root = Path(root)
+    path = (root / rel).resolve(strict=True)
+    if not path.is_relative_to(root.resolve()):
+        raise ValueError('K8b evidence must lie in the tree: ' + str(path))
+    return {'evidence': path.relative_to(root.resolve()).as_posix(),
+            'evidence_sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+
+
+def apply_k8b(doc, root=ROOT, parts=K8B_PARTS):
+    """Pure on doc: an SA arm document plus the K8b keys of `parts` (each once)."""
+    unknown = [p for p in parts if p not in K8B_PARTS]
+    if unknown:
+        raise ValueError('K8b parts not in this tree: %s' % unknown)
+    if 'stopline_approach' not in doc.get('urban', {}):
+        raise ValueError('K8b keys go on an SA arm (urban.stopline_approach present)')
+    out = copy.deepcopy(doc)
+    if 'p1' in parts:
+        if 'sc1002w_saturation' in out['urban']:
+            raise ValueError('urban.sc1002w_saturation already present')
+        out['urban']['sc1002w_saturation'] = k8b_pin(K8B_EVIDENCE['p1'], root)
+    return out
+
+
 def stopline_out(storage):
     return HERE / ('config_n31_v2_stopline_%s.json' % storage)
 
