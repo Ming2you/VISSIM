@@ -386,8 +386,12 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         if (tuning or {}).get('urban', {}).get('stopline_approach') is not None:
             # K8-6 SA hook #3: lane FIFO index over the projected stocks, before the area ledger seeds.
             from evaluation.controllers import stopline_approach
+            # K8b-3 P-2 (urban.stopline_approach.city_arrival): gate beta / d_g before, initial W timing after; {} absent
+            metadata.update(stopline_approach.city_arrival_prepare(state, cfg, state_json))
             metadata.update(stopline_approach.initialize(state, cfg, state_json, detector_mapping,
                                                          stopline_approach.seed_split_of(state), tuning=tuning))
+            metadata.update(stopline_approach.city_arrival_initialize(state, cfg, state_json,
+                                                                      stopline_approach.seed_split_of(state)))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))

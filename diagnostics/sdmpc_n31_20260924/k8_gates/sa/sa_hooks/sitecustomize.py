@@ -75,7 +75,8 @@ if _CHAIN:
 W_MEMBERS = tuple(os.environ.get('K8_SA_W_MEMBERS', 'SC1001_W_to_E_SC1002,SC1001_W_to_S_SC1003,'
                                                     'SC1001_W_to_N_SC2002').split(','))
 FOLD_SITES = {'_fold_service_residual': ('residual', 'carry', True), '_fold_city_share': ('amount', 'carry', True),
-              '_merge_tiny_transfer': ('tiny', 'kept', True), '_skip_tiny_port_share': ('amount', None, False)}
+              '_merge_tiny_transfer': ('tiny', 'kept', True), '_skip_tiny_port_share': ('amount', None, False),
+              '_skip_tiny_city_moving_share': ('amount', None, False)}   # K8b-3 P-2 site 5 (amendment 16 2.0-9)
 CAP_TOKENS = ('cap_flow_of[', 'movement_capacity_by_movement_veh_h')
 KEY_NAMES = ('m', 'movement', '_m', 'member', 'reference', 'mv', 'key', 'name')
 

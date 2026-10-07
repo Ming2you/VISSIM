@@ -292,7 +292,9 @@ class KeyAbsentStructureTests(unittest.TestCase):
         src = (ROOT / UFA_REL).read_text(encoding='utf-8')
         self.assertEqual(src.count("getattr(net, 'stopline_approach', None)"), 1)
         self.assertNotIn('import stopline_approach\n', src.split('def urban_substep_accounted')[0])
-        self.assertEqual(src.count('_sa.'), 6)   # #6 split, #7 enqueue, #8 intended, #9 resolve, #10 depart, #10b end
+        # #6 split, #7 enqueue, #8 intended, #9 resolve, #10 depart, #10b end; K8b-3 P-2: #7b city gate step (behind
+        # the SA view and its city_arrival key)
+        self.assertEqual(src.count('_sa.'), 7)
 
     def test_lor_hooks_are_behind_the_row_field(self):
         tree = ast.parse((ROOT / LOR_REL).read_text(encoding='utf-8'))

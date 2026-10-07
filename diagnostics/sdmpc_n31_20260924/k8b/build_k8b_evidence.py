@@ -2,7 +2,7 @@
 corrected by AMENDMENT_17; user decisions K8B_USER_DECISIONS_20261007 D-K8b-1..4).  Diagnostics only; the runtime
 reads the committed JSON (sha-pinned by the tuning key), never this script.
 
-    python -B diagnostics/sdmpc_n31_20260924/k8b/build_k8b_evidence.py p1|p4 [--check]
+    python -B diagnostics/sdmpc_n31_20260924/k8b/build_k8b_evidence.py p1|p4|p2 [--check]
 
 p1  sc1002w_saturation_v3c3_20261007.json  (P-1, section 2.1): SC1002 W head groups 30|p3 / 30|p4, U4 value rule F2
     s_from_green_start_incl_startup_veh_h_lane measured by the byte copies of the U4 measurers in u4/
@@ -27,6 +27,14 @@ p4  wout_exit_v3c3_20261007.json  (P-4' + P-4b, sections 2.3 / 2.4 as corrected 
     as read in MINI_V2 section 2.3), R_D_E none (share 0).  Direct residence length l_dir = 0.735 km - x_land with
     x_land = link 31 hand-over (connector 10774 from_pos) + the 10483 landing on 124 (to_pos), both rounded to 1 mm
     (.inpx of s31: 412.317 + 201.150 = 613.467 m -> 121.533 m), l_residence_km = round(l_dir / 1000, 6).
+p2  city_arrival_v3c3_20261007.json  (P-2, section 2.2; the probe values as probed, D-K8b-2 Q4): per 900 s window
+    k = 1..9 of the five fit seeds pooled, from the x2 ext parquets (k8_gates_out_v2/opt1v2/data/e_s<seed>_ext.parquet,
+    sha pinned): vehicles whose first link-32 frame lies in window k (n_in), of those the ones seen later on 127
+    (n_W, W bound), their first downstream link after the last 127 frame (10118/30 -> E, 10368/39 -> S, 10695/38 ->
+    N); beta_W = n_W / n_in, beta_m = beta_W x n_dest / n_known (probe make_values.beta_windows, unchanged); geometry =
+    the s31 v3c3 NC .inpx link lengths (U4 Network), D_g = L32 + L10778 + L129 + L10777 (this order), stop line
+    621.6 m, speed floor 20 km/h, stopped class 1 km/h, initial links 32 / 10778 / 129; seeds 41 + 53 sensitivity
+    reported only.
 --check re-derives and compares the committed file's `values` field bit for bit (canonical JSON); any difference
 prints K8B_EVIDENCE_STOP and exits 1 (section 2.0-3: the judging stage does not start)."""
 import ctypes
@@ -270,8 +278,100 @@ def derive_p4():
     return doc
 
 
+# ------------------------------------------------------------------------------------------------ P-2
+P2_OUT = HERE / 'city_arrival_v3c3_20261007.json'
+P2_DATA = Path(r'D:/VISSIM-merge/k8_gates_out_v2/opt1v2/data')
+P2_FIT = (31, 41, 43, 47, 53)
+P2_SENS = (41, 53)
+P2_DEST = {10118: 'E', 30: 'E', 10368: 'S', 39: 'S', 10695: 'N', 38: 'N'}
+P2_MEMBER = {'E': 'SC1001_W_to_E_SC1002', 'S': 'SC1001_W_to_S_SC1003', 'N': 'SC1001_W_to_N_SC2002'}
+P2_PARQUET_SHA256 = {                                  # = PROBE_VALUES.json P2.inputs (x2 ext extracts, read only)
+    31: '8614fe04c46450468aa620af97880eaa2425d106d72754a31f9818d779d185f2',
+    41: '82c7719948970a6adc026719412e6dbf738f67129da731e4733f375142fbba59',
+    43: '325883a7a4f6b02646670544cfe96e44029b299cf9d5f65abcd9647ed3afb139',
+    47: '545b38176e8900af234dc394fc4ba63f77deea64fe52744ddae80a5342a33316',
+    53: '4ba567b9fecebb2422e221170adf9753c58e39a4ac0e8e69831ad0b1b3052989'}
+
+
+def p2_beta_windows(seeds):
+    """The probe make_values.beta_windows (unchanged)."""
+    import math
+    import numpy as np
+    import pandas as pd
+    n_in = np.zeros(10)
+    n_w = np.zeros(10)
+    comp = {d: np.zeros(10) for d in 'ESN'}
+    for s in seeds:
+        df = pd.read_parquet(P2_DATA / f'e_s{s}_ext.parquet', columns=['SIMSEC', 'NO', 'LINK'])
+        first32 = df[df.LINK == 32].groupby('NO').SIMSEC.min()
+        on127 = df[df.LINK == 127].groupby('NO').SIMSEC.max()
+        down = df[df.LINK.isin(list(P2_DEST))]
+        nxt = {}
+        for no, grp in down.sort_values('SIMSEC').groupby('NO'):
+            last127 = on127.get(no)
+            if last127 is None:
+                continue
+            g = grp[grp.SIMSEC > last127 - 1e-6]
+            if len(g):
+                nxt[no] = P2_DEST[int(g.iloc[0].LINK)]
+        for no, t_in in first32.items():
+            k = int(math.floor((float(t_in) - 0.1) / 900.0))
+            if k < 1 or k > 9:
+                continue
+            n_in[k] += 1
+            if no in on127.index and float(on127[no]) > float(t_in):
+                n_w[k] += 1
+                d = nxt.get(no)
+                if d is not None:
+                    comp[d][k] += 1
+    out = {}
+    for k in range(1, 10):
+        known = sum(comp[d][k] for d in 'ESN')
+        bw = n_w[k] / n_in[k] if n_in[k] else None
+        out[str(k)] = {'window_s': [900 * k, 900 * k + 900], 'n_in': int(n_in[k]), 'n_W': int(n_w[k]),
+                       'n_W_known_dest': int(known), 'n_dest': {d: int(comp[d][k]) for d in 'ESN'},
+                       'beta_W': (float(bw) if bw is not None else None),
+                       'beta_m': ({P2_MEMBER[d]: float(bw * comp[d][k] / known) for d in 'ESN'} if bw and known
+                                  else None)}
+    return out
+
+
+def derive_p2():
+    sys.path.insert(0, str(HERE / 'u4'))
+    import urban_b2_evidence as E
+    inputs = {f'e_s{s}_ext.parquet': sha(P2_DATA / f'e_s{s}_ext.parquet') for s in P2_FIT}
+    for s in P2_FIT:
+        if inputs[f'e_s{s}_ext.parquet'] != P2_PARQUET_SHA256[s]:
+            raise SystemExit(f'p2: e_s{s}_ext.parquet is not the pinned x2 extract')
+    inpx = '%s/s31_v3c3nc/prepared/network/baseline_s31_v3c3nc.inpx' % NC_ROOT
+    net = E.Network(inpx)
+    L = {k: net.links[k]['length'] for k in ('32', '10778', '129', '10777', '127')}
+    D_g = L['32'] + L['10778'] + L['129'] + L['10777']
+    pooled = p2_beta_windows(P2_FIT)
+    sens = p2_beta_windows(P2_SENS)
+    flags = {}
+    for k in pooled:
+        a, b = pooled[k]['beta_W'], sens[k]['beta_W']
+        flags[k] = bool(a is not None and b is not None and a > 0 and abs(b - a) / a > 0.15)
+    for k, row in pooled.items():
+        if row['beta_m'] is None:
+            raise SystemExit(f'p2: window {k} has no W vehicle with a known destination')
+    values = {'beta_hat': {k: {'beta_W': row['beta_W'], 'beta_m': row['beta_m']} for k, row in pooled.items()},
+              'geometry_m': L, 'D_g_m': D_g, 'stopline_m': 621.6, 'speed_floor_kph': 20.0, 'stopped_class_kph': 1.0,
+              'initial_links': ['32', '10778', '129'],
+              'window_rule': 'w(T) = min(9, max(1, floor(T / 900))); beta_hat of the window fixed within a decision'}
+    return {'schema': 'k8b-city-arrival/v1', 'values': values,
+            'derivation': {'builder': N31 + '/k8b/build_k8b_evidence.py p2',
+                           'rule': 'probe make_values.beta_windows (tools/make_values.py c8a3d04b) unchanged',
+                           'inputs': inputs, 'inpx': {'path': inpx, 'sha256': sha(inpx)},
+                           'pooled_fit5': pooled, 'sens_s41_s53': sens, 'sens_flag_gt15pct': flags,
+                           'probe_values_reference_sha256':
+                               '30df13e8d61c2cb259020ba9a9cb89f90c0138ed01361130ba020f8e14efe8eb'},
+            'declaration': dict(DECLARATION, section='2.2 (D-K8b-2 Q4: probe values, five seeds)')}
+
+
 # ------------------------------------------------------------------------------------------------ main
-PARTS = {'p1': (derive_p1, P1_OUT), 'p4': (derive_p4, P4_OUT)}
+PARTS = {'p1': (derive_p1, P1_OUT), 'p4': (derive_p4, P4_OUT), 'p2': (derive_p2, P2_OUT)}
 
 
 def main():

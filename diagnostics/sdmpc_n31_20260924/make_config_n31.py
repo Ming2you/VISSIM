@@ -544,10 +544,12 @@ def apply_stopline_approach(doc, evidence_rel, storage, root=ROOT):
 
 # K8b (K8_PREDECLARATION_AMENDMENT_16 r2 section 2.0-1, AMENDMENT_17, D-K8b-1..4): config keys only, each pinning its
 # evidence file by the sha256 of its bytes.  apply_k8b adds them to an SA arm document (key-only arms; the K8b arm files
-# are written by K8b-4).  Parts: p1 urban.sc1002w_saturation, p4 urban.wout_exit_law (variant A, D-K8b-4).
+# are written by K8b-4).  Parts: p1 urban.sc1002w_saturation, p4 urban.wout_exit_law (variant A, D-K8b-4), p2
+# urban.stopline_approach.city_arrival (inside the SA section).
 K8B_EVIDENCE = {'p1': N31D + '/k8b/sc1002w_saturation_v3c3_20261007.json',
-                'p4': N31D + '/k8b/wout_exit_v3c3_20261007.json'}
-K8B_PARTS = ('p1', 'p4')
+                'p4': N31D + '/k8b/wout_exit_v3c3_20261007.json',
+                'p2': N31D + '/k8b/city_arrival_v3c3_20261007.json'}
+K8B_PARTS = ('p1', 'p4', 'p2')
 K8B_WOUT_LINK = 'SC1001_W_out'
 K8B_WOUT_LAW = 'per_destination_class_v1'
 K8B_WOUT_VARIANT = 'A'
@@ -579,6 +581,10 @@ def apply_k8b(doc, root=ROOT, parts=K8B_PARTS):
             raise ValueError('urban.wout_exit_law already present')
         out['urban']['wout_exit_law'] = {K8B_WOUT_LINK: dict({'law': K8B_WOUT_LAW, 'variant': K8B_WOUT_VARIANT},
                                                              **k8b_pin(K8B_EVIDENCE['p4'], root))}
+    if 'p2' in parts:
+        if 'city_arrival' in out['urban']['stopline_approach']:
+            raise ValueError('urban.stopline_approach.city_arrival already present')
+        out['urban']['stopline_approach']['city_arrival'] = k8b_pin(K8B_EVIDENCE['p2'], root)
     return out
 
 

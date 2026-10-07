@@ -41,7 +41,7 @@ CAP_TOKENS = ('cap_flow_of[', 'movement_capacity_by_movement_veh_h')   # = sa_ho
 CAPFLOW_PATCH = 'urban_queue_model._movement_capacity_flow'            # sa_hooks install entry (suffix)
 DIAGNOSTIC_FUNCS = ('urban_queue_model:movement_balance_summary', 'urban_flow_accounting:movement_balance_summary')
 RULE3_SITES = ('_fold_service_residual', '_fold_city_share', '_merge_tiny_transfer')
-REPORT_SITES = ('_skip_tiny_port_share',)
+REPORT_SITES = ('_skip_tiny_port_share', '_skip_tiny_city_moving_share')   # K8b-3 adds site 5 (report form)
 
 
 def _parts(chain):

@@ -423,7 +423,12 @@ def urban_substep_accounted(
     # 넘은 차량은 in링크를 통과해야 정지선에 닿으므로 _inflow_delay_steps 만큼 지연한다(W6).
     # 주입 substep 에 바로 큐에 넣던 것이 순간이동이었다.
     inflow_delay = _uqm._inflow_delay_steps(cfg)
+    city = getattr(net, 'stopline_city_arrival', None) if sa is not None else None   # K8b-3 P-2; None = absent
     for origin in net.boundary_in_links:
+        if city is not None and origin == sa['receiver']:
+            urban_demand_arrivals_veh += _sa.city_gate_step(state, cfg, demand, step_idx, routing, inflow_delay,
+                                                            origin, emit_transfer, emit_input)
+            continue
         landed = _uqm._pop_buffer(state.urban_inflow_transit_buffer, f"gate:{origin}", step_idx)
         if landed > 0.0:
             for movement, beta in routing.get(origin, []):

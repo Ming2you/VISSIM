@@ -20,7 +20,23 @@ AD rules (amendment section 5.9, N19)
 - The four fold sites are named functions (hook anchors that survive rebases):
   _fold_service_residual, _fold_city_share, _merge_tiny_transfer,
   _skip_tiny_port_share.  Their *_events counters count site visits (K8
-  amendment 14, user decision D-K8-8).
+  amendment 14, user decision D-K8-8).  K8b-3 adds a fifth, report-only site
+  _skip_tiny_city_moving_share (P-2, amendment 16 r2 section 2.0-9).
+
+K8b-3 P-2 (K8_PREDECLARATION_AMENDMENT_16 r2 section 2.2, user decision
+D-K8b-1/2; key urban.stopline_approach.city_arrival, evidence
+k8b/city_arrival_v3c3_20261007.json): in_SC1001_W city arrival kinematics.
+city_arrival_prepare (RS hook #3, before initialize) sets the gate W member
+beta to the 900 s window beta_hat of w(T) = min(9, max(1, floor(T/900))) and
+rescales the non-W targets by (1 - bW_hat) / (1 - bW_tpl); d_g = max(1,
+ceil(D_g / max(u_32, 20 km/h))).  city_arrival_initialize (after initialize)
+moves the W share of the remaining in_SC1001_W seeds of 32 / 10778 / 129 (129
+net of the SA port tail) from their +15/+105 s reservations to per-vehicle
+127 entries.  city_gate_step (UFA gate loop): the W share of the gate
+arrival lands on 127 after d_g as moving packets (SA _due over 621.6 m), the
+non-W share after the inflow delay on the non-W targets.  split_arrival: the
+untagged arrivals are the non-W share of the initial seeds.  Key absent:
+nothing here runs and nothing is created.
 
 Key absent: nothing here runs and no attribute is created (configure and
 initialize return {} before touching cfg or state).
@@ -232,6 +248,19 @@ def _merge_tiny_transfer(st, kept, tiny):
     return kept + tiny
 
 
+def _skip_tiny_city_moving_share(st, lane, member, amount):
+    """K8b-3 site 5 (amendment 16 r2 section 2.0-9): no packet for a primal <= 1e-12 P-2 city moving share.
+
+    Its mass and tangent stay in the paired in_SC1001_W reservation and arrive
+    untagged (the non-W targets of split_arrival): redistributed, never
+    discarded.  Report form of site 4 (sa_hooks FOLD_SITES ('amount', None, False)).
+    """
+    counters = st['city_arrival']['counters']
+    counters['tiny_city_moving_share_events'] = counters['tiny_city_moving_share_events'] + 1.0
+    if _p(amount) != 0.0:
+        counters['p2_tiny_untagged_veh'] = counters['p2_tiny_untagged_veh'] + abs(_p(amount))
+
+
 def _skip_tiny_port_share(st, lane, member, amount):
     """N-A4 site 4: no packet for a primal <= 1e-12 moving port share.
 
@@ -256,11 +285,19 @@ def _finite_positive(value, name):
     return float(value)
 
 
+CITY_ARRIVAL_SCHEMA = 'k8b-city-arrival/v1'
+CITY_MEMBER_DEST = {'E': 'SC1001_W_to_E_SC1002', 'S': 'SC1001_W_to_S_SC1003', 'N': 'SC1001_W_to_N_SC2002'}
+CITY_COUNTER_KEYS = ('p2_room_fallback_veh', 'p2_room_fallback_events', 'p2_landed_gate_veh', 'p2_landed_init_veh',
+                     'p2_moving_over_room_veh', 'p2_due_sum_s', 'p2_tiny_untagged_veh',
+                     'tiny_city_moving_share_events', 'p2_gate_w_scheduled_veh')
+
+
 def check_section(section):
-    """Tuning key `urban.stopline_approach`: eight required fields, no defaults."""
+    """Tuning key `urban.stopline_approach`: eight required fields, no defaults; K8b-3: the optional ninth field
+    city_arrival = {evidence, evidence_sha256} (P-2)."""
     _require(isinstance(section, dict), 'urban.stopline_approach must be an object')
-    _require(set(section) == set(TUNING_FIELDS),
-             'urban.stopline_approach fields must be exactly ' + ', '.join(TUNING_FIELDS))
+    _require(set(section) - {'city_arrival'} == set(TUNING_FIELDS),
+             'urban.stopline_approach fields must be exactly ' + ', '.join(TUNING_FIELDS) + ' (+ city_arrival)')
     for key, allowed in TUNING_VALUES.items():
         _require(section[key] in allowed, f'urban.stopline_approach.{key} must be one of {allowed}')
     _require(section['approaches'] == [APPROACH], 'urban.stopline_approach.approaches must be ["SC1001_EB"]')
@@ -430,6 +467,25 @@ def _check_members(cfg, spec):
     spec['receiver_of'] = receivers
 
 
+def city_arrival_view(document, digest, members):
+    """The static P-2 values of the evidence (K8b-3): window beta_hat of the three W members, geometry, floors."""
+    values = document['values']
+    beta = {}
+    for w in range(1, 10):
+        row = values['beta_hat'][str(w)]['beta_m']
+        _require(set(row) == set(members), f'city_arrival window {w} must name the three W members')
+        beta[w] = {m: float(row[m]) for m in members}
+        bw = math.fsum(beta[w].values())
+        _require(all(math.isfinite(x) and x >= 0.0 for x in beta[w].values()) and 0.0 < bw < 1.0,
+                 f'city_arrival window {w}: beta_hat must be >= 0 with 0 < sum < 1')
+    geometry = {str(k): float(v) for k, v in values['geometry_m'].items()}
+    _require({'32', '10778', '129', '10777'} <= set(geometry), 'city_arrival geometry needs 32 / 10778 / 129 / 10777')
+    return {'evidence_sha256': digest, 'beta_hat': beta, 'geometry_m': geometry, 'D_g_m': float(values['D_g_m']),
+            'stopline_m': float(values['stopline_m']), 'speed_floor_kph': float(values['speed_floor_kph']),
+            'stopped_class_kph': float(values['stopped_class_kph']),
+            'initial_links': tuple(str(x) for x in values['initial_links'])}
+
+
 def configure(cfg, tuning, state_json):
     """RS hook #2 (after LSS/HSR): install cfg.network.stopline_approach, or {} when absent."""
     section = ((tuning or {}).get('urban') or {}).get('stopline_approach')
@@ -443,10 +499,21 @@ def configure(cfg, tuning, state_json):
     _require(view(cfg) is None, 'stopline approach is configured once per decision')
     document, digest = load_evidence(section['evidence'])
     spec = build_view(cfg, section, document, digest)
+    metadata = {}
+    if 'city_arrival' in section:                       # K8b-3 P-2 (urban.stopline_approach.city_arrival)
+        from evaluation.controllers.runtime_setup import load_k8b_evidence
+        try:
+            city_doc, city_digest = load_k8b_evidence(section['city_arrival'], CITY_ARRIVAL_SCHEMA,
+                                                      'urban.stopline_approach.city_arrival')
+        except ValueError as exc:
+            raise StoplineConfigError(str(exc)) from exc
+        spec['city_arrival'] = city_arrival_view(city_doc, city_digest, spec['members'])
+        metadata['stopline_city_arrival_evidence_sha256'] = city_digest
     cfg.network.stopline_approach = spec
-    return {'stopline_approach_schema': SCHEMA, 'stopline_approach_storage_arm': spec['storage_arm'],
-            'stopline_approach_evidence_sha256': digest,
-            'stopline_approach_storage_veh': {str(l): spec['lanes'][l]['S'] for l in LANES}}
+    metadata.update({'stopline_approach_schema': SCHEMA, 'stopline_approach_storage_arm': spec['storage_arm'],
+                     'stopline_approach_evidence_sha256': digest,
+                     'stopline_approach_storage_veh': {str(l): spec['lanes'][l]['S'] for l in LANES}})
+    return metadata
 
 
 # ----------------------------------------------------------- install check
@@ -1033,6 +1100,164 @@ def initialize(state, cfg, state_json, detector_mapping, seed_split, *, tuning=N
     return metadata
 
 
+# ------------------------------------------------------ K8b-3 P-2 (capture)
+
+def _records_by_link(state_json):
+    from evaluation.controllers.projection_support import complete_records
+    out = defaultdict(list)
+    for rec in complete_records(state_json):
+        out[str(rec['link_no'])].append(rec)
+    return out
+
+
+def city_window(T):
+    """w(T) = min(9, max(1, floor(T / 900))) (amendment 16 r2 section 2.2)."""
+    return min(9, max(1, int(T) // 900))
+
+
+def city_arrival_prepare(state, cfg, state_json):
+    """RS hook #3, before initialize (section 2.2 step 1-2): the in_SC1001_W W member beta := beta_hat(w(T)), the
+    non-W targets (origin in_SC1001_W, not off_ramp) x (1 - bW_hat) / (1 - bW_tpl), the UQM spec cache cleared;
+    d_g = max(1, ceil(D_g / max(u_32, 20 km/h))) with u_32 = mean speed of the link 32 records (0 without one).
+    Sets cfg.network.stopline_city_arrival; {} when the SA key or its city_arrival is absent."""
+    spec = view(cfg)
+    if spec is None or 'city_arrival' not in spec:
+        return {}
+    v = spec['city_arrival']
+    net = cfg.network
+    T = int(round(float(state.time_sec)))
+    window = city_window(T)
+    hat = dict(v['beta_hat'][window])
+    bw_hat = math.fsum(hat.values())
+    receiver = spec['receiver']
+    targets = [m for m, s in net.urban_movements.items()
+               if str(s.get('kind', '')) != 'off_ramp' and str(s.get('origin', '')) == receiver]
+    _require(set(spec['members']) <= set(targets), 'city_arrival: a W member is not a gate target')
+    tpl = {m: float(net.urban_movements[m].get('beta', 0.0)) for m in targets}
+    bw_tpl = math.fsum(tpl[m] for m in spec['members'])
+    _require(0.0 < bw_tpl < 1.0, f'city_arrival: template W share {bw_tpl} outside (0, 1)')
+    scale = (1.0 - bw_hat) / (1.0 - bw_tpl)
+    for m in targets:
+        net.urban_movements[m]['beta'] = hat[m] if m in spec['members'] else tpl[m] * scale
+    del _uqm._SPECS_CACHE[:]
+    by_link = _records_by_link(state_json)
+    sp = [float(r['speed_kph']) for r in by_link.get('32', [])]
+    u32 = (sum(sp) / len(sp)) if sp else 0.0
+    vg = max(u32, v['speed_floor_kph']) / 3.6
+    d_g = max(1, int(math.ceil(v['D_g_m'] / vg)))
+    net.stopline_city_arrival = {'T': T, 'window': window, 'beta_hat': hat, 'beta_W_hat': bw_hat, 'beta_tpl': tpl,
+                                 'beta_W_tpl': bw_tpl, 'nonW_scale': scale, 'u32_kph': u32, 'd_g': d_g,
+                                 'D_g_m': v['D_g_m'], 'stopline_m': v['stopline_m'], 'targets': targets,
+                                 'evidence_sha256': v['evidence_sha256']}
+    return {'k8b_p2': {'T': T, 'window': window, 'beta_W_hat': bw_hat, 'beta_W_tpl': bw_tpl, 'nonW_scale': scale,
+                       'u32_kph': u32, 'd_g': d_g, 'evidence_sha256': v['evidence_sha256']}}
+
+
+def _take_city_seed(buffer, key, due, amount, report):
+    table = buffer.setdefault(key, {})
+    value = table.get(due, 0.0) - amount
+    if value < -MASS_TOL:
+        raise StoplineInvariantError(f'city_arrival seed removal overdraws {key}@{due}: {value}')
+    if value < 0.0:
+        report['seed_residual_veh'] += -value
+        value = 0.0
+    table[due] = value
+
+
+def city_arrival_initialize(state, cfg, state_json, seed_split):
+    """RS hook #3, after initialize (section 2.2 step 4): the W share bW_hat of the in_SC1001_W seeds that remain
+    on 32 / 10778 / 129 (129 net of the SA port tail) leaves its +15 / +105 s reservation and waits (in
+    storage:in_SC1001_W, no reservation) for its 127 entry at T + max(1, ceil(D_v / max(u_v, u_L, 20 km/h))) per
+    vehicle (stopped class < 1 km/h gets the stopped seed; a class without vehicles uses every vehicle of the
+    link).  Pending sum = removed sum (+-1e-9).  {} when the city key is absent."""
+    spec = view(cfg)
+    city = getattr(cfg.network, 'stopline_city_arrival', None)
+    if spec is None or city is None:
+        return {}
+    from evaluation.controllers.vehicle_routes import complete_vehicle_routes
+    v = spec['city_arrival']
+    st = state.stopline_approach_state
+    receiver = spec['receiver']
+    t0 = _uqm._urban_step_index(state, cfg)
+    L = v['geometry_m']
+    floor = v['speed_floor_kph']
+    stop_kph = v['stopped_class_kph']
+    routes = complete_vehicle_routes(state_json, required=True)
+    by_link = _records_by_link(state_json)
+    hat, bw = city['beta_hat'], city['beta_W_hat']
+    pending = defaultdict(lambda: defaultdict(float))
+    report = defaultdict(float)
+    links = {}
+    removed = defaultdict(float)
+
+    def dist(link, pos):
+        if link == '32':
+            return (L['32'] - pos) + L['10778'] + L['129'] + L['10777']
+        if link == '10778':
+            return (L['10778'] - pos) + L['129'] + L['10777']
+        if link == '129':
+            return (L['129'] - pos) + L['10777']
+        raise StoplineConfigError('city_arrival initial link ' + str(link))
+    for link in v['initial_links']:
+        row = _seed_row(seed_split, link, receiver)
+        if row is None:
+            continue
+        m_l, s_l, due_m, due_s = row
+        vehs = list(by_link.get(link, []))
+        allv = list(vehs)
+        if link == spec['tail_link']:
+            tail = [r for r in vehs if float(r['position_m']) >= spec['tail129_from_m']
+                    and _route_key(routes.get(r['veh_no'])) in spec['port_progress_route']]
+            if tail:
+                n_tail = float(len(tail))
+                sub_m = n_tail * m_l / (m_l + s_l)
+                m_l, s_l = m_l - sub_m, s_l - (n_tail - sub_m)
+                tail_ids = {r['veh_no'] for r in tail}
+                vehs = [r for r in vehs if r['veh_no'] not in tail_ids]
+        sp = [float(r['speed_kph']) for r in allv]
+        ubar = (sum(sp) / len(sp)) if sp else 0.0
+        info = {'moving_seed': m_l, 'stopped_seed': s_l, 'n_veh': len(vehs), 'u_bar_kph': ubar, 'classes': {}}
+        for cls, mass, due in (('moving', m_l, due_m), ('stopped', s_l, due_s)):
+            if mass <= 1e-12:
+                continue
+            grp = [r for r in vehs if (float(r['speed_kph']) < stop_kph) == (cls == 'stopped')]
+            fallback = False
+            if not grp:
+                grp, fallback = vehs, True
+            if not grp:
+                report['unplaced_seed_veh'] += mass
+                info['classes'][cls] = {'mass': mass, 'n': 0, 'unplaced': True}
+                continue
+            per = mass / len(grp)
+            wmass = mass * bw
+            _take_city_seed(state.urban_arrival_buffer, receiver, due, wmass, report)
+            _take_city_seed(state.urban_storage_release_buffer, receiver, due, wmass, report)
+            removed[due] += wmass
+            tas = []
+            for r in grp:
+                d_v = dist(link, float(r['position_m']))
+                vv = max(float(r['speed_kph']), ubar, floor) / 3.6
+                ta = t0 + max(1, int(math.ceil(d_v / vv)))
+                tas.append(ta - t0)
+                for m, b in hat.items():
+                    pending[ta][m] += per * b
+            info['classes'][cls] = {'mass': mass, 'n': len(grp), 'fallback_all_vehicles': fallback,
+                                    'w_mass': wmass, 'entry_s_min': min(tas), 'entry_s_max': max(tas),
+                                    'entry_s_mean': sum(tas) / len(tas), 'due_removed': due}
+        links[link] = info
+    total_pending = math.fsum(x for row in pending.values() for x in row.values())
+    total_removed = math.fsum(removed.values())
+    if abs(total_pending - total_removed) > MASS_TOL:
+        raise StoplineInvariantError(f'city_arrival pending {total_pending} != removed {total_removed}')
+    st['city_arrival'] = {'pending': {int(t): dict(row) for t, row in sorted(pending.items())}, 'gate_w': {},
+                          'counters': {k: 0.0 for k in CITY_COUNTER_KEYS}}
+    _check_index(state, cfg, spec, st, t0)
+    return {'k8b_p2_init': {'links': links, 'w_pending_veh': total_pending,
+                            'removed_by_due': {str(k): x for k, x in removed.items()},
+                            'seed_residual_veh': report['seed_residual_veh'],
+                            'unplaced_seed_veh': report['unplaced_seed_veh']}}
+
+
 # --------------------------------------------------------------- dynamics
 
 def _context(state, cfg, step):
@@ -1097,6 +1322,12 @@ def split_arrival(state, cfg, step, arrived, targets):
         untagged = arrived
     values = {}
     members = set(spec['members'])
+    city = getattr(cfg.network, 'stopline_city_arrival', None)
+    if city is not None:            # K8b-3 P-2 (section 2.2 step 6): untagged = non-W share of the initial seeds
+        bw = city['beta_W_hat']
+        for movement, beta in targets:
+            values[movement] = 0.0 if movement in members else beta / (1.0 - bw) * untagged
+        targets = ()
     for movement, beta in targets:
         share = beta * untagged
         values[movement] = share
@@ -1107,6 +1338,109 @@ def split_arrival(state, cfg, step, arrived, targets):
             raise StoplineInvariantError('Tagged stopline member is not routed from in_SC1001_W')
         values[member] = values[member] + amount
     return list(values.items())
+
+
+def _land_city(state, cfg, step, by_member, routing, source, from_transit):
+    """K8b-3 P-2 (section 2.2 step 5): 127 entry of city W mass as moving packets of the SA lane shares, due =
+    _due(t, 621.6 m, sigma_l, lane stock, v); city_over_room as _admit (admission unconditional); gate mass beyond
+    the in_SC1001_W room is admitted the former way (ready at once) and counted p2_room_fallback_veh."""
+    from evaluation.controllers.lane_urban_runtime import observe_ready
+    spec, st, _plan = _context(state, cfg, step)
+    receiver = spec['receiver']
+    cnt = st['city_arrival']['counters']
+    dist = float(cfg.network.stopline_city_arrival['stopline_m'])
+    total = sum(by_member.values())
+    frac = 1.0
+    if from_transit:
+        room = max(0.0, state.urban_link_storage[receiver])
+        if _p(total) > _p(room):
+            frac = room / total if _p(total) > 0.0 else 0.0
+    for member, amount in by_member.items():
+        fit = amount * frac
+        rest = amount - fit
+        if from_transit and _p(fit) > 0.0:
+            state.urban_link_storage[receiver] = state.urban_link_storage[receiver] - fit
+            emit_transfer(state, cfg, 'transit:gate:' + receiver, 'storage:' + receiver, fit,
+                          route_key='arrival:' + member)
+        if from_transit and _p(rest) > 0.0:
+            state.urban_movement_queue[member] += rest
+            observe_ready(state, cfg, member, rest)
+            emit_transfer(state, cfg, 'transit:gate:' + receiver, 'movement:' + member, rest,
+                          route_key='arrival:' + member)
+            _admit(st, spec, step, member, rest, 'city')
+            cnt['p2_room_fallback_veh'] += abs(_p(rest))
+            cnt['p2_room_fallback_events'] += 1.0
+        cnt['p2_landed_' + ('gate' if from_transit else 'init') + '_veh'] += abs(_p(fit))
+        for lane, share in _lane_shares(spec, spec['dest_of'][member], fit):
+            row = spec['lanes'][lane]
+            due = _due(step, dist, row['sigma'], _p(st['stock'][lane]), st['speed_kmh'])
+            if receiver in routing:
+                _uqm._schedule(state.urban_arrival_buffer, receiver, due, share)
+            _uqm._schedule(state.urban_storage_release_buffer, receiver, due, share)
+            if _p(share) > TINY:
+                before = _p(st['stock'][lane])
+                _insert(st, lane, due, source, member, share)
+                st['stock'][lane] = st['stock'][lane] + share
+                tags = st['tags'].setdefault(due, {})
+                key = (lane, member, source)
+                tags[key] = tags.get(key, 0.0) + share
+                cap = row['S']
+                over = max(0.0, _p(st['stock'][lane]) - cap) - max(0.0, before - cap)
+                if over > 0.0:
+                    st['city_over'][lane] += over
+                    _count(st, 'city_over_room_veh', over)
+                    cnt['p2_moving_over_room_veh'] += over
+                cnt['p2_due_sum_s'] += float(due - step) * abs(_p(share))
+            else:
+                _skip_tiny_city_moving_share(st, lane, member, share)
+
+
+def city_gate_step(state, cfg, demand, step_idx, routing, inflow_delay, origin, emit_transfer, emit_input):
+    """UFA gate loop of in_SC1001_W under P-2 (section 2.2 step 3): the transit landing of this step splits into the
+    W share scheduled d_g earlier (city 127 entry, _land_city) and the rest (non-W targets, beta / (1 - bW_hat));
+    the pending initial W mass of this step enters 127; the new gate arrival a = demand x T_u is booked (emit_input)
+    and scheduled: (1 - bW_hat) a after the inflow delay, bW_hat a after d_g.  Returns the gate arrival."""
+    from evaluation.controllers.lane_urban_runtime import observe_ready
+    net = cfg.network
+    city = net.stopline_city_arrival
+    spec = net.stopline_approach
+    st = state.stopline_approach_state
+    k = st['city_arrival']
+    members = set(spec['members'])
+    bw = city['beta_W_hat']
+    landed = _uqm._pop_buffer(state.urban_inflow_transit_buffer, f"gate:{origin}", step_idx)
+    lw = k['gate_w'].pop(step_idx, 0.0)
+    if _p(lw) > _p(landed) + MASS_TOL:
+        raise StoplineInvariantError(f'city_arrival gate W landing {_p(lw)} exceeds the transit landing {_p(landed)}')
+    lw = min(lw, landed)
+    lnw = landed - lw
+    targets = routing.get(origin, [])
+    if _p(lnw) > 0.0:
+        for movement, beta in targets:
+            if movement in members:
+                continue
+            amount = beta / (1.0 - bw) * lnw
+            state.urban_movement_queue[movement] += amount
+            observe_ready(state, cfg, movement, amount)
+            emit_transfer(state, cfg, 'transit:gate:' + origin, 'movement:' + movement, amount,
+                          route_key='arrival:' + movement)
+    if _p(lw) > 0.0:
+        _land_city(state, cfg, step_idx, {m: lw * city['beta_hat'][m] / bw for m in spec['members']}, routing, 'city',
+                   True)
+    pend = k['pending'].pop(step_idx, None)
+    if pend:
+        _land_city(state, cfg, step_idx, pend, routing, 'init:city', False)
+    arrival = demand.urban_boundary.get(origin, 0.0) * cfg.simulation.T_u_h
+    if arrival <= 0.0 or not targets:
+        return 0.0
+    emit_input(state, cfg, 'transit:gate:' + origin, arrival, route_key='input:gate:' + origin)
+    _uqm._schedule(state.urban_inflow_transit_buffer, f"gate:{origin}", step_idx + inflow_delay, arrival * (1.0 - bw))
+    w = arrival * bw
+    due = step_idx + int(city['d_g'])
+    _uqm._schedule(state.urban_inflow_transit_buffer, f"gate:{origin}", due, w)
+    k['gate_w'][due] = k['gate_w'].get(due, 0.0) + w
+    k['counters']['p2_gate_w_scheduled_veh'] += abs(_p(w))
+    return arrival
 
 
 def enqueue_city(state, cfg, movement, amount, step):
