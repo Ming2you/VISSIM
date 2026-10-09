@@ -1340,6 +1340,18 @@ def split_arrival(state, cfg, step, arrived, targets):
     return list(values.items())
 
 
+def _schedule_city_share(buffer, key, due, share):
+    """K8b-5 (AMENDMENT_18 section 2.3.4 F-2, site A-2): the P-2 lane-share reservation of _land_city.  The due key
+    exists whatever the sign of the share (the room of in_SC1001_W is a structural 0 when full: the scalar witness
+    has share 0.0, the tangent run may have O(1e-16)); a positive share adds float(share) exactly as uqm._schedule
+    (same predicate), otherwise nothing is added (exact +0.0 omitted)."""
+    row = buffer.setdefault(key, {})
+    if share <= 0.0:
+        row.setdefault(due, 0.0)
+        return
+    row[due] = row.get(due, 0.0) + float(share)
+
+
 def _land_city(state, cfg, step, by_member, routing, source, from_transit):
     """K8b-3 P-2 (section 2.2 step 5): 127 entry of city W mass as moving packets of the SA lane shares, due =
     _due(t, 621.6 m, sigma_l, lane stock, v); city_over_room as _admit (admission unconditional); gate mass beyond
@@ -1375,8 +1387,8 @@ def _land_city(state, cfg, step, by_member, routing, source, from_transit):
             row = spec['lanes'][lane]
             due = _due(step, dist, row['sigma'], _p(st['stock'][lane]), st['speed_kmh'])
             if receiver in routing:
-                _uqm._schedule(state.urban_arrival_buffer, receiver, due, share)
-            _uqm._schedule(state.urban_storage_release_buffer, receiver, due, share)
+                _schedule_city_share(state.urban_arrival_buffer, receiver, due, share)
+            _schedule_city_share(state.urban_storage_release_buffer, receiver, due, share)
             if _p(share) > TINY:
                 before = _p(st['stock'][lane])
                 _insert(st, lane, due, source, member, share)

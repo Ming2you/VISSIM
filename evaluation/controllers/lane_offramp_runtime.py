@@ -86,6 +86,11 @@ class LaneOfframpRuntime:
                     evidence={off+':'+str(movement):n}
                     ledger.record_resource_allocation('physical_offramp_target_room',off+':'+target,room,evidence)
                     ledger.record_resource_allocation('physical_offramp_target_service',off+':'+str(movement),service,evidence)
+                if movement is None and getattr(n,'_validation_primal',n)<=0:
+                    # K8b-5 (AMENDMENT_18 F-2, A-1): the P-4b direct pending key exists whatever n is (the touch
+                    # checks the declared direct row; the primal test is the decision of the next line, unrecorded).
+                    from evaluation.controllers.urban_flow_accounting import wout_direct_touch
+                    wout_direct_touch(state,cfg,step,off,row,target)
                 if n<=0:continue
                 state.urban_link_storage[key]+=n
                 state.urban_link_storage[target]=_debit_stock(state.urban_link_storage[target],n)

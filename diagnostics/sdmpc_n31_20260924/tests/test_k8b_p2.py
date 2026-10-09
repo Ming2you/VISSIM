@@ -5,7 +5,11 @@ stopline_toy.py / test_stopline_approach.init_case, no capture, rollout, adapter
   - the gate mass beyond the in_SC1001_W room is admitted the former way and counted (p2_room_fallback_veh);
   - the window clamp w(T) at T = 1, 899, 900, 8999, 9000;
   - the named fold site 5 counts its visits; split_arrival sends the untagged mass to the non-W targets only;
-  - key absent: configure / prepare / initialize create nothing.
+  - key absent: configure / prepare / initialize create nothing;
+  - K8b-5 (K8_PREDECLARATION_AMENDMENT_18 sections 2.3.2 A-2 / 2.3.4 F-2 / 3.3 U5-2): _land_city with the in_SC1001_W
+    room at its structural 0 (scalar 0.0, tangent +2**-51) creates the same reservation keys and the same visit
+    counters, and the full-room case (frac = 1, rest = 0.0 in both runs) agrees as well (fresh tangent-instrumented
+    subprocess k8b5_parity_probe.py, forward and reverse-v1).
 
     PYTHONHASHSEED=0 python -B -m pytest -p no:cacheprovider diagnostics/sdmpc_n31_20260924/tests/test_k8b_p2.py -v
 """
@@ -197,6 +201,36 @@ class P2Tests(unittest.TestCase):
         from evaluation.controllers.runtime_setup import load_k8b_evidence
         with self.assertRaises(ValueError):
             load_k8b_evidence({'evidence': EVIDENCE, 'evidence_sha256': '0' * 64}, SA.CITY_ARRIVAL_SCHEMA, 'x')
+
+
+class CityLandingParityTests(unittest.TestCase):
+    """AMENDMENT_18 A-2: the K8b-3 lane-share reservation of _land_city decides its due keys on the step alone."""
+
+    def check(self, backend, scenario):
+        from test_k8b_p4 import probe
+        out = probe(backend, scenario)
+        self.assertEqual(out['arrival_keys'][0], out['arrival_keys'][1])
+        self.assertEqual(out['release_keys'][0], out['release_keys'][1])
+        self.assertTrue(out['events_equal'], out)
+        self.assertTrue(out['parity'], out)
+        return out
+
+    def test_structural_zero_room_forward(self):
+        out = self.check('forward', 'land_city')
+        self.assertTrue(out['arrival_keys'][0])                   # the zero-share keys exist in the scalar run
+        self.assertEqual(out['counters_scalar']['p2_landed_gate_veh'], 0.0)
+        self.assertGreater(out['counters_scalar']['p2_room_fallback_veh'], 0.0)
+
+    def test_structural_zero_room_reverse_v1(self):
+        self.check('reverse-v1', 'land_city')
+
+    def test_full_room_forward(self):
+        out = self.check('forward', 'land_city_full_room')
+        self.assertEqual(out['counters_scalar']['p2_room_fallback_veh'], 0.0)
+        self.assertEqual(out['counters_tangent']['p2_room_fallback_veh'], 0.0)
+
+    def test_full_room_reverse_v1(self):
+        self.check('reverse-v1', 'land_city_full_room')
 
 
 if __name__ == '__main__':

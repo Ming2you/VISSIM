@@ -1006,8 +1006,14 @@ _adapter = None
 #                                               inside its residence (due > step)
 #   state.wout_exit_counters[link]              fixed keys WOUT_COUNTER_KEYS + assigned|c|d / exited|c|d
 # Key absent: legsplit_substep_accounted and the LOR direct row take their former code path; nothing here runs.
-WOUT_COUNTER_KEYS = ('update_steps', 'i0_events', 'i0_veh', 'shrink_events', 'shrink_veh', 'shrink_tiny_events',
-                     'direct_release_events', 'direct_release_veh', 'direct_matured_events', 'direct_matured_veh')
+# K8b-5 (K8_PREDECLARATION_AMENDMENT_18 sections 2.2 / 2.3.4): structure (keys, visit counters) is decided on integer
+# predicates or on primal bands whose edge lies 1e-9 away from a structural value (0.0 = no new arrival, an empty
+# port), never on the sign of a primal that exact arithmetic puts on that value: near_balance_events counts the
+# visits of |delta| <= 1e-9 (whatever the branch), the direct_*_band_events count primal releases / maturities
+# > 1e-9, and the direct pending key of a step exists whatever its release (wout_direct_touch).  Arithmetic unchanged.
+WOUT_COUNTER_KEYS = ('update_steps', 'i0_events', 'i0_veh', 'shrink_events', 'shrink_veh', 'near_balance_events',
+                     'direct_release_band_events', 'direct_release_veh', 'direct_matured_band_events',
+                     'direct_matured_veh')
 
 
 def _wout_p(x):
@@ -1038,6 +1044,13 @@ def _wout_pending(state, link):
     return table.setdefault(link, {})
 
 
+def _wout_direct_steps(cfg, direct):
+    """The direct-class residence d = max(1, ceil(l_dir / v / T_u)) steps (P-4b)."""
+    spd = float(getattr(cfg.network, 'leg_ramp_split_wout_speed_kmh', 40.0) or 40.0)
+    T_u_h = float(cfg.simulation.T_u_h)
+    return max(1, int(math.ceil(float(direct['l_residence_km']) / spd / T_u_h)))
+
+
 def wout_direct_delay(state, cfg, step, off, row, target, n):
     """LOR direct-row hook (P-4b, AMENDMENT_17 items 1-2): called after the release n of connector `off` entered
     `target`'s storage and before its reservation is scheduled.  None = the former uqm._link_delay_steps (no exit law
@@ -1055,22 +1068,41 @@ def wout_direct_delay(state, cfg, step, off, row, target, n):
                                      % (off, row.get('group'), target))
     if spec['direct_class'] is None:
         return None
-    spd = float(getattr(cfg.network, 'leg_ramp_split_wout_speed_kmh', 40.0) or 40.0)
-    T_u_h = float(cfg.simulation.T_u_h)
-    d = max(1, int(math.ceil(float(direct['l_residence_km']) / spd / T_u_h)))
+    d = _wout_direct_steps(cfg, direct)
     pend = _wout_pending(state, str(target))
     due = int(step) + d
     pend[due] = pend.get(due, 0.0) + n
     cnt = _wout_counters(state, str(target), spec)
-    cnt['direct_release_events'] += 1.0
+    if _wout_p(n) > 1e-9:                          # K8b-5 F-1: band visit (n is 0.0 / O(1e-16) at an empty port)
+        cnt['direct_release_band_events'] += 1.0
     cnt['direct_release_veh'] += abs(_wout_p(n))
+    return d
+
+
+def wout_direct_touch(state, cfg, step, off, row, target):
+    """K8b-5 (AMENDMENT_18 section 2.3.4 F-2, site A-1): the LOR direct row with a release n <= 0 (LOR:89; an empty
+    port or no W_out room gives exactly 0.0 in the scalar witness and may give O(1e-16) in the tangent run) books the
+    same direct pending key step + d and the same counter row as wout_direct_delay, adding nothing (exact +0.0
+    omitted).  No exit law on `target`, a variant without a direct class or a row that is not the declared direct row:
+    nothing (wout_direct_delay decides those cases when n > 0)."""
+    law = getattr(cfg.network, 'wout_exit_law', None)
+    spec = None if law is None else law.get(str(target))
+    if spec is None or spec['direct_class'] is None:
+        return None
+    direct = spec['direct']
+    if str(off) != direct['off'] or str(row.get('group')) != direct['group'] or not row.get('direct'):
+        return None
+    d = _wout_direct_steps(cfg, direct)
+    _wout_pending(state, str(target)).setdefault(int(step) + d, 0.0)
+    _wout_counters(state, str(target), spec)
     return d
 
 
 def _wout_store_update(state, spec, link, arrived, idx):
     """Matured direct mass (due <= idx) -> X[direct][d] += s_direct_d x matured; then section 2.3 steps 1-2:
     A = arrived; delta = A - sum X; delta > 0 -> X[i0 class][d] += s_d delta; delta < 0 -> every X x A / sum X
-    (|delta| > 1e-9 counted as shrink); the first call of a rollout (no store) is I0.  Returns the step context."""
+    (delta < -1e-9 counted as shrink); |delta| <= 1e-9 counted as a near-balance visit whatever the branch (K8b-5,
+    AMENDMENT_18 section 2.2); the first call of a rollout (no store) is I0.  Returns the step context."""
     store = getattr(state, 'wout_class_store', None)
     if store is None:
         store = {}
@@ -1097,7 +1129,8 @@ def _wout_store_update(state, spec, link, arrived, idx):
                 add = spec['s'][c_dir][d] * matured
                 X[c_dir][d] = X[c_dir][d] + add
                 cnt[f'assigned|{c_dir}|{d}'] += _wout_p(add)
-            cnt['direct_matured_events'] += 1.0
+            if _wout_p(matured) > 1e-9:                # K8b-5 F-1: band visit (touched keys mature with 0.0)
+                cnt['direct_matured_band_events'] += 1.0
             cnt['direct_matured_veh'] += abs(_wout_p(matured))
         buf = (getattr(state, 'urban_storage_release_buffer', None) or {}).get(link) or {}
         for k, x in pend.items():
@@ -1121,8 +1154,8 @@ def _wout_store_update(state, spec, link, arrived, idx):
         if pd < -1e-9:
             cnt['shrink_veh'] += abs(pd)
             cnt['shrink_events'] += 1.0
-        else:
-            cnt['shrink_tiny_events'] += 1.0
+    if -1e-9 <= pd <= 1e-9:                        # K8b-5: the sign-free near-balance band (raw float, no branch record)
+        cnt['near_balance_events'] += 1.0
     for c in classes:
         for d in dests:
             if _wout_p(X[c][d]) < -1e-12:

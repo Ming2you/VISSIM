@@ -5,6 +5,13 @@ _wout_store_update -> _wout_requests -> body (signal arrivals with a +33 s reser
 wout_direct_delay) -> acceptance -> _wout_store_accept -> storage adjust -> _wout_store_check -- with the installed
 spec of the committed evidence (runtime_setup.install_wout_exit_law).
 
+K8b-5 (K8_PREDECLARATION_AMENDMENT_18 sections 2.2, 2.3 and 3.3 U5): WoutCounterParityTests -- the five declared
+cases of the W_out near-balance band counter (scalar delta 0.0, Dual delta -2**-51 = the idx 3019 pair of
+TL3_2700_SAF_A1_H3_ADREF_ad_full, Dual +2**-51, a real shrink -2e-9 as float and as Dual); DirectRowParityTests --
+the LOR direct row at its structural zero room (A-1, a fresh tangent-instrumented subprocess k8b5_parity_probe.py,
+forward and reverse-v1).  Counter dicts "equal" means: the same keys, the visit counters (*_events, update_steps)
+exactly equal, the vehicle-valued counters within the state tolerance 1e-9 (tangent_worker.state_error).
+
     PYTHONHASHSEED=0 python -B -m pytest -p no:cacheprovider diagnostics/sdmpc_n31_20260924/tests/test_k8b_p4.py -v
 """
 from __future__ import annotations
@@ -12,6 +19,8 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
+import subprocess
 import sys
 import types
 import unittest
@@ -215,6 +224,143 @@ class P4Tests(unittest.TestCase):
         doc = {'urban': {'stopline_approach': {'storage': 'observed_full'}}}
         out = mc.apply_k8b(doc, ROOT, parts=('p4',))
         self.assertEqual(out['urban']['wout_exit_law'], law_key())
+
+
+# ---------------------------------------------------------------- K8b-5 (AMENDMENT_18)
+A3019 = 2.1030714198204103          # idx 3019 of TL3_2700_SAF_A1_H3_ADREF_ad_full: arrived = scalar sum X (POST_DIAG 3.1)
+TOT3019 = 2.103071419820411         # the tangent run's sum X there (one ulp larger)
+PROBE = HERE / 'k8b5_parity_probe.py'
+NUMBA_DEPS = Path(os.environ.get('K8G_DEPS', r'C:\Users\TRLAB\Documents\ChatGPT\VISSIM\.review-deps'))
+
+
+def _p(x):
+    return getattr(x, '_validation_primal', x)
+
+
+def dual(v):
+    from evaluation.controllers import sdmpc_dual as ad
+    return ad.Dual(v, {0: 1.0}, ad.Trace([1.0]))
+
+
+def band_case(arrived, tot_store):
+    """I0 call, then sum X = tot_store in the i0 class / free store, then one update with `arrived` (dc_unit_demo)."""
+    cfg, state, _ = make()
+    spec = cfg.network.wout_exit_law[LINK]
+    UFA._wout_store_update(state, spec, LINK, 1.0, 0)
+    X = state.wout_class_store[LINK]
+    for c in spec['classes']:
+        for d in spec['dests']:
+            X[c][d] = 0.0
+    X[spec['i0_class']]['free'] = tot_store
+    x0 = {c: dict(row) for c, row in X.items()}
+    before = dict(state.wout_exit_counters[LINK])
+    UFA._wout_store_update(state, spec, LINK, arrived, 1)
+    after = state.wout_exit_counters[LINK]
+    return state, spec, x0, {k: _p(after[k]) - _p(before.get(k, 0.0)) for k in after}
+
+
+def declared_x(spec, x0, arrived, tot):
+    """Section 2.2-4: delta = A - sum X; delta > 0 adds s_d delta to the i0 class, delta < 0 scales by A / sum X."""
+    delta = arrived - tot
+    pd = _p(delta)
+    out = {c: dict(row) for c, row in x0.items()}
+    if pd > 0.0:
+        c0 = spec['i0_class']
+        for d in spec['dests']:
+            out[c0][d] = x0[c0][d] + spec['s'][c0][d] * delta
+    elif pd < 0.0:
+        ratio = arrived / tot
+        for c in spec['classes']:
+            for d in spec['dests']:
+                out[c][d] = x0[c][d] * ratio
+    return out
+
+
+def counters_equal(test, a, b):
+    test.assertEqual(set(a), set(b))
+    for k in a:
+        if k.endswith('_events') or k == 'update_steps':
+            test.assertEqual(_p(a[k]), _p(b[k]), k)
+        else:
+            test.assertLessEqual(abs(_p(a[k]) - _p(b[k])), 1e-9, k)
+
+
+def state_error(a, b):
+    from evaluation.controllers.sdmpc_tangent_worker import state_error as err
+    return err(a, b, 'state')
+
+
+class WoutCounterParityTests(unittest.TestCase):
+    """AMENDMENT_18 section 3.3 U5-1 (POST_DIAG section 3.3-1 cases)."""
+    CASES = (('scalar_delta_0', lambda: A3019, A3019, 1.0, 0.0, 0.0),
+             ('dual_delta_minus_ulp', lambda: dual(A3019), TOT3019, 1.0, 0.0, 0.0),
+             ('dual_delta_plus_ulp', lambda: dual(TOT3019), A3019, 1.0, 0.0, 0.0),
+             ('float_shrink_2e-9', lambda: A3019 - 2e-9, A3019, 0.0, 1.0, abs((A3019 - 2e-9) - A3019)),
+             ('dual_shrink_2e-9', lambda: dual(A3019 - 2e-9), A3019, 0.0, 1.0, abs((A3019 - 2e-9) - A3019)))
+
+    def test_declared_counts_and_store_arithmetic(self):
+        self.assertEqual(TOT3019 - A3019, 2.0 ** -51)
+        for name, arr, tot, near, shrink_n, shrink_v in self.CASES:
+            with self.subTest(case=name):
+                arrived = arr()
+                state, spec, x0, dc = band_case(arrived, tot)
+                self.assertEqual(dc['near_balance_events'], near)
+                self.assertEqual(dc['shrink_events'], shrink_n)
+                self.assertEqual(dc['shrink_veh'], shrink_v)
+                self.assertNotIn('shrink_tiny_events', dc)
+                if shrink_n:
+                    self.assertAlmostEqual(shrink_v, 2e-9, delta=1e-15)
+                want = declared_x(spec, x0, arrived, tot)
+                X = state.wout_class_store[LINK]
+                for c in spec['classes']:
+                    for d in spec['dests']:
+                        self.assertEqual(_p(X[c][d]), _p(want[c][d]), f'{c}|{d}')
+
+    def test_scalar_and_dual_ulp_runs_agree(self):
+        s_state, _spec, _x0, _dc = band_case(A3019, A3019)
+        for arr, tot in ((dual(A3019), TOT3019), (dual(TOT3019), A3019)):
+            with self.subTest(tot=tot):
+                t_state, _s, _x, _d = band_case(arr, tot)
+                counters_equal(self, s_state.wout_exit_counters[LINK], t_state.wout_exit_counters[LINK])
+                self.assertLessEqual(state_error(s_state, t_state), 1e-9)
+
+
+def probe(backend, scenario, root=None):
+    env = dict(os.environ, PYTHONHASHSEED='0', NUMBA_NUM_THREADS='1', OMP_NUM_THREADS='1')
+    if backend == 'reverse-v1':
+        env['PYTHONPATH'] = os.pathsep.join([str(NUMBA_DEPS / 'sdmpc'), str(NUMBA_DEPS / 'sdmpc-numba'),
+                                             env.get('PYTHONPATH', '')])
+    args = [sys.executable, '-B', str(PROBE), backend, scenario] + ([str(root)] if root else [])
+    done = subprocess.run(args, cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=900)
+    if done.returncode != 0:
+        raise AssertionError(done.stdout[-4000:] + done.stderr[-4000:])
+    return json.loads(done.stdout.strip().splitlines()[-1])
+
+
+class DirectRowParityTests(unittest.TestCase):
+    """AMENDMENT_18 section 2.3.2 A-1 / 2.3.4 F-1 + F-2: the direct-row pending key and the band counters agree when
+    the scalar witness has n = 0.0 (W_out room exactly 0) and the tangent run n = O(2**-51)."""
+
+    def check(self, backend):
+        out = probe(backend, 'direct_row')
+        self.assertEqual(out['n_scalar'], 0.0)
+        self.assertGreater(out['n_tangent'], 0.0)
+        self.assertLessEqual(out['n_tangent'], 1e-9)
+        self.assertEqual(out['pend_keys_after_drain'][0], out['pend_keys_after_drain'][1])
+        self.assertTrue(out['events_equal'], out)
+        self.assertTrue(out['parity'], out)
+        for name in ('direct_release_band_events', 'direct_matured_band_events', 'near_balance_events'):
+            self.assertIn(name, out['counters_scalar'])
+        for name in ('direct_release_events', 'direct_matured_events', 'shrink_tiny_events'):
+            self.assertNotIn(name, out['counters_scalar'])
+        exc = out['full_state_report_only']['exception'] or ''
+        self.assertNotIn('wout_', exc)            # a whole-state difference, if any, lies outside the K8b containers
+
+    def test_forward(self):
+        self.check('forward')
+
+    def test_reverse_v1(self):
+        self.check('reverse-v1')
 
 
 if __name__ == '__main__':
