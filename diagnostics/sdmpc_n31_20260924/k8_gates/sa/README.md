@@ -173,7 +173,7 @@ SC1001 EB 안 1 v2(차로 FIFO 패킷, 모듈 SA)의 관문 G-EB-0…14와 FH �
 | VISSIM 쪽 | `sa_fzp_frames.py`가 같은 FZP 읽기에서 `fzp/w_s<S>.parquet`(P-4b 추출 규칙), `sa_vissim_ref.py`가 `seeds[S].k8b`(첫 등장, onW, W_out 목적지 블록별 — 규칙 `k8b/wout_episodes.py`, s31 장기 127 정지·onW·도시 127 진입) | §3.3·§6 R2–R4·§7.3 (i-c)(i-d) |
 | 벽시계 짝 | `sa_jobs.run_job`이 잡마다 `vissim_counts.json`(워커 직전·직후 VISSIM 수, 읽기만), `sa_wallpairs.py status|rerun`(깨끗하지 않은 짝은 VISSIM 0대일 때 `jobs/<tree>_wall/`에 BASE → SAF 재실행, 10분 간격 확인, 깨끗하지 않은 재실행은 `.stale_<k>`), `sa_gates.g11`이 같은 선택 규칙(첫 실행이 깨끗하면 그것, 아니면 첫 깨끗한 재실행; 재실행 ≠ 첫 실행이면 FAIL; 63짝 미완이면 INCOMPLETE) | §5.3.1 r2 |
 | 보고 도구 | `k8b_report.py --tree <tree>` → `gates/k8b_report_<tree>.{json,md}`, STOP이면 `gates/k8b_q7_diagnosis.json` | §6 R1–R8, §3.3 2단계, §7.3 |
-| 커밋 관문 도구 | `k8b_commit_gates.py extract|prep|anchor|g1|g2|g3|g4|unit|chain` → `D:/VISSIM-merge/k8b_commit_gates/<커밋>/gate_*.json`, 기준 `anchor_k84v3/` | §4.1 G1–G4 |
+| 커밋 관문 도구 | `k8b_commit_gates.py extract|prep|anchor|g1|g2|g3|g4|g5|g6|unit|chain` → `D:/VISSIM-merge/k8b_commit_gates/<커밋>/gate_*.json`, 기준 `anchor_k84v3/` | §4.1 G1–G4; 보충 18 §2.4·§3.3(K8b-5a): g4 p1은 선언 규칙대로 숫자 잎만 판정(capture.json 숫자 차 0; 튜닝 파일 해시 `/tuning/sha256`·트리·경로 문자열과 한쪽 잎은 목록만, D-K8b-6), g5 = 두 코드 루트(기준·새 트리)의 탐침 표본 26상태 키 켬 OBS 비트 동일(이름 바뀐 계수기 쌍만 한쪽 잎 허용, `<커밋>/g5/<라벨>/`), g6 = 탐침 8상태 ADREF + s31 3300 ADM2ALL ad_full 상태 패리티(`--report-only` = 기준 트리 대조군 R-ctl, `<커밋>/g6/<라벨>/`) |
 | 키 있는 단위 시험의 판정 상태 거부 | `tests/k8b_test_guard.py` (`refuse_judging`, `keyed_capture`) | §0.2 r2 |
 
 - 시험: `tests/test_k8b_harness.py`(합성 입력).
