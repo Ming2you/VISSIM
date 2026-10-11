@@ -472,6 +472,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
             from evaluation.controllers import vsl_command_distribution
             vsl_command_distribution.check_family_files(tuning,lane_context['paths']['reference_config'],
                                                         lane_context['paths']['runner_config'])
+        from evaluation.controllers import offramp_split_forecast   # K9-1 F17b (freeway.offramp_split_forecast)
+        metadata.update(offramp_split_forecast.install(cfg, tuning, state_json, lane_observation))
         metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping,
                                                       previous_action_path=previous_action_path))
         if (tuning or {}).get('urban', {}).get('stopline_approach') is not None:

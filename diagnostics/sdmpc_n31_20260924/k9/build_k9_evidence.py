@@ -2,7 +2,7 @@
 / 2.3, sha 4ccfd8fd...; user decisions K9_1_USER_DECISIONS_20261010 D-K9-1..3).  Diagnostics only; the runtime reads the
 committed JSON (sha-pinned by the tuning key), never this script.
 
-    python -B diagnostics/sdmpc_n31_20260924/k9/build_k9_evidence.py w1|w2a [--cache DIR] [--check]
+    python -B diagnostics/sdmpc_n31_20260924/k9/build_k9_evidence.py w1|w2a|f17b [--check]
 
 w1   sc1001wout_saturation_v3c3_<date>.json (W1, section 2.1): the SC1001 -> W_RAMP signal movements E / N / S take
      C_m = s_g(m) x sum_{l in L(m)} b_m / sum_{m' in M(l)} b_m' (b = the decision's template beta at the hook).
@@ -26,7 +26,11 @@ w2a  wout_side_handoff_v3c3_<date>.json (W2-A, section 2.2): side class (10703 l
      x_side = the 10703 landing position on 31 (toLinkEndPt pos, s31 v3c3 NC .inpx, rounded to 1 mm; must be
      350.718 +- 0.001 m else STOP); l_side_d = l_d(PAR boundary_out_ramp_position_m) - x_side, rounded to 1e-6 km
      (free = the R_D_W station, the P-4 rule).  Path 78 -> 10703 -> 31, lanes = the 10703 lane count.
-f17b the F17b forecast part is added by the commit K9-1-3 (amendment 19 r2 section 4.1).
+f17b offramp_split_forecast_v3c3_<date>.json (F17b, section 2.3): the FW_W exit share forecast candidate
+     selected by the P0-3 seed-crossing rule, recomputed here from the s41 / s53 v3c3 NC fit FZP (VISSIM side
+     only) by k9/f17b_select.py (the rule of the K9-1 probe tool p0_3_f17b_select.py, moved unchanged); its
+     result fields must equal the recorded P0-3 output inputs/f17b_selection_<date>.json (sha cb430b39...; else
+     STOP); values = its runtime values (the candidate id, exits, windows; for C3 the pooled s41 + s53 prior).
 --check re-derives and compares the committed file's `values` field bit for bit (canonical JSON); any difference
 prints K9_EVIDENCE_STOP and exits 1 (section 2.0-3).
 Committed evidence = the P0 file bytes of the K9-1 mini probe (K91_VALUES.json, sha 713d232e...; amendment 19 r2
@@ -382,8 +386,42 @@ def derive_w2a(cache_dir=None):
     return doc
 
 
+# ------------------------------------------------------------------------------------------------ F17b
+F17B_OUT = HERE / f'offramp_split_forecast_v3c3_{DATE}.json'
+F17B_SELECTION = HERE / 'inputs' / f'f17b_selection_{DATE}.json'
+
+
+F17B_SELECTION_SHA256 = 'cb430b390c8a1018054016621537e6f45b4b67c13d261a00ec9c3999eca856fd'
+
+
+def derive_f17b():
+    """The F17b evidence: the P0-3 selection recomputed from the s41 / s53 FZP by k9/f17b_select.py (VISSIM side
+    only), its result fields checked against the recorded P0-3 output inputs/f17b_selection_<date>.json, and its
+    runtime values."""
+    sys.path.insert(0, str(HERE))
+    import f17b_select as F
+    if sha(F17B_SELECTION) != F17B_SELECTION_SHA256:
+        raise SystemExit('inputs/f17b_selection_%s.json is not the recorded P0-3 output' % DATE)
+    rec = json.loads(F17B_SELECTION.read_text(encoding='utf-8'))
+    t0 = time.time()
+    sel = F.select(log=lambda *a: print(*a, round(time.time() - t0, 1), flush=True))
+    got, want = F.result_of(sel), F.result_of(rec)
+    if canon(got) != canon(want):
+        bad = sorted(k for k in want if canon(got.get(k)) != canon(want.get(k)))
+        print('K9_EVIDENCE_STOP f17b: the recomputed selection differs from the P0-3 record in', bad)
+        raise SystemExit(1)
+    v = sel['runtime_values']
+    doc = {'schema': 'k9-offramp-split-forecast/v1', 'values': v,
+           'derivation': {'builder': N31 + '/k9/build_k9_evidence.py f17b', 'rule': N31 + '/k9/f17b_select.py',
+                          'selection': {'path': N31 + f'/k9/inputs/f17b_selection_{DATE}.json',
+                                        'sha256': sha(F17B_SELECTION)},
+                          'selected': sel.get('selected'), 'L': sel.get('L')},
+           'declaration': dict(DECLARATION, section='2.3')}
+    return doc
+
+
 # ------------------------------------------------------------------------------------------------ main
-PARTS = {'w1': (derive_w1, W1_OUT), 'w2a': (derive_w2a, W2A_OUT)}
+PARTS = {'w1': (derive_w1, W1_OUT), 'w2a': (derive_w2a, W2A_OUT), 'f17b': (derive_f17b, F17B_OUT)}
 
 
 def main():

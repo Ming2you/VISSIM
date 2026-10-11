@@ -1,0 +1,35 @@
+{
+ "schema": "k9-offramp-split-forecast/v1",
+ "values": {
+  "candidate": "C4",
+  "exits": [
+   "10479",
+   "10491",
+   "10638",
+   "10645"
+  ],
+  "window_sec": 150,
+  "decision_interval_sec": 150,
+  "definition": "all windows ending in (0, T]"
+ },
+ "derivation": {
+  "builder": "diagnostics/sdmpc_n31_20260924/k9/build_k9_evidence.py f17b",
+  "selection": {
+   "path": "diagnostics/sdmpc_n31_20260924/k9/inputs/f17b_selection_20261009.json",
+   "sha256": "cb430b390c8a1018054016621537e6f45b4b67c13d261a00ec9c3999eca856fd"
+  },
+  "selected": "C4",
+  "L": {
+   "C0": 0.02982116645040635,
+   "C1": 0.019027587866490975,
+   "C2": 0.01592917652518505,
+   "C4": 0.0136232469894488,
+   "C3": 0.01837826695732811
+  }
+ },
+ "declaration": {
+  "amendment19_sha256": "4ccfd8fd1efb6f79c59161ab40d4aa9234fa729bc980c89c1c9ad3059cd420d8",
+  "decisions_file": "K9_1_USER_DECISIONS_20261010.md (D-K9-1..3), sha 32c73a47...",
+  "section": "2.3"
+ }
+}

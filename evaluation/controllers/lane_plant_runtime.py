@@ -453,6 +453,10 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
         # filled from its own calibrated cell FD below (canonical_harness:716-717).
         state.freeway_speed[road]=[math.fsum(r[4] for r in rows)/len(rows) if rows else (None if v2 else state.freeway_speed[road][i])
                                     for i,rows in enumerate(bins)]
+    _k9_fc=getattr(cfg.network,'k9_offramp_split_forecast',None)    # K9-1 F17b (freeway.offramp_split_forecast); None absent
+    if _k9_fc is not None:
+        from evaluation.controllers.offramp_split_forecast import apply as _k9_apply
+        _k9_apply(observation,_k9_fc)
     freeway=LaneFreewayRuntime(component,state,cfg,observation,context['parameters'],off_splits=observation['off_split_ratio'])
     binding=_bind_refined(context,observation,cfg,state,freeway) if v2 else None
     if binding is not None:
