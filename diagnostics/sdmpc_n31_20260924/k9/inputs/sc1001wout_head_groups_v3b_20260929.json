@@ -1,0 +1,398 @@
+{
+ "schema": "k9-sc1001wout-head-groups/v1",
+ "source": {
+  "path": "D:/VISSIM-merge/sim3-n31-urban-b2/diagnostics/sdmpc_n31_20260924/urban/shared_head_groups_v3b_20260929.json",
+  "sha256": "164016f99a51160ec0f53054fa1dfd4a5362906a658b28a104308425c17831dc",
+  "schema": "shared-head-discharge-contract/v1"
+ },
+ "rule": "the contract rows of the SC1001 -> W_RAMP head groups 29|p3, 37|p1 and 40|p2, byte-equal JSON values (K8_PREDECLARATION_AMENDMENT_19 r2 section 2.1); the W1 lane map also reads the contract connector rows (members[].connector, non_members_with_flow) from the pinned source",
+ "groups": [
+  {
+   "group_id": "29|p3",
+   "observation_group": true,
+   "native_signal": false,
+   "signal": "SC1001",
+   "phase": "SC1001_p3",
+   "stopline_link": "29",
+   "signal_groups": [
+    "6"
+   ],
+   "heads": [
+    {
+     "head_id": "90030837",
+     "lane": 2,
+     "position_m": 537.119,
+     "sg": "6"
+    },
+    {
+     "head_id": "90030838",
+     "lane": 3,
+     "position_m": 536.922,
+     "sg": "6"
+    }
+   ],
+   "physical_lanes": 2,
+   "link_lanes": 4,
+   "lanes": [
+    {
+     "lane": 2,
+     "head_id": "90030837",
+     "sg": "6",
+     "post_head_connectors": [
+      {
+       "connector": "10119",
+       "to_link": "31",
+       "from_lanes": [
+        2,
+        3
+       ]
+      }
+     ],
+     "pre_head_connectors": [],
+     "flow_members": [
+      "SC1001_E_SC1002_to_W_RAMP"
+     ],
+     "flow_destinations": [
+      "31"
+     ],
+     "shared_flow_destinations": false
+    },
+    {
+     "lane": 3,
+     "head_id": "90030838",
+     "sg": "6",
+     "post_head_connectors": [
+      {
+       "connector": "10119",
+       "to_link": "31",
+       "from_lanes": [
+        2,
+        3
+       ]
+      }
+     ],
+     "pre_head_connectors": [],
+     "flow_members": [
+      "SC1001_E_SC1002_to_W_RAMP"
+     ],
+     "flow_destinations": [
+      "31"
+     ],
+     "shared_flow_destinations": false
+    }
+   ],
+   "members": [
+    {
+     "movement": "SC1001_E_SC1002_to_W_RAMP",
+     "connector": "10119",
+     "lanes": [
+      2,
+      3
+     ],
+     "destination": "31",
+     "controlling_head_rule": [
+      "source_lane_before_diverge"
+     ],
+     "kind": "boundary_out",
+     "origin": "SC1002_to_SC1001",
+     "receiving_link": "SC1001_W_out",
+     "runtime_phase": "SC1001_p3",
+     "beta": 0.256235828,
+     "flow": true,
+     "owner": "regular",
+     "source_key": "movement:SC1001_E_SC1002_to_W_RAMP",
+     "phase_relation": "match",
+     "unsignalized": false,
+     "u3_head_free": false,
+     "ramp": null,
+     "plant_lane_units": 2.0,
+     "capacity_captured_veh_h": 413.061
+    }
+   ],
+   "foreign_phase_members": [],
+   "laminar_lane_sets": [
+    [
+     2,
+     3
+    ]
+   ],
+   "lane_sets_laminar": true,
+   "overcounted_lane_sets": [],
+   "multiplicity": {
+    "member_lanes_flow": 2,
+    "physical_lanes": 2,
+    "ratio": 1.0,
+    "plant_lane_units_flow": 2.0,
+    "plant_ratio": 1.0
+   },
+   "flow_origins": [
+    "SC1002_to_SC1001"
+   ],
+   "flow_kinds": [
+    "boundary_out"
+   ],
+   "owners": [
+    "regular"
+   ],
+   "discharge_owner": "regular",
+   "existing_resources": [],
+   "already_enforced_by": null,
+   "lanes_with_several_heads": {},
+   "enforcement": "not_binding",
+   "enforcement_reason": null,
+   "saturation_ref": "29|p3",
+   "green": {
+    "source": "phase",
+    "phase": "SC1001_p3"
+   }
+  },
+  {
+   "group_id": "37|p1",
+   "observation_group": true,
+   "native_signal": false,
+   "signal": "SC1001",
+   "phase": "SC1001_p1",
+   "stopline_link": "37",
+   "signal_groups": [
+    "4"
+   ],
+   "heads": [
+    {
+     "head_id": "90030840",
+     "lane": 1,
+     "position_m": 534.408,
+     "sg": "4"
+    },
+    {
+     "head_id": "90030841",
+     "lane": 2,
+     "position_m": 534.241,
+     "sg": "4"
+    }
+   ],
+   "physical_lanes": 2,
+   "link_lanes": 3,
+   "lanes": [
+    {
+     "lane": 1,
+     "head_id": "90030840",
+     "sg": "4",
+     "post_head_connectors": [
+      {
+       "connector": "10124",
+       "to_link": "39",
+       "from_lanes": [
+        1,
+        2
+       ]
+      }
+     ],
+     "pre_head_connectors": [
+      "10121"
+     ],
+     "flow_members": [
+      "SC1001_N_SC2002_to_S_SC1003"
+     ],
+     "flow_destinations": [
+      "39"
+     ],
+     "shared_flow_destinations": false
+    },
+    {
+     "lane": 2,
+     "head_id": "90030841",
+     "sg": "4",
+     "post_head_connectors": [
+      {
+       "connector": "10124",
+       "to_link": "39",
+       "from_lanes": [
+        1,
+        2
+       ]
+      }
+     ],
+     "pre_head_connectors": [],
+     "flow_members": [
+      "SC1001_N_SC2002_to_S_SC1003"
+     ],
+     "flow_destinations": [
+      "39"
+     ],
+     "shared_flow_destinations": false
+    }
+   ],
+   "members": [
+    {
+     "movement": "SC1001_N_SC2002_to_S_SC1003",
+     "connector": "10124",
+     "lanes": [
+      1,
+      2
+     ],
+     "destination": "39",
+     "controlling_head_rule": [
+      "source_lane_before_diverge"
+     ],
+     "kind": "internal",
+     "origin": "SC2002_to_SC1001",
+     "receiving_link": "SC1001_to_SC1003",
+     "runtime_phase": "SC1001_p1",
+     "beta": 0.5,
+     "flow": true,
+     "owner": "regular",
+     "source_key": "movement:SC1001_N_SC2002_to_S_SC1003",
+     "phase_relation": "match",
+     "unsignalized": false,
+     "u3_head_free": false,
+     "ramp": null,
+     "plant_lane_units": 2.0,
+     "capacity_captured_veh_h": 704.348
+    }
+   ],
+   "foreign_phase_members": [],
+   "laminar_lane_sets": [
+    [
+     1,
+     2
+    ]
+   ],
+   "lane_sets_laminar": true,
+   "overcounted_lane_sets": [],
+   "multiplicity": {
+    "member_lanes_flow": 2,
+    "physical_lanes": 2,
+    "ratio": 1.0,
+    "plant_lane_units_flow": 2.0,
+    "plant_ratio": 1.0
+   },
+   "flow_origins": [
+    "SC2002_to_SC1001"
+   ],
+   "flow_kinds": [
+    "internal"
+   ],
+   "owners": [
+    "regular"
+   ],
+   "discharge_owner": "regular",
+   "existing_resources": [],
+   "already_enforced_by": null,
+   "lanes_with_several_heads": {},
+   "enforcement": "not_binding",
+   "enforcement_reason": null,
+   "saturation_ref": "37|p1",
+   "green": {
+    "source": "phase",
+    "phase": "SC1001_p1"
+   }
+  },
+  {
+   "group_id": "40|p2",
+   "observation_group": true,
+   "native_signal": false,
+   "signal": "SC1001",
+   "phase": "SC1001_p2",
+   "stopline_link": "40",
+   "signal_groups": [
+    "3"
+   ],
+   "heads": [
+    {
+     "head_id": "90030843",
+     "lane": 4,
+     "position_m": 1253.785,
+     "sg": "3"
+    }
+   ],
+   "physical_lanes": 1,
+   "link_lanes": 4,
+   "lanes": [
+    {
+     "lane": 4,
+     "head_id": "90030843",
+     "sg": "3",
+     "post_head_connectors": [
+      {
+       "connector": "10698",
+       "to_link": "31",
+       "from_lanes": [
+        4
+       ]
+      }
+     ],
+     "pre_head_connectors": [],
+     "flow_members": [
+      "SC1001_S_SC1003_to_W_RAMP"
+     ],
+     "flow_destinations": [
+      "31"
+     ],
+     "shared_flow_destinations": false
+    }
+   ],
+   "members": [
+    {
+     "movement": "SC1001_S_SC1003_to_W_RAMP",
+     "connector": "10698",
+     "lanes": [
+      4
+     ],
+     "destination": "31",
+     "controlling_head_rule": [
+      "source_lane_before_diverge"
+     ],
+     "kind": "boundary_out",
+     "origin": "SC1003_to_SC1001",
+     "receiving_link": "SC1001_W_out",
+     "runtime_phase": "SC1001_p2",
+     "beta": 0.333333333,
+     "flow": true,
+     "owner": "regular",
+     "source_key": "movement:SC1001_S_SC1003_to_W_RAMP",
+     "phase_relation": "match",
+     "unsignalized": false,
+     "u3_head_free": false,
+     "ramp": null,
+     "plant_lane_units": 1.0,
+     "capacity_captured_veh_h": 206.531
+    }
+   ],
+   "foreign_phase_members": [],
+   "laminar_lane_sets": [
+    [
+     4
+    ]
+   ],
+   "lane_sets_laminar": true,
+   "overcounted_lane_sets": [],
+   "multiplicity": {
+    "member_lanes_flow": 1,
+    "physical_lanes": 1,
+    "ratio": 1.0,
+    "plant_lane_units_flow": 1.0,
+    "plant_ratio": 1.0
+   },
+   "flow_origins": [
+    "SC1003_to_SC1001"
+   ],
+   "flow_kinds": [
+    "boundary_out"
+   ],
+   "owners": [
+    "regular"
+   ],
+   "discharge_owner": "regular",
+   "existing_resources": [],
+   "already_enforced_by": null,
+   "lanes_with_several_heads": {},
+   "enforcement": "not_binding",
+   "enforcement_reason": null,
+   "saturation_ref": "40|p2",
+   "green": {
+    "source": "phase",
+    "phase": "SC1001_p2"
+   }
+  }
+ ]
+}

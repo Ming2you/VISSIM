@@ -75,6 +75,7 @@ Run from the worktree root:
 K8-6 SA arms (separate files, key-only; see STOPLINE_EVIDENCE):
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric [--check]
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric --k8b [--check]
+  python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric --k91 [--check]
 """
 from __future__ import annotations
 
@@ -589,10 +590,49 @@ def apply_k8b(doc, root=ROOT, parts=K8B_PARTS):
     return out
 
 
-def stopline_out(storage, k8b=False):
+# K9-1 (K8_PREDECLARATION_AMENDMENT_19 r2 section 2.6, sha 4ccfd8fd...; D-K9-1..6): config keys only, each pinning its
+# evidence file by the sha256 of its bytes.  apply_k91 adds them to a K8b arm document (key-only arms; the K91 arm files
+# are written by K9-1-4 with --k91).  Parts: w1 urban.sc1001_wout_saturation, w2a urban.wout_side_handoff, f17b
+# freeway.offramp_split_forecast; the Z1-b key urban.latent_reservation_touch only when K91_Z1B (section 2.4).
+K91_EVIDENCE = {'w1': N31D + '/k9/sc1001wout_saturation_v3c3_20261009.json',
+                'w2a': N31D + '/k9/wout_side_handoff_v3c3_20261009.json',
+                'f17b': N31D + '/k9/offramp_split_forecast_v3c3_20261009.json'}
+K91_PARTS = ('w1', 'w2a', 'f17b')
+K91_KEYS = {'w1': ('urban', 'sc1001_wout_saturation'), 'w2a': ('urban', 'wout_side_handoff'),
+            'f17b': ('freeway', 'offramp_split_forecast')}
+K91_Z1B = False                       # Z1-a (no key) unless the K9-1-0b gates sent Z1 under the key (Z1-b)
+
+
+def apply_k91(doc, root=ROOT, parts=K91_PARTS, latent_touch=K91_Z1B):
+    """Pure on doc: a K8b arm document plus the K9 keys of `parts` (each once, declaration order), and with
+    latent_touch the Z1-b key urban.latent_reservation_touch = true."""
+    unknown = [p for p in parts if p not in K91_PARTS]
+    if unknown:
+        raise ValueError('K9 parts not in this tree: %s' % unknown)
+    urban = doc.get('urban', {})
+    if 'sc1002w_saturation' not in urban or 'wout_exit_law' not in urban \
+            or 'city_arrival' not in urban.get('stopline_approach', {}):
+        raise ValueError('K9 keys go on a K8b arm (the three K8b keys present)')
+    out = copy.deepcopy(doc)
+    for part in K91_PARTS:
+        if part not in parts:
+            continue
+        section, key = K91_KEYS[part]
+        if key in out.get(section, {}):
+            raise ValueError('%s.%s already present' % (section, key))
+        out.setdefault(section, {})[key] = k8b_pin(K91_EVIDENCE[part], root)
+    if latent_touch:
+        if 'latent_reservation_touch' in out['urban']:
+            raise ValueError('urban.latent_reservation_touch already present')
+        out['urban']['latent_reservation_touch'] = True
+    return out
+
+
+def stopline_out(storage, k8b=False, k91=False):
     """config_n31_v2_stopline_<storage>.json, or with k8b the K8b arm config_n31_v2_stopline_<storage>_k8b.json (K8b-4,
-    K8_PREDECLARATION_AMENDMENT_16 r2 section 4: the k86h arm + the three K8b keys of K8B_PARTS)."""
-    return HERE / ('config_n31_v2_stopline_%s%s.json' % (storage, '_k8b' if k8b else ''))
+    K8_PREDECLARATION_AMENDMENT_16 r2 section 4: the k86h arm + the three K8b keys of K8B_PARTS), or with k91 the K91
+    arm config_n31_v2_stopline_<storage>_k91.json (K9-1-4: the K8b arm + the K9 keys of K91_PARTS)."""
+    return HERE / ('config_n31_v2_stopline_%s%s.json' % (storage, '_k91' if k91 else '_k8b' if k8b else ''))
 
 
 def family_root(family, out_root):
@@ -623,6 +663,9 @@ def main():
     parser.add_argument('--k8b', action='store_true',
                         help='with --stopline-approach: the K8b arm (the SA arm + urban.sc1002w_saturation, '
                              'urban.wout_exit_law, urban.stopline_approach.city_arrival)')
+    parser.add_argument('--k91', action='store_true',
+                        help='with --stopline-approach: the K91 arm (the K8b arm + urban.sc1001_wout_saturation, '
+                             'urban.wout_side_handoff, freeway.offramp_split_forecast)')
     args = parser.parse_args()
     stopline = (args.stopline_approach, args.stopline_storage)
     if any(stopline) and not all(stopline):
@@ -631,13 +674,16 @@ def main():
         raise SystemExit('--stopline-approach builds only on the default tree tuning')
     components = tuple(c.strip().upper() for c in args.components.split(',') if c.strip())
     overlay = family_root(args.vsl_family, args.out_root)
-    if args.k8b and not all(stopline):
-        raise SystemExit('--k8b goes with --stopline-approach and --stopline-storage')
+    if (args.k8b or args.k91) and not all(stopline):
+        raise SystemExit('--k8b / --k91 go with --stopline-approach and --stopline-storage')
+    if args.k8b and args.k91:
+        raise SystemExit('--k91 already holds the K8b keys; pass one of --k8b / --k91')
     if all(stopline):
-        out = stopline_out(args.stopline_storage, k8b=args.k8b)
-        name = 'CONFIG_N31_STOPLINE_K8B_OK' if args.k8b else 'CONFIG_N31_STOPLINE_OK'
+        out = stopline_out(args.stopline_storage, k8b=args.k8b, k91=args.k91)
+        name = ('CONFIG_N31_STOPLINE_K91_OK' if args.k91 else
+                'CONFIG_N31_STOPLINE_K8B_OK' if args.k8b else 'CONFIG_N31_STOPLINE_OK')
         doc = apply_stopline_approach(build(), *stopline)
-        data = dumps(apply_k8b(doc) if args.k8b else doc)
+        data = dumps(apply_k91(apply_k8b(doc)) if args.k91 else apply_k8b(doc) if args.k8b else doc)
     elif args.urban_batch1:
         out, name = urban_batch1_out(components, overlay), 'CONFIG_N31_URBAN_B1_OK'
         data = dumps(build_urban_batch1(components=components, family=args.vsl_family, overlay=overlay))

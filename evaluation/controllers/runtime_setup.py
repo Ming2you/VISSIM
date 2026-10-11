@@ -140,6 +140,50 @@ def install_sc1002w_saturation(cfg, tuning):
                        'evidence_sha256': digest}}
 
 
+# ------------------------------------------------------------------------------------------- K9-1
+# K8_PREDECLARATION_AMENDMENT_19 r2 sections 2.1-2.4 (sha 4ccfd8fd...): config keys only; every one absent = the
+# K8b-5 (7e079efb) path.
+def install_sc1001wout_saturation(cfg, tuning):
+    """K9-1 W1 (section 2.1, key urban.sc1001_wout_saturation): right after the K8b-1 hook, the three SC1001 ->
+    W_RAMP signal movements take C_m = s_g(m) x sum_{l in L(m)} b_m / sum_{m' in M(l)} b_m' (evidence values s, L(m),
+    M(l); b = the template beta of this hook).  Only these three capacity keys change.  Key absent: {}."""
+    pin = ((tuning or {}).get('urban') or {}).get('sc1001_wout_saturation')
+    if pin is None:
+        return {}
+    document, digest = load_k8b_evidence(pin, 'k9-sc1001wout-saturation/v1', 'urban.sc1001_wout_saturation')
+    v = document['values']
+    net = cfg.network
+    caps = net.movement_capacity_by_movement_veh_h
+    members = v['members']
+    if set(members) != {'E', 'N', 'S'} or any(m not in net.urban_movements for m in members.values()):
+        raise ValueError('urban.sc1001_wout_saturation members must be the three SC1001 -> W_RAMP movements')
+    beta, after, lanes = {}, {}, {}
+    for key in ('E', 'N', 'S'):
+        mv = members[key]
+        s = float(v['s_veh_h_lane'][v['group_of'][key]])
+        row = v['lanes'][key]
+        total = 0.0
+        for lane in row['lanes']:
+            lane_key = '%s|%s' % (row['link'], lane)
+            group = v['lane_members'][lane_key]
+            if mv not in group or any(m not in net.urban_movements for m in group):
+                raise ValueError('urban.sc1001_wout_saturation: lane %s members %s' % (lane_key, group))
+            for m in group:
+                beta[m] = float(net.urban_movements[m]['beta'])
+            den = sum(beta[m] for m in group)
+            if not den > 0.0:
+                raise ValueError('urban.sc1001_wout_saturation: beta sum of lane %s <= 0' % lane_key)
+            total += beta[mv] / den
+        after[mv] = s * total
+        lanes[mv] = ['%s|%s' % (row['link'], lane) for lane in row['lanes']]
+    before = {mv: caps.get(mv) for mv in after}
+    for mv, cap in after.items():
+        caps[mv] = cap
+    return {'k9_w1': {'before': before, 'after': after, 'beta': beta, 'lanes': lanes,
+                      's': dict(v['s_veh_h_lane']), 'status': dict(v['status']), 'rule': v['rule'],
+                      'evidence_sha256': digest}}
+
+
 def install_freeway_runtime(adapter, cfg, tuning=None):
     """Restore hooks after their values were configured; also safe in spawn."""
     from src.controllers import wu_faithful_follower
@@ -271,6 +315,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(a.install_measured_movement_capacity(
         cfg, tuning, state_json, previous_action_path))
     metadata.update(install_sc1002w_saturation(cfg, tuning))     # K8b-1 P-1 (urban.sc1002w_saturation); {} absent
+    metadata.update(install_sc1001wout_saturation(cfg, tuning))  # K9-1 W1 (urban.sc1001_wout_saturation); {} absent
     metadata.update(a.install_measured_far_reservoir_rates(
         cfg, tuning, state_json, previous_action_path))
     metadata.update(a.install_observed_backpressure_price(
