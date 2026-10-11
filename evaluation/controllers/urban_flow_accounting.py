@@ -902,6 +902,7 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         import copy as _copy
         demand = _copy.copy(demand)
         demand.ramp_arrival = {k: (0.0 if str(k) in set(str(x) for x in _gq_ramps) else v) for k, v in dict(getattr(demand, 'ramp_arrival', {}) or {}).items()}
+    _WOUT_STEP['ctx'] = wout_ctx or None                          # K9-1 W2-A: the step a side landing joins
     out = urban_substep_accounted(state, control, demand, cfg_arg, urban_step_index=urban_step_index,
                         ramp_release_veh_h=rel, defer_legsplit_sinks=True)
     # The body can accept other urban/corridor vehicles into the same
@@ -984,6 +985,7 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
             _adapter._LEGSPLIT_LAST.get("leg_ramp_split_storage_adjust_veh", 0.0) + delta)
     if wout_ctx:
         _wout_store_check(wout_ctx)                                 # K8b-2 section 2.3 step 6
+        _WOUT_STEP['ctx'] = None
     _adapter._LEGSPLIT_LAST["leg_ramp_split_injected_veh"] = (
         _adapter._LEGSPLIT_LAST.get("leg_ramp_split_injected_veh", 0.0) + sum(inject.values()))
     for source_link, ramp, amount in accepted_transfers:
@@ -1032,6 +1034,9 @@ def _wout_counters(state, link, spec):
             for c in spec['classes']:
                 for d in spec['dests']:
                     row[f'{kind}|{c}|{d}'] = 0.0
+        if 'side' in spec['classes']:                # K9-1 W2-A: side handoff counters (side class installed only)
+            row['side_handoff_veh'] = 0.0
+            row['side_handoff_band_events'] = 0.0
         table[link] = row
     return row
 
@@ -1096,6 +1101,35 @@ def wout_direct_touch(state, cfg, step, off, row, target):
     _wout_pending(state, str(target)).setdefault(int(step) + d, 0.0)
     _wout_counters(state, str(target), spec)
     return d
+
+
+_WOUT_STEP = {'ctx': None}      # K9-1 W2-A: the W_out store contexts of the running legsplit step
+
+
+def wout_side_handoff_land(state, cfg, step, a):
+    """K9-1 W2-A (amendment 19 r2 section 2.2): the corridor branch wout_handover accepted a > 0 vehicles at the
+    merge and moved them into the W_out storage (no W_out reservation: the mass is at the merge and joins A at once).
+    X[side][d] += s_side_d a, assigned|side|d += s_side_d a, side_handoff_veh += |a|, side_handoff_band_events += 1
+    (a > 1e-9); the running step context's A grows by a, so the step-6 balance |sum X - (A - sum a_d)| <= 1e-9
+    holds with the landed mass."""
+    link = (getattr(cfg.network, 'wout_side_handoff', None) or {}).get('link')
+    spec = (getattr(cfg.network, 'wout_exit_law', None) or {}).get(link) if link else None
+    if spec is None or 'side' not in spec['classes']:
+        raise WoutExitInvariantError('W_out exit law: side landing without an installed side class')
+    ctx = (_WOUT_STEP['ctx'] or {}).get(link)
+    store = (getattr(state, 'wout_class_store', None) or {}).get(link)
+    if ctx is None or store is None or ctx['idx'] != int(step) or ctx['X'] is not store:
+        raise WoutExitInvariantError('W_out exit law: side landing outside the W_out step %r' % (step,))
+    X = store['side']
+    cnt = _wout_counters(state, link, spec)
+    for d in spec['dests']:
+        add = spec['s']['side'][d] * a
+        X[d] = X[d] + add
+        cnt[f'assigned|side|{d}'] += _wout_p(add)
+    cnt['side_handoff_veh'] += abs(_wout_p(a))
+    if _wout_p(a) > 1e-9:
+        cnt['side_handoff_band_events'] += 1.0
+    ctx['A'] = ctx['A'] + a
 
 
 def _wout_store_update(state, spec, link, arrived, idx):

@@ -161,6 +161,41 @@ def extend_area_routes(cfg):
     return {'sc2001_area_entry_routes': len(spec['incoming_movements'])}
 
 
+def install_wout_handover(cfg, values):
+    """K9-1 W2-A (amendment 19 r2 section 2.2): replace the three NC13 branches by the one branch wout_handover =
+    {path 78 -> 10703 -> 31, target_kind 'wout', target SC1001_W_out, travel_segments (78 entry -> 10703 start +
+    10703 length), lanes = the 10703 lanes}; every origin prior (W, N, E_SC2002, initial_unknown_origin) becomes
+    {wout_handover: 1.0} (the NC13 counts stay as provenance only).  The branch check of configure is applied to
+    the new path: every link inside the control area, else ValueError."""
+    spec = getattr(cfg.network, 'sc2001_corridor', None)
+    if spec is None:
+        raise ValueError('W2-A needs the SC2001 corridor')
+    path = [str(x) for x in values['path']]
+    if path != ['78', '10703', '31'] or values['target'] not in cfg.network.urban_link_storage_veh:
+        raise ValueError('W2-A handover path / target differ from the declaration')
+    tree = ET.parse(ROOT / spec['network']['path']).getroot()
+    links = {node.get('no'): node for node in tree.findall('./links/link')}
+    area_document = json.loads((ROOT / spec['area_source']['path']).read_text(encoding='utf-8'))
+    inside = physical_membership_from_ledger(area_document)
+    if [inside.get(link) for link in path] != [True, True, True]:
+        raise ValueError('W2-A handover path leaves the control area')
+    lanes = len(links['10703'].findall('./lanes/lane'))
+    if lanes != int(values['lanes']):
+        raise ValueError('W2-A: 10703 lanes differ from the evidence')
+    x_side = round(float(links['10703'].find('toLinkEndPt').get('pos')), 3)
+    if abs(x_side - float(values['x_side_m'])) > 1e-3 + 1e-12:
+        raise ValueError('W2-A: 10703 landing position differs from the evidence')
+    segments = _travel_segments(links, path)
+    old = {key: list(row['path']) for key, row in spec['branches'].items()}
+    spec['branches'] = {'wout_handover': {'path': path, 'target_kind': 'wout', 'target': values['target'],
+                                          'travel_segments': segments, 'lanes': lanes, 'source_inside': True,
+                                          'target_inside': True}}
+    for origin, row in spec['calibration']['priors'].items():
+        row['shares'] = {'wout_handover': 1.0}
+    spec['wout_handover'] = {'replaced_branches': old}
+    return {'replaced': sorted(old), 'travel_segments': segments, 'lanes': lanes, 'x_side_m': x_side}
+
+
 def prepare_projection(cfg, detectors, raw):
     """Move the actual78/10703 records once; other shared-road stocks stay put."""
     spec = getattr(cfg.network, 'sc2001_corridor', None)
@@ -299,6 +334,9 @@ def advance(state, control, demand, cfg, urban_step_index):
             target = branch['target']
             from evaluation.controllers.lane_ramp_runtime import receiving_space
             receiving = receiving_space(state, cfg, target)
+        elif branch['target_kind'] == 'wout':        # K9-1 W2-A (urban.wout_side_handoff): the W_out room
+            from src.models import urban_queue_model as _uqm_k9
+            receiving = _uqm_k9._effective_available_space(state, cfg, branch['target'])
         else:
             cap_h = float(cfg.network.boundary_out_capacity_veh_h)
             if not math.isfinite(cap_h) or cap_h <= 0:
@@ -350,8 +388,16 @@ def advance(state, control, demand, cfg, urban_step_index):
         if branch['target_kind'] == 'ramp':
             target = branch['target']; state.ramp_queue[target] = state.ramp_queue.get(target, 0.) + amount
             target_stock = 'ramp:' + target
+        elif branch['target_kind'] == 'wout':        # K9-1 W2-A: hand over at the merge into W_out storage
+            from evaluation.controllers.lane_urban_runtime import _debit_stock as _k9_debit
+            target = branch['target']
+            state.urban_link_storage[target] = _k9_debit(state.urban_link_storage[target], amount)
+            target_stock = 'storage:' + target
         emit_transfer(state, cfg, 'storage:' + spec['storage'], target_stock, amount,
                       target_inside=branch['target_inside'], route_key='sc2001:' + key)
+        if branch['target_kind'] == 'wout':
+            from evaluation.controllers.urban_flow_accounting import wout_side_handoff_land
+            wout_side_handoff_land(state, cfg, urban_step_index, amount)
     for branches in local['bins'].values():
         for key in branches:
             branches[key] = {due: amount for due, amount in branches[key].items() if amount > 1e-12}
@@ -362,6 +408,6 @@ def advance(state, control, demand, cfg, urban_step_index):
     local['last_step'] = urban_step_index; local['departed_veh'] += departed
     if capture:
         ledger.complete_constraint_coverage('sc2001_corridor')
-    return {'sc2001_departed_veh': departed, 'sc2001_external_exit_veh': accepted['outside_125'],
+    return {'sc2001_departed_veh': departed, 'sc2001_external_exit_veh': accepted.get('outside_125', 0.0),
             'sc2001_accepted_by_branch': accepted, 'sc2001_accepted_by_origin': by_origin,
             'sc2001_storage_veh': _occupancy(state, spec), 'sc2001_mass_residual_veh': residual}

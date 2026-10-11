@@ -1,0 +1,178 @@
+{
+ "schema": "k9-wout-side-handoff/v1",
+ "values": {
+  "link": "SC1001_W_out",
+  "class": "side",
+  "ramp_of": {
+   "R_D_E": "RM_C10484",
+   "R_D_W": "RM_C10480"
+  },
+  "shares": {
+   "R_D_E": 0.4979069194779611,
+   "R_D_W": 0.003447426742181729,
+   "free": 0.4986456537798572
+  },
+  "counts": {
+   "side|R_D_E": 2022,
+   "side|R_D_W": 14,
+   "side|free": 2025,
+   "side|side_exit": 0,
+   "side|unknown_dest": 13
+  },
+  "x_side_m": 350.718,
+  "l_km": {
+   "R_D_E": 0.061282,
+   "R_D_W": 0.384282,
+   "free": 0.384282
+  },
+  "path": [
+   "78",
+   "10703",
+   "31"
+  ],
+  "lanes": 2,
+  "branch": "wout_handover",
+  "prior_share": 1.0,
+  "target": "SC1001_W_out",
+  "receiving": "uqm._effective_available_space(SC1001_W_out)"
+ },
+ "derivation": {
+  "builder": "diagnostics/sdmpc_n31_20260924/k9/build_k9_evidence.py w2a",
+  "rule": "wout_episodes.py (a0e92f7d) on the P-4 extract rows (p4b_extract.py 85156269)",
+  "inputs": [
+   {
+    "seed": 31,
+    "fzp": "D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3nc\\run\\vissim_eval\\baseline_s31_v3c3nc_001.fzp",
+    "fzp_bytes": 1139192826,
+    "rows_in": 6654249,
+    "kept": 233582,
+    "cache": "D:\\VISSIM-merge\\k9_1_probe\\p0\\w2a_cache\\w_s31.parquet",
+    "cache_sha256": "0903b19b74081e3c0f288b55811e278d70fa3b70b98c50a9a73908471142db68"
+   },
+   {
+    "seed": 41,
+    "fzp": "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3nc\\run\\vissim_eval\\baseline_s41_v3c3nc_001.fzp",
+    "fzp_bytes": 1196651038,
+    "rows_in": 6982614,
+    "kept": 242274,
+    "cache": "D:\\VISSIM-merge\\k9_1_probe\\p0\\w2a_cache\\w_s41.parquet",
+    "cache_sha256": "15bf4e63700fa5e8dacf8240053c41db3e06d012ef3b6fc80c30f8ce75465016"
+   },
+   {
+    "seed": 43,
+    "fzp": "D:\\VISSIM_runs\\20261001_v3c3\\s43_v3c3nc\\run\\vissim_eval\\baseline_s43_v3c3nc_001.fzp",
+    "fzp_bytes": 1170017664,
+    "rows_in": 6829846,
+    "kept": 237036,
+    "cache": "D:\\VISSIM-merge\\k9_1_probe\\p0\\w2a_cache\\w_s43.parquet",
+    "cache_sha256": "177cf064171435a65e66d7d3aca4c1e90fb9199da80b6740c7fefe1eead45594"
+   },
+   {
+    "seed": 47,
+    "fzp": "D:\\VISSIM_runs\\20261001_v3c3\\s47_v3c3nc\\run\\vissim_eval\\baseline_s47_v3c3nc_001.fzp",
+    "fzp_bytes": 1135095595,
+    "rows_in": 6631530,
+    "kept": 239083,
+    "cache": "D:\\VISSIM-merge\\k9_1_probe\\p0\\w2a_cache\\w_s47.parquet",
+    "cache_sha256": "99990eef348c1db796395eb45e225fad5a5bca5babd57177a54bf7fbb2a28e2c"
+   },
+   {
+    "seed": 53,
+    "fzp": "D:\\VISSIM_runs\\20261001_v3c3\\s53_v3c3nc\\run\\vissim_eval\\baseline_s53_v3c3nc_001.fzp",
+    "fzp_bytes": 1173499392,
+    "rows_in": 6850613,
+    "kept": 243803,
+    "cache": "D:\\VISSIM-merge\\k9_1_probe\\p0\\w2a_cache\\w_s53.parquet",
+    "cache_sha256": "7cbef9165afb9dad5d4403fd3fbe74c024634e039185adeb50b2ceb2876f12b9"
+   }
+  ],
+  "episodes_total": 22649,
+  "episodes_kept_window": 21230,
+  "anomalies": {},
+  "class_dest_counts_pooled": {
+   "direct|free": 11604,
+   "direct|unknown_dest": 219,
+   "side|R_D_E": 2022,
+   "side|R_D_W": 14,
+   "side|free": 2025,
+   "side|unknown_dest": 13,
+   "signal|R_D_E": 2716,
+   "signal|R_D_W": 1706,
+   "signal|free": 888,
+   "signal|unknown_dest": 23
+  },
+  "side_flow_veh_h_mean": 362.1333333333333,
+  "per_seed_side": {
+   "31": {
+    "R_D_E": 409,
+    "R_D_W": 3,
+    "free": 373,
+    "side_exit": 0,
+    "unknown_dest": 3
+   },
+   "41": {
+    "R_D_E": 421,
+    "R_D_W": 3,
+    "free": 400,
+    "side_exit": 0,
+    "unknown_dest": 1
+   },
+   "43": {
+    "R_D_E": 416,
+    "R_D_W": 2,
+    "free": 401,
+    "side_exit": 0,
+    "unknown_dest": 5
+   },
+   "47": {
+    "R_D_E": 364,
+    "R_D_W": 4,
+    "free": 451,
+    "side_exit": 0,
+    "unknown_dest": 3
+   },
+   "53": {
+    "R_D_E": 412,
+    "R_D_W": 2,
+    "free": 400,
+    "side_exit": 0,
+    "unknown_dest": 1
+   }
+  },
+  "geometry": {
+   "inpx": "D:/VISSIM_runs/20261001_v3c3/s31_v3c3nc/prepared/network/baseline_s31_v3c3nc.inpx",
+   "inpx_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "x_side_m": 350.718,
+   "boundary_out_ramp_position_m": {
+    "R_D_E": 412.0,
+    "R_D_W": 735.0
+   },
+   "report_inpx_lengths": {
+    "link31_length_m": 412.318,
+    "link31_handover_m": 412.317,
+    "r_d_e_from_31_m": 412.087,
+    "r_d_w_from_124_m": 321.613,
+    "free_124_end_m": 321.92,
+    "inpx_l_side_m": {
+     "R_D_E": 61.369,
+     "R_D_W": 383.212,
+     "free": 383.519
+    }
+   }
+  },
+  "corridor_evidence": {
+   "path": "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json",
+   "sha256": "4b6f0875b83e4a891ef65d3744945a155a524dbf8f0a9482cc795b6fe15c1562"
+  },
+  "p4_evidence": {
+   "path": "diagnostics/sdmpc_n31_20260924/k8b/wout_exit_v3c3_20261007.json",
+   "sha256": "314b5c8e5c7e637e0decd7d74a5745ef1d036f002c3e0d2852b27ca460ee3dfa"
+  },
+  "p4b_split_reference_sha256": "d17dca885bf6353b5a61a16ab3d464f07bb5ab0a7e69c4a04e6c6619ad0d5178"
+ },
+ "declaration": {
+  "amendment19_sha256": "4ccfd8fd1efb6f79c59161ab40d4aa9234fa729bc980c89c1c9ad3059cd420d8",
+  "decisions_file": "K9_1_USER_DECISIONS_20261010.md (D-K9-1..3), sha 32c73a47...",
+  "section": "2.2"
+ }
+}

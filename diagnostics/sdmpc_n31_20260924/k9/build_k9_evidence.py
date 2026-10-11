@@ -2,7 +2,7 @@
 / 2.3, sha 4ccfd8fd...; user decisions K9_1_USER_DECISIONS_20261010 D-K9-1..3).  Diagnostics only; the runtime reads the
 committed JSON (sha-pinned by the tuning key), never this script.
 
-    python -B diagnostics/sdmpc_n31_20260924/k9/build_k9_evidence.py w1 [--check]
+    python -B diagnostics/sdmpc_n31_20260924/k9/build_k9_evidence.py w1|w2a [--cache DIR] [--check]
 
 w1   sc1001wout_saturation_v3c3_<date>.json (W1, section 2.1): the SC1001 -> W_RAMP signal movements E / N / S take
      C_m = s_g(m) x sum_{l in L(m)} b_m / sum_{m' in M(l)} b_m' (b = the decision's template beta at the hook).
@@ -18,14 +18,21 @@ w1   sc1001wout_saturation_v3c3_<date>.json (W1, section 2.1): the SC1001 -> W_R
      links 29 / 37 / 40 and the contract's connector -> movement rows (members[].connector, non_members_with_flow);
      a connector departing a lane of U L(m) that maps to no or to several model movements -> STOP; a W1 movement
      departing a lane outside its group's head lanes -> STOP.
-w2a / f17b  the W2-A side handoff and F17b forecast parts are added by the commits K9-1-2 / K9-1-3 (amendment 19
-     r2 section 4.1).
+w2a  wout_side_handoff_v3c3_<date>.json (W2-A, section 2.2): side class (10703 lands on 31) destination split from
+     the v3c3 NC fit seeds 31/41/43/47/53 with the K8b P-4 extract rule (k8b_decl/p4b_extract.py 85156269 = this
+     builder's w2a_extract) and the episode rule k8b/wout_episodes.py (a0e92f7d); kept entry times [900, 9000),
+     anomalies excluded; s_side[d] = n(side, d) / N_side, d in {R_D_E, R_D_W, free'} (free' = free + side_exit),
+     unknown_dest excluded.  The counts must be 2,022 / 14 / 2,025 / side_exit 0 / unknown_dest 13 (else STOP).
+     x_side = the 10703 landing position on 31 (toLinkEndPt pos, s31 v3c3 NC .inpx, rounded to 1 mm; must be
+     350.718 +- 0.001 m else STOP); l_side_d = l_d(PAR boundary_out_ramp_position_m) - x_side, rounded to 1e-6 km
+     (free = the R_D_W station, the P-4 rule).  Path 78 -> 10703 -> 31, lanes = the 10703 lane count.
+f17b the F17b forecast part is added by the commit K9-1-3 (amendment 19 r2 section 4.1).
 --check re-derives and compares the committed file's `values` field bit for bit (canonical JSON); any difference
 prints K9_EVIDENCE_STOP and exits 1 (section 2.0-3).
 Committed evidence = the P0 file bytes of the K9-1 mini probe (K91_VALUES.json, sha 713d232e...; amendment 19 r2
 section 4.2 B, r2 B-r1-10: the committed `values` must equal the P0 `values` bit for bit).  A rebuild may differ
-from the committed file only in its meta: derivation.* paths, file sizes / row counts of the inputs, the date in
-the file name and any commit hash; never in `values` (--check compares `values` only).
+from the committed file only in its meta: derivation.* paths, file sizes / row counts / cache paths of the
+inputs, the date in the file name and any commit hash; never in `values` (--check compares `values` only).
 """
 import ctypes
 import hashlib
@@ -249,8 +256,134 @@ def derive_w1():
     return doc
 
 
+# ------------------------------------------------------------------------------------------------ W2-A
+W2A_OUT = HERE / f'wout_side_handoff_v3c3_{DATE}.json'
+W2A_SEEDS = (31, 41, 43, 47, 53)
+W2A_FZP_COLS = ['SIMSEC', 'NO', 'LINK', 'LANE', 'POS', 'POSLAT', 'SPEED', 'TMINNETTOT', 'DELAYTM', 'DESSPEED',
+                'LENGTH', 'ROUTDECNO', 'ROUTENO', 'ROUTDECTYPE', 'NEXTLINK', 'DESTLANE', 'LNCHG', 'INTERACTSTATE',
+                'INTERACTTARGTYPE', 'INTERACTTARGNO', 'FX', 'FY', 'RX', 'RY', 'ACCEL']
+W2A_USE = ['SIMSEC', 'NO', 'LINK', 'LANE', 'POS', 'SPEED', 'NEXTLINK']
+W2A_KEEP_ALL = {31, 124, 119, 10483, 10774, 10119, 10121, 10698, 10703, 10704, 10484, 10480, 10775, 10702, 10491}
+W2A_PARTIAL = {29: (300.0, 1e9), 37: (250.0, 1e9), 40: (1000.0, 1e9), 78: (250.0, 1e9), 79: (-1.0, 150.0),
+               24: (-1.0, 400.0), 26: (3600.0, 4200.0), 125: (-1.0, 150.0)}
+W2A_RAMP_OF = {'R_D_E': 'RM_C10484', 'R_D_W': 'RM_C10480'}
+W2A_COUNTS = {'side|R_D_E': 2022, 'side|R_D_W': 14, 'side|free': 2025, 'side|side_exit': 0, 'side|unknown_dest': 13}
+W2A_X_SIDE = 350.718
+CORRIDOR_EVIDENCE = N31 + '/scenario/sc2001_corridor_nc13_2d0c62.json'
+CORRIDOR_SHA256 = '4b6f0875b83e4a891ef65d3744945a155a524dbf8f0a9482cc795b6fe15c1562'
+P4_EVIDENCE = N31 + '/k8b/wout_exit_v3c3_20261007.json'
+P4_SHA256 = '314b5c8e5c7e637e0decd7d74a5745ef1d036f002c3e0d2852b27ca460ee3dfa'
+EPISODES_SHA256 = 'a0e92f7dbe24fa9f68f38357702d26752748d4bdd349d2ecf4b5bbe9b17bcad1'
+
+
+def w2a_extract(seed, cache_dir=None):
+    """The K8b P-4 extract rule (k8b_decl/p4b_extract.py sha 85156269 = build_k8b_evidence.p4_extract)."""
+    import numpy as np
+    import pandas as pd
+    fzp = Path(NC_ROOT) / f's{seed}_v3c3nc' / 'run' / 'vissim_eval' / f'baseline_s{seed}_v3c3nc_001.fzp'
+    parts, nrows = [], 0
+    it = pd.read_csv(fzp, sep=';', skiprows=38, header=None, names=W2A_FZP_COLS, usecols=W2A_USE,
+                     chunksize=1_000_000, encoding='latin-1',
+                     dtype={'SIMSEC': np.float64, 'NO': np.int64, 'LINK': np.int64, 'LANE': np.int16,
+                            'POS': np.float64, 'SPEED': np.float64, 'NEXTLINK': 'Int64'})
+    for ch in it:
+        nrows += len(ch)
+        L, P = ch['LINK'], ch['POS']
+        m = L.isin(W2A_KEEP_ALL)
+        for link, (lo, hi) in W2A_PARTIAL.items():
+            m |= (L == link) & (P >= lo) & (P <= hi)
+        parts.append(ch.loc[m, W2A_USE].copy())
+    df = pd.concat(parts, ignore_index=True)
+    meta = {'seed': seed, 'fzp': str(fzp), 'fzp_bytes': fzp.stat().st_size, 'rows_in': nrows, 'kept': int(len(df))}
+    if cache_dir is not None:
+        p = Path(cache_dir) / f'w_s{seed}.parquet'
+        p.parent.mkdir(parents=True, exist_ok=True)
+        df.to_parquet(p, index=False)
+        meta['cache'] = str(p)
+        meta['cache_sha256'] = sha(p)
+    return df, meta
+
+
+def derive_w2a(cache_dir=None):
+    from collections import Counter
+    sys.path.insert(0, str(ROOT / N31 / 'k8b'))
+    if sha(ROOT / N31 / 'k8b' / 'wout_episodes.py') != EPISODES_SHA256:
+        raise SystemExit('k8b/wout_episodes.py is not the pinned episode rule')
+    import wout_episodes as WE
+    _E, _D = u4_modules()
+    E = _E
+    t0 = time.time()
+    all_rows, inputs = [], []
+    for seed in W2A_SEEDS:
+        df, meta = w2a_extract(seed, cache_dir)
+        all_rows += WE.seed_rows(df[['SIMSEC', 'NO', 'LINK', 'POS']], seed)
+        inputs.append(meta)
+        print('w2a seed', seed, meta['kept'], round(time.time() - t0, 1), flush=True)
+    kept, anomalies, clean, pooled = WE.pooled_counter(all_rows)
+    counts = {f'side|{d}': pooled.get(('side', d), 0) for d in ('R_D_E', 'R_D_W', 'free', 'side_exit', 'unknown_dest')}
+    if counts != W2A_COUNTS:
+        print('K9_EVIDENCE_STOP w2a side counts', counts, 'declared', W2A_COUNTS)
+        raise SystemExit(1)
+    n_free2 = counts['side|free'] + counts['side|side_exit']
+    N = counts['side|R_D_E'] + counts['side|R_D_W'] + n_free2
+    s_side = {'R_D_E': counts['side|R_D_E'] / N, 'R_D_W': counts['side|R_D_W'] / N, 'free': n_free2 / N}
+    if abs(sum(s_side.values()) - 1.0) > 1e-12:
+        raise SystemExit('w2a: side shares do not sum to 1')
+    if sha(INPX31) != INPX31_SHA256:
+        raise SystemExit('v3c3 s31 .inpx sha differs')
+    net = E.Network(INPX31)
+    c = net.conn['10703']
+    if c['from'] != '78' or c['to'] != '31':
+        raise SystemExit('K9_EVIDENCE_STOP w2a: connector 10703 is not 78 -> 31')
+    x_side = round(float(c['to_pos']), 3)
+    if abs(x_side - W2A_X_SIDE) > 1e-3 + 1e-12:
+        print('K9_EVIDENCE_STOP w2a x_side', x_side, 'declared', W2A_X_SIDE)
+        raise SystemExit(1)
+    params = json.loads((ROOT / 'evaluation' / 'parameters.json').read_text(encoding='utf-8-sig'))
+    pos = params['runtime']['network']['boundary_out_ramp_position_m']['SC1001_W_out']
+    l_side = {'R_D_E': round((float(pos['R_D_E']) - x_side) / 1000.0, 6),
+              'R_D_W': round((float(pos['R_D_W']) - x_side) / 1000.0, 6),
+              'free': round((float(pos['R_D_W']) - x_side) / 1000.0, 6)}
+    if sha(ROOT / CORRIDOR_EVIDENCE) != CORRIDOR_SHA256 or sha(ROOT / P4_EVIDENCE) != P4_SHA256:
+        raise SystemExit('w2a: corridor / P-4 evidence sha differs')
+    # report only: .inpx-based residence lengths (31 / 10774 / 124 geometry, the P-4 handover rule)
+    hand = round(float(net.conn['10774']['from_pos']), 3)
+    rep = {'link31_length_m': round(float(net.links['31']['length']), 3), 'link31_handover_m': hand,
+           'r_d_e_from_31_m': round(float(net.conn['10484']['from_pos']), 3) if '10484' in net.conn else None,
+           'r_d_w_from_124_m': round(float(net.conn['10480']['from_pos']), 3) if '10480' in net.conn else None,
+           'free_124_end_m': round(float(net.links['124']['length']), 3)}
+    if rep['r_d_e_from_31_m'] is not None:
+        rep['inpx_l_side_m'] = {'R_D_E': round(rep['r_d_e_from_31_m'] - x_side, 3),
+                                'R_D_W': round(hand - x_side + rep['r_d_w_from_124_m'], 3),
+                                'free': round(hand - x_side + rep['free_124_end_m'], 3)}
+    lanes = int(net.links['10703']['lanes'])
+    values = {'link': 'SC1001_W_out', 'class': 'side', 'ramp_of': dict(W2A_RAMP_OF),
+              'shares': s_side, 'counts': counts, 'x_side_m': x_side, 'l_km': l_side,
+              'path': ['78', '10703', '31'], 'lanes': lanes, 'branch': 'wout_handover', 'prior_share': 1.0,
+              'target': 'SC1001_W_out', 'receiving': 'uqm._effective_available_space(SC1001_W_out)'}
+    hours = (9000.0 - 900.0) / 3600.0 * len(W2A_SEEDS)
+    doc = {'schema': 'k9-wout-side-handoff/v1', 'values': values,
+           'derivation': {'builder': N31 + '/k9/build_k9_evidence.py w2a',
+                          'rule': 'wout_episodes.py (a0e92f7d) on the P-4 extract rows (p4b_extract.py 85156269)',
+                          'inputs': inputs, 'episodes_total': len(all_rows), 'episodes_kept_window': len(kept),
+                          'anomalies': dict(anomalies),
+                          'class_dest_counts_pooled': {f'{c_}|{d}': v for (c_, d), v in sorted(pooled.items())},
+                          'side_flow_veh_h_mean': sum(v for (cc, _), v in pooled.items() if cc == 'side') / hours,
+                          'per_seed_side': {str(s_): {d: sum(1 for r in clean if r[0] == s_ and r[2] == 'side'
+                                                             and r[3] == d)
+                                                      for d in ('R_D_E', 'R_D_W', 'free', 'side_exit',
+                                                                'unknown_dest')} for s_ in W2A_SEEDS},
+                          'geometry': {'inpx': INPX31, 'inpx_sha256': INPX31_SHA256, 'x_side_m': x_side,
+                                       'boundary_out_ramp_position_m': pos, 'report_inpx_lengths': rep},
+                          'corridor_evidence': {'path': CORRIDOR_EVIDENCE, 'sha256': CORRIDOR_SHA256},
+                          'p4_evidence': {'path': P4_EVIDENCE, 'sha256': P4_SHA256},
+                          'p4b_split_reference_sha256': 'd17dca885bf6353b5a61a16ab3d464f07bb5ab0a7e69c4a04e6c6619ad0d5178'},
+           'declaration': dict(DECLARATION, section='2.2')}
+    return doc
+
+
 # ------------------------------------------------------------------------------------------------ main
-PARTS = {'w1': (derive_w1, W1_OUT)}
+PARTS = {'w1': (derive_w1, W1_OUT), 'w2a': (derive_w2a, W2A_OUT)}
 
 
 def main():
@@ -260,7 +393,10 @@ def main():
         return 2
     below_normal()
     fn, out = PARTS[a[0]]
-    doc = fn()
+    kw = {}
+    if a[0] == 'w2a' and '--cache' in a:
+        kw['cache_dir'] = a[a.index('--cache') + 1]
+    doc = fn(**kw)
     if doc.get('stop'):
         out_stop = out.with_suffix('.STOP.json')
         out_stop.write_bytes((json.dumps(doc, indent=1, ensure_ascii=False) + '\n').encode('utf-8'))

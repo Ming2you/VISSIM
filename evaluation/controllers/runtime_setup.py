@@ -184,6 +184,51 @@ def install_sc1001wout_saturation(cfg, tuning):
                       'evidence_sha256': digest}}
 
 
+def install_wout_side_handoff(cfg, tuning):
+    """K9-1 W2-A (section 2.2, key urban.wout_side_handoff): the SC1001_W_out exit law gains the class side (VISSIM
+    side split, exit-law lengths l_side) and the SC2001 corridor hands its vehicles over at the merge (one branch
+    wout_handover, sc2001_corridor.install_wout_handover).  Needs urban.sc2001_corridor and
+    urban.wout_exit_law.SC1001_W_out (else ValueError).  Key absent: {}."""
+    urban = (tuning or {}).get('urban') or {}
+    pin = urban.get('wout_side_handoff')
+    if pin is None:
+        return {}
+    if urban.get('sc2001_corridor') is None or not isinstance(urban.get('wout_exit_law'), dict) \
+            or 'SC1001_W_out' not in urban['wout_exit_law']:
+        raise ValueError('urban.wout_side_handoff needs urban.sc2001_corridor and urban.wout_exit_law.SC1001_W_out')
+    document, digest = load_k8b_evidence(pin, 'k9-wout-side-handoff/v1', 'urban.wout_side_handoff')
+    v = document['values']
+    link = v['link']
+    net = cfg.network
+    spec = (getattr(net, 'wout_exit_law', None) or {}).get(link)
+    if spec is None or getattr(net, 'sc2001_corridor', None) is None:
+        raise ValueError('urban.wout_side_handoff: exit law of %s or the SC2001 corridor not installed' % link)
+    if 'side' in spec['classes']:
+        raise ValueError('urban.wout_side_handoff installed twice')
+    from evaluation.controllers.urban_flow_accounting import WoutExitInvariantError
+    ramp_of = v['ramp_of']
+    if sorted(ramp_of.values()) != sorted(d for d in spec['dests'] if d != 'free'):
+        raise ValueError('urban.wout_side_handoff: ramps %s differ from the exit law %s' % (ramp_of, spec['dests']))
+    shares = {'free': float(v['shares']['free'])}
+    lengths = {'free': float(v['l_km']['free'])}
+    for name in ('R_D_E', 'R_D_W'):
+        shares[ramp_of[name]] = float(v['shares'][name])
+        lengths[ramp_of[name]] = float(v['l_km'][name])
+    if abs(sum(shares.values()) - 1.0) > 1e-12 or any(x < 0.0 for x in shares.values()):
+        raise WoutExitInvariantError('W_out exit law: side shares must be >= 0 and sum to 1 (+-1e-12)')
+    if any(not x > 0.0 for x in lengths.values()):
+        raise ValueError('urban.wout_side_handoff: side exit-law lengths must be > 0')
+    spec['classes'] = tuple(spec['classes']) + ('side',)
+    spec['s']['side'] = shares
+    spec['l_km']['side'] = lengths
+    spec['side_class'] = 'side'
+    from evaluation.controllers import sc2001_corridor
+    branch = sc2001_corridor.install_wout_handover(cfg, v)
+    net.wout_side_handoff = {'link': link, 'evidence_sha256': digest}
+    return {'k9_w2a': {'evidence_sha256': digest, 'link': link, 'shares': dict(shares), 'l_km': dict(lengths),
+                       'x_side_m': v['x_side_m'], 'branch': branch}}
+
+
 def install_freeway_runtime(adapter, cfg, tuning=None):
     """Restore hooks after their values were configured; also safe in spawn."""
     from src.controllers import wu_faithful_follower
@@ -385,6 +430,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         cfg, tuning, mapping, detector_mapping, state_json)
     metadata.update(physical_ramp_metadata)
     metadata.update(install_wout_exit_law(cfg, tuning))     # K8b-2 P-4' / P-4b (urban.wout_exit_law); {} absent
+    metadata.update(install_wout_side_handoff(cfg, tuning))         # K9-1 W2-A (urban.wout_side_handoff); {} absent
     if lane_context is None:
         metadata.update(offramp_routing.configure_inventory(cfg, tuning, state_json, mapping))
     state = a.traffic_state_from_vissim(
