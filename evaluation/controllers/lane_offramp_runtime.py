@@ -9,6 +9,8 @@ import math
 from collections import defaultdict
 from evaluation.controllers.lane_urban_runtime import _debit_stock
 
+LATENT_TOUCH={'events':0}    # K9-1 Z1 visit count (amendment 19 r2 section 2.4; read by the gate harness recorder)
+
 
 class LaneOfframpRuntime:
     def __init__(self, ports, descriptions, local_port, membership):
@@ -90,7 +92,15 @@ class LaneOfframpRuntime:
                     # K8b-5 (AMENDMENT_18 F-2, A-1): the P-4b direct pending key exists whatever n is (the touch
                     # checks the declared direct row; the primal test is the decision of the next line, unrecorded).
                     from evaluation.controllers.urban_flow_accounting import wout_direct_touch
-                    wout_direct_touch(state,cfg,step,off,row,target)
+                    _k9_d=wout_direct_touch(state,cfg,step,off,row,target)
+                    if row['direct']:
+                        # K9-1 Z1 (amendment 19 r2 section 2.4, F-2 form, Z1-a):
+                        # the due keys the skipped direct branch below would book (arrival buffer when routed,
+                        # release buffer), value-free (the exact +0.0 is omitted); nothing else changes.
+                        _k9_due=step+(uqm._link_delay_steps(state,cfg,target) if _k9_d is None else _k9_d)
+                        if target in routing:state.urban_arrival_buffer.setdefault(target,{}).setdefault(_k9_due,0.0)
+                        state.urban_storage_release_buffer.setdefault(target,{}).setdefault(_k9_due,0.0)
+                        LATENT_TOUCH['events']+=1
                 if n<=0:continue
                 state.urban_link_storage[key]+=n
                 state.urban_link_storage[target]=_debit_stock(state.urban_link_storage[target],n)
