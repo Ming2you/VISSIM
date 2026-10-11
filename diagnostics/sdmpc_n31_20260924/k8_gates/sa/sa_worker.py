@@ -40,7 +40,22 @@ recorder_errors like every recorder):
                    from the end_step wrapper: e_green_steps, e_green_ready0_steps{1, 2} (section 7.3 (i-c))
   k8b0             block0{w_ports, gate_occ} of the template state (R5 M(T) cross-check), sa_steps{t, fifo_<off>,
                    request_<off>} (section 7.3 (i-a) FIFO = 0 s), fw_steps{t, <FW_W diagnostic keys of OR_D_W /
-                   10491 / 10479>} (section 7.3 (i-b) request = landed + blocked), orde_room_min."""
+                   10491 / 10479>} (section 7.3 (i-b) request = landed + blocked), orde_room_min.
+K9-1-0 passive record (K8_PREDECLARATION_AMENDMENT_19 r2 sections 4.1 / 7 R9-R14; the K9-1 mini-probe recorder of
+patches/apply_k91.py with the same fields; primal reads only, exceptions go to recorder_errors):
+  blocks[k].k91    corridor{received_veh, departed_veh, occupancy_veh, tracked_veh, branches} (the SC2001 corridor
+                   state; branches = R_D_E / R_D_W / outside_125 or the W2-A wout_handover), w1_queue / w1_capacity of
+                   the three SC1001 -> W_RAMP movements (W1), z1_touch_events (Z1 visits so far; None before K9-1-0b),
+                   and from the response rows of the block: sc2001_transfer{branch} (route sc2001:<branch>) and
+                   w1_departures{movement} (source movement:<W1 movement>)
+  k91              block0 (the same block record of the template state), z1_touch_events (end of the job)
+  Side classes and their counters ride in blocks[k].k8b0 (wout_store / wout_counters) and the forecast values / used
+  window counts in the capture metadata k9_f17b.  The record goes into summary.json ('k91' and blocks[k].k91) only for
+  a K9-keyed run -- the template's capture record carries a K9 metadata key (k9_w1 / k9_w2a / k9_f17b / k9_z1) -- so a
+  keyless run (BASE, the K8b arms, the k86h arms) keeps the summary leaf set of K8b-5 (G1 / G2 / G5 compare the same
+  leaves; nothing is excluded); every run also writes it to k91_record.json next to summary.json (schema
+  k91-record/v1, keyed flag, blocks, top) -- read by k8b_report (R9-R14) and the commit-gate records, never by a
+  gate comparison."""
 import copy
 import hashlib
 import json
@@ -311,6 +326,77 @@ def k8b0_block(s, cfg):
     out['sa_ready'] = ({str(l): math.fsum(_f(p[4]) for p in sa['lanes'][l] if p[0] <= t) for l in sa['lanes']}
                        if isinstance(sa, dict) else None)
     return out
+
+
+K91_W1 = ('SC1001_E_SC1002_to_W_RAMP', 'SC1001_N_SC2002_to_W_RAMP', 'SC1001_S_SC1003_to_W_RAMP')
+K91_META_KEYS = ('k9_w1', 'k9_w2a', 'k9_f17b', 'k9_z1')      # = sa_common.K9_META_KEYS (K9-1-0)
+K91 = {'block0': None, 'keyed': False}
+
+
+def k91_keyed(job):
+    """K9-1-0: the run is K9-keyed when its template's capture record carries a K9 metadata key."""
+    try:
+        rec = json.loads((Path(job['template']).parent / 'capture.json').read_text(encoding='utf-8'))
+    except Exception:
+        return False
+    meta = (rec or {}).get('metadata') or {}
+    return any(k in meta for k in K91_META_KEYS)
+
+
+def k91_block(s, cfg):
+    """K9-1-0 passive block-end record (primal reads): SC2001 corridor stock / received / departed, W1 movement
+    queues and capacities, the Z1 touch count so far."""
+    net = cfg.network
+    out = {}
+    spec = getattr(net, 'sc2001_corridor', None)
+    local = getattr(s, 'sc2001_corridor_state', None)
+    if spec is not None and isinstance(local, dict):
+        cap = _f(spec['capacity_veh'])
+        out['corridor'] = {'received_veh': _f(local.get('received_veh')), 'departed_veh': _f(local.get('departed_veh')),
+                           'occupancy_veh': cap - _f(s.urban_link_storage.get(spec['storage'], spec['capacity_veh'])),
+                           'tracked_veh': math.fsum(_f(x) for br in local['bins'].values() for bins in br.values()
+                                                    for x in bins.values()),
+                           'branches': sorted(spec['branches'])}
+    out['w1_queue'] = {m: _f(s.urban_movement_queue.get(m, 0.0)) for m in K91_W1}
+    caps = getattr(net, 'movement_capacity_by_movement_veh_h', None) or {}
+    out['w1_capacity'] = {m: _f(caps.get(m)) for m in K91_W1}
+    lor = sys.modules.get('evaluation.controllers.lane_offramp_runtime')
+    out['z1_touch_events'] = (float(lor.LATENT_TOUCH['events']) if lor is not None and hasattr(lor, 'LATENT_TOUCH')
+                              else None)
+    return out
+
+
+def k91_response(response, T0, dt):
+    """Per block from the response transfer rows: SC2001 corridor transfers by branch (route sc2001:<branch>) and
+    the W1 movement departures (source movement:<W1 movement>)."""
+    corridor = defaultdict(lambda: defaultdict(float))
+    w1 = defaultdict(lambda: defaultdict(float))
+    for row in (response or {}).get('transfers') or []:
+        try:
+            key = str(row.get('route_key') or '')
+            src = str(row.get('source') or '')
+            if not (key.startswith('sc2001:') or (src.startswith('movement:') and src[9:] in K91_W1)):
+                continue
+            end = _f(row['end_sec'])
+            k = max(1, int(math.ceil((end - T0 - 1e-9) / dt)))
+            if key.startswith('sc2001:'):
+                corridor[k][key[7:]] += _f(row['vehicles'])
+            if src.startswith('movement:') and src[9:] in K91_W1:
+                w1[k][src[9:]] += _f(row['vehicles'])
+        except Exception as exc:
+            _note(exc)
+    return corridor, w1
+
+
+def k91_split(summary):
+    """K9-1-0: the k91_record.json document of a summary; for a keyless run the record leaves the summary."""
+    rec = {'schema': 'k91-record/v1', 'keyed': bool(K91['keyed']), 'top': summary.get('k91'),
+           'blocks': [b.get('k91') for b in summary.get('blocks') or []]}
+    if not K91['keyed']:
+        summary.pop('k91', None)
+        for b in summary.get('blocks') or []:
+            b.pop('k91', None)
+    return rec
 
 
 def k8b0_response(response, T0, dt, exit_cap_veh):
@@ -595,6 +681,11 @@ def block_row(k, s, cfg):
     except Exception as exc:
         _note(exc)
         row['k8b0'] = None
+    try:
+        row['k91'] = k91_block(s, cfg)                   # K9-1-0 passive block-end record
+    except Exception as exc:
+        _note(exc)
+        row['k91'] = None
     return row
 
 
@@ -646,6 +737,7 @@ def summarize_and_continue(point, cfg):
         _note(exc)
         exit_cap = None
     k8_resp = [k8b0_response(point.control_area_response, T0, dt, exit_cap)]
+    k91_resp = [k91_response(point.control_area_response, T0, dt)]
     if 'T15b' in (job.get('probes') or ()):
         probe_kind_service(point, cfg)
     if TANGENT['nodes'] is None and job.get('variant') == 'TAN':
@@ -676,6 +768,7 @@ def summarize_and_continue(point, cfg):
                 for m, v in row.items():
                     dep[kk][m] += v
             k8_resp.append(k8b0_response(nxt.control_area_response, T0, dt, exit_cap))
+            k91_resp.append(k91_response(nxt.control_area_response, T0, dt))
             done, last = done + seg, nxt.states[-1]
             SEGMENTS['sec'].append(time.perf_counter() - t1)
             del nxt
@@ -700,6 +793,11 @@ def summarize_and_continue(point, cfg):
             x['orde_room_limited_steps'] = float(K8B0['orde_limited'].get(k, 0))
             x['e_green_steps'] = float(K8B0['e_green'].get(k, 0))
             x['e_green_ready0_steps'] = {str(l): float(K8B0['e_ready0'][k].get(l, 0)) for l in W_E_LANES}
+        if isinstance(row.get('k91'), dict):             # K9-1-0: response rows of block k
+            y = row['k91']
+            names = sorted({b for r in k91_resp for kk in r[0] for b in r[0][kk]})
+            y['sc2001_transfer'] = {b: math.fsum(r[0][k].get(b, 0.0) for r in k91_resp) for b in names}
+            y['w1_departures'] = {m: math.fsum(r[1][k].get(m, 0.0) for r in k91_resp) for m in K91_W1}
     seconds = sorted(per_second)
     return {'blocks': blocks, 'w_departures_steps': {'t': seconds, 'veh': [per_second[t] for t in seconds]}}
 
@@ -931,6 +1029,11 @@ def main():
             K8B0['block0'] = {'w_ports': w_ports_of(state, follower.cfg), 'time_sec': _f(state.time_sec)}
         except Exception as exc:
             _note(exc)
+        K91['keyed'] = k91_keyed(job)                         # K9-1-0: summary record only for a K9-keyed run
+        try:                                                  # K9-1-0: block 0 of the template state
+            K91['block0'] = k91_block(state, follower.cfg)
+        except Exception as exc:
+            _note(exc)
         sa0 = getattr(state, 'stopline_approach_state', None)
         STATE['sa_counters0'] = ({k: _f(v) for k, v in sa0['counters'].items()} if isinstance(sa0, dict) else None)
         H = int(job['H'])
@@ -1016,6 +1119,10 @@ def main():
                       'sa_steps': {k: list(v) for k, v in K8B0['sa_steps'].items()},
                       'fw_steps': {k: list(v) for k, v in K8B0['fw_steps'].items()},
                       'orde_room_min': K8B0['orde_room_min']}
+    _lor = sys.modules.get('evaluation.controllers.lane_offramp_runtime')
+    result['k91'] = {'block0': K91['block0'],
+                     'z1_touch_events': (float(_lor.LATENT_TOUCH['events'])
+                                         if _lor is not None and hasattr(_lor, 'LATENT_TOUCH') else None)}
     probes = (STATE['job'] or {}).get('probes') or ()
     result['probes'] = {k: PROBES.get(k) for k in probes} if probes else None
     result['tangent'] = (dict(axes=TANGENT['axes'], values=TANGENT['values'], error=TANGENT['error'],
@@ -1024,6 +1131,9 @@ def main():
                          if TANGENT['axes'] is not None else None)
     Path(result_path).write_bytes(pickle.dumps(result, protocol=5))
     summary = to_summary(result)
+    k91rec = k91_split(summary)                       # K9-1-0: keyless run -> the record leaves the summary
+    Path(result_path).with_name('k91_record.json').write_text(json.dumps(k91rec, indent=1, default=repr),
+                                                              encoding='utf-8')
     Path(result_path).with_name('summary.json').write_text(json.dumps(summary, indent=1, default=repr), encoding='utf-8')
     return 1 if 'error' in result else 0
 
@@ -1075,7 +1185,7 @@ def to_summary(result):
             'action_notes': result.get('action_notes'), 'entry_applied': result.get('entry_applied'),
             'or_d_w_cell': result.get('or_d_w_cell'), 'recorder_errors': result.get('recorder_errors'),
             'uqm_wraps': result.get('uqm_wraps'),
-            'segment_sec': result.get('segment_sec'), 'k8b0': result.get('k8b0')}
+            'segment_sec': result.get('segment_sec'), 'k8b0': result.get('k8b0'), 'k91': result.get('k91')}
 
 
 if __name__ == '__main__':

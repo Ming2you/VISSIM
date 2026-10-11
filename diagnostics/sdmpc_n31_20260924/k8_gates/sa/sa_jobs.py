@@ -34,9 +34,11 @@ sa_common.job_inputs_missing) is not started and writes nothing (SA_JOB_SKIP_NO_
 review r4 B-r4-1).  A summary.json whose run ended on its own missing capture input
 (sa_common.job_input_absent) is moved to stale_input_absent_<k>.json (hook/ to stale_hook_<k>/) and the job rerun
 once its inputs exist; any other summary.json keeps the label skipped.
-K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2): (1) blind guard (sections 0.2 / 5.4): a job whose arm tuning (arms.json)
-carries a K8b key on a judging state is refused before the worker starts unless --gates-stage k8bt --declaration-sha
-<amendment 16 sha> is given; (2) wall-clock pairs (section 5.3.1): every started job writes vissim_counts.json next to
+K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2): (1) blind guard (sections 0.2 / 5.4; since K9-1-0 sa_common.k91_guard of
+AMENDMENT_19 r2 sections 0.4 / 3.1-4 / 5.4: K8b and K9 keys of the template's tuning and capture metadata, the stage
+--gates-stage k91t --declaration-sha <amendment 19 sha> only, non-scalar jobs (tangent / adfull / c11 / tan / hooks)
+refused on a judging state whatever the tree, and before the stage a judging state opens only the section 0.4 closed
+list: G1 BASE TL3 s31 9 x {OBS, A1} H3 REFERENCE scalar, G2 TL3 s31 2700 k86h SAF OBS H3); (2) wall-clock pairs (section 5.3.1): every started job writes vissim_counts.json next to
 its summary (VISSIM process count right before the worker starts and right after it ends, Get-Process read only, the
 invocation id and its sequence number), which sa_wallpairs.py reads to find the clean BASE -> SAF pairs."""
 import json
@@ -311,9 +313,10 @@ RUN = {'invocation': None, 'seq': 0}
 
 
 def k8b_job_guard(args, job):
-    """K8b-0 blind guard (amendment 16 sections 0.2 / 5.4) on the tuning the job's template was captured with (the
-    capture record's tuning path, plus the K8b metadata keys of that record); without a capture record nothing runs
-    anyway (job_inputs_missing), so no tuning is read then."""
+    """Blind guard (K9-1-0: sa_common.k91_guard, amendment 19 r2 sections 0.4 / 3.1-4 / 5.4) on the tuning the job's
+    template was captured with (the capture record's tuning path and sha256, plus the K8b / K9 metadata keys of that
+    record) and on the job itself (harness, arm, entry, H, variant, mode, hooks); without a capture record nothing
+    runs anyway (job_inputs_missing), so no tuning is read then."""
     try:
         rec = sc.read_json(Path(job['template']).parent / 'capture.json')
     except ValueError:
@@ -322,10 +325,13 @@ def k8b_job_guard(args, job):
         return []
     path = (rec.get('tuning') or {}).get('path')
     meta = rec.get('metadata') or {}
-    extra = [f'capture metadata {k}' for k in sc.K8B_META_KEYS if k in meta]
-    keys = sc.k8b_guard(path, job.get('seed'), job['T'], args, f'job {job["label"]}', extra_keys=extra)
-    if keys and int(job.get('frame_T', job['T'])) != int(job['T']):
-        sc.k8b_guard(path, sc.ROBS_SEED, job['frame_T'], args, f'job frame {job["label"]}', extra_keys=keys)
+    extra = [f'capture metadata {k}' for k in sc.GUARD_META_KEYS if k in meta]
+    kw = dict(op='job', harness=job['harness'], arm=job['arm'], entry=job.get('entry'), H=job.get('H'),
+              variant=job.get('variant', 'REF'), mode=job.get('mode', 'scalar'), hooks=bool(getattr(args, 'hooks', False)),
+              arm_sha=(rec.get('tuning') or {}).get('sha256'))
+    keys = sc.k91_guard(path, job.get('seed'), job['T'], args, f'job {job["label"]}', extra_keys=extra, **kw)
+    if int(job.get('frame_T', job['T'])) != int(job['T']):
+        sc.k91_guard(path, sc.ROBS_SEED, job['frame_T'], args, f'job frame {job["label"]}', extra_keys=keys, **kw)
     return keys
 
 

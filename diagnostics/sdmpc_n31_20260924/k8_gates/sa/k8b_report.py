@@ -40,11 +40,47 @@ K8-7 or a conditional J1 launch):
   Probe section 3.4 rule (BASE comparison): signal queue +20 % and +10 veh in >= 1/3 of the states (block 3, per
   signal), ramps RM_C10482 / RM_C10490 +20 % and +5 veh -- reported.
 Section 7 (only when the gates verdict is STOP and INCOMPLETE items are 0): the (i)-(iv) criteria of section 7.3 with
-their values and source fields; any criterion without its data is 'not confirmed'."""
+their values and source fields; any criterion without its data is 'not confirmed'.
+
+K9-1-0 (K8_PREDECLARATION_AMENDMENT_19 r2, sha 4ccfd8fd...; --k91):
+  k91_outcome(gates, diag) -- sections 6.1-6.3 as one deterministic function of the gates JSON (gates_k91t.json) and
+     the section 7.3 diagnosis (k8b_q7_diagnosis.json, optional) -> <out>/sa/gates/k91_outcome.json:
+     classification (6.1): integrity = G-EB-0 / 1 / 2 / 8 / 9 / 13 / 14 and the G-EB-11 items (c) ad_vs_fd_T13,
+       (d) d_s3_hooks, (e) e_state_error; fidelity = G-EB-3 / 4 / 5 / 6 / 7 and the G-EB-11 items (a) wall_ratio,
+       (b) action_json; G-EB-10 / 12 not judged; any other gate, and any other judged G-EB-11 item, is integrity
+       (unclassified -> integrity, conservative).  G-EB-11 is read item by item, every other gate by its verdict.
+     complete = no judged item of a classified gate with pass_ null (G-EB-10 ignored).
+     regression guard (6.2): R-a |b| of /gates/G-EB-3/items/d_W_out_TL3/value/bias > 5.559080631867624; R-b per
+       checkpoint c in 6300 / 6750 |e_c| of /gates/G-EB-5/items/2700_stock/value/<c>/err > |k8bt e_c| (420.0430980575379
+       / 523.1703620044482); R-c e_c < -150; full precision, strict inequalities, demotion ignored.  Valid only when
+       every path exists with a finite number, the 3(d) TL3 item has value.n == 9 and pass_ not null, and the 2700
+       stock item has pass_ not null and both checkpoints -- otherwise 'invalid' (never a silent pass).  It applies as
+       soon as it is valid, before completeness.
+     form (6.3): STOP_REGRESSION (a valid guard fires) > REGRESSION_INVALID (rerun per README; persisting -> STOP) >
+       INCOMPLETE > INTEGRITY_FIX (an integrity gate / item FAIL: J1 held, amendment 20 path) > PASS_J1 (combined
+       PROMOTE_ELIGIBLE) > CONDITIONAL_J1 (combined STOP, every failure a D-K8b-3 (i)-(iv) item and its section 7.3
+       diagnosis confirmed) > KNOWN_DEFECT_J1 (failures in fidelity gates only).
+  R9  W1 (k9_w1 capture metadata of the SAF TL3m / long captures): C_N + C_T (T = SC1001_N_SC2002_to_S_SC1003, the
+      template capacity) vs 2 s_37p1 and s_37p1, the C_N rule value; block-1 model W1 departures (k91 record) vs VISSIM
+      10119 / 10121 / 10698 entries (vissim_ref k91 conn, the same 450 s).  Alert: C_N + C_T > 2 s_37p1.
+  R10 W2-A side class (SAF TL3m H3 and long jobs): assigned side shares (k8b0 wout_counters) vs the evidence shares,
+      side_handoff_veh vs the corridor wout_handover transfers, long block-end corridor occupancy SAF vs BASE (k91
+      records; the corridor 'ready' backlog is not recorded -- occupancy is reported in its place), model handover
+      vs VISSIM 10703 entries.  'W_out room 0 blocked handover steps' is not recorded (None).  Alert: share deviation
+      > 1e-9.
+  R11 F17b: per exit s_hat (k9_f17b forecast) vs its c0 vs the VISSIM realized share of the same 450 s (TL3m); long
+      jobs per period (D2 cuts 4500 / 6240 inside [T, min(T + 150 H, 8970)]): model 10491 blocked-step ratio (N9) vs
+      the VISSIM spill-window ratio (spill_windows_W), request / landed / release.  Alert: any |difference| > 0.10.
+  R12 D-EB-7 demotion of the G-EB-5 stock checkpoints vs the k8bt gates file (--k8bt-gates).  Alert: differs.
+  R13 F14 open conditions (report): (a) VISSIM non-event 150 s blocks of a long job, plant 10491 blocked ratio > 0.2;
+      (b) event start: first plant 10491 block earlier than the VISSIM event (ext127_first500) by > 300 s.
+  R14 Z1: touch counts (k91 records), the latent sites outside Z1 (section 2.4), adfull state mismatches (key
+      paths of the failed ad_full job errors)."""
 import csv
 import json
 import math
 import pickle
+import re
 import statistics
 import sys
 from collections import defaultdict
@@ -515,12 +551,394 @@ def diag_iii(tree):
     return out
 
 
+# ------------------------------------------------------------------------------------------------ K9-1-0
+K91_INTEGRITY_GATES = ('G-EB-0', 'G-EB-1', 'G-EB-2', 'G-EB-8', 'G-EB-9', 'G-EB-13', 'G-EB-14')
+K91_FIDELITY_GATES = ('G-EB-3', 'G-EB-4', 'G-EB-5', 'G-EB-6', 'G-EB-7')
+K91_NOT_JUDGED = ('G-EB-10', 'G-EB-12')
+K91_G11 = {'wall_ratio': 'fidelity', 'action_json': 'fidelity', 'ad_vs_fd_T13': 'integrity',
+           'd_s3_hooks': 'integrity', 'e_state_error': 'integrity'}
+K91_REG_BIAS = ('/gates/G-EB-3/items/d_W_out_TL3/value/bias', -5.559080631867624)
+K91_REG_STOCK = {'6300': ('/gates/G-EB-5/items/2700_stock/value/6300/err', 420.0430980575379),
+                 '6750': ('/gates/G-EB-5/items/2700_stock/value/6750/err', 523.1703620044482)}
+K91_REG_FLOOR = -150.0
+K8BT_GATES = Path(r'D:/VISSIM-merge/k8_gates_out_v3/sa/gates/gates_k8bt.json')
+K8BT_GATES_SHA256 = '120974f9807477a8cf16d9404bede9f682c65840ae8bf8674d9a51c78240e12f'
+K91_LATENT_OUTSIDE_Z1 = ('local_upstream row 10638 (LOR:97-99 -> LUR schedule_upstream / consume_upstream / register_ready)',
+                         'OR_F_E direct row 10682 known_legsplit_receive cohort (RCC:1090-1110)',
+                         'movement rows (LOR:116-121 _receive_corridor / _schedule; not in the SA arms)')
+K91_W1 = ('SC1001_E_SC1002_to_W_RAMP', 'SC1001_N_SC2002_to_W_RAMP', 'SC1001_S_SC1003_to_W_RAMP')
+K91_W1_CONN = {'SC1001_E_SC1002_to_W_RAMP': '10119', 'SC1001_N_SC2002_to_W_RAMP': '10121',
+               'SC1001_S_SC1003_to_W_RAMP': '10698'}
+K91_T_SHARED = 'SC1001_N_SC2002_to_S_SC1003'
+K91_EW = ('10479', '10491', '10638', '10645')
+
+
+def _ptr(doc, path):
+    """(found, value) of a '/a/b/c' path in a JSON document."""
+    node = doc
+    for key in path.strip('/').split('/'):
+        if not isinstance(node, dict) or key not in node:
+            return False, None
+        node = node[key]
+    return True, node
+
+
+def _finite(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
+
+def k91_regression(gates):
+    """Amendment 19 r2 section 6.2 (r2 B-r1-3): the three values, their validity and R-a / R-b / R-c."""
+    out = {'values': {}, 'invalid': [], 'k8bt': {'bias': K91_REG_BIAS[1], **{c_: v[1] for c_, v in K91_REG_STOCK.items()}}}
+    found, b = _ptr(gates, K91_REG_BIAS[0])
+    out['values']['bias'] = b
+    if not found or not _finite(b):
+        out['invalid'].append('3(d) TL3 bias absent / null / not finite')
+    it = ((((gates or {}).get('gates') or {}).get('G-EB-3') or {}).get('items') or {}).get('d_W_out_TL3') or {}
+    n = (it.get('value') or {}).get('n') if isinstance(it.get('value'), dict) else None
+    if n != 9:
+        out['invalid'].append('3(d) TL3 value.n = %r != 9' % (n,))
+    if it.get('pass_') is None:
+        out['invalid'].append('3(d) TL3 pass_ null')
+    st = ((((gates or {}).get('gates') or {}).get('G-EB-5') or {}).get('items') or {}).get('2700_stock') or {}
+    if st.get('pass_') is None:
+        out['invalid'].append('2700_stock pass_ null')
+    for c_, (path, _ref) in K91_REG_STOCK.items():
+        found, e = _ptr(gates, path)
+        out['values'][c_] = e
+        if not found or not _finite(e):
+            out['invalid'].append('2700 stock %s err absent / null / not finite' % c_)
+    out['valid'] = not out['invalid']
+    if not out['valid']:
+        out.update(R_a=None, R_b=None, R_c=None, fires=None)
+        return out
+    out['R_a'] = abs(b) > abs(K91_REG_BIAS[1])
+    out['R_b'] = {c_: abs(out['values'][c_]) > abs(ref) for c_, (_p, ref) in K91_REG_STOCK.items()}
+    out['R_c'] = {c_: out['values'][c_] < K91_REG_FLOOR for c_ in K91_REG_STOCK}
+    out['fires'] = bool(out['R_a'] or any(out['R_b'].values()) or any(out['R_c'].values()))
+    return out
+
+
+def k91_classify(gates):
+    """Section 6.1 (r2 B-r1-4): rows {key: {gate, item, class, pass_, unclassified}} of every judged unit."""
+    rows = {}
+    for gid, g in sorted(((gates or {}).get('gates') or {}).items()):
+        if gid in K91_NOT_JUDGED:
+            continue
+        items = g.get('items') or {}
+        if gid == 'G-EB-11':
+            for key, it in sorted(items.items()):
+                if not it.get('judged'):
+                    continue
+                cls = K91_G11.get(key)
+                rows[f'{gid}/{key}'] = {'gate': gid, 'item': key, 'class': cls or 'integrity',
+                                        'unclassified': cls is None, 'pass_': it.get('pass_')}
+            continue
+        cls = ('integrity' if gid in K91_INTEGRITY_GATES else 'fidelity' if gid in K91_FIDELITY_GATES else None)
+        verdict = g.get('verdict')
+        rows[gid] = {'gate': gid, 'item': None, 'class': cls or 'integrity', 'unclassified': cls is None,
+                     'pass_': True if verdict == 'PASS' else False if verdict == 'FAIL' else None,
+                     'verdict': verdict,
+                     'failed_items': sorted(k for k, it in items.items() if it.get('judged') and it.get('pass_') is False),
+                     'null_items': sorted(k for k, it in items.items() if it.get('judged') and it.get('pass_') is None)}
+    return rows
+
+
+def k91_incomplete(gates):
+    """Section 6.1 completeness: every judged item of every classified gate (G-EB-11: its five items) not null."""
+    out = []
+    for gid, g in sorted(((gates or {}).get('gates') or {}).items()):
+        if gid in K91_NOT_JUDGED:
+            continue
+        for key, it in sorted((g.get('items') or {}).items()):
+            if it.get('judged') and it.get('pass_') is None:
+                out.append(f'{gid}/{key}')
+    return out
+
+
+def k91_conditional_units(gates, diag):
+    """D-K8b-3 (i)-(iv) (amendment 16 r2 sections 7.1-7.3): {gate/item: confirmed} for every failed fidelity item;
+    an item outside the list or without its confirming diagnosis is False (conservative)."""
+    diag = diag or {}
+    out = {}
+    for gid in K91_FIDELITY_GATES:
+        g = (((gates or {}).get('gates') or {}).get(gid) or {})
+        for key, it in sorted((g.get('items') or {}).items()):
+            if not it.get('judged') or it.get('pass_') is not False:
+                continue
+            ok = False
+            if gid == 'G-EB-5' and key.split('_', 1)[-1] in ('flow10491', 'eb'):
+                T = key.split('_', 1)[0]
+                d = (diag.get('i') or {}).get(T) or {}
+                base = bool(d.get('i_a') and d.get('i_b') and d.get('i_d_a') and d.get('i_d_b'))
+                ok = base if key.endswith('flow10491') else bool(d.get('i_a') and d.get('i_b') and d.get('i_d_a')
+                                                                 and d.get('i_c_starved') and d.get('i_c_city_ok'))
+            elif gid == 'G-EB-4' and key == 'per_state':
+                rows = (diag.get('ii') or {})
+                failed = [r for r in (it.get('value') or []) if r and r[3] is not None and abs(r[3]) > sc.G4_ABS_MAX]
+                ok = bool(failed) and all(((rows.get(str(r[0])) or {}).get('ii_a') or
+                                           (rows.get(str(r[0])) or {}).get('ii_b')) for r in failed)
+            elif gid == 'G-EB-7' and key.endswith('_collapse'):
+                ok = bool(((diag.get('iii') or {}).get(key.split('_', 1)[0]) or {}).get('iii'))
+            elif gid == 'G-EB-3' and key in ('a_bias', 'a_mae'):
+                ok = diag.get('iv') is True
+            out[f'{gid}/{key}'] = ok
+    return out
+
+
+def k91_outcome(gates, diag=None):
+    """Amendment 19 r2 sections 6.1-6.3 (the one deterministic function; docstring of this module)."""
+    reg = k91_regression(gates)
+    rows = k91_classify(gates)
+    incomplete = k91_incomplete(gates)
+    integ = sorted(k for k, r in rows.items() if r['class'] == 'integrity' and r['pass_'] is False)
+    fid = sorted(k for k, r in rows.items() if r['class'] == 'fidelity' and r['pass_'] is False)
+    combined = (gates or {}).get('combined')
+    cond = k91_conditional_units(gates, diag)
+    if reg['valid'] and reg['fires']:
+        form = 'STOP_REGRESSION'
+    elif not reg['valid']:
+        form = 'REGRESSION_INVALID'
+    elif incomplete:
+        form = 'INCOMPLETE'
+    elif integ:
+        form = 'INTEGRITY_FIX'
+    elif combined == 'PROMOTE_ELIGIBLE' and not fid:
+        form = 'PASS_J1'
+    elif combined == 'STOP' and fid and cond and all(cond.values()):
+        form = 'CONDITIONAL_J1'
+    elif fid:
+        form = 'KNOWN_DEFECT_J1'
+    else:
+        form = 'INCOMPLETE'                    # no failure but the combined verdict is not PROMOTE_ELIGIBLE
+    return {'schema': 'k91-outcome/v1', 'amendment19_sha256': sc.K91_AMENDMENT19_SHA256, 'combined': combined,
+            'regression': reg, 'classification': rows, 'unclassified': sorted(k for k, r in rows.items()
+                                                                              if r['unclassified']),
+            'incomplete_items': incomplete, 'integrity_failures': integ, 'fidelity_failures': fid,
+            'conditional_units': cond, 'form': form,
+            'rule': 'amendment 19 r2 sections 6.1-6.3 (k8b_report.py module docstring)'}
+
+
+def _k91_record(tree, label):
+    """The k91 record of a job: the summary's own (K9-keyed run) or k91_record.json (every run)."""
+    d = sc.job_dir(tree, label)
+    rec = sc.read_json(d / 'k91_record.json')
+    if isinstance(rec, dict):
+        return rec
+    s = sc.read_json(d / 'summary.json') or {}
+    return {'keyed': True, 'top': s.get('k91'), 'blocks': [b.get('k91') for b in s.get('blocks') or []]}
+
+
+def _cap_meta(tree, harness, T, arm, seed=None):
+    rec = sc.read_json(sc.cap_dir(tree, harness, T, arm, seed=seed) / 'capture.json') or {}
+    return rec.get('metadata') or {}
+
+
+def _vk91(ref, seed):
+    return ((ref.get('seeds') or {}).get(str(seed)) or {}).get('k91') or {}
+
+
+def _vwin(table, w0, w1):
+    """Sum of window counts w0 <= w < w1 (ints, or [off, elig] pairs)."""
+    if not isinstance(table, dict) or 'missing' in table:
+        return None
+    vals = [table.get(str(w)) for w in range(w0, w1)]
+    if any(isinstance(v, list) for v in vals):
+        return [sum((v or [0, 0])[0] for v in vals), sum((v or [0, 0])[1] for v in vals)]
+    return sum(v or 0 for v in vals)
+
+
+def _long_states():
+    return [(31, T, H) for T, H in sc.LONG_H.items()]
+
+
+def r9(tree, ref):
+    for p in (str(c.R), str(c.R / 'vendor/NumSim-mine'), str(c.R / 'evaluation/controllers')):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    rows, alert = [], False
+    for s, T in tl3m_states():
+        m = _cap_meta(tree, 'TL3', T, J, seed=s).get('k9_w1') or {}
+        C_T = None
+        tpl = sc.cap_dir(tree, 'TL3', T, J, seed=s) / 'template.pickle'
+        if tpl.is_file():
+            try:
+                C_T = pickle.loads(tpl.read_bytes())['owned'][0].cfg.network.movement_capacity_by_movement_veh_h.get(
+                    K91_T_SHARED)
+            except Exception:
+                C_T = None
+        s37 = (m.get('s') or {}).get('37|p1')
+        C_N = (m.get('after') or {}).get(K91_W1[1])
+        lane1 = None if C_N is None or C_T is None else C_N + C_T
+        flag = lane1 is not None and s37 is not None and lane1 > 2 * s37
+        alert |= flag
+        rec = _k91_record(tree, sc.job_label('TL3', T, J, 'OBS', 3, seed=s))
+        b1 = ((rec.get('blocks') or [None])[0] or {})
+        vk = _vk91(ref, s).get('conn') or {}
+        w0 = int(T) // 150
+        rows.append({'seed': s, 'T': T, 'C_N': C_N, 'C_T': C_T, 'lane1_sum': lane1, 's37p1': s37,
+                     'two_s37p1': None if s37 is None else 2 * s37, 'alert': flag, 'rule': m.get('rule'),
+                     'model_w1_departures_block1': b1.get('w1_departures'),
+                     'vissim_entries_block1': {mv: _vwin(vk.get(cn), w0, w0 + 1) for mv, cn in K91_W1_CONN.items()}})
+    return {'rows': rows, 'alert': alert}
+
+
+def r10(tree, root, ref):
+    ev = sc.read_json(Path(root) / 'diagnostics' / 'sdmpc_n31_20260924' / 'k9' /
+                      'wout_side_handoff_v3c3_20261009.json') or {}
+    v = ev.get('values') or {}
+    shares = ({'free': v['shares']['free'], v['ramp_of']['R_D_E']: v['shares']['R_D_E'],
+               v['ramp_of']['R_D_W']: v['shares']['R_D_W']} if v else {})
+    rows, worst = [], 0.0
+    for s, T in tl3m_states():
+        label = sc.job_label('TL3', T, J, 'OBS', 3, seed=s)
+        sm = sc.read_json(sc.job_dir(tree, label) / 'summary.json') or {}
+        wc = (k8b0(sm, 3) or {}).get('wout_counters') or {}
+        tot = math.fsum(wc.get(f'assigned|side|{d}', 0.0) for d in shares)
+        dev = max(abs(wc.get(f'assigned|side|{d}', 0.0) / tot - shares[d]) for d in shares) if tot > 0 else None
+        worst = max(worst, dev or 0.0)
+        rec = _k91_record(tree, label)
+        hand = math.fsum(((b or {}).get('sc2001_transfer') or {}).get('wout_handover', 0.0)
+                         for b in (rec.get('blocks') or [])[:3])
+        w0 = int(T) // 150
+        rows.append({'seed': s, 'T': T, 'side_assigned_veh': tot, 'share_dev': dev,
+                     'side_handoff_veh': wc.get('side_handoff_veh'), 'handover_transfer_veh': hand,
+                     'blocked_by_room0_steps': None,
+                     'vissim_10703_450s': _vwin((_vk91(ref, s).get('conn') or {}).get('10703'), w0, w0 + 3)})
+    long_rows = {}
+    for s, T, H in _long_states():
+        occ = {}
+        for arm in (J, 'BASE'):
+            rec = _k91_record(tree, sc.job_label('TL3', T, arm, 'OBS', H))
+            occ[arm] = [((b or {}).get('corridor') or {}).get('occupancy_veh') for b in rec.get('blocks') or []]
+        long_rows[str(T)] = {'corridor_occupancy_block_ends': occ, 'note': 'the corridor ready backlog is not '
+                             'recorded; block-end occupancy is reported in its place'}
+    return {'rows': rows, 'max_share_dev': worst, 'long': long_rows, 'alert': worst > 1e-9}
+
+
+def _periods(T, H):
+    end = min(float(T) + H * 150.0, 8970.0)
+    cuts = [float(T)] + [x for x in (4500.0, 6240.0) if T < x < end] + [end]
+    return [(cuts[i], cuts[i + 1]) for i in range(len(cuts) - 1)]
+
+
+def r11(tree, ref):
+    rows = []
+    for s, T in tl3m_states():
+        m = _cap_meta(tree, 'TL3', T, J, seed=s).get('k9_f17b') or {}
+        ew = _vk91(ref, s).get('ew') or {}
+        w0 = int(T) // 150
+        per = {}
+        for o in K91_EW:
+            pe = (m.get('per_exit') or {}).get(o) or {}
+            v = _vwin(ew.get(o), w0, w0 + 3)
+            per[o] = {'forecast': pe.get('forecast'), 'c0': pe.get('c0'),
+                      'vissim_real_450s': (v[0] / v[1]) if v and v[1] else None}
+        rows.append({'seed': s, 'T': T, 'candidate': m.get('candidate'), 'per_exit': per})
+    long_rows, alert = {}, False
+    spill = ((ref.get('seeds') or {}).get('31') or {}).get('spill_windows_W') or []
+    for s, T, H in _long_states():
+        sm = job(tree, 'TL3', T, J, 'OBS', H)
+        if not sm or not sm.get('ok'):
+            long_rows[str(T)] = {'missing': True}
+            continue
+        st = sm.get('steps') or {}
+        cap = (sm.get('cap') or {}).get('10491')
+        tt, xs = st.get('t') or [], st.get('stock_10491') or []
+        fw = (sm.get('k8b0') or {}).get('fw_steps') or {}
+        ft = fw.get('t') or []
+        kl = [k for k in fw if k.startswith('offramp_flow_') and '10491' in k]
+        kb = [k for k in fw if k.startswith('offramp_blocked_flow_') and '10491' in k]
+        per = []
+        for a0, a1 in _periods(T, H):
+            n = sum(1 for t in tt if a0 < t <= a1 + 1e-9)
+            blk = sum(1 for t, x in zip(tt, xs) if a0 < t <= a1 + 1e-9 and cap is not None and x is not None
+                      and x >= cap - sc.PORT_BLOCK_MARGIN_VEH)
+            nw = int(round((a1 - a0) / 30.0))
+            vw = sum(1 for w0_, w1_ in spill if a0 <= w0_ and w1_ <= a1 + 1e-9)
+            land = sum(sum((fw[k][i] or 0.0) for k in kl) for i, t in enumerate(ft) if a0 < t <= a1 + 1e-9)
+            blkf = sum(sum((fw[k][i] or 0.0) for k in kb) for i, t in enumerate(ft) if a0 < t <= a1 + 1e-9)
+            nft = sum(1 for t in ft if a0 < t <= a1 + 1e-9)
+            rel = sum((b.get('port_release') or {}).get('10491', 0.0) for b in sm.get('blocks') or []
+                      if a0 < b['t_end'] <= a1 + 1e-9)
+            row = {'period': [a0, a1], 'model_blocked_ratio': blk / n if n else None,
+                   'vissim_spill_ratio': vw / nw if nw else None,
+                   'model_request_veh_h': (land + blkf) / nft if nft else None,
+                   'model_landed_veh_h': land / nft if nft else None,
+                   'model_release_veh_h': rel * 3600.0 / (a1 - a0)}
+            if row['model_blocked_ratio'] is not None and row['vissim_spill_ratio'] is not None:
+                row['diff'] = row['model_blocked_ratio'] - row['vissim_spill_ratio']
+                alert |= abs(row['diff']) > 0.10
+            per.append(row)
+        long_rows[str(T)] = {'periods': per}
+    return {'rows': rows, 'long': long_rows, 'alert': alert}
+
+
+def r12(gates, k8bt_path=K8BT_GATES):
+    k8bt = sc.read_json(k8bt_path) if Path(k8bt_path).is_file() else None
+    sha_ok = Path(k8bt_path).is_file() and sc.sha256_file(k8bt_path) == K8BT_GATES_SHA256
+
+    def dem(g):
+        out = {}
+        for T in sc.LONG_JUDGED:
+            it = ((((g or {}).get('gates') or {}).get('G-EB-5') or {}).get('items') or {}).get(f'{T}_stock') or {}
+            out[str(T)] = {k: v.get('demoted') for k, v in sorted((it.get('value') or {}).items())
+                           if isinstance(v, dict)}
+        return out
+    now, then = dem(gates), dem(k8bt) if k8bt else None
+    return {'k91t': now, 'k8bt': then, 'k8bt_sha_ok': sha_ok,
+            'alert': None if then is None else now != then}
+
+
+def r13(tree, ref):
+    out = {}
+    R = (ref.get('seeds') or {}).get('31') or {}
+    spill = R.get('spill_windows_W') or []
+    for s, T, H in _long_states():
+        sm = job(tree, 'TL3', T, J, 'OBS', H)
+        if not sm or not sm.get('ok'):
+            out[str(T)] = {'missing': True}
+            continue
+        ne = [k for k in range(1, H + 1)
+              if not any(w0 < T + 150.0 * k and w1 > T + 150.0 * (k - 1) for w0, w1 in spill)]
+        blk = sum(((sm['blocks'][k - 1] if k <= len(sm['blocks']) else {}).get('blocked_steps') or {}).get('10491', 0.0)
+                  for k in ne)
+        ratio = blk / (150.0 * len(ne)) if ne else None
+        fb = (sm.get('first_block_t') or {}).get('10491')
+        ev = (((R.get('states') or {}).get(str(T))) or {}).get('ext127_first500')
+        out[str(T)] = {'nonevent_blocks': len(ne), 'blocked_ratio_nonevent': ratio,
+                       'open_a': None if ratio is None else ratio > 0.2, 'first_block_10491': fb,
+                       'vissim_event_start': ev,
+                       'open_b': None if fb is None or ev is None else fb < ev - 300.0}
+    return out
+
+
+def r14(tree):
+    touches = {}
+    jdir = sc.sa_out() / 'jobs' / tree
+    for p in sorted(jdir.glob('*/k91_record.json')):
+        rec = sc.read_json(p) or {}
+        touches[p.parent.name] = ((rec.get('top') or {}).get('z1_touch_events'))
+    adfull = {}
+    for p in sorted(jdir.glob('*_ad_full/summary.json')):
+        s = sc.read_json(p) or {}
+        if s.get('ok') and s.get('complete_primal_state_match') is not False:
+            continue
+        err = s.get('error') or ''
+        keys = sorted(set(re.findall(r'State keys mismatch: ([^\s\'"]+)', err)))
+        adfull[p.parent.name] = {'error_kind': s.get('error_kind'), 'key_paths': keys, 'tail': err[-300:]}
+    return {'z1_touch_events': touches, 'latent_outside_z1': list(K91_LATENT_OUTSIDE_Z1), 'adfull_failures': adfull,
+            'alert': None}
+
+
 # ------------------------------------------------------------------------------------------------ main
 def main():
     ap = c.parser(__doc__)
     ap.add_argument('--tree', required=True)
     ap.add_argument('--gates-json')
     ap.add_argument('--eo-root', default=str(DEFAULT_EO))
+    ap.add_argument('--k91', action='store_true', help='K9-1-0: R9-R14 and k91_outcome (amendment 19 r2 6 / 7)')
+    ap.add_argument('--k8bt-gates', default=str(K8BT_GATES), help='R12: the k8bt gates file (sha checked)')
     args = ap.parse_args()
     c.apply(args)
     c.lower_priority()
@@ -558,6 +976,22 @@ def main():
                 'rule': 'section 7.3; a criterion without data is not confirmed (conservative)'}
         sc.write_json(sc.sa_out() / 'gates' / 'k8b_q7_diagnosis.json', diag)
         print('K8B_Q7_DIAGNOSIS ->', sc.sa_out() / 'gates' / 'k8b_q7_diagnosis.json')
+    if args.k91:                                          # K9-1-0 (amendment 19 r2 sections 6 / 7)
+        k91 = {'schema': 'k91-report/v1', 'tree': args.tree, 'amendment19_sha256': sc.K91_AMENDMENT19_SHA256}
+        for name, fn in (('R9', lambda: r9(args.tree, ref)), ('R10', lambda: r10(args.tree, c.R, ref)),
+                         ('R11', lambda: r11(args.tree, ref)), ('R12', lambda: r12(gates, args.k8bt_gates)),
+                         ('R13', lambda: r13(args.tree, ref)), ('R14', lambda: r14(args.tree))):
+            try:
+                k91[name] = fn()
+            except Exception as exc:
+                import traceback
+                k91[name] = {'error': traceback.format_exc()[-1500:], 'alert': None}
+        k91['alerts'] = [k for k in ('R9', 'R10', 'R11', 'R12') if (k91.get(k) or {}).get('alert')]
+        sc.write_json(sc.sa_out() / 'gates' / f'k91_report_{args.tree}.json', k91)
+        diag = sc.read_json(sc.sa_out() / 'gates' / 'k8b_q7_diagnosis.json')
+        outcome = k91_outcome(gates, diag)
+        sc.write_json(sc.sa_out() / 'gates' / 'k91_outcome.json', outcome)
+        print('K91_REPORT', k91['alerts'], 'K91_OUTCOME', outcome['form'])
     return 0
 
 

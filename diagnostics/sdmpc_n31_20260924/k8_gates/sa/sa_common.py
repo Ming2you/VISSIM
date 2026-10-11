@@ -982,16 +982,10 @@ def k8b_judging_state(seed, T):
 
 
 def k8b_stage_open(args):
-    """True when the caller passed --gates-stage k8bt with the amendment 16 sha (section 5.4); a wrong token or sha
-    is refused (SystemExit), never ignored."""
-    stage = getattr(args, 'gates_stage', None)
-    sha = getattr(args, 'declaration_sha', None)
-    if stage is None and sha is None:
-        return False
-    if stage != K8B_GATES_STAGE or sha != K8B_AMENDMENT16_SHA256:
-        raise SystemExit(f'--gates-stage {stage!r} / --declaration-sha {sha!r}: the judging stage needs '
-                         f'--gates-stage {K8B_GATES_STAGE} --declaration-sha {K8B_AMENDMENT16_SHA256}')
-    return True
+    """K9-1-0 (amendment 19 r2 sections 3.1-4 / 5.4, B-r1-1): the K8b judging stage k8bt is closed; this is
+    k91_stage_open -- True only for --gates-stage k91t with the amendment 19 sha, every other token (the old k8bt one
+    included) is refused (SystemExit), never ignored."""
+    return k91_stage_open(args)
 
 
 K8B_META_KEYS = ('k8b_p1', 'k8b_p2', 'k8b_p2_init', 'k8b_p4')         # capture metadata of a keyed template
@@ -1002,37 +996,222 @@ def k8b_guard(tuning_path, seed, T, args, what, extra_keys=()):
     stage (amendment 16 sections 0.2 and 5.4).  Keyed = the tuning file carries a K8b key, or `extra_keys` is not
     empty (the job guard passes the K8b metadata keys of the template's capture record, so a keyed template is caught
     even when its tuning file is gone).  A tuning file that exists but cannot be parsed is refused; an absent file
-    adds no key (the adapter cannot load it either).  Returns the keys (empty = not keyed, no check).  With the stage
-    open the first keyed judging-state use is logged once to <out>/sa/k8b_judging_stage.json."""
-    keys = []
-    if tuning_path and Path(tuning_path).is_file():
-        try:
-            doc = json.loads(Path(tuning_path).read_text(encoding='utf-8-sig'))
-        except (OSError, ValueError) as exc:
-            raise SystemExit(f'K8b guard: tuning {tuning_path} unreadable ({exc!r}); refused')
-        keys = k8b_keys_of(doc)
+    adds no key (the adapter cannot load it either).  Returns the keys (empty = not keyed, no check).
+    (K9-1-0: the harness calls k91_guard; this keyed-only form stays for its tests, with the K8b and K9 keys and the
+    k91t stage of k91_stage_open.)"""
+    keys = guard_keys_of(_tuning_doc(tuning_path, 'K8b guard'))
     keys = keys + [str(k) for k in extra_keys if str(k) not in keys]
     if not keys:
         return keys
     if k8b_judging_state(seed, T):
-        if not k8b_stage_open(args):
+        if not k91_stage_open(args):
             raise SystemExit(f'K8B_BLIND_REFUSED {what}: s{seed} T={T} is a judging state and the tuning carries '
-                             f'{keys} (amendment 16 sections 0.2 / 5.4; pass --gates-stage {K8B_GATES_STAGE} '
-                             f'--declaration-sha <amendment 16 sha> only in the judging stage)')
-        mark = sa_out() / 'k8b_judging_stage.json'
-        if not mark.is_file():
-            import time
-            write_json(mark, {'schema': 'k8b-judging-stage/v1', 'started': time.strftime('%Y-%m-%d %H:%M:%S'),
-                              'first': {'what': what, 'seed': seed, 'T': T, 'tuning': str(tuning_path)},
-                              'amendment16_sha256': K8B_AMENDMENT16_SHA256, 'root': str(c.R)})
+                             f'{keys} (amendment 19 r2 sections 0.4 / 5.4; pass --gates-stage {K91_GATES_STAGE} '
+                             f'--declaration-sha <amendment 19 sha> only in the judging stage)')
+        _k91_mark(what, seed, T, tuning_path, keys)
     return keys
 
 
 def add_k8b_stage_args(parser):
-    g = parser.add_argument_group('K8b judging stage (amendment 16 section 5.4)')
-    g.add_argument('--gates-stage', help=f'{K8B_GATES_STAGE}: allow K8b-keyed runs on judging states')
-    g.add_argument('--declaration-sha', help='the amendment 16 sha256, required with --gates-stage')
+    g = parser.add_argument_group('K9-1 judging stage (amendment 19 r2 section 5.4; the K8b stage k8bt is closed)')
+    g.add_argument('--gates-stage', help=f'{K91_GATES_STAGE}: open the judging states (keyed, non-scalar and '
+                                         f'off-list runs); any other token is refused')
+    g.add_argument('--declaration-sha', help='the amendment 19 r2 sha256, required with --gates-stage')
     return parser
+
+
+# ================================================================================================ K9-1 (K9-1-0)
+# K8_PREDECLARATION_AMENDMENT_19 r2 (sha below), user decisions K9_1_USER_DECISIONS_20261010 (D-K9-1..6).  Harness
+# only: the K9 runtime keys are config keys of the arm tunings (section 2.6); nothing here runs in the deployed path.
+K91_AMENDMENT19_SHA256 = '4ccfd8fd1efb6f79c59161ab40d4aa9234fa729bc980c89c1c9ad3059cd420d8'
+K91_GATES_STAGE = 'k91t'                  # section 5.4: the judging stage token (k8bt opens nothing, B-r1-1)
+K9_KEY_PATHS = (('urban', 'sc1001_wout_saturation'), ('urban', 'wout_side_handoff'),
+                ('freeway', 'offramp_split_forecast'), ('urban', 'latent_reservation_touch'))   # section 2.6
+K9_META_KEYS = ('k9_w1', 'k9_w2a', 'k9_f17b', 'k9_z1')                 # capture metadata of a K9-keyed template
+GUARD_META_KEYS = K8B_META_KEYS + K9_META_KEYS                        # section 3.1-4 (ii): keyed by its template too
+K91_ARM_FILE = 'config_n31_v2_stopline_{storage}_k91.json'           # section 2.6 (make_config_n31 --k91, K9-1-4)
+K91_ARM_KEYS = ('urban.sc1001_wout_saturation', 'urban.wout_side_handoff', 'freeway.offramp_split_forecast')
+K91_Z1B_KEY = 'urban.latent_reservation_touch'                      # exists only in the Z1-b form (section 2.4)
+K91_K8B_ARM_SHA256 = {'SAF': 'af2a7783dd68f285e6d9de13fd21259f16f0c2d3e28c5f7025bd11b28c8bf417',
+                      'SAG': 'f5189611c0705ea1adcecf60cbfa92fea2e7c3b1e732c250e550597239506649'}   # K8b-4 arms
+K91_NEW_RECORD = ('/k91',)        # K9-1-0 passive record leaves (summary 'k91', blocks[k].k91; K9-keyed runs only)
+K91_NONSCALAR_OK_VARIANTS = ('REF', 'TLS')                           # scalar REFERENCE / TL3-settings rollouts
+# Section 0.4 (r2, B-r1-2): the closed allow-list of judging-state computations before the judging stage (commit gates
+# G1 / G2 only; keyless; outputs read as equal / different).  (op, harness, arm, arm sha256, Ts, entry, H, variant,
+# mode, chain): None = not constrained for that op.
+K91_ALLOW = (
+    ('capture', 'DP', 'BASE', K8B_BASE_SHA256, DP_T, None, None, None, None, None),                       # G1
+    ('capture', 'DP', 'SAF', K8B_K86H_ARM_SHA256['SAF'], DP_T, None, None, None, None, None),             # G1
+    ('capture', 'TL3', 'BASE', K8B_BASE_SHA256, GRID9, None, None, None, None, None),                     # G1
+    ('job', 'TL3', 'BASE', K8B_BASE_SHA256, GRID9, ENTRIES, 3, 'REF', 'scalar', None),                    # G1
+    ('full', 'FULL', 'BASE', K8B_BASE_SHA256, (2700,), None, None, None, None, 'site'),                   # G1
+    ('capture', 'TL3', 'SAF', K8B_K86H_ARM_SHA256['SAF'], (2700,), None, None, None, None, None),         # G2
+    ('job', 'TL3', 'SAF', K8B_K86H_ARM_SHA256['SAF'], (2700,), ('OBS',), 3, 'REF', 'scalar', None))       # G2
+
+
+def _path_value(doc, path):
+    node = doc
+    for key in path:
+        node = node.get(key) if isinstance(node, dict) else None
+    return node
+
+
+def k9_keys_of(doc):
+    """The K9 key paths present in a tuning document (dotted names, section 2.6 order)."""
+    return ['.'.join(p) for p in K9_KEY_PATHS if _path_value(doc or {}, p) is not None]
+
+
+def k9_strip(doc):
+    """A deep copy of `doc` without the four K9 key paths (section 2.6 arm identity)."""
+    import copy
+    out = copy.deepcopy(doc)
+    for path in K9_KEY_PATHS:
+        node = _path_value(out, path[:-1])
+        if isinstance(node, dict):
+            node.pop(path[-1], None)
+    return out
+
+
+def guard_keys_of(doc):
+    """K8b + K9 key paths of a tuning document (the blind guard's key list, section 3.1-4 (i))."""
+    return k8b_keys_of(doc or {}) + k9_keys_of(doc or {})
+
+
+def _tuning_doc(tuning_path, who):
+    if tuning_path and Path(tuning_path).is_file():
+        try:
+            return json.loads(Path(tuning_path).read_text(encoding='utf-8-sig'))
+        except (OSError, ValueError) as exc:
+            raise SystemExit(f'{who}: tuning {tuning_path} unreadable ({exc!r}); refused')
+    return {}
+
+
+def k91_stage_open(args):
+    """Section 5.4: True when the caller passed --gates-stage k91t with the amendment 19 r2 sha; any other token or
+    sha -- the old --gates-stage k8bt with the amendment 16 sha included (B-r1-1) -- is refused (SystemExit)."""
+    stage = getattr(args, 'gates_stage', None)
+    sha = getattr(args, 'declaration_sha', None)
+    if stage is None and sha is None:
+        return False
+    if stage != K91_GATES_STAGE or sha != K91_AMENDMENT19_SHA256:
+        raise SystemExit(f'K91_STAGE_REFUSED --gates-stage {stage!r} / --declaration-sha {sha!r}: the only judging '
+                         f'stage is --gates-stage {K91_GATES_STAGE} --declaration-sha {K91_AMENDMENT19_SHA256} '
+                         f'(amendment 19 r2 section 5.4; k8bt opens nothing)')
+    return True
+
+
+def k91_nonscalar(op, variant='REF', mode='scalar', hooks=False):
+    """Section 3.1-4 / 5.4: tangent, adfull, c11, tan and hook-count runs (and every full decision, which runs with
+    the hook site) are non-scalar; a plain REFERENCE / TL3-settings scalar rollout is not."""
+    if op == 'full':
+        return True
+    if op != 'job':
+        return False
+    return bool(hooks) or mode != 'scalar' or variant not in K91_NONSCALAR_OK_VARIANTS
+
+
+def k91_allowed(op, harness, arm, arm_sha, T, *, entry=None, H=None, variant='REF', mode='scalar', chain=None):
+    """Section 0.4: is (op, harness, arm, arm sha, T, entry, H, variant, mode, chain) on the closed list?"""
+    for a_op, a_h, a_arm, a_sha, a_T, a_entry, a_H, a_var, a_mode, a_chain in K91_ALLOW:
+        if (op, harness, arm, arm_sha) != (a_op, a_h, a_arm, a_sha) or int(T) not in a_T:
+            continue
+        if a_entry is not None and entry not in a_entry:
+            continue
+        if a_H is not None and (H is None or int(H) != a_H):
+            continue
+        if a_var is not None and variant != a_var:
+            continue
+        if a_mode is not None and mode != a_mode:
+            continue
+        if a_chain is not None and chain != a_chain:
+            continue
+        return True
+    return False
+
+
+def _k91_mark(what, seed, T, tuning_path, keys):
+    """Section 5.4: the first judging-state use with the stage open -> <out>/sa/k91_judging_stage.json (once)."""
+    mark = sa_out() / 'k91_judging_stage.json'
+    if mark.is_file():
+        return
+    import time
+    rec = Path(str(c.R).rstrip('\\/') + '.extract.json')
+    head = None
+    try:
+        head = json.loads(rec.read_text(encoding='utf-8')).get('rev_full') if rec.is_file() else None
+    except (OSError, ValueError):
+        head = None
+    write_json(mark, {'schema': 'k91-judging-stage/v1', 'started': time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'first': {'what': what, 'seed': seed, 'T': T, 'tuning': str(tuning_path), 'keys': list(keys)},
+                      'amendment19_sha256': K91_AMENDMENT19_SHA256, 'root': str(c.R), 'root_head': head})
+
+
+def k91_history_copy(replay, dec, T):
+    """Section 2.3 (harness history windows, ROBS61): the F17b forecast of a replayed decision at T reads the window
+    documents obs150/derived_<T'>.json (T' = 150 .. T - 150) of its decision bundle -- in the replay folder they are
+    byte copies of the same-seed R-obs decisions' documents (VISSIM observation counts only; no template or plant
+    output of those states is opened).  Copies once, checks bytes, records <out>/sa/k91_history_copies.json."""
+    replay, dec, T = Path(replay), Path(dec), int(T)
+    rec_path = sa_out() / 'k91_history_copies.json'
+    rec = read_json(rec_path, {}) or {}
+    key = str(replay)
+    if key in rec and rec[key].get('T') == T and all((replay / 'obs150' / f'derived_{Tp:06d}.json').is_file()
+                                                     for Tp, _h in rec[key].get('windows') or []):
+        return rec[key]
+    import shutil
+    rows = []
+    for Tp in range(DECISION_WINDOW_SEC, T, DECISION_WINDOW_SEC):
+        src = dec / 'obs150' / f'derived_{Tp:06d}.json'
+        dst = replay / 'obs150' / f'derived_{Tp:06d}.json'
+        if not src.is_file():
+            raise SystemExit(f'K91 history window document missing: {src}')
+        if not dst.is_file():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+        if dst.read_bytes() != src.read_bytes():
+            raise SystemExit(f'K91 history copy differs from its source: {dst}')
+        rows.append([Tp, sha256_file(dst)])
+    rec[key] = {'T': T, 'source': str(dec / 'obs150'), 'windows': rows}
+    write_json(rec_path, rec)
+    return rec[key]
+
+
+DECISION_WINDOW_SEC = 150
+
+
+def k91_guard(tuning_path, seed, T, args, what, *, op, harness, arm, entry=None, H=None, variant='REF',
+              mode='scalar', hooks=False, chain=None, arm_sha=None, extra_keys=()):
+    """K9-1-0 blind guard (amendment 19 r2 sections 0.4, 3.1-4, 5.4; called before any child starts).
+    Keys = the K8b and K9 key paths of the tuning file plus `extra_keys` (the K8b / K9 capture metadata keys of a
+    job's template).  On a judging state (k8b_judging_state) and with the stage closed: a keyed run is refused, then
+    a run on the section 0.4 closed list (keyless; arm sha = BASE 319d07aa or the k86h SAF 178de6c2) is allowed, and
+    every other run -- every non-scalar one (tangent / adfull / c11 / tan / hooks / full) whatever the tree or keys,
+    and every keyless scalar run off the list -- is refused.  With --gates-stage k91t --declaration-sha <amendment 19
+    sha> everything is open and the first judging-state use is logged to <out>/sa/k91_judging_stage.json; any other
+    token is refused (k91_stage_open).  Off the judging states nothing is refused.  Returns the keys."""
+    doc = _tuning_doc(tuning_path, 'K91 guard')
+    keys = guard_keys_of(doc)
+    keys = keys + [str(k) for k in extra_keys if str(k) not in keys]
+    opened = k91_stage_open(args)                  # refuses a wrong / old token whatever the state
+    seed = ROBS_SEED if seed is None else int(seed)
+    if not k8b_judging_state(seed, T):
+        return keys
+    if opened:
+        _k91_mark(what, seed, T, tuning_path, keys)
+        return keys
+    tag = (f'(amendment 19 r2 sections 0.4 / 3.1-4 / 5.4; the judging stage is --gates-stage {K91_GATES_STAGE} '
+           f'--declaration-sha <amendment 19 sha>)')
+    if keys:
+        raise SystemExit(f'K91_BLIND_REFUSED {what}: s{seed} T={T} is a judging state and the run carries {keys} {tag}')
+    sha = arm_sha or (sha256_file(tuning_path) if tuning_path and Path(tuning_path).is_file() else None)
+    nonscalar = k91_nonscalar(op, variant, mode, hooks)
+    if (op == 'full' or not nonscalar) and k91_allowed(op, harness, arm, sha, T, entry=entry, H=H, variant=variant,
+                                                       mode=mode, chain=chain):
+        return keys                                # the one non-scalar entry is the G1 full 2700 BASE decision
+    kind = 'non-scalar' if nonscalar else 'keyless scalar off the section 0.4 list'
+    raise SystemExit(f'K91_BLIND_REFUSED {what}: s{seed} T={T} is a judging state and this {kind} run '
+                     f'({op} {harness} {arm} sha {str(sha)[:8]} entry={entry} H={H} variant={variant} mode={mode} '
+                     f'chain={chain}) is not on the closed allow-list {tag}')
 
 
 def vissim_count():

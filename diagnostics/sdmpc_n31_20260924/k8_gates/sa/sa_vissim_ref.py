@@ -36,7 +36,14 @@ Definitions (each names its declared source):
                 (127 rows < 5 km/h at T + 150k + 0.1, R4), onW[k] / onW_slow[k] (R2), wout_dest[k], city127[k] =
                 vehicles whose first 127 frame lies in the block and that have a 32 or 10778 frame before it (7.3
                 (i-c); a 10491 port vehicle lands on 129 and has neither); inputs w_s<seed>.parquet of
-                sa_fzp_frames.py (sha256 recorded)"""
+                sa_fzp_frames.py (sha256 recorded)
+  k91           K9-1-0 (K8_PREDECLARATION_AMENDMENT_19 r2 section 7 R9 / R10 / R11; the K9-1 probe tool k91_vissim.py
+                rule), TL3m seeds 31 / 43 / 47: conn[c][w] = vehicles whose first frame on connector c (10703 side
+                street onto 31; 10119 / 10121 / 10698 the W1 connectors) lies in window w = floor((t - 0.1) / 150)
+                (from w_s<seed>.parquet, the P-4 extract rule, which keeps those connectors); ew[o][w] = [off, elig]
+                of the FW_W exits o in E_W = 10479 / 10491 / 10638 / 10645 counted by the F17b P0-3 rule (the code
+                root's k9/f17b_select.py: obs150 detector points applied to the v3c3 NC FZP; read only) -- absent
+                (recorded 'missing') when the code root has no k9/f17b_select.py"""
 import json
 import sys
 from collections import defaultdict
@@ -118,6 +125,30 @@ def k8b_entry(ext, wdf, seed):
                 'onW_slow': {str(k + 1): at(onw_slow, t) for k, t in enumerate(ends)},
                 'wout_dest': {d: _block_counts(dest_times[d], T, H) for d in K8B_WOUT_DESTS},
                 'city127': _block_counts(city127, T, H)}
+    return out
+
+
+K91_CONNECTORS = (10703, 10119, 10121, 10698)
+
+
+def k91_entry(wdf, seed):
+    """K9-1-0 VISSIM-side values of one TL3m seed (definitions in the module docstring, 'k91')."""
+    conn = {}
+    for cn in K91_CONNECTORS:
+        first = wdf[wdf.LINK == cn].groupby('NO').SIMSEC.min()
+        w = ((first - 0.1) // 150).astype(int).value_counts().to_dict()
+        conn[str(cn)] = {str(k): int(v) for k, v in sorted(w.items())}
+    out = {'conn': conn}
+    path = c.R / 'diagnostics' / 'sdmpc_n31_20260924' / 'k9' / 'f17b_select.py'
+    if not path.is_file():
+        out['ew'] = {'missing': str(path)}
+        return out
+    if str(path.parent) not in sys.path:
+        sys.path.insert(0, str(path.parent))
+    import f17b_select as F
+    counts, meta = F.seed_window_counts(int(seed))
+    out['ew'] = {o: {str(w): list(v) for w, v in sorted(cnt.items())} for o, cnt in counts.items()}
+    out['ew_inputs'] = meta
     return out
 
 
@@ -284,8 +315,9 @@ def main():
             entry['eo_or_d_w_signal_cum'] = cum
         if s in sc.TL3M_SEEDS:                                     # K8b-0 (amendment 16 r2 sections 3.3 / 6 / 7.3)
             wpath = inputs[f'wout_s{s}']
-            entry['k8b'] = (k8b_entry(ext, pd.read_parquet(wpath), s) if Path(wpath).is_file()
-                            else {'missing': str(wpath)})
+            wdf = pd.read_parquet(wpath) if Path(wpath).is_file() else None
+            entry['k8b'] = k8b_entry(ext, wdf, s) if wdf is not None else {'missing': str(wpath)}
+            entry['k91'] = k91_entry(wdf, s) if wdf is not None else {'missing': str(wpath)}   # K9-1-0
         ref['seeds'][str(s)] = entry
         print(f'SA_VISSIM_REF s{s} states={len(states)} spill_windows={len(entry["spill_windows_W"])}', flush=True)
     sc.write_json(sc.sa_out() / 'vissim_ref.json', ref)

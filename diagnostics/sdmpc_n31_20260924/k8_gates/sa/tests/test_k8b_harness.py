@@ -63,11 +63,15 @@ def test_guard_refuses_keyed_judging_state(out_root, tmp_path):
     assert sc.k8b_guard(keyed, 31, 1650, args, 'test') == ['urban.sc1002w_saturation']
     with pytest.raises(SystemExit, match='K8B_BLIND_REFUSED'):
         sc.k8b_guard(keyed, 31, 2700, args, 'test')
-    with pytest.raises(SystemExit, match='judging stage needs'):
+    with pytest.raises(SystemExit, match='K91_STAGE_REFUSED'):
         sc.k8b_guard(keyed, 31, 2700, SimpleNamespace(gates_stage='k8bt', declaration_sha='0' * 64), 'test')
-    ok = SimpleNamespace(gates_stage='k8bt', declaration_sha=sc.K8B_AMENDMENT16_SHA256)
+    # K9-1-0 (amendment 19 r2 B-r1-1): the K8b judging stage k8bt opens nothing any more; k91t + amendment 19 opens
+    with pytest.raises(SystemExit, match='K91_STAGE_REFUSED'):
+        sc.k8b_guard(keyed, 31, 2700, SimpleNamespace(gates_stage='k8bt', declaration_sha=sc.K8B_AMENDMENT16_SHA256),
+                     'test')
+    ok = SimpleNamespace(gates_stage='k91t', declaration_sha=sc.K91_AMENDMENT19_SHA256)
     assert sc.k8b_guard(keyed, 31, 2700, ok, 'test') == ['urban.sc1002w_saturation']
-    mark = sc.sa_out() / 'k8b_judging_stage.json'
+    mark = sc.sa_out() / 'k91_judging_stage.json'
     assert json.loads(mark.read_text(encoding='utf-8'))['first']['T'] == 2700
 
 

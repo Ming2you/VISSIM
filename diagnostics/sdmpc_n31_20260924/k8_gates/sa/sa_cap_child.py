@@ -15,7 +15,11 @@ marked harness_stage_error (a harness failure -> INCOMPLETE, whatever frame rais
 K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2): the record's metadata also keeps the K8b capture metadata when the adapter
 wrote it (k8b_p1, k8b_p2, k8b_p2_init, k8b_p4, stopline_city_arrival_evidence_sha256; absent keys stay absent, so a
 key-off capture record is unchanged), and probes.signal_queue = per signal the sum of its movement queues of the
-captured state (report R1 Q_obs, section 6)."""
+captured state (report R1 Q_obs, section 6).
+K9-1-0 (K8_PREDECLARATION_AMENDMENT_19 r2 sections 2.0-7 / 2.3 / 4.1): the K9 capture metadata k9_w1, k9_w2a, k9_f17b,
+k9_z1 is kept the same way (absent keys stay absent); in an FH capture with the transplant enabled the F17b hook
+(offramp_split_forecast.apply, LPR:456) is wrapped by sa_fh.neutralize_f17b ('FH는 FD3 유지': the E_W shares stay
+the pre-F17b values) and the record carries transplant.f17b."""
 import hashlib
 import json
 import os
@@ -43,7 +47,8 @@ REC = {'schema': 'k8-sa-capture/v1', **{k: SPEC.get(k) for k in ('harness', 'T',
 STASH = {'bound': None}
 META_KEYS = ('stopline_approach_install_check', 'stopline_approach_initial', 'lane_ramp_head_service_normalisation',
              'lane_plant_install_check',
-             'k8b_p1', 'k8b_p2', 'k8b_p2_init', 'k8b_p4', 'stopline_city_arrival_evidence_sha256')   # K8b-0
+             'k8b_p1', 'k8b_p2', 'k8b_p2_init', 'k8b_p4', 'stopline_city_arrival_evidence_sha256',   # K8b-0
+             'k9_w1', 'k9_w2a', 'k9_f17b', 'k9_z1')                       # K9-1-0 (= sa_common.K9_META_KEYS)
 PROBE_LINKS = ('32', '10778', '129', '10777', '127', '10695', '10118', '10368', '10491', '10481')
 W_MEMBERS = ('SC1001_W_to_E_SC1002', 'SC1001_W_to_S_SC1003', 'SC1001_W_to_N_SC2002')
 TRANSPLANT = None
@@ -226,6 +231,16 @@ def patch_surrogate(module):
     module.Query.__init__ = hooked
 
 
+def patch_f17b(module):
+    """K9-1-0 (amendment 19 r2 section 2.3): an enabled FH transplant keeps the FD3 / FD8 E_W shares (sa_fh)."""
+    fh = SPEC.get('fh')
+    if fh and fh.get('enabled', True):
+        import sa_fh
+        if TRANSPLANT is None:
+            raise RuntimeError('FH: offramp_split_forecast imported before lane_plant_runtime (no transplant yet)')
+        sa_fh.neutralize_f17b(module, TRANSPLANT)
+
+
 def patch_lpr(module):
     global TRANSPLANT
     fh = SPEC.get('fh')
@@ -244,7 +259,8 @@ def patch_lpr(module):
 
 
 sys.meta_path.insert(0, Post({'evaluation.controllers.sdmpc_tangent_surrogate': patch_surrogate,
-                              'evaluation.controllers.lane_plant_runtime': patch_lpr}))
+                              'evaluation.controllers.lane_plant_runtime': patch_lpr,
+                              'evaluation.controllers.offramp_split_forecast': patch_f17b}))    # K9-1-0
 sys.argv = [ADAPTER] + ARGS
 code = 3
 try:

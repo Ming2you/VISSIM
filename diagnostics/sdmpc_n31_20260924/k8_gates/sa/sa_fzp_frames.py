@@ -2,14 +2,15 @@
 does not hold (opt1v2/x2_extract.py keeps 127/129/10777/10778/10491/10481/10490/10695, 32, and only the tails of 26 and
 2).
 
-    python -B sa_fzp_frames.py [--root R] [--out O] [--nc3 D] [--dry-run] <seed> [<seed> ...]
+    python -B sa_fzp_frames.py [--root R] [--out O] [--nc3 D] [--dry-run] [--grid T,...] <seed> [<seed> ...]
         -> <out>/sa/fzp/s<seed>_frames.parquet, s<seed>_frames.json (row counts, frame list, FZP size/mtime, sha256)
 
 Kept rows: LINK in the FW_W chain (26, 10771, 120), the FW_E chain (74, 10699, 2, 10613, 119, 10702, 24), the OR_D_W
 connectors 10479 / 10491 and the W_out links 31 / 124, at the frames
     every 5 s frame t = 5k + 0.1 with T - 155 < t <= T + 0.1          (FD3 exit-share window + its predecessor)
     t = T + 150 k + 0.1, k = 1..6                                      (FH VISSIM FW_W stock, W_out at T+150)
-for T in the FH grid (900 1200 1800 2250 2700 3000 3600 4200 4950).  Columns = x2_extract use_ext.
+for T in the FH grid (900 1200 1800 2250 2700 3000 3600 4200 4950; K9-1-0: --grid T,... replaces it, e.g. the
+probe-state FH capture of the K9-1-3 commit gate G3 at 1650).  Columns = x2_extract use_ext.
 Seeds: v3c3 NC fit seeds 31 41 43 47 53 only (sealed 37/59/61/67 and *_rm runs are never opened).
 K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2 sections 2.4.2 / 6 R3): the same FZP pass also writes
 <out>/sa/fzp/w_s<seed>.parquet = every frame of the W_out neighbourhood (rule of the P-4b extract, k8b_decl/p4b_extract.py
@@ -60,11 +61,12 @@ def main():
     ap = c.add_nc3(c.parser(__doc__))
     ap.add_argument('seeds', nargs='+', type=int)
     ap.add_argument('--dry-run', action='store_true', help='print inputs/outputs only (reads nothing big)')
+    ap.add_argument('--grid', help='K9-1-0: comma list of T replacing the FH grid GRID9')
     args = ap.parse_args()
     c.apply(args)
     for s in args.seeds:
         sc.guard_seed(s)
-    frames = frame_set()
+    frames = frame_set(tuple(int(x) for x in args.grid.split(',')) if args.grid else sc.GRID9)
     out_dir = sc.sa_out() / 'fzp'
     if args.dry_run:
         for s in args.seeds:

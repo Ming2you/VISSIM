@@ -178,6 +178,22 @@ SC1001 EB 안 1 v2(차로 FIFO 패킷, 모듈 SA)의 관문 G-EB-0…14와 FH �
 
 - 시험: `tests/test_k8b_harness.py`(합성 입력).
 
+## K9-1-0 (보충 19 r2 §4.1 K9-1-0 행, sha `4ccfd8fd…`; D-K9-1…6)
+
+| 무엇 | 어디 | 선언 |
+|---|---|---|
+| 판정 단계·가드 | `sa_common` K9-1 절: `K91_GATES_STAGE = 'k91t'` + 보충 19 sha만 판정 단계(`k91_stage_open`; 옛 `k8bt`는 어떤 계산도 열지 않음, `k8b_stage_open`도 같은 함수), `k91_guard`(키 = K8b 3 + K9 4 경로 `K9_KEY_PATHS` + 포착 메타 `GUARD_META_KEYS`), `k91_nonscalar`, 닫힌 허용 목록 `K91_ALLOW`(§0.4: G1 BASE DP 17·k86h SAF DP 17·BASE TL3 s31 9 포착, BASE TL3 s31 9 × {OBS, A1} H3 REF 스칼라, BASE full 2700 site; G2 TL3 s31 2700 k86h SAF 포착·OBS H3), 첫 판정 상태 사용을 `<out>/sa/k91_judging_stage.json`에 적음 | §0.4·§3.1-4·§5.4 r2 B-r1-1·2: 판정 상태에서 단계가 닫혀 있으면 키 있는 계산 거부, 목록에 있는 키 없는 계산만 허용, 그 밖(비스칼라 = 탄젠트·adfull·c11·tan·훅·full 전부 — 트리·키와 무관 — 와 목록 밖 스칼라)은 거부. `sa_capture.run_capture`·`run_full`, `sa_jobs.k8b_job_guard`가 자식 전에 부름 |
+| K9 키·팔 동일성 | `sa_common.k9_keys_of`·`k9_strip`·`guard_keys_of`, `sa_arms.py --k91` | §2.6: K91 팔 = K8b-4 팔(af2a7783 / f5189611) + K9 세 키(Z1-b면 `urban.latent_reservation_touch: true`), K9 경로를 지운 값 = K8b 팔 파일 |
+| 수동 기록기 | `sa_worker.py`: `blocks[k].k91`(SC2001 회랑 유입·출발·점유·추적·가지, W1 세 movement 큐·용량, Z1 접촉 수, 블록별 회랑 이전 가지별·W1 출발), `k91`(블록 0, 끝 Z1 접촉 수) | §4.1: 미니 탐침 기록기와 같은 필드. **summary.json에는 K9 키 런(포착 메타 `k9_*`)에서만** 들어가고 키 없는 런(BASE·K8b 팔·k86h 팔)은 K8b-5와 같은 잎 집합(G1·G2·G5가 같은 잎을 비교, 제외 없음). 모든 런이 `k91_record.json`(schema `k91-record/v1`)에도 씀 — 보고(R9–R14)·커밋 관문 기록용, 관문 비교에는 쓰지 않음 |
+| 포착 기록·FH | `sa_cap_child.py` metadata `k9_w1`·`k9_w2a`·`k9_f17b`·`k9_z1`(있을 때만); FH(이식 켬)에서 `sa_fh.neutralize_f17b`가 F17b 훅을 무효로(FD3·FD8 그대로, `transplant.f17b` 기록) | §2.0-7, §2.3 "FH는 FD3 유지" |
+| F17b 이력 창 | `sa_common.k91_history_copy`: F17b 키 포착 전 같은 시드 R-obs 결정의 `obs150/derived_<T′>.json`(T′ < T)을 리플레이 폴더에 바이트 복사(VISSIM 관측 계수만), `<out>/sa/k91_history_copies.json` | §2.3 하네스 이력 창(ROBS61) |
+| VISSIM 쪽 | `sa_vissim_ref.py` `seeds[S].k91`: 커넥터 10703·10119·10121·10698 첫 등장 150 s 창(W_out 추출), E_W 진출 off/elig 창(`k9/f17b_select.py`, 코드 루트에 있을 때) | §7 R9–R11 |
+| 보고·판정 처리 | `k8b_report.py --k91` → `gates/k91_report_<tree>.json`(R9–R14), `gates/k91_outcome.json`(`k91_outcome`: §6.1 분류 — 정합성 G-EB-0·1·2·8·9·13·14 + 11(c)(d)(e), 충실도 3·4·5·6·7 + 11(a)(b), 분류 안 된 것은 정합성 — 완결, §6.2 퇴행 막기 R-a/R-b/R-c와 유효성, §6.3 꼴) | §6·§7 |
+| 커밋 관문 도구 | `k8b_commit_gates.py k9units|k9build|g5k9|g6k9|g3k9|g4k9|g4ref|armid` (+ K8b `g1`·`g2`) → `D:/VISSIM-merge/k8b_commit_gates/<커밋>/gate_*.json` | §4.2: U·B(K91_VALUES 비트 같음)·G3·G4(동결 미니 탐침 같은 팔, A1 장기는 동결 탐침 트리로 `k91_g4ref/`)·G5(K8b-5 산출 읽기 전용, `/k91`만 한쪽 잎 허용)·G6(+ 직결 탐침 전체 상태 키 갈림 0) |
+| 기타 | `sa_fzp_frames.py --grid` (G3 FH 1650 틀) | §4.2 G3 K9-1-3 r2 B-r1-8 |
+
+- 시험: `tests/test_k91_harness.py`(합성 입력: §3.1-4 자체 시험 세 경우, full 2700 허용·4950 거부, 허용 목록, 비스칼라, 단계 표지, 팔 동일성, `k91_outcome`의 NaN·null·n ≠ 9·미분류 사례, 기록기 규칙, 이력 복사, G5 한쪽 잎 허용).
+
 ## 운영: INCOMPLETE 다시 돌리기 (보충 8 §3, 검토 N-r6-4)
 
 도구는 이미 있는 결과를 건너뜁니다(`sa_jobs.py`는 summary.json, `sa_capture.py full`은 run.json, 포착은 capture.json이 있으면 skip). 자동으로 치워지는 것은 입력 없음 summary(`set_aside_input_absent`)와 새 포착 시도 전의 capture_failed.json(`stale_capture_failed_<k>.json`)뿐입니다. 그 밖의 "다시 돌릴 대상"(INCOMPLETE)은 손으로 치운 뒤 **같은 잡을 같은 인자로** 다시 돌립니다.

@@ -36,7 +36,14 @@ K8b-0 (K8_PREDECLARATION_AMENDMENT_16 r2 sections 0.2 / 5.4): a capture or full 
 (urban.sc1002w_saturation, urban.stopline_approach.city_arrival, urban.wout_exit_law) on a judging state
 (sa_common.k8b_judging_state: GRID9 / DP_T of every seed, the long judged starts, every non-probe R-obs state of the
 judging seeds) is refused before any child starts unless --gates-stage k8bt --declaration-sha <amendment 16 sha> is
-given (the judging stage; its first use is logged to <out>/sa/k8b_judging_stage.json)."""
+given (the judging stage; its first use is logged to <out>/sa/k8b_judging_stage.json).
+K9-1-0 (K8_PREDECLARATION_AMENDMENT_19 r2 sections 0.4 / 3.1-4 / 5.4): the guard is sa_common.k91_guard -- K8b and K9
+keys (urban.sc1001_wout_saturation, urban.wout_side_handoff, freeway.offramp_split_forecast,
+urban.latent_reservation_touch) count, the judging stage is --gates-stage k91t --declaration-sha <amendment 19 sha>
+(k8bt opens nothing), every full decision is non-scalar, and before the stage a judging state opens only the
+section 0.4 closed list (G1 BASE DP 17 / k86h SAF DP 17 / BASE TL3 s31 9 captures, the BASE full 2700 site-chain
+decision, G2 TL3 s31 2700 k86h SAF capture); the first stage-open judging use is logged to
+<out>/sa/k91_judging_stage.json."""
 import json
 import os
 import sys
@@ -190,13 +197,17 @@ def run_capture(args, row, tuning):
     if (out / 'capture.json').is_file():
         print(f'SA_CAPTURE_SKIP exists {out}', flush=True)
         return
-    # K8b-0 blind guard (amendment 16 sections 0.2 / 5.4): the island seed and the template frame both count
-    sc.k8b_guard(tuning['path'], row.get('seed'), row['T'], args, f'capture {row["harness"]} {args.arm}')
+    # K9-1-0 blind guard (amendment 19 r2 sections 0.4 / 3.1-4 / 5.4): the island seed and the template frame count
+    sc.k91_guard(tuning['path'], row.get('seed'), row['T'], args, f'capture {row["harness"]} {args.arm}',
+                 op='capture', harness=row['harness'], arm=args.arm)
     if row['frame_T'] != row['T'] or row['harness'] == 'FH':
-        sc.k8b_guard(tuning['path'], sc.ROBS_SEED, row['frame_T'], args, f'capture frame {args.arm}')
+        sc.k91_guard(tuning['path'], sc.ROBS_SEED, row['frame_T'], args, f'capture frame {args.arm}',
+                     op='capture', harness=row['harness'], arm=args.arm)
     bad = replay_source_problem(replay) if rseed is not None else None
     if bad:
         raise SystemExit(f'{replay}: {bad} (amendment 13: a TL3 / ROBS61 state replays its own R-obs run)')
+    if 'freeway.offramp_split_forecast' in sc.guard_keys_of(sc._tuning_doc(tuning['path'], 'K91 history')):
+        sc.k91_history_copy(replay, c.DEC, row['frame_T'])     # K9-1-0: F17b window documents (section 2.3)
     out.mkdir(parents=True, exist_ok=True)
     stale = set_aside_failure(out)
     spec = {k: row.get(k) for k in ('harness', 'T', 'seed', 'frame_T')}
@@ -296,7 +307,8 @@ def run_full(args, row, tuning):
     if (out / 'run.json').is_file():
         print(f'SA_FULL_SKIP exists {out}', flush=True)
         return
-    sc.k8b_guard(tuning['path'], sc.ROBS_SEED, row['T'], args, f'full {args.arm}')     # K8b-0 blind guard
+    sc.k91_guard(tuning['path'], sc.ROBS_SEED, row['T'], args, f'full {args.arm}', op='full', harness='FULL',
+                 arm=args.arm, chain=args.chain + ('' if not args.tag else ':' + args.tag))      # K9-1-0 blind guard
     if not chain.is_file():
         raise SystemExit(f'chained site missing: {chain}')
     out.mkdir(parents=True, exist_ok=True)

@@ -377,6 +377,25 @@ class Transplant:
         return out
 
 
+def neutralize_f17b(module, transplant):
+    """K9-1-0 (K8_PREDECLARATION_AMENDMENT_19 r2 section 2.3 'FH는 FD3 유지'): wrap offramp_split_forecast.apply (the
+    F17b hook right before LaneFreewayRuntime, LPR:456) so that an enabled FH capture keeps the pre-F17b E_W shares:
+    the restore to k9_f17b.per_exit[o].c0 (the observation's share when the forecast was installed, i.e. after
+    substitute()) followed by FD3 (10491 / 10479 = the FZP [T-150, T] shares set by substitute) and FD8 (10638 /
+    10645 = the template values) leaves exactly the shares the observation already holds, so the wrapper applies
+    nothing.  It checks the exits like apply() and records transplant.f17b {neutralized, forecast_not_applied, kept}."""
+    def apply(observation, forecast):
+        ratio = observation['off_split_ratio']
+        for o in forecast:
+            if o not in ratio:
+                raise ValueError('freeway.offramp_split_forecast: exit %s absent from the observation' % o)
+        transplant.record['f17b'] = {'neutralized': True,
+                                     'forecast_not_applied': {str(o): float(s) for o, s in forecast.items()},
+                                     'kept': {str(o): float(ratio[o]) for o in forecast}}
+        return None
+    module.apply = apply
+
+
 def install(module, transplant):
     """Wrap lane_plant_runtime.observe_state (module attribute; configure_runtime looks it up at call time)."""
     original = module.observe_state
