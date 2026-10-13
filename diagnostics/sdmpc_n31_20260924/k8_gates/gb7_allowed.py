@@ -12,6 +12,7 @@
   R1  = K8 diff가 새로 쓰는 키(그 키 아래 전체).
   R2  = K8(K8b·K9 포함)이 바꾸는 양에 결정론적으로 기대는 기존 경로.
   R3  = 실행 출처(run provenance). FRZ_K8 루트에서 재생하므로 R-obs3 원본(FRZ_K7 루트)의 루트 경로 값도 여기 듭니다.
+        단, 기록된 상태·런 매니페스트에서 그대로 오는 경로 값은 루트가 바뀌어도 같으므로 넣지 않습니다(K8-0j2).
 - 원천 훑기: 브랜치 diff bd39205..dad555ba(K8-7 커밋까지) 전체의 추가 줄. 훑은 결과와 분류는
   REP8 `D:/VISSIM_runs/20261001_v3c3/reports/k8/A_K8_LIST.md`에 있습니다.
 - A_K8 항목은 "달라도 됨"이지 "달라야 함"이 아닙니다. 재생 출력을 본 뒤에는 이 목록에 더하지 않습니다.
@@ -109,9 +110,10 @@ A_K8 = (
                     r'strict_signal_program_py|tuning_json|watchdog_wrapper)/path',
      '실행 출처: 루트 아래 입력 파일 경로(원본 61결정에서 FRZ_K7 루트를 담은 inputs/*/path 15개)'),
     ('R3-06', 'R3', r'/metadata/(?:detector_mapping_resolved_path|native_phase_share_map_path)',
-     '실행 출처: 루트 아래 파일 경로(원본 61결정에서 FRZ_K7 루트를 담은 run_provenance 밖 값)'),
-    ('R3-07', 'R3', r'/metadata/shared_approach/demand_profile/path',
-     '실행 출처: 원본 61결정에서 FRZ_K7 루트를 담은 run_provenance 밖 값(기록된 상태에서 오는 값이라 같을 수 있음)'),
+     '실행 출처: 재생 루트에서 다시 푸는 파일 경로(run_provenance 밖; k91t 루트 결정에서 새 루트로 바뀜 확인)'),
+    # R3-07 `/metadata/shared_approach/demand_profile/path`는 K8-0j2에서 뺐습니다(VerifyPromote r1 결함 D1).
+    # 값은 기록된 런 매니페스트(run_provenance.manifest_path)의 demand_profile에서 그대로 와서 재생 루트와
+    # 무관합니다(shared_approach.py:69-82). id는 다시 매기지 않습니다.
     ('R3-08', 'R3', r'/metadata/joint_leader_selection/tangent_derivatives\[\d+\]/transformed_source_sha256' + _SUB,
      '실행 출처: 변환 원천 해시 키(K8-3 관문 보고 §7-2; SDMPC 결정에만 있음)'),
 )
