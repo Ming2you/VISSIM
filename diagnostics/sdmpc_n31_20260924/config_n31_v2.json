@@ -7934,6 +7934,45 @@
     "known_wout_route_evidence": {
       "path": "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json",
       "sha256": "a120dd7412c5eace23dbf50e7dc13face651622b64f35fd983dea97917d17e5f"
+    },
+    "stopline_approach": {
+      "schema": "stopline-approach/v2",
+      "evidence": {
+        "path": "diagnostics/sdmpc_n31_20260924/stopline/sc1001eb_evidence_v3c3_20261004.json",
+        "sha256": "05c821f64d2d50d4799d062c7b3e55ac2596b72cf6dd3026a4d52d716574305a"
+      },
+      "approaches": [
+        "SC1001_EB"
+      ],
+      "lane_model": "lane_fifo",
+      "storage": "observed_full",
+      "merge_rule": "zipper",
+      "city_admission": "unconditional",
+      "origin_tags": "report",
+      "city_arrival": {
+        "evidence": "diagnostics/sdmpc_n31_20260924/k8b/city_arrival_v3c3_20261007.json",
+        "evidence_sha256": "ef75c8e6c280c301abef9f2c4346a70bc8ae5e2e116c18a1f04976620a6884b8"
+      }
+    },
+    "sc1002w_saturation": {
+      "evidence": "diagnostics/sdmpc_n31_20260924/k8b/sc1002w_saturation_v3c3_20261007.json",
+      "evidence_sha256": "32e48781a80fd75b06b1f2741d7cc6f7732df93c5a4dc23041c92c9397319e1f"
+    },
+    "wout_exit_law": {
+      "SC1001_W_out": {
+        "law": "per_destination_class_v1",
+        "variant": "A",
+        "evidence": "diagnostics/sdmpc_n31_20260924/k8b/wout_exit_v3c3_20261007.json",
+        "evidence_sha256": "314b5c8e5c7e637e0decd7d74a5745ef1d036f002c3e0d2852b27ca460ee3dfa"
+      }
+    },
+    "sc1001_wout_saturation": {
+      "evidence": "diagnostics/sdmpc_n31_20260924/k9/sc1001wout_saturation_v3c3_20261009.json",
+      "evidence_sha256": "b64eadc4ca0361667b66605529f63f821ab77e524a5b18dbd0de46df2ac17a4b"
+    },
+    "wout_side_handoff": {
+      "evidence": "diagnostics/sdmpc_n31_20260924/k9/wout_side_handoff_v3c3_20261009.json",
+      "evidence_sha256": "4683484bf3f6ac7e9a6e5f669ed40d80d3337508151d2801c22b44c01f1e37a2"
     }
   },
   "_canonical": {
@@ -8103,7 +8142,11 @@
     "physical_integration_step_sec": 1,
     "geometry_profile": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/controller_response_s23_v1/geometry_profile.json",
     "lane_plant": "diagnostics/sdmpc_n31_20260924/plant_n31_v2.json",
-    "lane_initial_spillback_projection": true
+    "lane_initial_spillback_projection": true,
+    "offramp_split_forecast": {
+      "evidence": "diagnostics/sdmpc_n31_20260924/k9/offramp_split_forecast_v3c3_20261009.json",
+      "evidence_sha256": "48f7bfca705eb811607dd400fcbcf48a26d32a1e540d773c7e74adcf72dc4758"
+    }
   },
   "observation": {
     "physical_branch_projection": {

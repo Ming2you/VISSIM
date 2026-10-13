@@ -42,3 +42,27 @@
 - **M1 W 접근 대기 수준**: 장기 L1(s43 2400 H42)에서 VISSIM 127 차로 1+2는 6150 s까지 107–140대로 유지되는데 모형 SA는 3750 s 뒤 줄어 6150 s에 46.4대. 방류는 같고(블록당 약 57대) 3600 s 이후 모형 SA 유입이 적음(W 접근 합 6150 s 81.9 대 177, 차이는 주로 도시 W 쪽 링크 32). 그래서 모형 10491 포트는 L1 기간 1–2에서 한 번도 막히지 않음(VISSIM 역류 창 비율 0.200 / 0.172) — 모든 팔 공통, F17b와 무관.
 - **M2 10491 → 129 합류 간격**: VISSIM 10491 대기(느린 차 27–35대)는 127 차로 1이 관측 만차 아래일 때도 생김(10491이 129 차로 1 @239.38 m에 합류할 때의 간격 부족으로 보임). 모형 SA 포트 수용은 차로 여유 > 0이면 받음.
 - F14(커넥터 + 링크 26 차로 1 저장)는 이 과소 차단을 움직일 수 없어(커넥터 재고 최대 3.72대) K9-2로 철회(D-K9-6).
+
+## K8-7 승격 (2026-10-13) — **조건부 J1 (D-K8b-3 꼴, D-K9-1)**
+
+- 판정 결과: J1_GO, 꼴 조건부 J1(`K91_OUTCOME.md` sha256 `bdca1bdbcfb520bfb722109b72c90b0f8f883ef50d24bcae6a0f977b65472c87`). 떨어진 관문은 충실도 관문 둘(G-EB-3(a) MAE, G-EB-4 s31 3600)뿐이고, 정합성 관문 실패 0, 퇴행 막기 걸리지 않음.
+  - 판정 파일 `D:/VISSIM-merge/k8_gates_out_v4/sa/gates/gates_k91t.json` sha256 `4e59f61d6d1b18ad588e95eaf6f215f44f6c66c981921735073d91f1c6c59b9f`
+  - 처리 파일 `D:/VISSIM-merge/k8_gates_out_v4/sa/gates/k91_outcome.json` sha256 `4bcbe95e45d9c59ba618d4fcee30ee422dfa2f29e7baf803c0103de67bb63fce`
+  - 판정 코드 head `1617ab243e7cd595842b3cf52a356256d459ff3a`, 판정 단계 시작 2026-10-12 14:39:42
+- **승격 = 판정 팔 SAF-K91 바이트를 그대로 배포 설정으로.** `../config_n31_v2.json` ← `../config_n31_v2_stopline_observed_full_k91.json` 바이트 복사. 런타임 코드는 바꾸지 않았습니다.
+  - 승격 뒤 `config_n31_v2.json`: 블롭 `7b6411862a4769c2941097a5c9702830637c86ed`, sha256 `5f0d0e40a39e44b3c7601f23177afbad8c2eee23d4421626482f2244a86c3341` (= SAF-K91 팔 파일).
+  - 승격 전 BASE: 블롭 `132620aef90d2280d54e899cc7c0dffd21c3cf19`, sha256 `319d07aac77472d4318ddf6266003916cb7afab98da35a06254952e393542bb8` (1617ab24에서 `git show 1617ab24:diagnostics/sdmpc_n31_20260924/config_n31_v2.json`으로 되살릴 수 있음).
+  - BASE 대비 값 차이는 새 키 6경로뿐: `urban.stopline_approach`(SA, P-2 `city_arrival` 포함), `urban.sc1002w_saturation`(P-1), `urban.wout_exit_law`(P-4′/P-4b), `urban.sc1001_wout_saturation`(W1), `urban.wout_side_handoff`(W2-A), `freeway.offramp_split_forecast`(F17b). Z1-b 키 `urban.latent_reservation_touch`는 없음(Z1-a).
+  - 옛 키 없는 경로(1/14·signal 배수, 옛 회랑 세 가지)는 K8 선언 §1 K8-7 행대로 "키 하나로 끄는 정본"으로 남깁니다. 코드 격리는 판정한 코드와 달라지므로 J1 뒤로 미룹니다.
+- 커밋 전 확인(작업트리, `PYTHONHASHSEED=0`, `python -B`, BELOW_NORMAL):
+  - `make_config_n31.py --stopline-approach diagnostics/sdmpc_n31_20260924/stopline/sc1001eb_evidence_v3c3_20261004.json --stopline-storage observed_full --k91 --check` → `CONFIG_N31_STOPLINE_K91_OK … sha256=5f0d0e40…` (팔 파일 불변).
+  - `scripts/build_obs150_detectors.py --tuning diagnostics/sdmpc_n31_20260924/config_n31_v2.json --check` → `OBS150_DETECTORS_OK rows=294 sha256=108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc`.
+  - `git diff --stat 1617ab24 -- evaluation vendor` → 0줄.
+- **J1 단서 머리**: `J1_CAVEAT.md`(이 폴더). `K91_OUTCOME.md` §7 고정 문장 순서 그대로 + D-K9-9 다섯 줄·D-K9-10 한 줄·벽시계 한 줄. 발사 코드 head는 동결 전이라 트리 안에 못 쓰므로 `…/scratchpad/k8/j1/FREEZE_PUSH.md`와 REP8 `D:/VISSIM_runs/20261001_v3c3/reports/k8/`에 적습니다.
+- **사용자 확인 기록 위치**: `C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/K9_1_USER_DECISIONS_20261010.md` (sha256 `3edab3e7fae182830c2a404d8fc479aea17edaf5a34e92ff79f2f39a830cb9c8`), 2026-10-13 행 D-K9-7(경보 R1·R2·R3(c)·R4·R11과 3(b) 분해 확인, 진행 승인), D-K9-9(355 대조 뒤 J1 재개 + J1 뒤 K9-2), D-K9-10(1099 수요 = v3c3 v2 FW80, 망 변경 없음).
+- 다음(이 커밋 밖): A_K8 닫힌 목록 도구 커밋(보충 1 §D P10·§E) → 푸시 → FRZ_K8 → 오프라인 관문 GB-7′·해시 A/B·GB-9′ → J1 v3c3-s31·s41, 그다음 v3c3-s43.
+
+### 열린 항목 (이 커밋에서 고치지 않음)
+
+- **판정 하네스의 BASE sha 고정**: `k8_gates/sa/sa_arms.py`(:17, :26 BASE sha256 = 319d07aa 조건), `k8_gates/sa/sa_common.py`(:926 `K8B_BASE_SHA256`, :1187), `k8_gates/sa/tests/test_k91_harness.py`(:24 `BASE = config_n31_v2.json  # 319d07aa`)가 승격 전 BASE sha `319d07aa…`를 박아 두었습니다. 승격 뒤 `config_n31_v2.json`은 그 sha가 아니므로, 다음 재판정(K9-2)에는 승격 전 BASE의 바이트 사본과 하네스 수정이 필요합니다. J1과는 무관해 그대로 둡니다.
+- `make_config_n31.py`의 기본 모드(`--check`만, 팔 인자 없음)는 `scenario/config_n31_v2.base.json`에서 키 없는 설정을 만들어 `config_n31_v2.json`과 바이트 비교합니다(`make_config_n31.py:690-695`). 승격 뒤에는 이 비교가 "differs from its generator"로 떨어질 것으로 봅니다(코드 읽기, 돌려 보지 않음). 승격 모드를 도구에 더할지는 K9-2 때 정합니다.
