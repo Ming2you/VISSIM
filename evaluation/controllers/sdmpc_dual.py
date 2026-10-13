@@ -224,12 +224,18 @@ class Dual:
         if self._constant(other, 1.):
             return self
         denominator = primal(other)
-        return self._combine(other, self.value / denominator, 1.0 / denominator,
-                             -self.value / denominator**2)
+        value = self.value / denominator
+        square = denominator**2
+        # A positive cohort can be smaller than sqrt(min_float). Its share
+        # and derivative may still be representable when the square is not.
+        return self._combine(other, value, 1.0 / denominator,
+                             -self.value / square if square else -value / denominator)
 
     def __rtruediv__(self, other):
-        return self._combine(other, primal(other) / self.value,
-                             -primal(other) / self.value**2, 1.0 / self.value)
+        value = primal(other) / self.value
+        square = self.value**2
+        return self._combine(other, value,
+                             -primal(other) / square if square else -value / self.value, 1.0 / self.value)
 
     def __pow__(self, other):
         if isinstance(other, Dual):

@@ -14,7 +14,10 @@ from evaluation.controllers import sdmpc_tangent_reverse as ad
 
 
 class Registry:
-    def __init__(self, endpoints):
+    def __init__(self, endpoints, *, region=None):
+        if region not in (None, 'freeway_only', 'urban_only'):
+            raise ValueError('Unknown state constraint region')
+        self.region = region
         self.endpoints = set(endpoints)
         self.rows = {}
         self.visited = set()
@@ -27,6 +30,8 @@ class Registry:
         self.rows[name] = value
 
     def bound(self, ledger, kind, resource, value, upper):
+        if self.region == 'freeway_only':
+            raise ValueError('Urban state bound entered the freeway registry')
         stamp = ledger._response_stamp()
         end = stamp['end_sec']
         if end not in self.endpoints:
@@ -36,11 +41,26 @@ class Registry:
         self.add(name + '/lower', -value)
         self.add(name + '/upper', value - upper)
 
-    def finish(self, states, cfg):
-        if {float(s.time_sec) for s in states} != self.endpoints or self.visited != self.endpoints:
+    def finish(self, states, cfg, *, coverage=None):
+        required_visits = set() if self.region == 'freeway_only' else self.endpoints
+        if {float(s.time_sec) for s in states} != self.endpoints or self.visited != required_visits:
             raise ValueError('Missing horizon-end state bound coverage')
+        if self.region:
+            if (not coverage or coverage.get('schema') != 'regional-model-constraint-coverage/v1'
+                    or coverage.get('region') != self.region or coverage.get('complete') is not True
+                    or coverage.get('conditional_model_feasibility_witness') is not True
+                    or coverage.get('expected_visits', 0) <= 0
+                    or coverage['expected_visits'] != coverage.get('completed_visits')
+                    or coverage.get('missing_constraints') != []
+                    or any(getattr(s, 'regional_boundary', {}).get('mode') != self.region for s in states)):
+                raise ValueError('Regional state registry requires complete own allocator coverage')
         fields = ('ramp_queue', 'urban_movement_queue', 'mainline_origin_queue',
                   'freeway_density', 'freeway_buffer_up_density', 'freeway_buffer_down_density')
+        if self.region == 'freeway_only':
+            fields = ('ramp_queue', 'mainline_origin_queue', 'freeway_density',
+                      'freeway_buffer_up_density', 'freeway_buffer_down_density')
+        elif self.region == 'urban_only':
+            fields = ('urban_movement_queue',)
         for state in states:
             prefix = f'physical/{float(state.time_sec):g}'
             for field in fields:
@@ -48,12 +68,13 @@ class Registry:
                     seq = values if isinstance(values, (list, tuple)) else [values]
                     for j, value in enumerate(seq):
                         self.add(f'{prefix}/{field}/{key}/{j}/lower', -value)
-            for key, cap in sorted(cfg.network.urban_link_storage_veh.items()):
+            storage = {} if self.region == 'freeway_only' else cfg.network.urban_link_storage_veh
+            for key, cap in sorted(storage.items()):
                 value = state.urban_link_storage.get(key, cap)
                 self.add(f'{prefix}/storage/{key}/lower', -value)
                 self.add(f'{prefix}/storage/{key}/upper', value-cap)
             lane = getattr(state, 'lane_freeway_runtime', None)
-            if lane is not None:
+            if lane is not None and self.region != 'urban_only':
                 for road, plant in sorted(lane.lanes.items()):
                     for i, groups in enumerate(plant.n):
                         for j, value in enumerate(groups):
@@ -63,9 +84,9 @@ class Registry:
         return names, values
 
 
-def install(finder, endpoints):
+def install(finder, endpoints, *, region=None):
     from evaluation.controllers.control_area_objective import ModelAreaLedger
-    registry = Registry(endpoints)
+    registry = Registry(endpoints, region=region)
     original = ModelAreaLedger.record_state_upper_bound
 
     def record(ledger, kind, resource, value_veh, upper_veh):

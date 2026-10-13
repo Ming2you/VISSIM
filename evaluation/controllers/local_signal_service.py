@@ -70,6 +70,8 @@ def configure(cfg, tuning):
                               'phase': phase, 'receiver': receiver, 'service_veh_h': rate}}}
     from evaluation.controllers.head_service_resources import extend_local_pool
     extend_local_pool(cfg)
+    from evaluation.controllers import regular_alias_service
+    regular_alias_service.extend_local_pool(cfg)
     return {**install(cfg), 'local_shared_service_pool_groups': float(len(view(cfg)['groups'])),
             'local_shared_service_pool_phase_refinement': 1.}
 
@@ -120,18 +122,51 @@ def limit_batch(requests, group_of, limits, used, rule):
     return result
 
 
+def receiver_of(group, movement):
+    return group['receivers'][movement] if 'receivers' in group else group['receiver']
+
+
+def limit_multi_receiver_heads(by_receiver, without_receiver, ready, groups, limits, used):
+    """Reserve one shared-lane budget before allocating different receivers.
+
+    Queue proportions determine the head shares. A downstream rejection does
+    not donate that share to another turn in this substep (partial FIFO).
+    Existing single-receiver groups keep their original allocation unchanged.
+    """
+    multi={k:g for k,g in groups.items() if 'receivers' in g}
+    if not multi:return by_receiver,without_receiver
+    requests={m:v for rows in by_receiver.values() for m,v in rows.items()}
+    if set(requests)&set(without_receiver):raise ValueError('Duplicate physical head request')
+    requests.update(without_receiver)
+    changed={}
+    for key,group in multi.items():
+        members=group['members']
+        if not set(members).issubset(requests):raise ValueError('Missing shared-lane request')
+        stock={m:_nonnegative(ready.get(m,0.)) for m in members}
+        remaining=max(0.,limits[key]-used.get(key,0.))
+        shares=_allocate_receiving_counts('proportional',stock,remaining)
+        for m in members:changed[m]=min(requests[m],shares[m])
+    return ({r:{m:changed.get(m,v) for m,v in rows.items()} for r,rows in by_receiver.items()},
+            {m:changed.get(m,v) for m,v in without_receiver.items()})
+
+
 def _model_view(model):
     spec = view(model.cfg)
     if not spec or not any(m in spec['group_of'] for m in model.movements):
         return None
-    for group in spec['groups'].values():
-        if not set(group['members']).issubset(model.movements) or model.signal != group['signal'] or not model.has_ramps:
+    groups = {k: g for k, g in spec['groups'].items()
+              if any(m in model.movements for m in g['members'])}
+    for group in groups.values():
+        if not set(group['members']).issubset(model.movements) or model.signal != group['signal']:
             raise ValueError('Local signal model does not contain the complete physical pool')
+        if 'receivers' in group and set(group['receivers'])!=set(group['members']):
+            raise ValueError('Incomplete shared-lane receiver contract')
         for m in group['members']:
-            if (model.receiving_of[m] != group['receiver'] or model.cap_flow_of[m] != group['service_veh_h']
+            if (model.receiving_of[m] != receiver_of(group,m) or model.cap_flow_of[m] != group['service_veh_h']
                     or model.phase_of[m] != group['phase'].rsplit('_', 1)[-1]):
                 raise ValueError('Stale local physical service cache')
-    return spec
+    return {**spec, 'groups': groups,
+            'group_of': {m:k for m,k in spec['group_of'].items() if k in groups}}
 
 
 @dataclass(frozen=True)
@@ -291,12 +326,82 @@ def install(cfg):
             return rollout_shared_ramp(model, *args, **kwargs)
         rollout._shared_local_service_pool = True
         module.rollout_local_tts_ramp_aware = rollout
+    for module in (local_signal_plant, wu_faithful_follower):
+        for name, implementation in (('rollout_local_tts_phased', rollout_shared_plain),
+                                     ('rollout_local_tts', rollout_shared_average)):
+            original = getattr(module, name)
+            if getattr(original, '_shared_plain_service_pool', False):
+                continue
+            @functools.wraps(original)
+            def plain(model, *args, _original=original, _implementation=implementation, **kwargs):
+                if _model_view(model) is None:
+                    return _original(model, *args, **kwargs)
+                return _implementation(model, *args, **kwargs)
+            plain._shared_plain_service_pool = True
+            setattr(module, name, plain)
     install_ready_callers()
     install_refinement(cfg)
     return {'local_shared_service_pool_installed': 1., 'local_shared_service_pool_phase_refinement': 1.,
             'local_shared_service_pool_ready_transit': 1., 'local_shared_service_pool_frozen_group_signal_split': 1.,
             'local_shared_service_pool_scoped_phased_green': 1.}
 
+
+def rollout_shared_plain(model, q0, arr_by_substep, gf_by_substep, s_eff0,
+                         substeps, dt_h, s_eff_by_substep=None):
+    """The ordinary local queue model with the same physical pool as the plant."""
+    spec = _model_view(model)
+    if spec is None or model.has_ramps:
+        raise ValueError('Ordinary shared service requires its own non-ramp model')
+    groups, group_of = spec['groups'], spec['group_of']
+    pooled = {receiver_of(g,m) for g in groups.values() for m in g['members']}
+    if not pooled.issubset(s_eff0):
+        raise ValueError('Shared physical service requires its receiving-space operand')
+    q = {m: max(0., float(q0.get(m, 0.))) for m in model.movements}
+    own = {model.origin_of[m] for m in model.movements if model.origin_of[m]}
+    space = {k:max(0.,float(v)) for k,v in s_eff0.items()}
+    for m in model.movements:
+        if len(gf_by_substep[m]) != substeps:
+            raise ValueError('Missing or stale physical green profile')
+        if arr_by_substep.get(m) is not None and len(arr_by_substep[m]) != substeps:
+            raise ValueError('Missing or stale arrival profile')
+    cost = 0.
+    for sub in range(substeps):
+        if s_eff_by_substep is not None:
+            for link,profile in s_eff_by_substep.items():
+                if link in space:space[link]=max(0.,float(profile[sub]))
+        for m in model.movements:
+            profile=arr_by_substep.get(m)
+            if profile:q[m]+=profile[sub]*dt_h
+        limits,used = {},{}
+        for key,row in groups.items():
+            for m in row['members']:
+                register_limit(limits,key,row['service_veh_h'],dt_h,gf_by_substep[m][sub])
+        requests={};actual={}
+        for m in model.movements:
+            intended=max(0.,min(q[m],dt_h*gf_by_substep[m][sub]*model.cap_flow_of[m]))
+            receiver=model.receiving_of[m]
+            if receiver and receiver in space:requests.setdefault(receiver,{})[m]=intended
+            else:actual[m]=intended
+        requests,actual=limit_multi_receiver_heads(requests,actual,q,groups,limits,used)
+        for receiver,intended in requests.items():
+            limited=limit_batch(intended,group_of,limits,used,model.receiving_space_rule)
+            actual.update(_allocate_receiving_counts(model.receiving_space_rule,limited,space[receiver]))
+        for m in model.movements:
+            departed=min(q[m],max(0.,actual.get(m,0.)))
+            q[m]-=departed
+            if m in group_of:accepted(departed,group_of[m],limits,used)
+            receiver=model.receiving_of[m]
+            if receiver in own and receiver in space:space[receiver]=max(0.,space[receiver]-departed)
+        cost+=sum(q.values())*dt_h
+    return float(cost)
+
+
+def rollout_shared_average(model, q0, arr_movement, s_eff0, greens, substeps,
+                           dt_h, s_eff_by_substep=None):
+    cycle=max(model.cfg.network.cycle_length,1e-9)
+    arrivals={m:[arr_movement.get(m,0.)]*substeps for m in model.movements}
+    profiles={m:[float(greens.get(model.phase_of[m],0.))/cycle]*substeps for m in model.movements}
+    return rollout_shared_plain(model,q0,arrivals,profiles,s_eff0,substeps,dt_h,s_eff_by_substep)
 
 def rollout_shared_ramp(
     model,
@@ -333,7 +438,7 @@ def rollout_shared_ramp(
         for value in profile:
             if _nonnegative(value) > 1.:
                 raise ValueError('Physical green fraction exceeds one')
-    pooled_receivers = {g['receiver'] for g in groups.values()}
+    pooled_receivers = {receiver_of(g,m) for g in groups.values() for m in g['members']}
     if not pooled_receivers.issubset(s_eff0):
         raise ValueError('Shared physical service requires its receiving-space operand')
     net = model.cfg.network
@@ -455,6 +560,8 @@ def rollout_shared_ramp(
                 intended_by_link.setdefault(recv, {})[m] = intended
             else:
                 no_link_intended[m] = intended
+        intended_by_link,no_link_intended=limit_multi_receiver_heads(
+            intended_by_link,no_link_intended,q,groups,limits,used)
         actual: Dict[str, float] = dict(no_link_intended)
         for link, intended in intended_by_link.items():
             intended = limit_batch(intended, group_of, limits, used, model.receiving_space_rule)

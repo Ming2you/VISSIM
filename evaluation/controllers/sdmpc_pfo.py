@@ -50,7 +50,9 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
         iterations.append(dict(iteration=iteration,action_token=token(action)))
         proposal = np.zeros(len(z))
         for owner in coord.owners:
-            ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner])
+            ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner], dtype=int)
+            if not len(ix):
+                continue  # Cost ownership remains in the complete Omega partition.
             own = G[owners.index(owner),ix]
             step, qr = qp(z,np.zeros(len(ix)),own,policy['proximal'],ix)
             local_rows.append(dict(iteration=iteration,owner=owner,own_gradient=own.tolist(),
@@ -69,8 +71,8 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
                 trials.append(candidate)
         if not trials:
             status = 'no_executable_step'; break
-        # Also retain the final PFO Jacobian for the first SDMPC iteration.
-        values = evaluate(trials,derivatives=True)
+        # Score every trial; lazy mode differentiates accepted iterates only.
+        values = evaluate(trials,derivatives=not policy.get('lazy_trial_derivatives'))
         winners = []
         for a,value in zip(trials,values):
             ok = model_feasible(value,options['shared_tolerance'])
@@ -86,6 +88,11 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
         emit('sdmpc_pfo_step_accepted',iteration=iteration,owned_cost=merit(item),omega_cost=item['objective_veh_h'])
     if best is None:
         raise ValueError('PFO has no model-feasible executable warm start')
+    if policy.get('lazy_trial_derivatives'):
+        # Budget initialization uses the same AD primal as its warm binding.
+        # Query checks the previous scalar response before publishing this AD.
+        derivative(best[0])
+        best = (best[0], evaluate([best[0]])[0])
     coord.validate(best[0])
     metadata = dict(algorithm='unpriced-own-proxlinear-pfo/v1',max_iterations=cap,
         executed_iterations=len(iterations),accepted_iterations=accepted,converged=False,status=status,
@@ -94,7 +101,7 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
         selected_owned_objective=merit(best[1]),prices_used=False,budget_constraints_used=False,
         additional_native_runs=0,seconds=time.perf_counter()-started,
         sensitivity_policy='Updated at each accepted PFO iterate; final prediction/Jacobian reused by SDMPC',
-        line_search_merit='sum of 19 owned costs; passive-area cost excluded')
+        line_search_merit=f'sum of {len(coord.owners)} owned costs; passive-area cost excluded')
     emit('sdmpc_pfo_done',max_iterations=cap,executed_iterations=len(iterations),
         accepted_iterations=accepted,converged=False,seconds=metadata['seconds'])
     return (*best,metadata,initial)

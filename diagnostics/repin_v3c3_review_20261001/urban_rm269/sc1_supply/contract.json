@@ -1,0 +1,41 @@
+{
+  "schema": "regular-alias-head-pool/v1",
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "group": "1220006903:10025:p1",
+  "source_link": "1220006903",
+  "connector": "10025",
+  "target_link": "1220008501",
+  "signal": "SC1",
+  "phase": "SC1_p1",
+  "heads": [
+    "10801",
+    "10802",
+    "10803"
+  ],
+  "head_lanes": [
+    2,
+    3,
+    4
+  ],
+  "members": {
+    "SC1_S_SC107_to_N_SC101": {
+      "kind": "internal",
+      "signal": "SC1",
+      "phase": "SC1_p1",
+      "origin": "SC107_to_SC1",
+      "receiving_link": "SC1_to_SC101"
+    },
+    "SC1_S_to_N_SC101": {
+      "kind": "boundary_in",
+      "signal": "SC1",
+      "phase": "SC1_p1",
+      "origin": "in_SC1_S",
+      "receiving_link": "SC1_to_SC101"
+    }
+  },
+  "service_envelope": "sum_inherited_movement_rates",
+  "excluded_lane_note": "Lane5 is shared with10571 underSG3; do not add its capacity to the SG8 service group."
+}

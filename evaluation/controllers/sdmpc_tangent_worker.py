@@ -195,13 +195,20 @@ def run(request, finder, progress):
     if cfg.network.sdmpc_options.get('prediction_hotpath'):
         from evaluation.controllers.sdmpc_tangent_summary import install as install_summary
         install_summary(finder,cfg,surrogate_mode=surrogate_mode)
+    stock_geometry_stats = None
+    if (cfg.network.sdmpc_options.get('stock_geometry_hotpath')
+            or cfg.network.sdmpc_options.get('receiving_geometry_cache')):
+        from evaluation.controllers.sdmpc_stock_geometry import install as install_stock_geometry, STATS
+        install_stock_geometry(finder,cfg,surrogate_mode=surrogate_mode)
+        stock_geometry_stats = STATS
     central_registry = None
     if cfg.network.sdmpc_options.get('central_multiplier'):
         if surrogate_mode not in ('ad', 'scalar'):
             raise ValueError('Central state sensitivities require the continuous candidate model')
         from evaluation.controllers import sdmpc_tangent_constraints
         central_registry = sdmpc_tangent_constraints.install(finder,
-            [state.time_sec+(k+1)*cfg.simulation.T_c_sec for k in range(request['horizon'])])
+            [state.time_sec+(k+1)*cfg.simulation.T_c_sec for k in range(request['horizon'])],
+            region=cfg.network.sdmpc_options.get('regional_prediction_prototype'))
     fifo_stats = None
     if cfg.network.sdmpc_options.get('persistent_urban_fifo') or cfg.network.sdmpc_options.get('array_urban_pipeline'):
         from evaluation.controllers import sdmpc_tangent_fifo,sdmpc_tangent_transport,sdmpc_tangent_spatial
@@ -234,6 +241,11 @@ def run(request, finder, progress):
     surrogate_prediction = None
     central_names, central_values = None, None
     surrogate_context = request.get('surrogate_context_sha256', hashlib.sha256(frozen).hexdigest())
+    regional = cfg.network.sdmpc_options.get('regional_prediction_prototype')
+    if regional:
+        if (regional not in ('freeway_only','urban_only')
+                or getattr(state,'regional_boundary',{}).get('mode') != regional):
+            raise ValueError('Regional prototype requires a matching cut state')
 
     def predict(action):
         nonlocal surrogate_prediction, central_names, central_values
@@ -243,31 +255,54 @@ def run(request, finder, progress):
         for name, value in runtime.items():
             setattr(adapter, name, value)
         plan_scope = nullcontext()
-        if 'sdmpc_prediction_sequence' in action.diagnostics:
+        if 'sdmpc_prediction_sequence' in action.diagnostics and not regional:
             from evaluation.controllers.sdmpc_sequence import prediction_scope
             plan_scope = prediction_scope(action, cfg, state.time_sec, request['horizon'])
         with joint.shared_query_runtime_scope(), joint.shared_response_gc_scope(True), plan_scope:
-            point = rollout_endpoint.evaluate_price_point(state, action, forecast, (),
-                rollout_endpoint.ObjectiveSpec(cfg, depth_override=request['horizon'],
-                    box_walk=False, score_mode='raw'), capture_response=True)
+            if regional:
+                from evaluation.controllers import sdmpc_regional_prototype
+                point = sdmpc_regional_prototype.predict(state,cfg,forecast,action)
+            else:
+                point = rollout_endpoint.evaluate_price_point(state, action, forecast, (),
+                    rollout_endpoint.ObjectiveSpec(cfg, depth_override=request['horizon'],
+                        box_walk=False, score_mode='raw'), capture_response=True)
             if point.aborted or len(point.states) != request['horizon']:
                 raise ValueError('Incomplete tangent response')
             local, partition = omega_costs(point, cfg)
-            q = constraints.shared_urban_quantities(follower, point.control_area_response,
-                start_sec=state.time_sec, horizon_steps=request['horizon'])
-            resource = constraints.shared_quantity_constraints(follower, action, q,
-                start_sec=state.time_sec, horizon_steps=request['horizon'],
-                np_mode='cap', target_np_veh=action.N_P_star, np_tolerance_veh=0.,
-                nuf_mode='equality', target_nuf_veh_h=action.N_UF_star, nuf_tolerance_veh_h=0.)
+            if regional:
+                q = sdmpc_regional_prototype.quantities(point,state,cfg)
+                resource = dict(np=dict(actual=q['np_actual']),nuf=dict(actual=q['nuf_actual']))
+            else:
+                q = constraints.shared_urban_quantities(follower, point.control_area_response,
+                    start_sec=state.time_sec, horizon_steps=request['horizon'])
+                resource = constraints.shared_quantity_constraints(follower, action, q,
+                    start_sec=state.time_sec, horizon_steps=request['horizon'],
+                    np_mode='cap', target_np_veh=action.N_P_star, np_tolerance_veh=0.,
+                    nuf_mode='equality', target_nuf_veh_h=action.N_UF_star, nuf_tolerance_veh_h=0.)
         if surrogate_mode:
             surrogate_prediction = sdmpc_tangent_surrogate.prediction(point, state, request['action'],
                 local, partition, q, surrogate_context)
+            if request.get('diagnostic_stock_costs'):
+                # Read-only decomposition of the very same candidate ledger.
+                # The offline verifier requests it; normal decisions omit it.
+                stock_costs = {}
+                for row in point.control_area_response['residence']:
+                    for stock, count in row['inside_veh'].items():
+                        stock_costs[stock] = stock_costs.get(stock, 0.) + float(row['dt_h'])*float(count)
+                if abs(sum(stock_costs.values())-float(point.control_area['ttt_veh_h'])) > 1e-7:
+                    raise ValueError('Diagnostic stock costs differ from Omega TTT')
+                surrogate_prediction.pop('response_token')
+                surrogate_prediction['diagnostic_stock_costs_veh_h'] = stock_costs
+                surrogate_prediction['response_token'] = sdmpc_tangent_surrogate.token(surrogate_prediction)
         if central_registry is not None:
-            central_names, central_values = central_registry.finish(point.states, cfg)
+            central_names, central_values = central_registry.finish(point.states, cfg,
+                coverage=point.control_area_response.get('model_constraint_coverage'))
             surrogate_prediction.pop('response_token')
             surrogate_prediction['central_physical'] = dict(names=central_names,
                 values=[ad.primal(v) for v in central_values],
-                scope='Horizon-end queue/density/storage/lane inventory and recorded urban state bounds; all original stepwise dynamic audits retained')
+                scope=('Own-region horizon-end physical states and original own allocator checks; no remote stock rows'
+                    if regional else 'Horizon-end queue/density/storage/lane inventory and recorded urban state bounds; all original stepwise dynamic audits retained'),
+                **(dict(region=regional) if regional else {}))
             surrogate_prediction['response_token'] = sdmpc_tangent_surrogate.token(surrogate_prediction)
         costs = [partition['costs'][owner] for owner in request['costs_order']]
         return point, costs, [resource['np']['actual'], resource['nuf']['actual']]
@@ -317,6 +352,7 @@ def run(request, finder, progress):
         return dict(costs=costs, resources=resources, scalar_sec=scalar_sec,
             scalar_rollouts=1, tangent_rollouts=0, primal_audit_performed=False,
             surrogate_prediction=surrogate_prediction, surrogate_evaluation=surrogate_mode,
+            **({'stock_geometry_hotpath':dict(stock_geometry_stats)} if stock_geometry_stats is not None else {}),
             transformed_source_sha256=finder.source_hashes)
     if request.get('scalar_output'):
         started = time.perf_counter()
@@ -476,6 +512,7 @@ def run(request, finder, progress):
     def jac(values):
         return [[ad.derivative(v).get(j, 0.) for j in columns] for v in values]
     return dict(costs=costs, resources=resources,
+        **({'stock_geometry_hotpath':dict(stock_geometry_stats)} if stock_geometry_stats is not None else {}),
         cost_jacobian=jacobian[:len(costs)].tolist() if reverse else jac(dual_costs),
         resource_jacobian=jacobian[len(costs):].tolist() if reverse else jac(dual_resources), fallback_reasons=fallback,
         active_axes=active, ad_axes=[j for j in active if j not in fallback],

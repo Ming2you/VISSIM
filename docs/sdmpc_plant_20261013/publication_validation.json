@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "source_files_verified": 1530,
+  "five_configs_parameter_check": "PASS; existing calibration-vs-explicit-override warnings retained",
+  "regression": {
+    "passed": 264,
+    "subtests_passed": 42,
+    "wall_seconds": 23.33,
+    "modules": "24 targeted modules covering receiving, urban/freeway multirate conservation, aggregate transport, storage guards, cap reuse, RM search, control hold and regional own-information contracts",
+    "log": "regression.log"
+  },
+  "source_manifest_sha256": "01af1716faa06c9b1a63544516aa713c83ccfd3bc64b3191ac328c7b18e0db02",
+  "initial_environment_attempt": "Python did not see pytest until existing .review-deps/sdmpc was supplied as PYTHONPATH; no code or installed package changes.",
+  "native_launches": 0,
+  "full_optimizer_selections": 0,
+  "runtime_source_mutations": 0,
+  "cross_host_checkout": {
+    "passed": true,
+    "verified_index_export_files": 1530,
+    "note": "Fresh git checkout-index export reproduced every manifest SHA256 using explicit per-file line-ending rules."
+  },
+  "changed_python_syntax": "PASS",
+  "vendor_changes": 0,
+  "diff_check": {
+    "exit_code": 2,
+    "warning_lines": 44,
+    "note": "Preserved source/evidence whitespace is not reformatted so original byte pins remain valid. See preserved_source_whitespace.log. Python syntax, targeted tests and checkout byte verification passed."
+  }
+}

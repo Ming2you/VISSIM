@@ -145,7 +145,8 @@ class LaneUrbanRuntime:
             raise ValueError('Local upstream destinations do not conserve population')
         distance=self.entry_paths[entry] if distance_m is None else distance_m
         speed=self.port.urban.speed*3.6 if speed_kmh is None else speed_kmh
-        due=int(step)+max(1,math.ceil(distance/(max(speed,1e-9)/3.6)))
+        travel_sec=distance/(max(speed,1e-9)/3.6)
+        due=int(step)+max(1,math.ceil(travel_sec/cfg.simulation.T_u_sec))
         for movement,fraction in shares.items():
             if movement is None and (entry=='city' or not self.port.urban.continuation):
                 raise ValueError('Unrouted continuation requires the reviewed126 entry')
@@ -214,18 +215,40 @@ class LaneUrbanRuntime:
         state.urban_link_storage[self.off_storage]=_debit_stock(cfg.network.urban_link_storage_veh[self.off_storage],sum(p.stock for p in self.port.lanes))
 
     def advance(self,state,control,cfg,step):
+        from evaluation.controllers.control_area_objective import get_ledger
+        duration=cfg.simulation.T_u_sec
+        if (duration not in (1,10) or step!=self.last_step+1
+                or step*duration!=self.port.urban.time):
+            raise ValueError('Noncontiguous coupled local urban step')
+        if duration==10 and getattr(cfg.network,'multirate_urban_clock_sec',None)!=10:
+            raise ValueError('Local10s exchange needs explicit urban clock preparation')
+        signal_cfg=cfg
+        if duration==10:
+            signal_cfg=copy.copy(cfg);signal_cfg.simulation=copy.copy(cfg.simulation)
+            signal_cfg.simulation.T_u=1
+        departed=0.
+        for offset in range(int(duration)):
+            row=self._advance_physical(state,control,cfg,step*duration+offset,
+                service_step=step,arrival_step=step+1 if duration==10 else step,
+                signal_cfg=signal_cfg)
+            departed+=row['lane_urban_exit_veh']
+        ledger=get_ledger(state)
+        if ledger is not None and ledger.captures_response:
+            ledger.complete_constraint_coverage('lane_urban_allocator')
+        self.last_step=step
+        return {**row,'lane_urban_exit_veh':departed}
+
+    def _advance_physical(self,state,control,cfg,step,*,service_step,arrival_step,signal_cfg):
         from src.models import urban_queue_model as uqm
         from evaluation.controllers.control_area_objective import emit_transfer,get_ledger
         from evaluation.controllers.urban_flow_accounting import _receive_corridor
-        if step != self.last_step+1 or step != self.port.urban.time:
-            raise ValueError('Noncontiguous coupled local urban step')
         self.assert_pending(state)
         ledger=get_ledger(state)
         capture=ledger is not None and ledger.captures_response
         urban=self.port.urban
         if not isinstance(urban.program,CandidateSignalProgram):
             raise ValueError('Coupled urban transport must use the applied candidate signal clock')
-        urban.program.control,urban.program.cfg=control,cfg
+        urban.program.control,urban.program.cfg=control,signal_cfg
         external={}
         source_keys={}
         for (m,road,lane),queue in self.pending.items():
@@ -254,7 +277,7 @@ class LaneUrbanRuntime:
                 raise ValueError('Physical urban exit lacks its finite downstream receiver')
             room=uqm._effective_available_space(state,cfg,receiver)
             from evaluation.controllers.route_choice_corridor import intended_departure
-            service=intended_departure(state,control,cfg,m,room,step)
+            service=intended_departure(state,control,cfg,m,room,service_step)
             exit_room[connector]=room if service is None else min(room,service)
         try:
             if (getattr(cfg.network, 'sdmpc_options', None) or {}).get('fifo_batch', False):
@@ -297,12 +320,13 @@ class LaneUrbanRuntime:
                 receiver=cfg.network.urban_movements[m]['receiving_link']
                 state.urban_link_storage[receiver]=_debit_stock(state.urban_link_storage[receiver],n)
                 emit_transfer(state,cfg,key,'storage:'+receiver,n,route_key='movement:'+m)
-                if not _receive_corridor(state,cfg,m,n,step):
-                    due=step+uqm._link_delay_steps(state,cfg,receiver)
+                options={} if arrival_step==service_step else {'entry_step':arrival_step}
+                if not _receive_corridor(state,cfg,m,n,service_step,**options):
+                    due=arrival_step+uqm._link_delay_steps(state,cfg,receiver)
                     if receiver in uqm.approach_routing(cfg):uqm._schedule(state.urban_arrival_buffer,receiver,due,n)
                     uqm._schedule(state.urban_storage_release_buffer,receiver,due,n)
                     from evaluation.controllers.omega_distance import record_ordinary_movement
-                    record_ordinary_movement(state,cfg,m,n,step,due)
+                    record_ordinary_movement(state,cfg,m,n,arrival_step,due)
                 exit_accepted[connector]+=n
             else:
                 destination='storage:'+self.local_storage[target[0]]
@@ -328,10 +352,16 @@ class LaneUrbanRuntime:
             for connector,limit in exit_room.items():
                 ledger.record_resource_allocation('lane_urban_exit_receiving',str(connector),limit,
                     {'lane_urban:'+str(connector):exit_accepted[connector]})
-            for key,queue in urban.cells.items():
-                ledger.record_state_upper_bound('lane_urban_cell',str(key),queue.stock,urban.cap[key])
-            ledger.complete_constraint_coverage('lane_urban_allocator')
-        self.last_step=step
+            # Retained1s cell numerics have1s bound timestamps, even when
+            # transfers are settled on the outer10s urban clock. Otherwise
+            # the central endpoint registry sees ten different stocks all
+            # incorrectly labelled as the same horizon endpoint.
+            clock=ledger._response_clock
+            try:
+                if cfg.simulation.T_u_sec==10:ledger.begin_response_step('urban',step,step+1)
+                for key,queue in urban.cells.items():
+                    ledger.record_state_upper_bound('lane_urban_cell',str(key),queue.stock,urban.cap[key])
+            finally:ledger._response_clock=clock
         from evaluation.controllers.omega_distance import after_reward_urban
         after_reward_urban(state,cfg)
         return {'lane_urban_exit_veh':math.fsum(exit_accepted.values()),

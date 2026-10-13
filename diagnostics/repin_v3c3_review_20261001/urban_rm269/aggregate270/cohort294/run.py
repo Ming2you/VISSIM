@@ -1,0 +1,131 @@
+"""Two autonomous450s fixed-command predictions; no native/optimizer/fit."""
+import os
+for key in ('OPENBLAS_NUM_THREADS','OMP_NUM_THREADS','MKL_NUM_THREADS'):os.environ[key]='1'
+import copy,gzip,hashlib,importlib.util,json,pickle,sys,time
+from pathlib import Path
+from candidate import geometry,installed,initialize
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[4]
+A=HERE.parent;H=A.parent
+OUT=HERE/'forecast2400'
+PREV=A/'matched280/authority'
+CITY=A/'citysplit287/forecast2400'
+SOURCE=Path('D:/VISSIM_runs/20261007_goal8_prevention_s29_8100/sdmpc/decisions_sdmpc31_sdmpc8100_s29')
+read=lambda p:json.loads(Path(p).read_bytes())
+sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+save=lambda n,v:(OUT/n).write_text(json.dumps(v,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
+
+
+def main():
+    assert not OUT.exists(),'Preserve attempted output; no automatic retry'
+    assert not any((p/'STOP').exists() for p in (ROOT,H,A,HERE))
+    old=read(PREV/'summary.json')
+    assert all(sha(p)==h for p,h in old['source_pins'].items())
+    pins=dict(old['source_pins'])
+    for p in [*HERE.glob('*.py'),HERE/'config.json',HERE/'plan.json',CITY/'initial.pickle',
+              CITY/'summary.json',A/'cityresponse290/assessment.json',A/'gatearrival291/assessment.json']:
+        pins[str(p)]=sha(p)
+    option=read(HERE/'config.json');tuning=ROOT/option['base_tuning']
+    sys.path[:0]=[str(ROOT),str(ROOT/'vendor/NumSim-mine')]
+    sys.argv=['verify.py','--at','2400','--out',str(OUT),'--no-prediction','--cold-prices',
+              '--tuning',str(tuning),'--decisions',str(SOURCE)]
+    loader=importlib.util.spec_from_file_location('cohort294_verifier',H.parent/'urban260/verify.py')
+    verifier=importlib.util.module_from_spec(loader);loader.loader.exec_module(verifier)
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter,sdmpc_pfo,sdmpc_sequence as seq
+    from evaluation.controllers import physical_ramp_branches as ramps,signal_actuation_contract as signals
+    from evaluation.controllers import area_leader_objective as constraints
+    from evaluation.controllers.area_runtime import model_inventory
+    from evaluation.controllers.control_area_objective import get_ledger
+    from evaluation.controllers.sdmpc_tangent_worker import state_error
+    from src.controllers import rollout_endpoint as endpoint
+    from src.models.state import ControlAction
+    original=adapter.main
+    def wrapped():
+        captured={};bound=ramps.configure_operating_bounds;forecast=adapter.demand_from_state
+        def capture_bound(state,cfg,reference):
+            captured.update(state=state,cfg=cfg)
+            return bound(state,cfg,reference)
+        def capture_forecast(*a,**kw):
+            value=forecast(*a,**kw);captured['forecast']=value;return value
+        ramps.configure_operating_bounds=capture_bound;adapter.demand_from_state=capture_forecast
+        def evaluate(reference,coord,policy,options,*args):
+            state,cfg=captured['state'],captured['cfg']
+            oldcfg,oldstate,oldforecast=pickle.loads((CITY/'initial.pickle').read_bytes())
+            assert state.time_sec==2400 and cfg.simulation.T_f_sec==5 and cfg.simulation.T_u_sec==10
+            error=state_error(state,oldstate);assert error<1e-10,error
+            assert get_ledger(state).stocks==get_ledger(oldstate).stocks
+            assert cfg.network.urban_movements==oldcfg.network.urban_movements
+            assert cfg.network.movement_capacity_by_movement_veh_h==oldcfg.network.movement_capacity_by_movement_veh_h
+            assert pickle.dumps(captured['forecast'],protocol=5)==pickle.dumps(oldforecast,protocol=5)
+            geom=geometry(ROOT,cfg)
+            pins[geom['network_path']]=geom['network_sha256']
+            pins[geom['lane_factor_path']]=geom['lane_factor_sha256']
+            save('geometry.json',geom)
+            raw_path=SOURCE/'state_002400.json';pins[str(raw_path)]=sha(raw_path)
+            receipt=initialize(adapter,state,cfg,read(raw_path),geom,option['diagnostic_initial_cohort'])
+            save('initial_cohort.json',receipt)
+            baseline_state=pickle.dumps(state,protocol=5)
+            plan=adapter.load_signal_group_actuation_plan()
+            results={}
+            for arm,folder in (('hold',H/'selection2400_discrete/hold'),('city',CITY/'city_only')):
+                blocks=[]
+                for at in (2400,2550,2700):
+                    p=folder/f'action_{at:06}.json';pins[str(p)]=sha(p)
+                    command=seq.first_action(adapter.control_from_json(p,cfg,ControlAction))
+                    signals.validate_writer(command,cfg,plan,'experiment')
+                    ramps.candidate_from_greens(command,blocks[-1] if blocks else reference,cfg,
+                        {k:command.diagnostics['rw_meter_green_'+k] for k in command.ramp_metering})
+                    blocks.append(command)
+                action=seq.pack(blocks);coord.validate(action)
+                if arm=='hold':held=copy.deepcopy(blocks)
+                else:
+                    for c,h in zip(blocks,held):
+                        assert ramps.physical_commands(c,cfg)==ramps.physical_commands(h,cfg)
+                        assert c.vsl==h.vsl and c.N_P_star==h.N_P_star and c.N_UF_star==h.N_UF_star
+                start=time.perf_counter()
+                with installed(cfg,option['diagnostic_source_path_delay'],geom) as receipts:
+                    with seq.prediction_scope(action,cfg,2400,3) as visits:
+                        point=endpoint.evaluate_price_point(state,action,copy.deepcopy(captured['forecast'][:3]),(),
+                            endpoint.ObjectiveSpec(cfg,depth_override=3,box_walk=False,score_mode='raw'),capture_response=True)
+                wall=time.perf_counter()-start
+                assert not point.aborted and len(point.states)==3 and visits==[0,1,2]
+                response=point.control_area_response
+                assert response['model_constraint_coverage']['complete'] and response['conditional_model_feasibility_witness']
+                exceed=max((r['exceedance_veh'] for r in response['resource_allocations']),default=0.)
+                assert exceed<1e-7
+                for current in (state,*point.states):get_ledger(current).assert_stocks(model_inventory(current,cfg))
+                assert pickle.dumps(state,protocol=5)==baseline_state,'Prediction mutated initial state'
+                seen={r['source'] for r in receipts}
+                expected={t['source'] or t['route_key'] for t in response['transfers']
+                    if t['target']=='storage:SC12_to_SC6' and t['source']!=t['target'] and t['vehicles']>1e-9}
+                # A configured movement with zero accepted flow needs no travel
+                # receipt. Check all ACTUAL incoming sources, not all declared ones.
+                assert receipts and expected<=seen<=set(geom['sources']),(expected,seen)
+                costs={}
+                for row in response['residence']:
+                    for k,n in row['inside_veh'].items():costs[k]=costs.get(k,0)+n*row['dt_h']
+                assert abs(sum(costs.values())-point.ttt)<1e-7
+                follower=adapter._PHASE_VECTOR_FOLLOWER['ref']
+                shared=constraints.shared_urban_quantities(follower,response,start_sec=2400,horizon_steps=3)
+                feasible=constraints.shared_quantity_constraints(follower,action,shared,start_sec=2400,horizon_steps=3,
+                    np_mode='cap',target_np_veh=action.N_P_star,np_tolerance_veh=options['shared_tolerance'],
+                    nuf_mode='cap',target_nuf_veh_h=action.N_UF_star,nuf_tolerance_veh_h=options['shared_tolerance'])
+                results[arm]=dict(omega_ttt_veh_h=point.ttt,costs_by_stock=costs,shared_constraints=feasible,
+                    predicted_merge=point.control_area['predicted_ramp_merge'],resource_max_exceedance=exceed,
+                    writer_three_blocks=True,conservation_states=4,wall_sec=wall,
+                    accepted_sources=sorted(expected),delay_sources=sorted(seen))
+                (OUT/(arm+'.response.json.gz')).write_bytes(gzip.compress(json.dumps(response,allow_nan=False).encode('utf8')))
+                save(arm+'.json',results[arm]);save(arm+'.delay_receipts.json',receipts)
+                print('CURRENT_COHORT',arm,point.ttt,wall,flush=True)
+            assert all(sha(p)==h for p,h in pins.items())
+            save('summary.json',dict(status='complete',initial_state_error_before_projection=error,initial_cohort=receipt,source_pins=pins,
+                start_sec=2400,end_sec=2850,results=results,forecasts=2,optimizer_calls=0,native_runs=0,fits=0,
+                future_observation_inputs=False,production_changes=0,gate_dynamics_added=False))
+            raise verifier.Done()
+        sdmpc_pfo.solve=evaluate
+        return original()
+    adapter.main=wrapped;verifier.main()
+
+
+if __name__=='__main__':main()

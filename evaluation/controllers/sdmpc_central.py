@@ -4,8 +4,19 @@ import numpy as np
 from scipy.optimize import nnls
 
 
-def initialize_duals(prices, *, caps=False):
-    p = np.asarray(prices, dtype=float)
+def resource_mask(active_resources=None):
+    if active_resources is None:
+        return np.ones(2, dtype=bool)
+    mask = np.asarray(active_resources)
+    if mask.shape != (2,) or mask.dtype != np.dtype(bool) or not mask.any():
+        raise ValueError('Explicit nonempty two-resource boolean mask required')
+    return mask
+
+
+def initialize_duals(prices, *, caps=False, active_resources=None):
+    mask = resource_mask(active_resources)
+    p = np.asarray(prices, dtype=float).copy()
+    p[~mask] = 0.
     if caps:
         return np.maximum(0., p)
     return np.array([max(0., p[0]), max(0., p[1]), max(0., -p[1])])
@@ -24,16 +35,22 @@ def budget_rows(residual, tolerance, *, caps=False):
     return np.array([r[0]-eps[0], r[1]-eps[1], -r[1]-eps[1]])
 
 
-def update_duals(dual, raw_residual, tolerance, step, *, caps=False):
-    return np.maximum(0., np.asarray(dual) + step*budget_rows(raw_residual, tolerance, caps=caps))
+def update_duals(dual, raw_residual, tolerance, step, *, caps=False, active_resources=None):
+    mask = resource_mask(active_resources)
+    result = np.maximum(0., np.asarray(dual) + step*budget_rows(raw_residual, tolerance, caps=caps))
+    result[~(mask if caps else np.array([mask[0], mask[1], mask[1]]))] = 0.
+    return result
 
 
-def qp_bounds(residual, tolerance, *, caps=False):
+def qp_bounds(residual, tolerance, *, caps=False, active_resources=None):
     c, eps = np.asarray(residual), np.asarray(tolerance)
-    return np.array([-np.inf, -np.inf if caps else -eps[1]-c[1]]), eps-c
+    mask = resource_mask(active_resources)
+    lower, upper = np.array([-np.inf, -np.inf if caps else -eps[1]-c[1]]), eps-c
+    lower[~mask], upper[~mask] = -np.inf, np.inf
+    return lower, upper
 
 
-def recover(reference, selected, final_quantities, target, scale, tolerance, coord, options, feasible, *, caps=False):
+def recover(reference, selected, final_quantities, target, scale, tolerance, coord, options, feasible, *, caps=False, active_resources=None):
     """Final actual constraints, reused coefficients; no traffic prediction."""
     started = time.perf_counter()
     z0, G, A, physical, final_physical = reference
@@ -42,6 +59,10 @@ def recover(reference, selected, final_quantities, target, scale, tolerance, coo
     rows = [A[0], A[1]]
     if not caps:
         names.append('budget/NUF/lower'); rows.append(-A[1])
+    mask = resource_mask(active_resources)
+    keep = mask if caps else np.array([mask[0], mask[1], mask[1]])
+    names, h, rows = ([v for v, yes in zip(values, keep) if yes] for values in (names, h, rows))
+    budget_indices = {name: i for i, name in enumerate(names)}
     n = len(selected)
     eye = np.eye(n)
     for j in range(n):
@@ -82,12 +103,15 @@ def recover(reference, selected, final_quantities, target, scale, tolerance, coo
     except (RuntimeError, ValueError) as exc:
         fit, error = False, repr(exc)
     residual = g+C.T@multipliers
-    gradient = np.array([-multipliers[0]/scale[0],
-        (-multipliers[1]+(0. if caps else multipliers[2]))/scale[1]])
+    def budget_multiplier(name):
+        return multipliers[budget_indices[name]] if name in budget_indices else 0.
+    gradient = np.array([-budget_multiplier('budget/NP/upper')/scale[0],
+        (-budget_multiplier('budget/NUF/upper')+budget_multiplier('budget/NUF/lower'))/scale[1]])
     stationarity = float(np.max(abs(residual), initial=0.))
     complementarity = float(np.max(abs(h*multipliers), initial=0.))
     usable = bool(feasible and fit and np.isfinite(gradient).all())
     return dict(schema='sdmpc-central-multiplier/v1', gradient_estimate=gradient.tolist(),
+        **(dict(active_resources=mask.tolist()) if active_resources is not None else {}),
         accepted_for_leader_direction=usable, fit_success=fit, error=error,
         leader_signal_kind='approximate_central_multiplier', optimality_certified=False,
         stationarity_inf=stationarity, complementarity=complementarity,
@@ -106,14 +130,18 @@ def recover(reference, selected, final_quantities, target, scale, tolerance, coo
         additional_optimization_iterations=0, seconds=time.perf_counter()-started)
 
 
-def next_budget(center, recovery, attempted, limits, options):
+def next_budget(center, recovery, attempted, limits, options, *, active_resources=None):
+    mask = resource_mask(active_resources)
     gradient = recovery.get('gradient_estimate') if recovery.get('accepted_for_leader_direction') else None
     direction = np.where(abs(np.asarray(gradient))>options['active_tolerance'],-np.sign(gradient),0.) if gradient is not None else np.zeros(2)
     radius = np.array([options['np_step_veh'], options['nuf_step_veh_h']])
     directions = ([direction, -direction] if np.any(direction) else [])
     directions += [np.array([0.,-1.]), np.array([0.,1.]), np.array([-1.,0.]), np.array([1.,0.])]
     for d in directions:
-        trial = np.clip(np.asarray(center)+radius*d, limits[0], limits[1])
+        if not np.any(d*mask):
+            continue
+        trial = np.clip(np.asarray(center)+radius*d*mask, limits[0], limits[1])
+        trial[~mask] = np.asarray(center)[~mask]
         if not any(np.array_equal(trial, old) for old in attempted):
             # Hand back plain floats. The consumer stores these on the action as
             # N_P_star / N_UF_star, and area_leader_objective._joint_number rejects on

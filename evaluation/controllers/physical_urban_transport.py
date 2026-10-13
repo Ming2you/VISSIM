@@ -44,8 +44,25 @@ class ReceivingEnvelope:
         points=[p for p in self.points if p<=limit]+[limit]
         return self.qmax*elapsed+min(-self.initial_prefix(x)+self.critical*x for x in points)
 
-    def offer(self,elapsed,dt,admitted,departures):
+    def offer(self,elapsed,dt,admitted,departures,*,departure_times=None):
         if not elapsed>=dt>0 or admitted<0:raise ValueError('Invalid causal receiving interval')
+        if departure_times is not None:
+            from bisect import bisect_right
+            if (len(departure_times)!=len(departures) or not departure_times
+                    or departure_times[0]!=0 or departure_times[-1]>elapsed-dt+1e-8
+                    or any(b<=a for a,b in zip(departure_times,departure_times[1:]))):
+                raise ValueError('Noncausal or nonmonotone cumulative departure timestamps')
+            bound=self.initial_bound(elapsed)
+            lagged=elapsed-self.lag
+            if lagged>=0:
+                if lagged>departure_times[-1]+1e-8:
+                    raise ValueError('Receiving wave needs an unresolved within-interval departure; substep required')
+                lo=max(0,bisect_right(departure_times,lagged)-1)
+                hi=min(lo+1,len(departure_times)-1)
+                f=(lagged-departure_times[lo])/(departure_times[hi]-departure_times[lo]) if hi!=lo else 0.
+                delayed=departures[lo]*(1-f)+departures[hi]*f
+                bound=min(bound,delayed+self.capacity-self.initial)
+            return max(0.,min(self.qmax*dt,bound-admitted))
         # departures is D(t), at every integer second since initialization;
         # only observations <= the CURRENT interval start may be provided.
         if len(departures)-1>elapsed-dt+1e-8:raise ValueError('Future departure observations supplied')
@@ -93,6 +110,11 @@ class CumulativeLane:
     def receiving(self,dt=10):
         elapsed=self.time-self.start;self.offer_dt=min(dt,elapsed)
         if not self.offer_dt:return 0.
+        if hasattr(self,'departure_times'):
+            from bisect import bisect_right
+            stop=bisect_right(self.departure_times,elapsed-self.offer_dt+1e-8)
+            return max(0.,min(self.capacity-self.stock,self.envelope.offer(elapsed,self.offer_dt,
+                self.admitted,self.departure_history[:stop],departure_times=self.departure_times[:stop])))
         past=self.departure_history[:int(elapsed-self.offer_dt)+1]
         return max(0.,min(self.capacity-self.stock,self.envelope.offer(elapsed,self.offer_dt,self.admitted,past)))
 
@@ -102,12 +124,23 @@ class CumulativeLane:
         self.counters+=1
 
     def release(self,t,dt,service):
-        if t!=self.time or dt!=1 or not math.isfinite(service) or service<0:raise ValueError('Contiguous1s service required')
+        if t!=self.time or dt not in (1,5,10) or not math.isfinite(service) or service<0:
+            raise ValueError('Contiguous1/5/10s service required')
+        if dt!=1 and dt>self.envelope.lag:
+            raise ValueError('Port interval exceeds receiving wave lag; substep required')
+        if dt!=1 and not hasattr(self,'departure_times'):
+            if len(self.departure_history)!=int(t-self.start)+1:
+                raise ValueError('Noncontiguous initial port departure history')
+            self.departure_times=list(range(len(self.departure_history)))
+        if hasattr(self,'departure_times') and (len(self.departure_times)!=len(self.departure_history)
+                or abs(self.departure_times[-1]-(t-self.start))>1e-8):
+            raise ValueError('Noncontiguous port departure timestamps')
         before=self.stock
         available=max(0.,min(before,self.envelope.qmax*dt,self.sending_bound(t+dt-self.start)-self.departed))
         served=min(available,service*dt/3600.)
         self.departed+=served;self.time=t+dt;self.departure_history.append(self.departed)
-        # Uniform flow within each1s numerical interval; no unused service bank.
+        if hasattr(self,'departure_times'):self.departure_times.append(self.time-self.start)
+        # Uniform flow within the declared interval; no unused service bank.
         self.residence_veh_h+=(before-served/2)*dt/3600.
         self.check();return served
 

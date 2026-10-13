@@ -603,7 +603,13 @@ def _cohort(storage,stage,route,amount,due,*,possible=(),source='observed',speed
 
 
 def _tracked(local,storage):
+    if 'aggregate_routes' in local:return local['aggregate_routes'].stock(storage)
     return sum(c['vehicles'] for c in local['cohorts'] if c['storage']==storage)
+
+
+def _append_cohort(local,cohort):
+    if 'aggregate_routes' in local:local['aggregate_routes'].add(cohort)
+    else:local['cohorts'].append(cohort)
 
 
 def _check(state,spec):
@@ -685,7 +691,8 @@ def diagnostics(state,cfg):
     if spec is None: return {}
     local=state.route_choice_corridor_state
     known=known_legsplit_diagnostics(state,cfg)
-    unknown=sum(c['vehicles'] for c in local['cohorts'] if c['stage']=='unknown') + known.get('known_wout_held_unknown_route_veh',0.)
+    unknown=(local['aggregate_routes'].unknown() if 'aggregate_routes' in local else
+             sum(c['vehicles'] for c in local['cohorts'] if c['stage']=='unknown')) + known.get('known_wout_held_unknown_route_veh',0.)
     return {**known, 'route_choice_held_unknown_route_veh':unknown,'route_choice_prediction_route_complete':float(unknown<=EPS),
             'route_choice_unknown_policy':spec['unknown_policy'],
             'route_choice_stock_veh':{k:_tracked(local,k) for k in spec['capacity_veh']}}
@@ -712,7 +719,10 @@ def intended_departure(state,control,cfg,movement,available,urban_step_index):
     return min(_positive(available,'intended source availability',zero=True),left)
 
 
-def receive_accepted(state,cfg,movement,vehicles,urban_step_index):
+def receive_accepted(state,cfg,movement,vehicles,urban_step_index,*,entry_step=None):
+    entry=urban_step_index if entry_step is None else entry_step
+    if not math.isfinite(entry) or int(entry)!=entry or entry<urban_step_index:
+        raise ValueError('Route receipt entry cannot precede current service')
     spec=_movement_spec(cfg,movement)
     if spec is None: return False
     n=_positive(vehicles,'accepted route-choice vehicles',zero=True)
@@ -741,10 +751,10 @@ def receive_accepted(state,cfg,movement,vehicles,urban_step_index):
             max(0.,local['service_limit_veh'][group]-service_before), {'movement:'+movement:n})
     speed=_speed(state,cfg,state.urban_link_speed_kph.get(storage))
     distance=_prefix_distance(spec,group,0.)
-    cohort=_cohort(storage,'prechoice',None,n,_due(cfg,urban_step_index,distance,speed),source=movement,speed=speed)
-    local['cohorts'].append(cohort)
+    cohort=_cohort(storage,'prechoice',None,n,_due(cfg,entry,distance,speed),source=movement,speed=speed)
+    _append_cohort(local,cohort)
     from evaluation.controllers.omega_distance import record_choice
-    record_choice(state,cfg,spec,cohort,urban_step_index,group,0.)
+    record_choice(state,cfg,spec,cohort,entry,group,0.)
     local['service_used_veh'][group]=used; local['received_veh']+=n
     _check(state,spec)
     return True
@@ -795,7 +805,7 @@ def receive_shared_accepted(state,cfg,source_storage,branch,vehicles,urban_step_
     speed=_speed(state,cfg,state.urban_link_speed_kph.get(storage))
     distance=_prefix_distance(spec,continuation['path'][0],0.)
     cohort=_cohort(storage,'prechoice',None,n,_due(cfg,urban_step_index,distance,speed),source='shared69:2',speed=speed)
-    local['cohorts'].append(cohort)
+    _append_cohort(local,cohort)
     from evaluation.controllers.omega_distance import record_choice
     record_choice(state,cfg,spec,cohort,urban_step_index,continuation['path'][0],0.)
     local['received_veh']+=n; _check(state,spec)
@@ -820,7 +830,7 @@ def receive_generated(state,cfg,input_no,vehicles,urban_step_index):
     speed=_speed(state,cfg,state.urban_link_speed_kph.get(storage));distance=_prefix_distance(spec,row['physical_source'],0.)
     cohort=_cohort(storage,'prechoice',None,n,_due(cfg,urban_step_index,distance,speed),source='generated_input:'+no,speed=speed)
     cohort['native_service_passed']=False
-    if n:local['cohorts'].append(cohort)
+    if n:_append_cohort(local,cohort)
     from evaluation.controllers.omega_distance import record_choice
     record_choice(state,cfg,spec,cohort,urban_step_index,row['physical_source'],0.)
     local['received_veh']+=n;_check(state,spec)
@@ -833,6 +843,7 @@ def advance(state,control,demand,cfg,urban_step_index):
     local=state.route_choice_corridor_state
     if urban_step_index!=local['last_step']+1: raise ValueError('Route-choice state requires sequential explicit steps')
     _check(state,spec); local['service_used_veh']={}; local['service_limit_veh']={}
+    if 'aggregate_routes' in local:local['aggregate_routes'].begin(urban_step_index)
     transferred={}
     for item in _specs(cfg):
         previous_gate=item.get('shared_continuation',{}).get('previous_target')
@@ -845,6 +856,8 @@ def advance(state,control,demand,cfg,urban_step_index):
 
 
 def _advance_one(state,control,cfg,urban_step_index,spec):
+    if 'aggregate_routes' in state.route_choice_corridor_state:
+        return state.route_choice_corridor_state['aggregate_routes'].advance_one(state,control,cfg,urban_step_index,spec)
     from src.models import urban_queue_model as uqm
     local=state.route_choice_corridor_state
     ledger=get_ledger(state)
@@ -1124,6 +1137,32 @@ def configure_known_legsplit(cfg, tuning, state, raw):
         if physical_speed:
             spec['physical_travel']['speed_source'] = 'physical_observation'
     net.known_legsplit_routes = spec
+    local_receiving = tuning.get('urban', {}).get('known_wout_lane_receiving', False)
+    if type(local_receiving) is not bool or (local_receiving and not physical_travel):
+        raise ValueError('Known W_out lane receiving requires physical destination travel')
+    if local_receiving:
+        _configure_known_entry_lanes(state, cfg, links)
+    local_queue = tuning.get('urban', {}).get('known_wout_local_queue', False)
+    if type(local_queue) is not bool or (local_queue and not local_receiving):
+        raise ValueError('Known W_out local queue requires physical lane receiving')
+    if local_queue:
+        if tuning.get('adapter', {}).get('sdmpc_distance_reward') is not None:
+            raise ValueError('Known W_out local queue is qualified for TTT only; distance travel must be restaged first')
+        spec['local_queue_gate'] = True
+    connector_queue = tuning.get('urban', {}).get('known_wout_connector_queue', False)
+    if type(connector_queue) is not bool or (connector_queue and not local_queue):
+        raise ValueError('Known W_out connector queue requires physical local queue')
+    if connector_queue:
+        spec['connector_queue_gate'] = True
+        for entry in spec['entry_lane_receiving']['connector_entries'].values():
+            entry['capacity_per_lane_veh'] = entry['length_m']/state.lane_ramp_runtime.buffers['RM_C10681'].spacing_m
+    lateral = tuning.get('urban', {}).get('known_wout_lateral_access')
+    if lateral is not None:
+        if not local_queue or not isinstance(lateral, dict) or set(lateral) != {'rate_per_sec'}:
+            raise ValueError('Known W_out lateral access requires a local queue and one explicit rate')
+        spec['lateral_access_rate_per_sec'] = _positive(lateral['rate_per_sec'], 'W_out lateral access rate')
+        if set(spec['entry_lane_receiving']['ramp_lanes']) != {'1','2'}:
+            raise ValueError('Known W_out lateral access requires the proved10681 lanes1/2')
     initialize_known_legsplit(state, cfg, raw)
     return {'known_wout_routes_enabled':1., 'known_wout_initial_veh':_known_total(state),
             'known_wout_native_choice_prior':float(native_prior),
@@ -1132,10 +1171,435 @@ def configure_known_legsplit(cfg, tuning, state, raw):
             'known_wout_future_direct_native_path_prior':1., **diagnostics(state,cfg)}
 
 
+def _configure_known_entry_lanes(state, cfg, links):
+    """Use the pinned68 entry/10681 branch geometry, not the whole W_out room."""
+    spec = cfg.network.known_legsplit_routes
+    ramp = 'RM_C10681'
+    buffer = state.lane_ramp_runtime.buffers[ramp]
+    branch = links['10681'].find('fromLinkEndPt')
+    road, first = branch.get('lane').split()
+    lane_count = len(links[road].findall('./lanes/lane'))
+    if road != '68' or not hasattr(buffer, '_lane_buffers'):
+        raise ValueError('Known W_out receiving requires lane-resolved10681 on68')
+    ramp_lanes = {int(first)+j:j for j in range(buffer.lanes)}
+    incoming = {}
+    connector_entries = {}
+    entries = defaultdict(list)
+    for movement, connector in spec['incoming_movements'].items():
+        link = links[connector]
+        end = link.find('toLinkEndPt')
+        target, first_lane = end.get('lane').split()
+        lanes = list(range(int(first_lane), int(first_lane)+len(link.findall('./lanes/lane'))))
+        position = float(end.get('pos'))
+        if target != road or max(lanes)>lane_count or position>=float(branch.get('pos')):
+            raise ValueError('Known W_out receiver is outside the proved upstream lane geometry')
+        incoming[movement] = lanes
+        connector_entries[connector] = dict(lanes=lanes, position_m=position, length_m=_length(link))
+        for lane in lanes: entries[lane].append(position)
+    # A common conservative entry plane prevents two sources borrowing the
+    # same lane space independently. No gain/capacity coefficient is fitted.
+    capacity = {str(lane):(buffer.head_position_m+float(branch.get('pos'))-max(entries[lane]))/buffer.spacing_m
+                for lane in ramp_lanes if lane in entries}
+    spec['entry_lane_receiving'] = dict(ramp=ramp, physical_link=road,
+        incoming=incoming, ramp_lanes={str(k):v for k,v in ramp_lanes.items()},
+        capacity_veh=capacity, connector_entries=connector_entries,
+        road_capacity_veh={str(lane):(_length(links[road])-max(entries[lane]))/buffer.spacing_m for lane in entries},
+        road_length_m=_length(links[road]),
+        allocation='Physical lane tags plus conservative reservation of accepted connector arrivals; no borrowing downstream121 storage')
+
+
+def _known_lane68_tag(cfg, link, lane, position, speed, step, *, shares=None):
+    """Location tags of existing owned stock; never an extra stock or service queue.
+
+    Accepted connector arrivals reserve their destination lane room before they
+    arrive. By default free/10646 cohorts release the reservation at their
+    travel ETA. The optional local queue gate retains blocked passing cohorts.
+    Neither mode resolves microscopic lateral gaps.
+    """
+    local=cfg.network.known_legsplit_routes.get('entry_lane_receiving')
+    if local is None:return {}
+    link=str(link)
+    if link==local['physical_link']:
+        shares={str(int(lane)):1.} if shares is None else shares
+        distance=max(0.,local['road_length_m']-position)
+    elif link in local['connector_entries']:
+        entry=local['connector_entries'][link]
+        if shares is None:
+            if not 1<=int(lane)<=len(entry['lanes']):
+                raise ValueError('Known W_out connector lane is outside its physical mapping')
+            shares={str(entry['lanes'][int(lane)-1]):1.}
+        if cfg.network.known_legsplit_routes.get('connector_queue_gate'):
+            if abs(sum(shares.values())-1.)>EPS or any(v<0 or int(k) not in entry['lanes'] for k,v in shares.items()):
+                raise ValueError('Known W_out connector lane shares are not conserved')
+            return {'connector68':dict(link=link, shares=shares,
+                ready_step=_due(cfg,step,max(0.,entry['length_m']-position),speed))}
+        distance=max(0.,entry['length_m']-position)+local['road_length_m']-entry['position_m']
+    else:return {}
+    if (abs(sum(shares.values())-1.)>EPS or any(v<0 or k not in local['road_capacity_veh'] for k,v in shares.items())):
+        raise ValueError('Known W_out local lane shares are not conserved')
+    tag=dict(shares=shares, exit_step=_due(cfg,step,distance,speed))
+    if cfg.network.known_legsplit_routes.get('local_queue_gate'):
+        tag['order']=(step,distance)
+    return {'lane68':tag}
+
+
+def _known_receiving_fraction(room,total):
+    # Same clipped proportional allocation, including the constant branch at
+    # equality. Do not differentiate an enormous ratio only to clip it to 1.
+    if total<=0 or room>=total:return 1.
+    if room<=0:return 0.
+    return room/total
+
+
+def _known_connector_limits(state,cfg,intended,step):
+    """Signal receipts occupy their own connector, not future space on68."""
+    spec=cfg.network.known_legsplit_routes;local=spec['entry_lane_receiving']
+    occupied=defaultdict(float);requests=defaultdict(dict)
+    for c in state.known_legsplit_route_state['cohorts']:
+        tag=c.get('connector68')
+        if tag:
+            for lane,share in tag['shares'].items():occupied[(tag['link'],lane)]+=c['vehicles']*share
+    result=dict(intended);accepted_lanes=defaultdict(dict)
+    for movement,lanes in local['incoming'].items():
+        if movement not in intended:continue
+        result[movement]=0.
+        for lane in lanes:
+            requests[(spec['incoming_movements'][movement],str(lane))][movement]=intended[movement]/len(lanes)
+    ledger=get_ledger(state)
+    for (connector,lane),sources in requests.items():
+        total=sum(sources.values())
+        room=max(0.,local['connector_entries'][connector]['capacity_per_lane_veh']-occupied[(connector,lane)])
+        factor=_known_receiving_fraction(room,total)
+        accepted={m:n*factor for m,n in sources.items()}
+        for m,n in accepted.items():result[m]+=n;accepted_lanes[m][lane]=n
+        if ledger is not None and ledger.captures_response:
+            ledger.record_resource_allocation('known_wout_connector_receiving',connector+':'+lane,room,
+                {'movement:'+m:n for m,n in accepted.items()})
+    state.known_legsplit_route_state['entry_lane_shares']={m:{lane:n/result[m] for lane,n in lanes.items()}
+        for m,lanes in accepted_lanes.items() if result[m]>0}
+    state.known_legsplit_route_state['entry_lane_step']=step
+    return result
+
+
+def _known_coalesce_arrivals(cohorts):
+    """Join arrivals with identical fixed route, lane, reservation and ETA.
+
+    Only newly admitted packets are joined, after connector FIFO/service has
+    already been resolved. Differentiable metadata is never replaced by its
+    primal value; such packets remain separate. Vehicle amounts are summed,
+    including arbitrarily small positive arrivals, without a deletion cutoff.
+    """
+    unsupported=object()
+    def key(value):
+        if getattr(value,'trace',None) is not None:return unsupported
+        if value is None or isinstance(value,(str,int,float,bool)):return value
+        if isinstance(value,dict):
+            values=tuple((k,key(v)) for k,v in sorted(value.items()))
+            return unsupported if any(v is unsupported for k,v in values) else ('dict',values)
+        if isinstance(value,(list,tuple)):
+            values=tuple(key(v) for v in value)
+            return unsupported if any(v is unsupported for v in values) else ('sequence',values)
+        return unsupported
+    grouped={};result=[]
+    for cohort in cohorts:
+        identity=key({k:v for k,v in cohort.items() if k!='vehicles'})
+        if identity is unsupported:
+            result.append(cohort)
+        elif identity in grouped:
+            grouped[identity]['vehicles']+=cohort['vehicles']
+        else:
+            row=dict(cohort);grouped[identity]=row;result.append(row)
+    return result
+
+
+def known_connector_advance(state,cfg,step):
+    """Advance ready connector stock only into shared finite68 lane room.
+
+    ETA is an earliest physical arrival, not permission to cross a full road.
+    Both stages remain aliases of one W_out stock. No new queue owner, route
+    draw, fitted speed/flow coefficient or future observation is introduced.
+    """
+    spec=getattr(cfg.network,'known_legsplit_routes',None) or {}
+    if not spec.get('connector_queue_gate'):return
+    aggregate=state.known_legsplit_route_state.get('aggregate_transport')
+    if aggregate is not None:return aggregate.advance(state,cfg,step)
+    local=spec['entry_lane_receiving'];runtime=state.known_legsplit_route_state
+    occupied=defaultdict(float);requested=defaultdict(float)
+    for c in runtime['cohorts']:
+        tag=c.get('lane68')
+        if tag and (c['target'] in (local['ramp'],'unknown','prechoice') or c.get('local68_queue') or step<tag['exit_step']):
+            for lane,share in tag['shares'].items():occupied[lane]+=c['vehicles']*share
+        tag=c.get('connector68')
+        if tag and tag['ready_step']<=step:
+            for lane,share in tag['shares'].items():requested[(tag['link'],lane)]+=c['vehicles']*share
+    totals=defaultdict(float)
+    for (_,lane),n in requested.items():totals[lane]+=n
+    rooms={lane:max(0.,local['road_capacity_veh'][lane]-occupied[lane]) for lane in totals}
+    grants={key:n*_known_receiving_fraction(rooms[key[1]],totals[key[1]]) if totals[key[1]]>0 else 0. for key,n in requested.items()}
+    ledger=get_ledger(state)
+    if ledger is not None and ledger.captures_response:
+        for lane,room in rooms.items():
+            ledger.record_resource_allocation('known_wout_connector_to_road','68:'+lane,room,
+                {'connector:'+p:n for (p,l),n in grants.items() if l==lane})
+    added=[]
+    # FIFO within each physical connector lane; separate connectors compete
+    # proportionally for the same road lane. Explicit lateral gaps are absent.
+    ready=sorted((c for c in runtime['cohorts'] if c.get('connector68') and c['connector68']['ready_step']<=step),
+                 key=lambda c:c['connector68']['ready_step'])
+    for c in ready:
+        tag=c['connector68'];entry=local['connector_entries'][tag['link']]
+        remain={};passed=0.
+        for lane,share in tag['shares'].items():
+            amount=c['vehicles']*share;key=(tag['link'],lane)
+            accepted=min(amount,max(0.,grants.get(key,0.)))
+            grants[key]-=accepted;remain[lane]=amount-accepted;passed+=accepted
+            if accepted<=0:continue
+            moved={k:v for k,v in c.items() if k!='connector68'}
+            moved['vehicles']=accepted
+            moved.update(_known_lane68_tag(cfg,'68',int(lane),entry['position_m'],c['speed_kph'],step))
+            distance=(spec['choice_position_m']-entry['position_m'] if c['target']=='prechoice' else
+                      _known_remaining(spec['physical_travel']['destinations'][c['target']],'68',entry['position_m']) if c['target']!='unknown' else 0.)
+            moved['due']=_due(cfg,step,max(0.,distance),c['speed_kph'])
+            _known_local_queue_prepare(cfg,moved);added.append(moved)
+        # Lane remainders are the surviving stock. Subtracting a rounded sum of
+        # fully transferred lane portions can leave a spurious positive packet
+        # that gets split into fresh route cohorts at every subsequent step.
+        c['vehicles']=sum(remain.values())
+        if c['vehicles']>EPS:
+            c['connector68']={**tag,'shares':{lane:n/c['vehicles'] for lane,n in remain.items() if n>0}}
+        c['due']=step+1
+    runtime['cohorts']=[c for c in runtime['cohorts'] if c['vehicles']>0]+_known_coalesce_arrivals(added)
+    # The wrapper uses this buffer to distinguish ready from travelling stock.
+    # Rebuild only this exclusively owned alias, including blocked ready stock.
+    reservations=defaultdict(float)
+    for c in runtime['cohorts']:
+        if c['due']>step:reservations[c['due']]+=c['vehicles']
+    state.urban_storage_release_buffer[spec['storage']]=dict(reservations)
+    _known_check(state,cfg)
+
+
+def _known_lane_occupancy(state, spec, step):
+    occupied=defaultdict(float)
+    ramp=spec['entry_lane_receiving']['ramp']
+    for c in state.known_legsplit_route_state['cohorts']:
+        tag=c.get('lane68')
+        if tag is not None and (c['target'] in (ramp,'unknown') or c.get('local68_queue') or step<tag['exit_step']):
+            for lane,share in tag['shares'].items():occupied[lane]+=c['vehicles']*share
+    return occupied
+
+def _known_ramp_lane_share(cfg, cohort):
+    spec=cfg.network.known_legsplit_routes
+    if 'lateral_access_rate_per_sec' not in spec:return 1.
+    if 'lane68' not in cohort:
+        raise ValueError('Known W_out RM access lost its current physical lane')
+    return sum(cohort['lane68']['shares'].get(lane,0.) for lane in spec['entry_lane_receiving']['ramp_lanes'])
+
+def _known_lateral_advance(state,cfg,step):
+    """One adjacent lane move with finite receiving; retain the sole W_out owner.
+
+    The effective rate is explicit calibration input. Availability comes from
+    predicted current lane stock. A simultaneous snapshot prevents a vehicle
+    jumping4->2 in one step, or borrowing room created by another lateral move.
+    This aggregate gate does not resolve microscopic gap acceptance.
+    """
+    spec=cfg.network.known_legsplit_routes
+    if spec.get('causal_lane_response'):
+        from evaluation.controllers.known_wout_causal_response import advance
+        return advance(state, cfg, step)
+    rate=spec.get('lateral_access_rate_per_sec')
+    if rate is None:return
+    geometry=spec['entry_lane_receiving'];ramp=geometry['ramp']
+    occupied=_known_lane_occupancy(state,spec,step)
+    pending=[];ledger=get_ledger(state)
+    for lane,target in (('3','2'),('4','3')):
+        cap=geometry['road_capacity_veh'][target]
+        room=max(0.,cap-occupied[target])
+        probability=-math.expm1(-rate*cfg.simulation.T_u_sec*min(1.,room/cap))
+        if probability<=0:continue
+        rows=[];total=0.
+        for c in state.known_legsplit_route_state['cohorts']:
+            if c['target']!=ramp or c['due']>step:continue
+            share=c['lane68']['shares'].get(lane,0.)
+            fraction=share*probability
+            if fraction<=0:continue
+            rows.append((c,fraction));total+=c['vehicles']*fraction
+        factor=room/total if total>room else 1.
+        accepted=0.
+        for c,fraction in rows:
+            moved_fraction=fraction*factor
+            pending.append((c,lane,target,moved_fraction))
+            accepted+=c['vehicles']*moved_fraction
+        if ledger is not None and ledger.captures_response:
+            ledger.record_resource_allocation('known_wout_lateral_receiving','68:'+target,room,
+                                               {'lane:68:'+lane:accepted})
+    for c,lane,target,fraction in pending:
+        shares=dict(c['lane68']['shares'])
+        shares[lane]-=fraction;shares[target]=shares.get(target,0.)+fraction
+        c['lane68']={**c['lane68'],'shares':{k:v for k,v in shares.items() if v>0}}
+
+def _known_ramp_lane_debit(cfg, cohort, debit):
+    """Debit only the current connecting-lane portion, never wrong-lane stock."""
+    share=_known_ramp_lane_share(cfg,cohort)
+    old=cohort['vehicles'];eligible=old*share
+    if debit<0 or debit>eligible+EPS:
+        raise ValueError('Known W_out debit exceeds physically connecting stock')
+    remaining=old-debit
+    if remaining>EPS and debit>0:
+        lanes=cfg.network.known_legsplit_routes['entry_lane_receiving']['ramp_lanes']
+        values={lane:old*s-debit*s/share if lane in lanes else old*s
+                for lane,s in cohort['lane68']['shares'].items()}
+        cohort['lane68']={**cohort['lane68'],'shares':{k:max(0.,v)/remaining for k,v in values.items() if v>0}}
+    cohort['vehicles']=remaining
+
+
+def _known_local_queue_prepare(cfg, cohort):
+    """Split68 waiting from travel beyond68, keeping a single vehicle owner."""
+    spec=cfg.network.known_legsplit_routes
+    if (not spec.get('local_queue_gate') or 'lane68' not in cohort
+            or cohort['target'] not in ('free','RM_C10646')):
+        return
+    # The remaining physical path begins after68. A stopped vehicle cannot
+    # consume that journey while it is still blocked on68.
+    from_step=cohort['lane68']['exit_step']
+    distance=_known_remaining(spec['physical_travel']['destinations'][cohort['target']],
+                              '68',spec['entry_lane_receiving']['road_length_m'])
+    cohort['local68_queue']=True
+    cohort['downstream_steps']=_due(cfg,0,distance,cohort['speed_kph'])
+    cohort['due']=from_step
+
+
+def _known_local_queue_advance(state,cfg,plan,actual,step):
+    """Partial FIFO hypothesis: shared-lane delay follows actual ramp admission.
+
+    Only cohorts with an earlier/same lane reservation obstruct a local queue.
+    A fractional last blocking vehicle has proportional lane coverage. This is
+    an aggregate lane queue, not a microscopic lateral-gap model. Local passing
+    only reschedules travel inside the same owner; it is never a network exit.
+    """
+    spec=cfg.network.known_legsplit_routes
+    if not spec.get('local_queue_gate'):return
+    local=state.known_legsplit_route_state;ramp=spec['entry_lane_receiving']['ramp']
+    requested=plan['requests'].get(ramp,0.)
+    fraction=min(1.,actual.get(ramp,0.)/requested) if requested>0 else 0.
+    # Build four ordered prefix sums once, rather than rescanning every ramp
+    # cohort for every waiting cohort at each one-second transport step.
+    from bisect import bisect_right
+    blocked=defaultdict(list)
+    for b in local['cohorts']:
+        if b['target']==ramp and b['due']<=step and 'lane68' in b:
+            for lane,share in b['lane68']['shares'].items():
+                blocked[lane].append((tuple(b['lane68']['order']),b['vehicles']*share))
+    prefixes={}
+    for lane,rows in blocked.items():
+        rows.sort(key=lambda row:row[0]);orders=[];counts=[0.]
+        for order,n in rows:
+            orders.append(order);counts.append(counts[-1]+n)
+        prefixes[lane]=(orders,counts)
+    released={}
+    for c in local['cohorts']:
+        if not c.get('local68_queue') or c['due']>step:continue
+        tag=c['lane68'];remaining={};passed=0.
+        for lane,share in tag['shares'].items():
+            orders,counts=prefixes.get(lane,([], [0.]))
+            ahead=counts[bisect_right(orders,tuple(tag['order']))]
+            coverage=min(1.,ahead)
+            amount=c['vehicles']*share
+            lane_fraction = fraction
+            if ('lateral_access_rate_per_sec' in spec
+                    and lane not in spec['entry_lane_receiving']['ramp_lanes']):
+                lane_fraction = 0.
+            accepted=amount*(1.-coverage*(1.-lane_fraction))
+            remaining[lane]=amount-accepted;passed+=accepted
+        if passed<=0:continue
+        c['vehicles']=sum(remaining.values())
+        # Keep sub-tolerance stock, but do not normalize by a vanishing count:
+        # reverse AD forms 1/n**2 and can underflow long before n reaches zero.
+        # Retaining its prior lane proportions changes no owned vehicle count.
+        if c['vehicles']>EPS:
+            c['lane68']={**tag,'shares':{lane:n/c['vehicles'] for lane,n in remaining.items() if n>0}}
+        due=step+c['downstream_steps']
+        key=(c['target'],due)
+        released[key]=released.get(key,0.)+passed
+    # Coalesce equal destination/arrival times. There is no further route choice
+    # after this gate, so source-specific aliases would only enlarge the state.
+    for (target,due),amount in released.items():
+        local['cohorts'].append(dict(target=target,vehicles=amount,due=due,source='local68_passed'))
+        pending=state.urban_storage_release_buffer.setdefault(spec['storage'],{})
+        pending[due]=pending.get(due,0.)+amount
+    local['local68_passed_veh']=local.get('local68_passed_veh',0.)+sum(released.values())
+
+
+def known_entry_lane_limits(state, cfg, intended, step):
+    """Partial lane blockage at68; preserve stock/ETA and other lane service."""
+    spec = getattr(cfg.network, 'known_legsplit_routes', None) or {}
+    local = spec.get('entry_lane_receiving')
+    if local is None:
+        return intended
+    aggregate=state.known_legsplit_route_state.get('aggregate_transport')
+    if aggregate is not None:return aggregate.entry_limits(state,cfg,intended,step)
+    if spec.get('connector_queue_gate'):
+        return _known_connector_limits(state,cfg,intended,step)
+    ramp = local['ramp']
+    buffer = state.lane_ramp_runtime.buffers[ramp]
+    snapshot = buffer.snapshot()
+    pending = max(0., state.ramp_queue[ramp]-snapshot['connector_veh'])
+    ready_by_lane=defaultdict(float)
+    for cohort in state.known_legsplit_route_state['cohorts']:
+        if cohort['target']==ramp and cohort['due']<=step:
+            shares=cohort.get('lane68',{}).get('shares')
+            for lane,j in local['ramp_lanes'].items():
+                share=buffer.lane_arrival_shares[j] if shares is None else shares.get(lane,0.)
+                ready_by_lane[lane]+=cohort['vehicles']*share
+    requests = defaultdict(dict)
+    result = dict(intended)
+    occupied=defaultdict(float)
+    for cohort in state.known_legsplit_route_state['cohorts']:
+        tag=cohort.get('lane68')
+        if tag is not None and (cohort['target'] in (ramp,'unknown') or cohort.get('local68_queue') or step<tag['exit_step']):
+            for lane,share in tag['shares'].items():occupied[lane]+=cohort['vehicles']*share
+    accepted_lanes=defaultdict(dict)
+    for movement, lanes in local['incoming'].items():
+        if movement not in intended: continue
+        result[movement] = 0.
+        for lane in lanes: requests[str(lane)][movement] = intended[movement]/len(lanes)
+    ledger = get_ledger(state)
+    for lane, sources in requests.items():
+        total = sum(sources.values())
+        if lane in local['capacity_veh']:
+            j = local['ramp_lanes'][lane]
+            snap = buffer._lane_buffers[j].snapshot()
+            prehead = snap['upstream_travelling_veh']+snap['head_ready_veh']
+            room = max(0., local['capacity_veh'][lane]-prehead-pending*buffer.lane_arrival_shares[j]-ready_by_lane[lane])
+            factor = min(1., room/total) if total>0 else 1.
+        else:
+            room, factor = total, 1.
+        if lane in local.get('road_capacity_veh',{}):
+            room=min(room,max(0.,local['road_capacity_veh'][lane]-occupied[lane]))
+            factor=min(1.,room/total) if total>0 else 1.
+        accepted = {m:n*factor for m,n in sources.items()}
+        for movement, amount in accepted.items():
+            result[movement]+=amount
+            accepted_lanes[movement][lane]=amount
+        if ledger is not None and ledger.captures_response:
+            ledger.record_resource_allocation('known_wout_lane_receiving', '68:'+lane, room,
+                {'movement:'+m:n for m,n in accepted.items()})
+    state.known_legsplit_route_state['entry_lane_shares']={m:{lane:n/result[m] for lane,n in lanes.items()}
+        for m,lanes in accepted_lanes.items() if result[m]>0}
+    state.known_legsplit_route_state['entry_lane_step']=step
+    return result
+
+
 def known_legsplit_diagnostics(state,cfg):
     if not getattr(cfg.network,'known_legsplit_routes',None):
         return {}
     local=state.known_legsplit_route_state
+    aggregate=local.get('aggregate_transport')
+    if aggregate is not None:
+        unknown=sum(aggregate.bins.total(j) for j,label in enumerate(aggregate.bins.labels) if label[2]=='unknown')
+        return {'known_wout_held_unknown_route_veh':unknown,
+                'known_wout_prediction_route_complete':float(unknown<=1e-8),
+                'known_wout_stock_veh':aggregate.stock(),
+                'known_wout_aggregate_updates':aggregate.updates}
     unknown=sum(c['vehicles'] for c in local['cohorts'] if c['target']=='unknown')
     return {'known_wout_held_unknown_route_veh':unknown,
             'known_wout_prediction_route_complete':float(unknown<=1e-8),
@@ -1143,6 +1607,8 @@ def known_legsplit_diagnostics(state,cfg):
 
 
 def _known_total(state):
+    aggregate=state.known_legsplit_route_state.get('aggregate_transport')
+    if aggregate is not None:return aggregate.stock()
     return sum(c['vehicles'] for c in state.known_legsplit_route_state['cohorts'])
 
 
@@ -1203,7 +1669,11 @@ def initialize_known_legsplit(state, cfg, raw):
                           else travel['destinations'][target])
                 due=_due(cfg,start,_known_remaining(segments,link,r['position_m']),speed)
             cohorts.append({'target':target,'vehicles':1.,'due':due,
-                            'source':'initial_current_route','speed_kph':speed})
+                            'source':'initial_current_route','speed_kph':speed,
+                            **_known_lane68_tag(cfg,link,r['lane_no'],r['position_m'],speed,start)})
+            if 'connector68' in cohorts[-1]:
+                cohorts[-1]['due']=cohorts[-1]['connector68']['ready_step']
+            _known_local_queue_prepare(cfg,cohorts[-1])
             from evaluation.controllers.omega_distance import record_known
             record_known(state,cfg,target,1.,start,due,link,r['position_m'])
             continue
@@ -1259,11 +1729,20 @@ def known_legsplit_receive(state,cfg,vehicles,due,*,movement=None,off_ramp=None,
                else _speed(state,cfg,state.urban_link_speed_kph.get(origin)))
         due=_due(cfg,entry_step,distance,speed)
         extra['speed_kph']=speed
-    local['cohorts'].append({'target':target,'vehicles':float(vehicles),'due':int(due),
-                            'source':movement or 'offramp_direct:'+off_ramp,**extra})
+        if movement is not None and 'entry_lane_receiving' in spec:
+            if local.get('entry_lane_step')!=entry_step or movement not in local.get('entry_lane_shares',{}):
+                raise ValueError('Known W_out received without current lane allocation')
+            extra.update(_known_lane68_tag(cfg,connector,None,0.,speed,entry_step,
+                         shares=local['entry_lane_shares'][movement]))
+            if 'connector68' in extra:due=extra['connector68']['ready_step']
+    row={'target':target,'vehicles':float(vehicles),'due':int(due),
+         'source':movement or 'offramp_direct:'+off_ramp,**extra}
+    aggregate=local.get('aggregate_transport')
+    if aggregate is None:local['cohorts'].append(row)
+    else:aggregate.receive(row,state,cfg,entry_step)
     if owns_travel:
         from src.models.urban_queue_model import _schedule
-        _schedule(state.urban_storage_release_buffer,spec['storage'],due,vehicles)
+        if aggregate is None:_schedule(state.urban_storage_release_buffer,spec['storage'],due,vehicles)
         from evaluation.controllers.omega_distance import record_known
         record_known(state,cfg,target,vehicles,entry_step,due,connector if movement is not None else entry['link'],
                      0. if movement is not None else entry['position_m'])
@@ -1276,6 +1755,10 @@ def known_legsplit_requests(state,cfg,storage,reach,arrived,step):
     spec=getattr(cfg.network,'known_legsplit_routes',None)
     if spec is None or storage!=spec['storage']:
         return None
+    aggregate=state.known_legsplit_route_state.get('aggregate_transport')
+    if aggregate is not None:
+        _known_check(state,cfg)
+        return aggregate.requests(state,cfg,step)
     if not all(math.isfinite(v) and v>=0 for v in (reach,arrived)) or reach>arrived+1e-7:
         raise ValueError('Known W_out request exceeds ready source stock')
     _known_check(state,cfg)
@@ -1297,6 +1780,7 @@ def known_legsplit_requests(state,cfg,storage,reach,arrived,step):
                     distance=_known_remaining(spec['physical_travel']['destinations'][target],
                                               '68',spec['choice_position_m'])
                     chosen['due']=_due(cfg,step,distance,c['speed_kph'])
+                    _known_local_queue_prepare(cfg,chosen)
                     _schedule(state.urban_storage_release_buffer,storage,chosen['due'],chosen['vehicles'])
                     from evaluation.controllers.omega_distance import record_known
                     record_known(state,cfg,target,chosen['vehicles'],step,chosen['due'],'68',spec['choice_position_m'])
@@ -1304,6 +1788,7 @@ def known_legsplit_requests(state,cfg,storage,reach,arrived,step):
         else:
             cohorts.append(c)
     local['cohorts']=cohorts
+    _known_lateral_advance(state,cfg,step)
     eligible=sum(c['vehicles'] for c in cohorts if c['due']<=step)
     if 'physical_travel' in spec:
         pending=sum(v for due,v in state.urban_storage_release_buffer.get(storage,{}).items() if int(due)>step)
@@ -1313,11 +1798,17 @@ def known_legsplit_requests(state,cfg,storage,reach,arrived,step):
     factor=1. if 'physical_travel' in spec else reach/arrived if arrived>0 else 0.
     requests=defaultdict(float); plan=[]
     for c in cohorts:
-        if c['due']<=step and c['target']!='unknown':
+        if c['due']<=step and c['target']!='unknown' and not c.get('local68_queue'):
             amount=c['vehicles']*factor
+            if ('lateral_access_rate_per_sec' in spec
+                    and c['target']==spec['entry_lane_receiving']['ramp']):
+                amount*=_known_ramp_lane_share(cfg,c)
             requests[c['target']]+=amount
             plan.append((c,amount))
     local['plan']={'step':step,'rows':plan,'requests':dict(requests)}
+    if spec.get('causal_lane_response'):
+        from evaluation.controllers.known_wout_causal_response import bind_source_request
+        bind_source_request(state, spec, requests)
     return dict(requests)
 
 
@@ -1325,6 +1816,12 @@ def known_legsplit_commit(state,cfg,receipts,step):
     spec=getattr(cfg.network,'known_legsplit_routes',None)
     if spec is None:
         return
+    aggregate=state.known_legsplit_route_state.get('aggregate_transport')
+    if aggregate is not None:return aggregate.commit(state,cfg,receipts,step)
+    causal = spec.get('causal_lane_response')
+    if causal:
+        from evaluation.controllers.known_wout_causal_response import _lane_stocks, record_source_departures
+        before = _lane_stocks(state, spec)
     local=state.known_legsplit_route_state; plan=local['plan']
     actual=defaultdict(float)
     for source,ramp,vehicles in receipts:
@@ -1334,6 +1831,8 @@ def known_legsplit_commit(state,cfg,receipts,step):
         if sum(actual.values())>1e-9:
             raise ValueError('Known W_out receipt without its current plan')
         _known_check(state,cfg)
+        if causal:
+            record_source_departures(state, before, _lane_stocks(state, spec), step)
         return
     if plan['step']!=step:
         raise ValueError('Known W_out receipt uses a stale plan')
@@ -1343,13 +1842,23 @@ def known_legsplit_commit(state,cfg,receipts,step):
     n=cfg.network.urban_link_storage_veh[spec['storage']]-state.urban_link_storage[spec['storage']]
     if not math.isclose(_known_total(state)-sum(actual.values()),n,rel_tol=0.,abs_tol=1e-7):
         raise ValueError('Known W_out source owner did not commit exactly these receipts')
+    _known_local_queue_advance(state,cfg,plan,actual,step)
     for c,requested in plan['rows']:
         total=plan['requests'][c['target']]
-        debit=requested*actual[c['target']]/total if total else 0.
-        c['vehicles']-=debit
+        # Form the accepted fraction first: a fully accepted destination has
+        # fraction exactly one. Multiplying two vehicle counts first leaves
+        # artificial positive residual packets and can underflow tiny stock.
+        debit=requested*(actual[c['target']]/total) if total else 0.
+        if ('lateral_access_rate_per_sec' in spec
+                and c['target']==spec['entry_lane_receiving']['ramp']):
+            _known_ramp_lane_debit(cfg,c,debit)
+        else:
+            c['vehicles']-=debit
     local['cohorts']=[c for c in local['cohorts'] if c['vehicles']>0]
     local['departed']+=sum(actual.values()); local['plan']=None
     _known_check(state,cfg)
+    if causal:
+        record_source_departures(state, before, _lane_stocks(state, spec), step)
 
 
 def configure_direct_exit_legsplit(cfg, tuning, state, raw):

@@ -148,7 +148,10 @@ def route_advance(state,cfg,step):
     return {'native_input_route_tagged_veh':sum(a['queue'].values())+sum(b.waiting)+sum(b.pending)}
 
 
-def route_accept(state,cfg,movement,vehicles,step):
+def route_accept(state,cfg,movement,vehicles,step,*,entry_step=None):
+    entry=step if entry_step is None else entry_step
+    if not math.isfinite(entry) or int(entry)!=entry or entry<step:
+        raise ValueError('Aggregate receipt entry cannot precede current service')
     from evaluation.controllers import native_input_routes as legacy
     from src.models import urban_queue_model as uqm
     local,a,inputs=routes(state,cfg);b=a['bins']
@@ -162,16 +165,16 @@ def route_accept(state,cfg,movement,vehicles,step):
         accepted=vehicles*a['queue'][no,k]/before if before else 0.
         a['queue'][no,k]-=accepted
         if accepted>0 and k+1<len(inputs[no]['route_stages']):
-            c=legacy._transit_cohort(no,k+1,accepted,step,state,cfg)
+            c=legacy._transit_cohort(no,k+1,accepted,entry,state,cfg)
             b.add((no,k+1,0),c['due'],accepted);intermediate+=accepted
         else:local['completed_veh']+=accepted
     ordinary=max(0.,vehicles-intermediate);target=cfg.network.urban_movements[movement]['receiving_link']
-    due=step+uqm._link_delay_steps(state,cfg,target)
+    due=entry+uqm._link_delay_steps(state,cfg,target)
     if ordinary:
         if target in uqm.approach_routing(cfg):uqm._schedule(state.urban_arrival_buffer,target,due,ordinary)
         uqm._schedule(state.urban_storage_release_buffer,target,due,ordinary)
         from evaluation.controllers.omega_distance import record_ordinary_movement
-        record_ordinary_movement(state,cfg,movement,ordinary,step,due)
+        record_ordinary_movement(state,cfg,movement,ordinary,entry,due)
     route_check(state,cfg);return True
 
 

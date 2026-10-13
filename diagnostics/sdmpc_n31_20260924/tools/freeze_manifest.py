@@ -35,12 +35,21 @@ from n31_common import FREEZE_NAME, FREEZE_SCHEMA, ToolError, file_sha256, long_
 # __tangentcache__: the SDMPC tangent code cache, keyed by source sha. A run writes new entries into
 # FRZ (G1b wrote 87), which made FREEZE_VERIFIED fail although no input changed.
 EXCLUDED_DIRS = ('__pycache__', '.pytest_cache', '.git', '__tangentcache__')   # .git: a plain clone's folder (a worktree has a file)
+# Reviewed synthetic pytest output only; the same exact source-relative path is
+# excluded by robocopy. Original scratch contents/ACLs are left intact.
+EXCLUDED_RELATIVE_DIRS = ('diagnostics/repin_v3c3_review_20261001/urban_rm269/pytest_controlled_pair_area',)
 EXCLUDED_NAMES = ('.git',)
 EXCLUDED_SUFFIXES = ('.pyc',)
 PLAN_SUBTREES = ('evaluation/', 'scripts/', 'src/', 'plant/', 'diagnostics/sdmpc_n31_20260924/')
 
 
+def excluded_relative_dir(rel):
+    return any(rel.lower() == d or rel.lower().startswith(d + '/') for d in EXCLUDED_RELATIVE_DIRS)
+
+
 def excluded(rel):
+    if excluded_relative_dir(rel):
+        return True
     parts = rel.split('/')
     if any(p.lower() in EXCLUDED_DIRS for p in parts[:-1]):
         return True
@@ -54,8 +63,14 @@ def walk_files(root):
     """{relative forward-slash path: absolute path} of every non-excluded file under root."""
     root_long = long_path(root)
     out = {}
-    for current, dirs, files in os.walk(root_long):
-        dirs[:] = sorted(d for d in dirs if d.lower() not in EXCLUDED_DIRS)
+    def unreadable(error):
+        # os.walk's default silently omits unreadable directories. A manifest
+        # must fail instead of certifying an incomplete input tree.
+        raise ToolError(f'Cannot enumerate frozen input tree: {error}') from error
+
+    for current, dirs, files in os.walk(root_long, onerror=unreadable):
+        dirs[:] = sorted(d for d in dirs if d.lower() not in EXCLUDED_DIRS
+                         and not excluded_relative_dir(os.path.relpath(os.path.join(current, d), root_long).replace('\\', '/')))
         rel_dir = os.path.relpath(current, root_long)
         for name in files:
             rel = name if rel_dir == '.' else os.path.join(rel_dir, name)
@@ -120,7 +135,7 @@ def build(source, frozen, state_file):
         'created_at': _dt.datetime.now().astimezone().isoformat(timespec='seconds'),
         'source': str(source), 'frozen': str(frozen),
         'git': before,
-        'exclusions': {'dirs': list(EXCLUDED_DIRS), 'names': list(EXCLUDED_NAMES),
+        'exclusions': {'dirs': list(EXCLUDED_DIRS), 'relative_dirs': list(EXCLUDED_RELATIVE_DIRS), 'names': list(EXCLUDED_NAMES),
                        'suffixes': list(EXCLUDED_SUFFIXES), 'root_only': [FREEZE_NAME]},
         'plan_subtrees': list(PLAN_SUBTREES),
         'plan_subtree_files': {p: sum(1 for k in frozen_table if k.startswith(p)) for p in PLAN_SUBTREES},

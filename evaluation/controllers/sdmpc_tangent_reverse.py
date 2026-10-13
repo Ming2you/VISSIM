@@ -241,11 +241,15 @@ class Dual(forward.Dual):
 
     def __truediv__(self, other):
         denominator = primal(other)
-        return self.trace.operation(self.value/denominator, self, 1./denominator,
-                                    other, -self.value/denominator**2)
+        value = self.value/denominator
+        square = denominator**2
+        return self.trace.operation(value, self, 1./denominator,
+                                    other, -self.value/square if square else -value/denominator)
 
     def __rtruediv__(self, other):
-        return self.trace.operation(primal(other)/self.value, self, -primal(other)/self.value**2,
+        value = primal(other)/self.value
+        square = self.value**2
+        return self.trace.operation(value, self, -primal(other)/square if square else -value/self.value,
                                     other, 1./self.value)
 
     def __pow__(self, other):

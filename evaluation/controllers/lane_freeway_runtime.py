@@ -150,7 +150,8 @@ class LaneFreewayRuntime:
                 for road in self.roads})
 
     def advance(self, state, control, demand, *, ramp_releases, off_capacities,
-                ramp_group_releases=None, off_group_capacities=None):
+                ramp_group_releases=None, off_group_capacities=None,
+                complete_ramp_packets=True, complete_allocator_scope=True):
         from evaluation.controllers import area_freeway_accounting as accounting
         if state.time_sec != self.time_sec:
             raise ValueError('Noncontiguous physical freeway step')
@@ -165,6 +166,8 @@ class LaneFreewayRuntime:
             caps = {o: off_capacities[o] for o in cfg.network.off_ramps}
             plant = self.lanes.get(road)
             if plant is not None:
+                if not complete_ramp_packets:
+                    raise ValueError('Partial macro packets are not implemented for lane-group roads')
                 cost, diagnostic = plant.advance(state, control, demand, cfg,
                     offramp_capacity_veh_h=caps, ramp_release_veh_h=releases,
                     ramp_group_release_veh_h={r: q for r, q in (ramp_group_releases or {}).items() if r in releases},
@@ -182,7 +185,7 @@ class LaneFreewayRuntime:
                 cost, diagnostic = accounting._freeway_substep_events(state, control, demand, cfg,
                     offramp_capacity_veh_h=caps, ramp_release_veh_h=releases,
                     ramp_release_diagnostics=release_diag, update_ramp_queues=False, include_ramp_queue_ttt=False,
-                    complete_allocator_scope=False)
+                    complete_allocator_scope=False, complete_ramp_packets=complete_ramp_packets)
                 off_flows.update({o: diagnostic['offramp_flow_'+o] for o in caps})
             ttt += cost
             diagnostics[road] = diagnostic
@@ -194,6 +197,12 @@ class LaneFreewayRuntime:
                 plant.partition_rows.clear()
         # A full-network visit completes only after both independent road
         # allocators have recorded their actual resource constraints.
-        accounting._area.get_ledger(state).complete_constraint_coverage('freeway_allocator')
+        if complete_allocator_scope:
+            accounting._area.get_ledger(state).complete_constraint_coverage('freeway_allocator')
         self.time_sec += self.configs[self.roads[0]].simulation.T_f_sec
         return ttt, off_flows, diagnostics
+
+    def advance_macro(self, state, control, demand, **kwargs):
+        """Explicit five-second exchange, with conservative shared substeps."""
+        from evaluation.controllers.multirate_freeway import advance
+        return advance(self, state, control, demand, **kwargs)

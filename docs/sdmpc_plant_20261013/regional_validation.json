@@ -1,0 +1,201 @@
+{
+  "passed": true,
+  "scope": "regional_information_isolation",
+  "native_runs": 0,
+  "freeze_runs": 0,
+  "queue_runs": 0,
+  "input_gate": {
+    "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\input_gate.json",
+    "sha256": "295beacfd4fa047727407649f15e053b399e4d3b5cebe16b9a81859fb89a655a"
+  },
+  "source_pins": {
+    "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\fix1\\current_release_package_source_pins.json",
+    "sha256": "7097f8f5c62de723e44b52122443b4738d885711f03c97beb06792d285fab244"
+  },
+  "regression": {
+    "command": "python -B -m unittest diagnostics.solo355_local_20261013.test_regional_context diagnostics.solo355_local_20261013.test_regional_contracts diagnostics.test_sdmpc_central diagnostics.test_sdmpc_pfo_caps diagnostics.test_validated_decision_hold",
+    "tests": 66,
+    "seconds": 11.947,
+    "passed": true
+  },
+  "modes": {
+    "freeway_only": {
+      "remote_noninterference": true,
+      "own_state_sensitivity": true,
+      "causal_boundary": true,
+      "local_cost_only": true,
+      "three_block_writer": true,
+      "input_evidence": {
+        "base": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_fw_base_v2.json",
+          "sha256": "1cd7547d780a748856dcc63507e45c03aec085fc49a8696abc78bbc6d6b7361a"
+        },
+        "opposite": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_fw_opposite_v2.json",
+          "sha256": "c115bbf7463dc13006c511f5197f0b986d0e115421b440c0361815b052f0d941"
+        },
+        "own": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_fw_own_v2.json",
+          "sha256": "4bffb93fe6fccc919ca877da277ba1f230632e95136fef6600499566c06952ae"
+        },
+        "stock": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_fw_stock_v2.json",
+          "sha256": "c87712d28e8c247893ac9e898fb7fa339e58f15a536afc71833ec7397b57bfcb"
+        }
+      },
+      "startup": {
+        "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\startup_freeway\\receipt.json",
+        "sha256": "ae79de0d560601e6349272938c4beb8f25235cc3940d90ea28153f97bb0d1e26"
+      },
+      "full_selection": {
+        "completed": true,
+        "feasible": true,
+        "evidence_path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\full_freeway900_v2\\selection.json",
+        "evidence_sha256": "05cdc98ecbd14222bdc962dbe123e058f12e4fd75575358f58b7acf04306cb97",
+        "seconds": 180.61881449981593,
+        "converged": false,
+        "status": "best_observed_feasible_sdmpc",
+        "held_objective_veh_h": 190.12384806062906,
+        "selected_objective_veh_h": 189.27754227640241,
+        "active_cost_owners": [
+          "FW_W",
+          "FW_E"
+        ],
+        "passive_veh_h": 5.918105511821321e-16,
+        "executable_secant_rows": {
+          "inactive_vsl_legal_step": 118
+        },
+        "meter_neighbor_predictions": 22,
+        "rollouts": {
+          "scalar_rollouts": 144,
+          "tangent_rollouts": 10,
+          "total_rollouts": 154
+        },
+        "protocol": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\full_freeway900_v2\\protocol.json",
+          "sha256": "f6c5477b102dc3e26fe9adc52a906e9f28e8f8ea8a5ffa5c9527c0ee884e0c58"
+        },
+        "package_source_pin_count": 1153,
+        "executed_source_binding": "Original Task5 selection bytes (886f82b implementation); not rerun after I1",
+        "current_release_equivalence": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\fix1\\source_delta.json",
+          "sha256": "7e15a5e2f14a254241c9cbbcae5bd0a4d2282beef868e0c1ad7e8ecd90f42a22"
+        }
+      },
+      "far_producer_noninterference": false,
+      "far_producer_own_sensitivity": true
+    },
+    "urban_only": {
+      "remote_noninterference": true,
+      "own_state_sensitivity": true,
+      "causal_boundary": true,
+      "local_cost_only": true,
+      "three_block_writer": true,
+      "input_evidence": {
+        "base": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_urban_base_v2.json",
+          "sha256": "de39be8feb81e7aac016d41bf199d951db0fa7e4d23823c9fa52df4703dd6780"
+        },
+        "opposite": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_urban_opposite_v2.json",
+          "sha256": "539e4bac1fd1101e4e7338f14300dded4f44f0427400debaf0069afab5a4e37a"
+        },
+        "own": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_urban_own_v2.json",
+          "sha256": "6e0a190108b774ab82ab3a6a8ebe660e6a8bbee3c8e33d8baa4189ec39ddf732"
+        },
+        "stock": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\raw_urban_stock_v2.json",
+          "sha256": "48b86c54df0b2c6a8903ad08f223714996d9a22f616a3776dc6923564236971f"
+        }
+      },
+      "startup": {
+        "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\startup_urban\\receipt.json",
+        "sha256": "47f07c68512a7d66c57d90886a6a3668b8c4a541458e4d4ede38eb488161b49a"
+      },
+      "full_selection": {
+        "completed": true,
+        "feasible": true,
+        "evidence_path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\full_urban900\\selection.json",
+        "evidence_sha256": "48cd2d576fd8cd21ca0d6863b49ad3b62f3611e2016558ad073e170e20efe86b",
+        "seconds": 62.622391500044614,
+        "converged": false,
+        "status": "best_observed_feasible_sdmpc",
+        "held_objective_veh_h": 239.07617641664146,
+        "selected_objective_veh_h": 234.06544106057717,
+        "active_cost_owners": [
+          "SC1",
+          "SC5",
+          "SC6",
+          "SC7",
+          "SC11",
+          "SC12",
+          "SC16",
+          "SC101",
+          "SC105",
+          "SC107",
+          "SC108",
+          "SC109",
+          "SC1001",
+          "SC1002",
+          "SC1003",
+          "SC1004",
+          "SC1005"
+        ],
+        "passive_veh_h": 144.9088126479578,
+        "executable_secant_rows": {},
+        "meter_neighbor_predictions": 0,
+        "rollouts": {
+          "scalar_rollouts": 1,
+          "tangent_rollouts": 9,
+          "total_rollouts": 10
+        },
+        "protocol": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\full_urban900\\protocol.json",
+          "sha256": "4d4e6ca626ea52d8018083b5f1b51d145c57733f0b66bc7b6c199e28ec96977a"
+        },
+        "package_source_pin_count": 1153,
+        "executed_source_binding": "Original Task5 selection bytes (886f82b implementation); not rerun after I1",
+        "current_release_equivalence": {
+          "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\fix1\\source_delta.json",
+          "sha256": "7e15a5e2f14a254241c9cbbcae5bd0a4d2282beef868e0c1ad7e8ecd90f42a22"
+        }
+      },
+      "far_producer_noninterference": true,
+      "far_producer_own_sensitivity": false
+    }
+  },
+  "limitations": [
+    "Raw replay injects captured merged observations at lane_plant_runtime.observe_state; collector transport and obs150 upstream source hashes were not revalidated.",
+    "Own VSL exposure and own head-service history are frozen identically between raw replay variants.",
+    "Raw numerical receipts used the earlier single-query one-worker setting; full selections restore original eight-worker policy and worker-contract regression rejects smaller configurations.",
+    "Outlet supply is adopted static capacity; source crossing requests are from the last closed own boundary window, not capacities or a remote-spillback forecast.",
+    "Both selections are best observed feasible, not converged/GNE certificates. Model/writer checks do not prove native traffic benefit or application.",
+    "Saved4500 integrated history remains correctly rejected by inactive actuator guards; no counterfactual native receipt is claimed.",
+    "The failed first FW selection is preserved under full_freeway900; a relevant worker-contract fix preceded the unique successful v2 selection.",
+    "Full selections retain original executed sources. Current release is bound by the explicit I1 ownership delta, FW complete-graph identity and old/new urban selected-action response/Jacobian/writer equivalence; no repeated full optimization."
+  ],
+  "executed_source_pins": {
+    "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\current_package_source_pins.json",
+    "sha256": "e3ea5fa87a4d629a7913faef4a478d2c9d9d33cc7ef0563130384b1ef1f46b0a"
+  },
+  "fix1": {
+    "passed": true,
+    "review_issue": "I1",
+    "source_delta": {
+      "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\fix1\\source_delta.json",
+      "sha256": "7e15a5e2f14a254241c9cbbcae5bd0a4d2282beef868e0c1ad7e8ecd90f42a22"
+    },
+    "qualification": {
+      "path": "D:\\VISSIM_analysis\\20261013_solo355_local\\task5\\fix1\\qualification\\receipt.json",
+      "sha256": "f73381ce67c6ed3dfa7bec326c062d88bf8db464fa6c4eb2352e4a119198c917"
+    },
+    "focused_regression": {
+      "command": "python -B -m unittest diagnostics.solo355_local_20261013.test_regional_context",
+      "tests": 5,
+      "seconds": 12.773,
+      "passed": true
+    },
+    "full_optimizations_repeated": 0
+  }
+}

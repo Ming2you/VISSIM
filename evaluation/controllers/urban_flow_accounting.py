@@ -22,32 +22,38 @@ def _resource_ledger(state):
     return ledger if ledger is not None and ledger.captures_response else None
 
 
-def _receive_corridor(state, cfg, movement, vehicles, urban_step_index):
+def _receive_corridor(state, cfg, movement, vehicles, urban_step_index, *, entry_step=None):
+    # Service is charged to the current allocator visit; travel starts at the
+    # actual exchange endpoint, which may be the next coarse urban tick.
+    entry = urban_step_index if entry_step is None else entry_step
+    if not math.isfinite(entry) or int(entry)!=entry or entry<urban_step_index:
+        raise ValueError('Urban receipt entry step must not precede service')
+    options = {} if entry_step is None else {'entry_step':entry}
     if getattr(cfg.network, 'direct_exit_legsplit', {}).get('travel'):
         from evaluation.controllers.route_choice_corridor import direct_exit_movement_receive
-        if direct_exit_movement_receive(state,cfg,movement,vehicles,urban_step_index):
+        if direct_exit_movement_receive(state,cfg,movement,vehicles,entry):
             return True
     if getattr(cfg.network, 'known_legsplit_routes', None):
         from evaluation.controllers.route_choice_corridor import known_legsplit_receive
         target = cfg.network.urban_movements[movement].get('receiving_link')
         if target in cfg.network.urban_link_storage_veh:
             if known_legsplit_receive(state, cfg, vehicles,
-                urban_step_index + _uqm._link_delay_steps(state, cfg, target),
-                movement=movement, entry_step=urban_step_index):
+                entry + _uqm._link_delay_steps(state, cfg, target),
+                movement=movement, entry_step=entry):
                 return True
     if getattr(cfg.network, 'native_internal_inputs', None):
         from evaluation.controllers.native_input_prehead import receive_accepted as notify_prehead
         notify_prehead(state, cfg, movement, vehicles, urban_step_index)
         from evaluation.controllers.native_input_routes import receive_accepted
-        if receive_accepted(state, cfg, movement, vehicles, urban_step_index):
+        if receive_accepted(state, cfg, movement, vehicles, urban_step_index, **options):
             return True
     if getattr(cfg.network, 'route_choice_corridor', None):
         from evaluation.controllers.route_choice_corridor import receive_accepted
-        if receive_accepted(state, cfg, movement, vehicles, urban_step_index):
+        if receive_accepted(state, cfg, movement, vehicles, urban_step_index, **options):
             return True
     if getattr(cfg.network, 'sc2001_corridor', None):
         from evaluation.controllers.sc2001_corridor import receive_accepted
-        return receive_accepted(state, cfg, movement, vehicles, urban_step_index)
+        return receive_accepted(state, cfg, movement, vehicles, urban_step_index, **options)
     return False
 
 
@@ -544,6 +550,9 @@ def urban_substep_accounted(
     shared_head=getattr(state,'sc1001_approach',None)
     if shared_head is not None:
         shared_head.capture_ready_city(state,cfg,step_idx)
+    coarse_head_flow=None
+    if shared_head is not None and cfg.simulation.T_u_sec==10:
+        coarse_head_flow=shared_head.drain_to_network(state,control,cfg,step_idx,routing)
     drained = _drain_offramp_storage_accounted(state, control, cfg, specs, step_idx, routing)
     for off_ramp, released in drained.items():
         off_ramp_departures[off_ramp] = off_ramp_departures.get(off_ramp, 0.0) + released
@@ -551,7 +560,7 @@ def urban_substep_accounted(
         inbound_service_veh += released  # off-ramp 합류 = perimeter 유입.
 
     if shared_head is not None:
-        shared_flow=shared_head.drain_to_network(state,control,cfg,step_idx,routing)
+        shared_flow=coarse_head_flow if coarse_head_flow is not None else shared_head.drain_to_network(state,control,cfg,step_idx,routing)
         total_departures_veh+=shared_flow['head_departed_veh']
         inbound_service_veh+=shared_flow['city_inbound_veh']
         urban_gate_inflow_veh+=shared_flow['city_inbound_veh']
@@ -581,6 +590,8 @@ def urban_substep_accounted(
         else:
             no_storage_intended[movement] = intended
 
+    intended_by_storage,no_storage_intended=head_service_resources.regular_cross_receiver_requests(
+        cfg,intended_by_storage,no_storage_intended,state.urban_movement_queue,head_resource_context)
     actual_departure: Dict[str, float] = dict(no_storage_intended)
     receiving_evidence = {} if resource_ledger is not None else None
     head_accepted = {} if resource_ledger is not None else None
@@ -608,6 +619,8 @@ def urban_substep_accounted(
                 available_space,
             ))
 
+    from evaluation.controllers.route_choice_corridor import known_entry_lane_limits
+    actual_departure = known_entry_lane_limits(state, cfg, actual_departure, step_idx)
     for movement, departed in actual_departure.items():
         if movement_limits is not None:
             available, intended = movement_limits[movement]
@@ -665,11 +678,8 @@ def urban_substep_accounted(
         # budgets in other modules remain outside this partial evidence coverage.
         limits, used, members = head_resource_context
         for group, limit in limits.items():
-            accepted_sources = {'movement:' + m: head_accepted[m]
-                                for m in head_accepted if members[m] == group}
             # Match the kernel's accepted debit, not its earlier intended flow.
-            if sum(accepted_sources.values()) != used.get(group, 0.0):
-                raise ValueError('Regular head evidence differs from accepted debit: ' + str(group))
+            accepted_sources = head_service_resources.regular_evidence(group, head_accepted, head_resource_context)
             resource_ledger.record_resource_allocation(
                 'regular_shared_head', str(group), limit, accepted_sources)
 
@@ -822,7 +832,9 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
     inject: dict[str, float] = {}
     accepted_transfers = []
     from evaluation.controllers.route_choice_corridor import (
-        known_legsplit_requests, known_legsplit_commit, direct_exit_requests, direct_exit_commit)
+        known_legsplit_requests, known_legsplit_commit, direct_exit_requests, direct_exit_commit,
+        known_connector_advance)
+    known_connector_advance(state,cfg_arg,idx)
     adjust: dict[str, float] = {}   # source link -> accepted departures freeing its storage
     exit_cap_h = float(getattr(net_a, "boundary_out_capacity_veh_h", 0.0) or 0.0)
     finite_exit = exit_cap_h > 0.0
@@ -1047,7 +1059,7 @@ def install(adapter, cfg):
                 step = args[0] if args else _uqm._urban_step_index(state,cfg)
             physical = local.advance(state,control,cfg,step)
             result[1].update(physical)
-        if area_enabled:
+        if area_enabled and not getattr(cfg.network,'multirate_joint_clock_enabled',False):
             keys = [k for k in get_ledger(state).stocks if k.startswith(('storage:', 'movement:', 'ramp:', 'transit:'))]
             integrate_residence(state, cfg, keys, cfg.simulation.T_u_h)
         return result

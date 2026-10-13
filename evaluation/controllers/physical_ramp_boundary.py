@@ -279,6 +279,9 @@ class PhysicalRampBoundary:
         end = _number(start + duration, "end_sec", positive=True)
         if end <= start:
             raise ValueError("Interval duration is below clock precision")
+        if (getattr(self, '_causal_receiving_enabled', False)
+                and duration>self._spatial_entry['envelope'].lag):
+            raise ValueError('Ramp interval exceeds causal receiving wave lag; substep required')
         before = self.snapshot()
         post_cohorts = self._downstream
         if posthead_speed_kmh is not None:
@@ -312,6 +315,9 @@ class PhysicalRampBoundary:
         self.connector_ttt_veh_h = total_ttt
         self._phase = "merge"
         self._check_conservation()
+        if getattr(self, '_causal_receiving_enabled', False):
+            from evaluation.controllers.known_wout_causal_response import begin_receiving_interval
+            begin_receiving_interval(self, start, duration)
         return {"eligible_merge_veh": merge_ready, "start_sec": start, "end_sec": end,
                 "head_ready_veh": head_ready}
 
@@ -372,6 +378,9 @@ class PhysicalRampBoundary:
                                  nominal_posthead_storage_veh=capacity)
         self._phase = "admit"
         self._check_conservation()
+        if getattr(self, '_causal_receiving_enabled', False):
+            from evaluation.controllers.known_wout_causal_response import record_head_service
+            record_head_service(self)
         return served
 
     def _admission_space_veh(self) -> float:
@@ -385,7 +394,11 @@ class PhysicalRampBoundary:
         prehead_stock = stocks['upstream_travelling_veh']+stocks['head_ready_veh']
         # Empty space beyond RED is inaccessible to new upstream arrivals.
         # Preserve any observed initial excess rather than deleting vehicles.
-        return min(total_free, max(0.0, prehead_capacity-prehead_stock))
+        room = min(total_free, max(0.0, prehead_capacity-prehead_stock))
+        if getattr(self, '_causal_receiving_enabled', False):
+            from evaluation.controllers.known_wout_causal_response import offer
+            return offer(self, room)
+        return room
 
     def finish_interval(self, request_arrivals_veh: float) -> dict:
         self._require_phase("admit")
@@ -446,6 +459,11 @@ class PhysicalRampBoundary:
             self.cumulative_requested_veh += amount
             self.cumulative_admitted_veh += amount
         self._check_conservation()
+
+    def advance_coarse_interval(self, **kwargs):
+        """One real aggregate clock step; no hidden per-second iterations."""
+        from evaluation.controllers.multirate_ramp_boundary import advance
+        return advance(self, **kwargs)
 
     def advance_local_interval(self, *, start_sec: float, duration_sec: float,
                                cycle_sec: float, receiving_budget_veh: float,

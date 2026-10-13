@@ -72,9 +72,27 @@ def configure_freeway_runtime(adapter, cfg, tuning, mapping, *, component_valida
     return metadata
 
 
+def native_startup_without_prediction(tuning, state_json, controller_variant):
+    """The runner's first1s native command has no aligned forecast interval.
+
+    Keep the observation timestamp and strict prediction clock contracts. Only
+    the no-control startup command may omit coarse prediction initialization;
+    the first regular observation and every SDMPC decision use the full path.
+    """
+    obs=state_json.get('obs150',{})
+    local = (tuning or {}).get('adapter', {}).get('sdmpc_information_scope')
+    regional_startup = controller_variant == 'wu-link' and local in ('freeway_only', 'urban_only')
+    now = state_json.get('sim_sec')
+    return ((controller_variant=='no-control' and now==1 or regional_startup and now in (0, 1))
+            and obs.get('sim_sec')==now and obs.get('k') is None and obs.get('window') is None
+            and (tuning or {}).get('freeway',{}).get('multirate_exchange_sec')==5
+            and type((tuning or {}).get('urban',{}).get('multirate_exchange_sec')) is int
+            and tuning['urban']['multirate_exchange_sec']==10)
+
+
 def configure_runtime(adapter, cfg, tuning, mapping, state_json,
                       previous_action_path, detector_mapping, calibration,
-                      TrafficState, physical_projection_input=None):
+                      TrafficState, physical_projection_input=None, controller_variant=None):
     """Configure and project with main()'s ordered model-installation sequence.
 
     cfg must already come from build_config with the caller's actual mode and
@@ -87,6 +105,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     if timetable and not (tuning or {}).get('urban', {}).get('native_internal_inputs'):
         raise ValueError('Native timetable requires the verified native_internal_inputs source contract')
     a = adapter
+    from evaluation.controllers import calibrated_urban_runtime
+    urban_calibration = calibrated_urban_runtime.load(tuning)
     lane_context=None
     ramp_contract={}
     lane_manifest=(tuning or {}).get('freeway',{}).get('lane_plant')
@@ -109,6 +129,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
             validate_tuning_v2(tuning,lane_context['document'])
         state_json,lane_observation=lane_plant_runtime.observe_state(lane_context,state_json)
         state_json=lane_plant_runtime.bind_current_routes(state_json,lane_observation)
+    urban_calibration_raw = state_json
+    urban_calibration_frame = lane_observation['frames'][0] if urban_calibration is not None and lane_context is not None else None
     if (tuning or {}).get("freeway", {}).get("parameter_transfer"):
         from evaluation.controllers import metanet_parameter_transfer
         state_json = metanet_parameter_transfer.project_current(state_json, mapping)
@@ -135,6 +157,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         from evaluation.controllers.physical_movement_routes import configure_phase_authority
         metadata.update(configure_phase_authority(
             cfg, tuning, a.load_signal_group_actuation_plan(), state_json=state_json))
+    calibrated_urban_runtime.phase(cfg, urban_calibration)
     metadata.update(a.install_phase_vector_green_patch(cfg, tuning))
     metadata.update(a.install_movement_capacity_by_lanes(cfg, tuning))
     metadata.update(a.install_gate_onramp_queue(cfg, tuning))
@@ -198,6 +221,9 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         metadata.update(choice_projection)
     from evaluation.controllers import local_signal_service
     metadata.update(head_service_resources.finalize(cfg))
+    from evaluation.controllers import regular_alias_service
+    metadata.update(regular_alias_service.configure(cfg, tuning, state_json))
+    calibrated_urban_runtime.service(cfg, urban_calibration)
     metadata.update(local_signal_service.configure(cfg, tuning))
     if (tuning or {}).get('urban', {}).get('native_internal_inputs'):
         if tuning.get('urban', {}).get('movements', {}).get('native_input_signal_authority'):
@@ -230,6 +256,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     from evaluation.controllers import urban_storage_guard
     metadata.update(urban_storage_guard.configure(cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
     metadata.update(observation_projection.configure_kinematic_queue_projection(cfg, tuning, state_json, detector_mapping))
+    metadata.update(calibrated_urban_runtime.configure_queue_projection(cfg, state_json, urban_calibration))
     if lane_context is not None:
         metadata.update(lane_plant_runtime.prepare_offramp_projection(
             lane_context,lane_observation,cfg,detector_mapping))
@@ -291,8 +318,38 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     from evaluation.controllers.route_choice_corridor import configure_known_legsplit, configure_direct_exit_legsplit
     metadata.update(configure_known_legsplit(cfg, tuning, state, state_json))
     metadata.update(configure_direct_exit_legsplit(cfg, tuning, state, state_json))
+    from evaluation.controllers import known_wout_causal_response
+    metadata.update(known_wout_causal_response.configure(cfg, tuning, state))
+    from evaluation.controllers import aggregate_wout
+    metadata.update(aggregate_wout.configure(cfg, tuning, state))
+    from evaluation.controllers import aggregate_route_corridors
+    metadata.update(aggregate_route_corridors.configure(cfg,tuning,state))
     if lane_context is not None:
         lane_plant_runtime.bind_area(state,cfg)
+    if native_startup_without_prediction(tuning,state_json,controller_variant):
+        # Native programs/DSD/RM are still written and checked normally. Do not
+        # relabel1s as0s, or publish a forecast from an unrebased calibration.
+        metadata['native_startup_without_prediction']=True
+        metadata['prediction_runtime_unavailable_reason']='Startup has no closed observation window; legal native baseline held without prediction'
+        return state,detector_mapping,metadata
+    from evaluation.controllers import multirate_freeway
+    metadata.update(multirate_freeway.configure(cfg,tuning,state))
+    from evaluation.controllers import multirate_coupling
+    metadata.update(multirate_coupling.configure(cfg,tuning,state))
+    state, urban_metadata = calibrated_urban_runtime.initialize(
+        cfg, state, urban_calibration_raw, urban_calibration_frame, urban_calibration)
+    metadata.update(urban_metadata)
+    from evaluation.controllers import ramp_entry_receiving
+    metadata.update(ramp_entry_receiving.configure(cfg,tuning,state))
+    regional_mode = (tuning or {}).get('adapter', {}).get('sdmpc_information_scope')
+    if regional_mode is not None:
+        import copy
+        role = 'ramp_arrival' if regional_mode == 'freeway_only' else 'off_entry'
+        observed = state_json['obs150_derived']
+        state._regional_boundary_observation = {
+            'window': copy.deepcopy(observed['window']),
+            'boundaries': {k: copy.deepcopy(v) for k, v in observed['boundaries'].items()
+                           if v['role'] == role}}
     return state, detector_mapping, metadata
 
 
@@ -329,4 +386,6 @@ def install_worker_runtime(adapter, cfg, state_json, detector_mapping):
         import src.controllers.stackelberg_mpc as stackelberg_mpc
         if not getattr(stackelberg_mpc, "_rw_far_ramp_capacity_active", False):
             raise RuntimeError("price worker failed to restore measured far ramp capacity")
+    from evaluation.controllers import calibrated_urban_runtime
+    metadata.update(calibrated_urban_runtime.install(cfg))
     return metadata

@@ -307,8 +307,11 @@ def score_shared_owner_point(follower, point, state, candidate, reference, *, ho
             or initial.get('offramp_route_inventory_state') != getattr(state, 'offramp_route_inventory_state', None)):
         raise ValueError('Shared response initial traffic operands differ from the supplied state')
     dt = cfg.simulation.T_f_sec
+    multirate = getattr(cfg.network, 'multirate_joint_clock_enabled', False)
     for index, frame in enumerate(frames):
-        if (frame['stage'] != 'landing' or frame['start_sec'] != state.time_sec + index * dt
+        if (frame['stage'] != ('freeway' if multirate else 'landing')
+                or (multirate and frame.get('sampling') != 'after_freeway_before_endpoint_exchange')
+                or frame['start_sec'] != state.time_sec + index * dt
                 or frame['end_sec'] != state.time_sec + (index + 1) * dt
                 or frame['applied_control'] != applied):
             raise ValueError('Shared response changed control or freeway clock')
@@ -1318,7 +1321,7 @@ class FrozenJointContextError(ValueError):
         return evidence
 
 
-def joint_context_fingerprint(adapter):
+def joint_context_fingerprint(adapter, *, include_adapter_runtime=True):
     """Same full SHA check, with failure-only evidence and no extra pickling."""
     import hashlib
     import pickle
@@ -1327,7 +1330,7 @@ def joint_context_fingerprint(adapter):
     def fingerprint(value):
         nonlocal initial, initial_token
         runtime = {k: v for k, v in vars(adapter).items()
-                   if k.startswith('_') and k.isupper() and isinstance(v, (dict, list, set))}
+                   if include_adapter_runtime and k.startswith('_') and k.isupper() and isinstance(v, (dict, list, set))}
         payload = pickle.dumps((value, runtime), protocol=5)
         token = hashlib.sha256(payload).hexdigest()
         if initial is None:
@@ -1340,14 +1343,22 @@ def joint_context_fingerprint(adapter):
 
 def _joint_runtime_callbacks(follower, state, forecast, historical, leader, mapping, sources, *,
                              reference, total_budget, directional, tolerance, budget=None,
-                             price_probe=False, progress=None, representative_neighbors=False):
+                             price_probe=False, progress=None, representative_neighbors=False, regional_mode=None):
     from evaluation.controllers import vissim_stackelberg_adapter as adapter
     from evaluation.controllers import area_meter_finalization as meters
     from evaluation.controllers.joint_owner_neighbors import make_joint_neighbor_callbacks, interleave_realized_neighbors
     from src.models.state import segment_vsl
     cfg = follower.cfg
-    with shared_query_runtime_scope():
-        coupling = follower._wu._coupling(state.copy(), reference.copy(), forecast[0])
+    if regional_mode is not None:
+        if (regional_mode not in ('freeway_only', 'urban_only')
+                or getattr(state, 'regional_boundary', {}).get('mode') != regional_mode):
+            raise ValueError('Regional command callbacks require a matching cut state')
+        # S-DMPC uses the canonical command/move-box callbacks, not the legacy
+        # neighborhood predictor. No coupled traffic probe is needed to bind CSVs.
+        coupling = None
+    else:
+        with shared_query_runtime_scope():
+            coupling = follower._wu._coupling(state.copy(), reference.copy(), forecast[0])
     plan = {'controllers': {signal[2:]: node for signal, node in cfg.network.signal_actuation_contract['nodes'].items()}}
     actuation = cfg.network.control_area_meter_context['actuation']
     context = {'follower': follower, 'state': state, 'forecast': forecast, 'previous': historical,
@@ -1355,7 +1366,7 @@ def _joint_runtime_callbacks(follower, state, forecast, historical, leader, mapp
         'selected_plan': plan, 'actuation': actuation, 'runtime_sources': sources,
         'total_budget': total_budget, 'directional_budgets': directional,
         'decision_anchor': historical, 'move_limits': joint_decision_move_limits(follower)}
-    fingerprint = joint_context_fingerprint(adapter)
+    fingerprint = joint_context_fingerprint(adapter, include_adapter_runtime=regional_mode is None)
     callbacks = make_joint_neighbor_callbacks(follower, state, coupling, forecast[0], leader,
         historical, mapping, plan, actuation, {'controller_variant': 'wu-link'},
         segment_vsl_func=segment_vsl, context=context, context_fingerprint=fingerprint,
@@ -1455,10 +1466,19 @@ def validate_actual_decision_hold(follower, state, reference, item, *, callbacks
         from evaluation.controllers.sdmpc_response_cache import validate_binding
         validate_binding(reference, item)
     owners = tuple(callbacks['ownership'].owners)
-    if len(owners) != 19 or set(item.get('local_base_costs', {})) != set(owners):
-        raise ValueError('Held response lacks the complete owner cost catalog')
     sdmpc_policy = getattr(getattr(follower.cfg, 'network', None), 'sdmpc_options', {})
-    quantities = shared_quantity_constraints(follower, reference, item['quantities'],
+    regional = sdmpc_policy.get('regional_prediction_prototype')
+    cost_owners = owners
+    if regional:
+        from evaluation.controllers.sdmpc_regional_contracts import active_owners, quantity_constraints
+        cost_owners = active_owners(follower.cfg)
+        if getattr(state, 'regional_boundary', {}).get('mode') != regional:
+            raise ValueError('Regional held command requires a matching cut state')
+    else:
+        quantity_constraints = shared_quantity_constraints
+    if len(owners) != 19 or set(item.get('local_base_costs', {})) != set(cost_owners):
+        raise ValueError('Held response lacks the complete active owner cost catalog')
+    quantities = quantity_constraints(follower, reference, item['quantities'],
         start_sec=state.time_sec, horizon_steps=follower.cfg.mpc.horizon_steps,
         np_mode='cap', target_np_veh=reference.N_P_star,
         np_tolerance_veh=options['np_tolerance_veh'],
@@ -1468,6 +1488,15 @@ def validate_actual_decision_hold(follower, state, reference, item, *, callbacks
             if sdmpc_policy.get('budget_caps')
             else options['nuf_tolerance_veh_h']))
     commands = callbacks['command_evidence'](reference, context)
+    if regional:
+        from evaluation.controllers import sdmpc_actuator_scope, sdmpc_sequence
+        for block in sdmpc_sequence.actions(reference, 3):
+            sdmpc_actuator_scope.check(block, sdmpc_policy, follower.cfg)
+        block_commands = callbacks['sequence_command_evidence'](reference, context)
+        commands['regional_prediction_blocks'] = [
+            dict(block=k, ordered_row_count=len(proof['ordered_rows']),
+                 owner_physical_sha256=proof['owner_physical_sha256'])
+            for k, proof in enumerate(block_commands)]
     if set(commands['owner_physical_sha256']) != set(owners):
         raise ValueError('Held command lacks complete physical owner evidence')
     physical = bool(getattr(getattr(follower.cfg, 'network', None), 'physical_ramp_branches', None))

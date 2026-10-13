@@ -357,12 +357,15 @@ def advance(state, cfg, step):
     return {'native_input_route_tagged_veh': sum(c['vehicles'] for c in local['cohorts'])}
 
 
-def receive_accepted(state, cfg, movement, vehicles, step):
+def receive_accepted(state, cfg, movement, vehicles, step, *, entry_step=None):
     """Called after the ordinary single queue debit, receipt and area event."""
+    entry=step if entry_step is None else entry_step
+    if not math.isfinite(entry) or int(entry)!=entry or entry<step:
+        raise ValueError('Native receipt entry cannot precede current service')
     inputs = _inputs(cfg)
     if not inputs: return False
     from evaluation.controllers import sdmpc_aggregate as aggregate
-    if aggregate.enabled(cfg):return aggregate.route_accept(state,cfg,movement,vehicles,step)
+    if aggregate.enabled(cfg):return aggregate.route_accept(state,cfg,movement,vehicles,step,entry_step=entry)
     local = state.native_input_route_state
     matching = [c for c in local['cohorts'] if c['queued'] and
                 inputs[c['input']]['route_stages'][c['stage']]['movement'] == movement]
@@ -380,7 +383,7 @@ def receive_accepted(state, cfg, movement, vehicles, step):
         stages = inputs[cohort['input']]['route_stages']
         if accepted > 0 and cohort['stage']+1 < len(stages):
             index = cohort['stage']+1
-            additions.append(_transit_cohort(cohort['input'],index,accepted,step,state,cfg))
+            additions.append(_transit_cohort(cohort['input'],index,accepted,entry,state,cfg))
         else:
             local['completed_veh'] += accepted
     # Every positive residual remains physical stock. Dropping several values
@@ -391,11 +394,11 @@ def receive_accepted(state, cfg, movement, vehicles, step):
     intermediate = sum(c['vehicles'] for c in additions)
     ordinary = max(0., vehicles-intermediate)
     target = cfg.network.urban_movements[movement]['receiving_link']
-    due = step+uqm._link_delay_steps(state,cfg,target)
+    due = entry+uqm._link_delay_steps(state,cfg,target)
     if ordinary:
         if target in uqm.approach_routing(cfg): uqm._schedule(state.urban_arrival_buffer,target,due,ordinary)
         uqm._schedule(state.urban_storage_release_buffer,target,due,ordinary)
         from evaluation.controllers.omega_distance import record_ordinary_movement
-        record_ordinary_movement(state,cfg,movement,ordinary,step,due)
+        record_ordinary_movement(state,cfg,movement,ordinary,entry,due)
     _check(state, cfg)
     return True

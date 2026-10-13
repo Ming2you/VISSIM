@@ -192,6 +192,8 @@ class SequenceCoordinates:
         from evaluation.controllers import signal_actuation_contract as signals, physical_ramp_branches as ramps
         previous=self.reference
         for c in actions(control,3):
+            from evaluation.controllers.sdmpc_actuator_scope import check
+            check(c, getattr(self.cfg.network, 'sdmpc_options', {}) or {}, self.cfg)
             signals.validate_control(c,self.cfg)
             ramps.prepare_control(c.copy(),self.cfg)
             reanchor(self.move_box,previous).validate(c)

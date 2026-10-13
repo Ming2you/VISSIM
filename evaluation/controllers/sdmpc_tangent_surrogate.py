@@ -90,6 +90,14 @@ def validate_prediction(item, action, context_token):
             raise ValueError('Invalid PFO budget margin')
         expected = copy.deepcopy(source)
         q = raw['quantities']
+        if q.get('schema') == 'regional-accepted-quantities/v1':
+            region = q['region']
+            if (region not in ('freeway_only', 'urban_only') or init.get('region') != region
+                    or init.get('active_resource') != q['active_resource']
+                    or (region == 'freeway_only' and (q['owners'] or np_margin != 0.))
+                    or (region == 'urban_only' and (q['predicted_ramp_merge']['active']
+                        or q['predicted_ramp_merge']['rate_veh_h_by_ramp'] or nuf_margin != 0.))):
+                raise ValueError('PFO binding contains an absent regional resource')
         achieved_np = math.fsum(q['owners'][s]['net_inflow_veh'] for s in sorted(q['owners']))
         achieved_nuf = math.fsum(q['predicted_ramp_merge']['rate_veh_h_by_ramp'].values())
         expected.N_P_star, expected.N_UF_star = achieved_np+np_margin, achieved_nuf+nuf_margin
@@ -114,8 +122,54 @@ def validate_prediction(item, action, context_token):
             raise ValueError('Initial binding changed more than the derived merge target')
 
 
+def check_scalar_upgrade(before, after, tolerance, path='response'):
+    """Retain the same physical response when a selected scalar trial gets AD.
+
+    Action/digest identities may differ under the proved cap alias. Area and
+    owner event counters are record cardinalities, not vehicle quantities: sparse
+    events can appear/disappear at float roundoff, as in the existing full-state
+    comparator. All quantitative area/route costs, flows, receiving quantities
+    and constraint coverage remain checked. This is summary, not full-state,
+    equivalence.
+    """
+    if isinstance(before, dict) and isinstance(after, dict):
+        skip = {'action_token', 'response_token'} if path == 'response' else set()
+        if path == 'response/control_area':
+            required = {'event_count', 'flow_counts', 'ttt_veh_h', 'ttd_veh', 'entered_veh'}
+            if not (required <= before.keys() and required <= after.keys()
+                    and type(before['event_count']) is int and before['event_count'] >= 0
+                    and type(after['event_count']) is int and after['event_count'] >= 0
+                    and isinstance(before['flow_counts'], dict) and isinstance(after['flow_counts'], dict)):
+                raise ValueError('Invalid scalar/AD area record-counter contract')
+            skip = {'event_count'}
+        elif path.startswith('response/quantities/owners/') and path.count('/') == 3:
+            required = {'accepted_event_count', 'by_kind_veh', 'net_inflow_veh'}
+            if not (required <= before.keys() and required <= after.keys()
+                    and type(before['accepted_event_count']) is int and before['accepted_event_count'] >= 0
+                    and type(after['accepted_event_count']) is int and after['accepted_event_count'] >= 0
+                    and isinstance(before['by_kind_veh'], dict) and isinstance(after['by_kind_veh'], dict)):
+                raise ValueError('Invalid scalar/AD owner record-counter contract')
+            skip = {'accepted_event_count'}
+        keys = set(before)-skip
+        if keys == set(after)-skip:
+            for key in keys:
+                check_scalar_upgrade(before[key], after[key], tolerance, path+'/'+str(key))
+            return
+    elif isinstance(before, (list, tuple)) and type(before) is type(after):
+        if len(before) == len(after):
+            for i, (a, b) in enumerate(zip(before, after)):
+                check_scalar_upgrade(a, b, tolerance, path+'/'+str(i))
+            return
+    elif type(before) in (int, float) and type(after) in (int, float):
+        if math.isfinite(before) and math.isfinite(after) and math.isclose(before, after, rel_tol=1e-12, abs_tol=tolerance):
+            return
+    elif type(before) is type(after) and before == after:
+        return
+    raise ValueError('Scalar/AD trial response changed: '+path)
+
+
 class Query:
-    """NP-only cache plus an opt-in, proved initial merge-target binding."""
+    """NP cache, optional guarded NUF-cap reuse, and proved warm bindings."""
     def __init__(self, template, check_budget, emit, runner=None):
         from evaluation.controllers.sdmpc_tangent import _evaluate_single
         self.template = pickle.dumps(template, protocol=5)
@@ -130,21 +184,39 @@ class Query:
         self.rows = []
         self.initial_binding = None
         self.warm_binding = None
+        follower, state, _, _ = template['owned']
+        policy = follower.cfg.network.sdmpc_options
+        self.cap_cache = bool(policy.get('response_cap_cache'))
+        self.lazy_derivatives = bool(policy.get('lazy_trial_derivatives'))
+        self.primal_tolerance = policy.get('tangent_primal_abs_tolerance', 1e-7)
+        if self.cap_cache and (not policy.get('budget_caps') or not policy.get('pfo_each_interval')
+                or not policy.get('surrogate_reuse') or not policy.get('central_multiplier')
+                or (getattr(state, 'lane_freeway_runtime', None) is None
+                    and policy.get('regional_prediction_prototype') != 'urban_only')
+                or not getattr(follower.cfg.network, 'physical_ramp_branches', None)
+                or template['horizon'] != 3):
+            raise ValueError('NP/NUF cache requires the physical lane continuous cap-only predictor')
+
+    def physical_key(self, action):
+        from evaluation.controllers.sdmpc_response_cache import physical_key
+        return physical_key(action, nuf_cap=self.cap_cache)
 
     def bind_warm_budget(self, source, target, options):
         """Reuse the selected PFO trajectory only after proving both budgets.
 
-        Ordinary cache identity still includes NUF. This one initialization
-        cannot rebind an arbitrary search target or another physical control.
+        Default cache identity includes NUF; the guarded cap-only option can
+        additionally reuse across it. This initialization still proves the
+        achieved-plus-margin budget rather than accepting an arbitrary target.
         """
         from evaluation.controllers import sdmpc_budget
-        from evaluation.controllers.sdmpc_response_cache import physical_key
+        physical_key = self.physical_key
         request = pickle.loads(self.template)
         follower, state, _, _ = request['owned']
         policy = follower.cfg.network.sdmpc_options
         if (self.closed or self.warm_binding is not None or self.initial_binding is not None
                 or not policy.get('pfo_each_interval') or not policy.get('budget_caps')
-                or getattr(state, 'lane_freeway_runtime', None) is None):
+                or (getattr(state, 'lane_freeway_runtime', None) is None
+                    and policy.get('regional_prediction_prototype') != 'urban_only')):
             raise ValueError('PFO binding requires this interval\'s enabled lane predictor')
         stored, item, receipt = self.entries[physical_key(source)]
         if token(stored) != token(source) or receipt is None:
@@ -170,7 +242,7 @@ class Query:
         original response digest and record a separately hashed derived summary.
         """
         from evaluation.controllers import area_follower_objective as joint
-        from evaluation.controllers.sdmpc_response_cache import physical_key
+        physical_key = self.physical_key
         from evaluation.controllers.sdmpc_sequence import KEY
         request = pickle.loads(self.template)
         follower, state, reference, _ = request['owned']
@@ -200,7 +272,7 @@ class Query:
         self.initial_binding = copy.deepcopy(binding)
 
     def evaluate(self, actions, *, derivatives=False):
-        from evaluation.controllers.sdmpc_response_cache import physical_key
+        physical_key = self.physical_key
         if self.closed:
             raise ValueError('Closed surrogate query')
         actions = tuple(actions)
@@ -232,6 +304,16 @@ class Query:
                 raise ValueError('Surrogate rollout accounting mismatch')
             if derivatives and (result.get('fallback_reasons') or len(result.get('ad_axes', ())) != len(request['axes'])):
                 raise ValueError('Incomplete surrogate Jacobian')
+            previous = self.entries.get(key)
+            if self.lazy_derivatives and derivatives and previous is not None and previous[2] is None:
+                check_scalar_upgrade(previous[1], item, self.primal_tolerance)
+                result['scalar_trial_upgrade_check'] = dict(
+                    physical_summary_fields_checked=True,
+                    absolute_tolerance=self.primal_tolerance,
+                    scalar_record_count=previous[1].get('control_area',{}).get('event_count'),
+                    ad_record_count=item.get('control_area',{}).get('event_count'),
+                    record_count_scope='Sparse transfer records; not a physical vehicle quantity',
+                    full_state_equivalence_claimed=False)
             return key, (copy.deepcopy(action), item, result if derivatives else None), result
         if missing:
             self.emit('sdmpc_surrogate_batch_start', predictions=count, derivative_predictions=derivatives,
@@ -250,13 +332,16 @@ class Query:
                 self.scalar += receipt['scalar_rollouts']; self.ad += receipt['tangent_rollouts']
                 self.rows.append(dict(action_token=token(entry[0]), derivatives=derivatives,
                     scalar_rollouts=receipt['scalar_rollouts'], tangent_rollouts=receipt['tangent_rollouts'],
-                    wall_sec=receipt['wall_sec_including_spawn'], consumed_derivative=False))
+                    wall_sec=receipt['wall_sec_including_spawn'], consumed_derivative=False,
+                    **({'scalar_trial_upgrade_check':receipt['scalar_trial_upgrade_check']}
+                       if 'scalar_trial_upgrade_check' in receipt else {})))
             self.emit('sdmpc_surrogate_batch_done', predictions=count, seconds=time.perf_counter()-started)
         self.requests += len(actions); self.hits += len(actions)-count
         return [self._response(action) for action in actions]
 
     def _response(self, action):
         from evaluation.controllers.sdmpc_response_cache import physical_key, validate_binding
+        physical_key = self.physical_key
         source, item, _ = self.entries[physical_key(action)]
         item = copy.deepcopy(item)
         validate_prediction(item, source, self.context_token)
@@ -266,12 +351,16 @@ class Query:
                 requested_action_token=token(action), evaluated_response_token=item['response_token'],
                 frozen_context_token=self.context_token,
                 scope='NP-only reuse of a continuous-model trajectory; constraints rechecked for this cap')
+            if self.cap_cache:
+                proof.update(schema='sdmpc-np-nuf-cap-response-binding/v2',
+                    prediction_contract='lane-central-pfo-cap-continuous/v1',
+                    scope='NP/NUF budgets only; identical physical inputs. Quantity constraints rechecked for each cap.')
             item['action_token'] = token(action); item['sdmpc_physical_response_reuse'] = proof
             validate_binding(action, item)
         return item
 
     def derivative(self, action):
-        from evaluation.controllers.sdmpc_response_cache import physical_key
+        physical_key = self.physical_key
         key = physical_key(action)
         if key not in self.entries or self.entries[key][2] is None:
             self.evaluate([action], derivatives=True)
@@ -291,6 +380,8 @@ class Query:
         result = copy.deepcopy(receipt, {id(shared): shared} if isinstance(shared, list) else None)
         result['candidate_prediction_reused'] = dict(source_action_token=ad_source_token,
             requested_action_token=token(action), physical_inputs_exact=True, prediction_model=MODEL)
+        if self.cap_cache:
+            result['candidate_prediction_reused']['cap_only_contract'] = 'lane-central-pfo-cap-continuous/v1'
         if ad_source_token != token(source):
             if self.warm_binding is not None:
                 result['candidate_prediction_reused']['warm_budget_binding'] = copy.deepcopy(self.warm_binding)
@@ -313,5 +404,6 @@ class Query:
             **({'warm_budget_binding':copy.deepcopy(self.warm_binding),
                 'pfo_to_sdmpc_extra_rollouts':0} if self.warm_binding is not None else {}),
             failed_batches=self.failed_batches, failed_predictions_with_unknown_rollout_count=self.failed_predictions_unknown,
+            nuf_cap_response_reuse_enabled=self.cap_cache,
             owned_workers_alive=[], closed=self.closed,
             scope='Approximate-model predictions only; physical command checks remain separate')

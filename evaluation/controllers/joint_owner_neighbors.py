@@ -1463,13 +1463,14 @@ def make_joint_neighbor_callbacks(
     physical_fields = tuple(f for f in action_csv_schema.ACTION_CSV_FIELDS if f != 'metadata')
     catalog = {(kind, identity): who for kind, identity, who, _ in ownership.writes}
 
-    def uncached_command_evidence(action, query_context=context):
+    def uncached_command_evidence(action, query_context=context, *, command_move_box=None):
         before = _key(vars(action))
         with scoped(query_context):
             private = deepcopy(action)
             validate_action_addresses(ownership, private)
             validate_nuf_semantics(private, nuf_semantics)
-            if move_box is not None: move_box.validate(private)
+            checked_box = move_box if command_move_box is None else command_move_box
+            if checked_box is not None: checked_box.validate(private)
             canonical_open_rates(private)
             meters.assert_writer(private, cfg, require_scored=True)
             for owner in net.signals:
@@ -1581,6 +1582,21 @@ def make_joint_neighbor_callbacks(
 
     def command_evidence(action, query_context=context):
         return cached_command(action, query_context)
+
+    def sequence_command_evidence(action, query_context=context):
+        from evaluation.controllers import sdmpc_sequence as sequence
+        if move_box is None or cfg.network.sdmpc_options.get('control_blocks') != 3:
+            raise ValueError('Three-block command evidence requires the actual movement anchor')
+        previous = decision_anchor
+        proofs = []
+        for block in sequence.actions(action, 3):
+            # Future moves are relative to the preceding planned command. All
+            # canonical writer/physical address checks remain identical.
+            proof = uncached_command_evidence(block, query_context,
+                command_move_box=sequence.reanchor(move_box, previous))
+            proofs.append(proof)
+            previous = block
+        return proofs
 
     def physical_rows(action, query_context=context):
         return command_evidence(action, query_context)['physical_rows']
@@ -1698,7 +1714,8 @@ def make_joint_neighbor_callbacks(
 
     return {'ownership': ownership, 'neighbors': neighbors, 'neighbor_evidence': neighbor_evidence,
             'physical_fingerprint': physical_fingerprint, 'physical_rows': physical_rows,
-            'command_evidence': command_evidence, 'provenance': deepcopy(provenance),
+            'command_evidence': command_evidence, 'sequence_command_evidence': sequence_command_evidence,
+            'provenance': deepcopy(provenance),
             'guard_physical_proofs': guard,
             'move_box': move_box,
             'fixed_meter_proofs': deepcopy(fixed_proofs),

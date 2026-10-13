@@ -85,8 +85,9 @@ class LaneRampRuntime:
         ledger = get_ledger(state)
         releases, group_releases, receipts = {}, {}, {}
         for road, cfg in freeway.configs.items():
-            if cfg.simulation.T_f_sec != 1:
-                raise ValueError('Coupled physical ramps require a one-second clock')
+            duration=cfg.simulation.T_f_sec
+            if duration not in (1,5,10):
+                raise ValueError('Physical ramps require an explicit1/5/10s exchange clock')
             dt = cfg.simulation.T_f_h
             from evaluation.controllers.sdmpc_prediction_cache import ramp_query_control
             scratch, unlimited = copy.copy(state), ramp_query_control(control)
@@ -146,12 +147,13 @@ class LaneRampRuntime:
                         rate = min(rate, buffer.lanes*gap_acceptance_supply_vph(conflict,
                             node['critical_gap_sec'], node['followup_sec']))
                 before = state.ramp_queue[name]
-                receipt = buffer.advance_local_interval(start_sec=freeway.time_sec, duration_sec=1.,
+                stepper=buffer.advance_local_interval if duration==1 else buffer.advance_coarse_interval
+                receipt = stepper(start_sec=freeway.time_sec, duration_sec=duration,
                     cycle_sec=self.cycle_sec, receiving_budget_veh=rate*dt,
                     **({'posthead_speed_kmh':ramp_posthead_speed_kmh(state,cfg,name,buffer.posthead_travel_speed_kmh)}
                        if node and node.get('posthead_speed') == 'merge_cell_cap' else {}),
                     **({'receiving_budget_by_lane_veh':[q*dt for q in lanes]} if lanes is not None else {}),
-                    request_arrivals_veh=0., allow_partial_cycle=True, **service[name])
+                    request_arrivals_veh=0., **({'allow_partial_cycle':True} if duration==1 else {}), **service[name])
                 merged = receipt['accepted_merge_veh']
                 state.ramp_queue[name] = _debit_mirror(state.ramp_queue[name], merged)
                 emit_transfer(state,cfg,'ramp:'+name,'merge_pending:'+name,merged,preserve_area=True)
@@ -177,7 +179,7 @@ class LaneRampRuntime:
         self.assert_mirror(state)
         return releases, group_releases, receipts
 
-    def finish(self, state):
+    def finish(self, state, *, keep_release=False):
         if self.predebited is None:
             raise ValueError('Physical ramp heads were not advanced')
         for name, buffer in self.buffers.items():
@@ -185,7 +187,8 @@ class LaneRampRuntime:
             if pending < -MIRROR_TOLERANCE_VEH:
                 raise ArithmeticError('Urban transfer over-drew physical ramp stock')
             buffer.admit_current(max(0.,pending))
-        self.predebited = None
+        if not keep_release:
+            self.predebited = None
         self.assert_mirror(state)
 
 

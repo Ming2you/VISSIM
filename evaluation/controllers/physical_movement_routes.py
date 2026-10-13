@@ -130,7 +130,7 @@ def extend_join(join, cfg, detectors, membership, evidence_path):
 def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
     """After movement merging, before capacity estimation and follower creation.
 
-    Correct only explicitly reviewed phase fields or a proven pre-head peel-off.
+    Correct only reviewed phase fields, pre-head peel-offs or disjoint head-free lanes.
     Native routing/receiver/stock and service capacity are not inferred or changed.
     Workers inherit these configured specs; this is not a runtime method patch.
     """
@@ -220,19 +220,21 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
         legacy = {'SC1004_W_to_S', 'SC1004_offW_to_S', 'SC1004_offE_to_S'}
         north = 'SC1004_N_SC1003_to_W'
         ramp_approach = 'SC1001_N_SC2002_to_W_RAMP'
+        lane_right = 'SC1003_S_SC1004_to_E_SC105'
         if (not isinstance(peeloffs, dict) or not legacy <= set(peeloffs)
-                or not set(peeloffs) <= legacy | {north, ramp_approach}):
+                or not set(peeloffs) <= legacy | {north, ramp_approach, lane_right}):
             raise ValueError('Unsignalized authority requires the reviewed SC1004 aliases and optional verified peel-offs')
         for name, row in peeloffs.items():
             spec = specs.get(name)
             expected_spec = row['expected_spec']
-            signal = 'SC1001' if name == ramp_approach else 'SC1004'
+            signal = 'SC1001' if name == ramp_approach else 'SC1003' if name == lane_right else 'SC1004'
             if (not {'phase', 'kind', 'origin', 'receiving_link'} <= expected_spec.keys()
                     or spec is None or spec.get('signal') != signal
                     or any(spec.get(k) != v for k, v in expected_spec.items())
                     or spec.get('unsignalized')):
                 raise ValueError(f'{name}: stale expected unsignalized movement semantics')
             expected_path = (['37', '10121', '31'] if name == ramp_approach else
+                             ['47', '10494', '426'] if name == lane_right else
                              ['46', '10625', '68'] if name == north else ['71', '10642', '67'])
             if row['path'] != expected_path:
                 raise ValueError(f'{name}: unsupported unsignalized physical path')
@@ -247,8 +249,9 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
             if (actual_connector != expected or start.get('lane').split()[0] != source
                     or end.get('lane').split()[0] != target):
                 raise ValueError(f'{name}: unsignalized connector lane/position evidence changed')
-            # Every controller head on the source must be downstream, not just
-            # heads of the old phase. A later connector/target head is unsupported.
+            # A peel-off bypasses every downstream head. The reviewed47 right
+            # instead has its own lane with no head at any position. Neither
+            # case changes gap acceptance, capacity or downstream storage.
             source_heads = [h for h in heads.values() if h.get('lane').split()[0] == source]
             cited = row['source_heads']
             if (not source_heads or len(cited) != len(source_heads)
@@ -267,11 +270,23 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
                     'compliance': float(head.get('complRate', 1))}
                 if (actual != evidence or actual['SC'] != spec['signal'] or actual['SG'] not in known_sgs
                         or not actual['all_vehicle_types'] or actual['compliance'] != 1
-                        or not math.isfinite(actual['pos_m'])
-                        or not actual['pos_m'] > actual_connector['source_pos']):
+                        or not math.isfinite(actual['pos_m'])):
+                    raise ValueError(f'{name}: source head authority changed')
+                if name == lane_right:
+                    if (row.get('source_head_relation') != 'disjoint_lanes'
+                            or actual_connector['source_lane'] != 1 or actual_connector['lanes'] != 1
+                            or actual['lane'] == 1):
+                        raise ValueError(f'{name}: right lane is not proven head-free')
+                elif not actual['pos_m'] > actual_connector['source_pos']:
                     raise ValueError(f'{name}: source head is not a proven downstream head')
             if any(h.get('lane').split()[0] in {connector, target} for h in heads.values()):
                 raise ValueError(f'{name}: connector/landing link has an unsupported signal head')
+            if name == lane_right:
+                conflicts = {x.get('no'): {k:x.get(k) for k in ('link1','link2','status')}
+                             for x in tree.findall('./conflictAreas/conflictArea')
+                             if x.get('link1') in {connector,target} or x.get('link2') in {connector,target}}
+                if conflicts != row.get('conflicts') or any(x['status'] != 'PASSIVE' for x in conflicts.values()):
+                    raise ValueError(f'{name}: head-free conflict authority changed')
             matching = []
             for route_id, route in routes.items():
                 sequence = route['path']

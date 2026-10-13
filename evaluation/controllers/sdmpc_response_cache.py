@@ -1,6 +1,7 @@
 """Decision-local physical-response reuse across NP caps, with explicit binding.
 
-Only NP cap fields are removed from the key. NUF, all actuator fields, all
+By default only NP cap fields are removed from the key. The explicitly guarded
+lane continuous cap-only Query may also remove NUF. All actuator fields, all
 diagnostics and every future control stay exact. The original response hash
 continues to identify its evaluated action; an alias never claims a new rollout.
 Candidate-specific quantity feasibility must be recomputed by the caller.
@@ -14,14 +15,18 @@ def token(value):
     return hashlib.sha256(pickle.dumps(value, protocol=5)).hexdigest()
 
 
-def physical_key(action):
+def physical_key(action, *, nuf_cap=False):
     from evaluation.controllers import sdmpc_sequence as sequence
     control = copy.deepcopy(action)
     control.N_P_star = 0.
+    if nuf_cap:
+        control.N_UF_star = 0.
     if sequence.KEY in control.diagnostics:
         sequence.actions(control, 3)
         for row in control.diagnostics[sequence.KEY]['future']:
             row['N_P_star'] = 0.
+            if nuf_cap:
+                row['N_UF_star'] = 0.
     return token(control)
 
 
@@ -33,16 +38,18 @@ def validate_binding(action, item):
             raise ValueError('Response/action mismatch')
         return
     source = proof['evaluated_action']
-    if (proof.get('schema') != 'sdmpc-np-cap-response-binding/v1'
+    cap_mode = proof.get('schema') == 'sdmpc-np-nuf-cap-response-binding/v2'
+    if (proof.get('schema') not in ('sdmpc-np-cap-response-binding/v1', 'sdmpc-np-nuf-cap-response-binding/v2')
+            or (cap_mode and proof.get('prediction_contract') != 'lane-central-pfo-cap-continuous/v1')
             or proof['requested_action_token'] != token(action)
             or item.get('action_token') != proof['requested_action_token']
             or proof['evaluated_action_token'] != token(source)
-            or physical_key(action) != physical_key(source)
-            or proof['physical_key'] != physical_key(action)
+            or physical_key(action, nuf_cap=cap_mode) != physical_key(source, nuf_cap=cap_mode)
+            or proof['physical_key'] != physical_key(action, nuf_cap=cap_mode)
             or item['response_token'] != proof['evaluated_response_token']
             or item['frozen_context_token'] != proof['frozen_context_token']
             or item.get('price_or_quantity_terms_included') is not False):
-        raise ValueError('Invalid NP-only physical response binding')
+        raise ValueError('Invalid cap-only physical response binding')
 
 
 class ResponseCache:

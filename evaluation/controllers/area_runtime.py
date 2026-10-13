@@ -34,8 +34,13 @@ def response_scheduling_options(value):
 
 def model_inventory(state, cfg):
     from evaluation.controllers.area_freeway_accounting import continuity_vehicle_counts
-    return model_stock_values(state, cfg.network,
+    result=model_stock_values(state, cfg.network,
                               freeway_vehicle_counts=continuity_vehicle_counts(state, cfg))
+    for key,amount in getattr(state,'multirate_exchange_pending',{}).items():
+        if not key.startswith('transit:exchange:') or amount<0:
+            raise MembershipError('Invalid multirate boundary stock')
+        result[key]=amount
+    return result
 
 
 def seed_from_projection(state, cfg, physical):

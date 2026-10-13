@@ -142,12 +142,15 @@ def install_fused_operations():
         return originals['__mul__'](self, other)
 
     # ad.Dual.__truediv__: d = primal(other);
-    #   trace.operation(self.value/d, self, 1./d, other, -self.value/d**2)
+    #   Use the same underflow-safe weight as generic reverse Dual.
     def truediv(self, other):
         t = type(other)
         if t is Dual or t is float or t is int:
             d = other.value if t is Dual else float(other)
-            return emit(self.trace, self.value/d, self, 1./d, other, -self.value/d**2, t is Dual)
+            value = self.value/d
+            square = d**2
+            weight = -self.value/square if square else -value/d
+            return emit(self.trace, value, self, 1./d, other, weight, t is Dual)
         return originals['__truediv__'](self, other)
 
     # sdmpc_dual.Dual._cmp: branch(self, other); op(self.value, primal(other))

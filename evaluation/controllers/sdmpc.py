@@ -29,8 +29,8 @@ def retain_feasible_held(reference, initial_cost, best, cap_action, tolerance,
                          evaluate, feasible):
     """PFO's own-cost warm start must not discard a better feasible Omega hold.
 
-    Keep the selected budgets. Re-evaluate the actual held controls under those
-    budgets, and use the same physical/quantity checks as every other candidate.
+    Keep the selected budgets. Re-evaluate the supplied executable initial
+    controls under them, using the same checks as every other candidate.
     This does not change the PFO merit or assert native control benefit.
     """
     proof = dict(evaluated=False, selected=False, original_held_objective=initial_cost,
@@ -56,13 +56,16 @@ class GradientCache:
     actions and exact anchor costs/resources. Full scored response tokens and
     nonlinear feasibility checks remain cap-specific.
     """
-    def __init__(self):
+    def __init__(self, *, nuf_cap=False):
         self.entries = {}
         self.reuse = []
+        self.nuf_cap = nuf_cap
 
     def key(self, z, action, costs, resources):
         physical = copy.deepcopy(action)
         physical.N_P_star = 0.
+        if self.nuf_cap:
+            physical.N_UF_star = 0.
         # Future rows carry a copy of the horizon-wide cap. actions() always
         # replaces it with the top-level cap before prediction. Normalize the
         # redundant copies too; otherwise identical three-block trajectories
@@ -72,6 +75,8 @@ class GradientCache:
             sequence.actions(physical, 3)  # Reject malformed/nested plans.
             for row in physical.diagnostics[sequence.KEY]['future']:
                 row['N_P_star'] = 0.
+                if self.nuf_cap:
+                    row['N_UF_star'] = 0.
         return token((z, physical, costs, resources))
 
     def get(self, key, cap):
@@ -79,7 +84,8 @@ class GradientCache:
             return None
         source_cap, grad, matrix = self.entries[key]
         self.reuse.append({'key': key, 'source_np_cap': source_cap, 'np_cap': cap,
-                           'anchor_costs_and_resources_exact': True})
+                           'anchor_costs_and_resources_exact': True,
+                           'nuf_cap_reuse_enabled': self.nuf_cap})
         return grad.copy(), matrix.copy()
 
     def put(self, key, cap, grad, matrix):
@@ -94,8 +100,16 @@ def configure(tuning, cfg, controller='wu-link'):
         return None
     if mode not in ('proxlinear-v1', 'central-reuse-v2', 'central-pfo-cap-v3'):
         raise ValueError('Unsupported adapter.sdmpc mode')
+    regional = tuning.get('adapter', {}).get('sdmpc_information_scope')
+    if regional is not None and regional not in ('freeway_only', 'urban_only'):
+        raise ValueError('Unsupported regional SDMPC information scope')
+    if regional is not None and mode != 'central-pfo-cap-v3':
+        raise ValueError('Regional information requires the existing PFO-cap policy')
     from evaluation import parameters
     options = parameters.section('sdmpc')
+    if regional is not None:
+        options['regional_prediction_prototype'] = regional
+        options['regional_context_required'] = True
     if mode in ('central-reuse-v2', 'central-pfo-cap-v3'):
         central_options = parameters.section('sdmpc_central')
         for key in ('active_tolerance', 'stationarity_tolerance', 'zero_jacobian_tolerance', 'np_step_veh', 'nuf_step_veh_h'):
@@ -117,7 +131,7 @@ def configure(tuning, cfg, controller='wu-link'):
         for key in sdmpc_budget.MARGIN_KEYS:
             pfo_cap_options[key] = sdmpc_budget.checked_margin(pfo_cap_options[key], key)
         options = dict(options, budget_caps=True, pfo_each_interval=True, pfo_cap_options=pfo_cap_options)
-    for name in ('response_np_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
+    for name in ('response_np_cache', 'response_cap_cache', 'lazy_trial_derivatives', 'stock_geometry_hotpath', 'receiving_geometry_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
                  'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant', 'meter_neighbor_audit'):
         value = tuning.get('adapter', {}).get('sdmpc_'+name)
         if value is not None:
@@ -215,8 +229,16 @@ def configure(tuning, cfg, controller='wu-link'):
             or not options.get('fast_primitives') or not options.get('primal_audit')):
         raise ValueError('sdmpc_prediction_hotpath requires continuous surrogate reuse and fast primal checks')
     if options.get('central_multiplier') and (not options.get('surrogate_reuse')
-            or not options.get('prediction_hotpath') or blocks != 3):
+            or (not regional and not options.get('prediction_hotpath')) or blocks != 3):
         raise ValueError('central-reuse-v2 requires the qualified three-block continuous predictor')
+    if options.get('response_cap_cache') and (mode != 'central-pfo-cap-v3'
+            or not options.get('surrogate_reuse') or not tuning.get('freeway', {}).get('lane_plant')):
+        raise ValueError('sdmpc_response_cap_cache requires the lane central-pfo-cap-v3 continuous predictor')
+    if options.get('lazy_trial_derivatives') and not options.get('surrogate_reuse'):
+        raise ValueError('sdmpc_lazy_trial_derivatives requires the continuous response cache')
+    if (options.get('stock_geometry_hotpath') or options.get('receiving_geometry_cache')) and (not options.get('prediction_hotpath')
+            or not options.get('compact_audit') or options.get('tangent_backend') != 'reverse-v1'):
+        raise ValueError('SDMPC stock/receiving geometry cache requires reverse continuous hot path and compact primal checks')
     if options.get('initial_derivative_overlap') and (backend!='reverse-v1'
             or concurrent_primal is not True or options.get('derivative_workers',1)<3):
         raise ValueError('sdmpc_initial_derivative_overlap requires concurrent reverse AD and 3..8 workers')
@@ -239,6 +261,20 @@ def configure(tuning, cfg, controller='wu-link'):
                 'dual_step', 'qp_tolerance', 'objective_tolerance'):
         if type(options[key]) not in (int, float) or not math.isfinite(options[key]) or options[key] <= 0:
             raise ValueError('SDMPC positive parameter required: '+key)
+    from evaluation.controllers import sdmpc_actuator_scope as actuator_scope
+    scope = actuator_scope.configure(tuning.get('adapter', {}).get('sdmpc_actuator_scope'), cfg)
+    if scope is not None:
+        options['actuator_scope'] = scope
+    if regional and (scope is None or scope['mode'] != regional):
+        raise ValueError('Regional information must match its fixed inactive actuator scope')
+    if regional and any(options.get(k) for k in (
+            'response_cap_cache', 'fast_primitives', 'prediction_hotpath',
+            'stock_geometry_hotpath', 'receiving_geometry_cache', 'prediction_cache',
+            'compact_audit', 'persistent_urban_fifo', 'array_urban_pipeline',
+            'array_transport', 'spatial_receiving', 'initial_shared_prediction',
+            'initial_derivative_overlap', 'trial_derivative_overlap',
+            'tangent_shared_primal', 'tangent_concurrent_primal')):
+        raise ValueError('Unqualified global hotpath in regional information policy')
     fixed_vsl = tuning.get('adapter', {}).get('sdmpc_fixed_vsl')
     if fixed_vsl is not None:
         from evaluation.controllers.control_hold import validate_fixed_vsl
@@ -300,6 +336,11 @@ def install_cost_ownership(cfg, detector_mapping):
 def omega_costs(point, cfg):
     """같은 적분 기록에서 Ω TTT를 한 번씩 합산한다. 외부 queue는 더하지 않는다."""
     owners = tuple(cfg.network.signals) + tuple(cfg.network.freeway_links)
+    regional = (getattr(cfg.network, 'sdmpc_options', None) or {}).get('regional_prediction_prototype')
+    if regional:
+        from evaluation.controllers.sdmpc_regional_contracts import active_owners
+        from evaluation.controllers.sdmpc_regional_prototype import owns_stock
+        owners = active_owners(cfg)
     pieces = {owner: [] for owner in (*owners, PASSIVE)}
     passive = {}
     table = cfg.network.sdmpc_cost_ownership
@@ -310,6 +351,16 @@ def omega_costs(point, cfg):
             if not math.isfinite(value) or value < -1e-10:
                 raise ValueError('Invalid Omega residence')
             owner = table.get(stock, PASSIVE)
+            if regional and not owns_stock(regional, stock):
+                if value != 0:
+                    raise ValueError('Remote stock entered regional merit: '+stock)
+                continue
+            if owner not in pieces:
+                if not regional:
+                    raise ValueError('Unknown cost owner: '+owner)
+                # An own stock whose historical mapping has no local actuator
+                # remains in the regional passive cost and its external gradient.
+                owner = PASSIVE
             pieces[owner].append(value)
             if owner == PASSIVE and value:
                 passive[stock] = passive.get(stock, 0.) + value
@@ -364,7 +415,10 @@ class Coordinates:
             self.axes.append(dict(owner=owner, kind=kind, key=key, scale=scale, fd=step/scale))
             self.bounds.append((lower/scale, upper/scale))
             return len(self.axes)-1
+        from evaluation.controllers.sdmpc_actuator_scope import allows
         for owner in net.signals:
+            if not allows(options, 'green'):
+                continue
             cycle = float(net.signal_cycle_length(owner))
             live = tuple(net.signal_live_phases(owner))
             basis = signals.native_clock_basis(net, owner)
@@ -390,6 +444,8 @@ class Coordinates:
             _, limit, _ = self.limits['offsets', owner]
             axis(owner, 'offset', owner, cycle, options['fd_offset_sec'], -limit, limit)
         for ramp in net.ramps:
+            if not allows(options, 'meter'):
+                continue
             from evaluation.controllers.physical_ramp_branches import operating_green_allowed
             spec = net.physical_ramp_branches
             a, limit, _ = self.limits['diagnostics', 'rw_meter_green_'+ramp]
@@ -403,7 +459,7 @@ class Coordinates:
             self.axes[j].update(allowed=allowed, reference_value=a)
         for owner in net.freeway_links:
             for zone in net.freeway_vsl_zone_free:
-                if options.get('fixed_vsl') is not None:
+                if not allows(options, 'vsl') or options.get('fixed_vsl') is not None:
                     continue  # Exogenous schedule, not an optimization coordinate.
                 head = net.freeway_vsl_zone_heads[owner][zone]
                 key = f'{owner}__seg{head}'
@@ -421,6 +477,11 @@ class Coordinates:
         self.ghi = np.array([r[2] for r in self.phase_rows])
         self.lower, self.upper = np.array(self.bounds).T
         self.owners = tuple(net.signals)+tuple(net.freeway_links)
+        if options.get('regional_prediction_prototype'):
+            from evaluation.controllers.sdmpc_regional_contracts import active_owners
+            self.owners = active_owners(cfg)
+            if any(axis['owner'] not in self.owners for axis in self.axes):
+                raise ValueError('Regional coordinates include a remote actuator')
         from evaluation.controllers.urban_storage_guard import constrain
         constrain(self)
 
@@ -493,6 +554,8 @@ class Coordinates:
             out, self.reference if previous is None else previous, self.cfg, greens)
         signals.validate_control(out, self.cfg)
         self.move_box.validate(out)
+        from evaluation.controllers.sdmpc_actuator_scope import check
+        check(out, getattr(self.cfg.network, 'sdmpc_options', {}) or {}, self.cfg)
         return out
 
     def stencil(self, z, j):
@@ -586,21 +649,62 @@ def meter_neighbors(coord, action):
 
 
 def audit_meter_neighbors(coord, best, tolerance, evaluate, feasible):
-    """Choose only a lower-cost feasible finite candidate, retaining all caps."""
+    """Check finite moves and one combination of beneficial disjoint RM moves.
+
+    Combining separately beneficial moves is only a proposal: its full model
+    cost and unchanged caps must pass again. At most one extra prediction.
+    """
     baseline = best[1]['objective_veh_h']
+    anchor = best[0]
+    start = coord.encode(anchor)
     candidates = meter_neighbors(coord, best[0])
     items = evaluate([action for _, action in candidates]) if candidates else []
     if len(items) != len(candidates):
         raise ValueError('Incomplete finite meter evaluation')
-    rows, selected = [], None
+    rows, selected, improvements = [], None, []
     for (label, action), item in zip(candidates, items):
         valid = feasible(action, item)
         rows.append(dict(candidate=label, objective=item['objective_veh_h'], feasible=valid,
                          delta_veh_h=item['objective_veh_h']-baseline))
         if valid and item['objective_veh_h'] < best[1]['objective_veh_h']-tolerance:
             best, selected = (action, item, None), label
+        if valid and item['objective_veh_h'] < baseline-tolerance:
+            z = coord.encode(action)
+            changed = [j for j in range(len(z)) if abs(z[j]-start[j]) > 1e-12]
+            if any(coord.axes[j]['kind'] != 'meter' for j in changed):
+                raise ValueError('Finite meter candidate changed another actuator')
+            improvements.append((item['objective_veh_h'], z, label, set(changed)))
+    additional = len(items)
+    # Compose disjoint beneficial physical moves, including two ramps owned by
+    # the same freeway. A bundled move may not overwrite another chosen move.
+    components, used = [], set()
+    for candidate in sorted(improvements, key=lambda row:(row[0],row[2])):
+        if candidate[3] and not used.intersection(candidate[3]):
+            components.append(candidate)
+            used.update(candidate[3])
+    if len(components) > 1:
+        z = start.copy()
+        for _, values, _, changed in components:
+            for j in changed: z[j] = values[j]
+        if coord.valid(z):
+            action = coord.decode(z, anchor)
+            coord.validate(action)
+            seen = {tuple(start), *(tuple(coord.encode(a)) for _, a in candidates)}
+            if tuple(coord.encode(action)) not in seen:
+                combined = evaluate([action])
+                if len(combined) != 1:
+                    raise ValueError('Incomplete combined meter evaluation')
+                item = combined[0]
+                additional += 1
+                valid = feasible(action, item)
+                label = 'combined_meter_owners'
+                rows.append(dict(candidate=label, objective=item['objective_veh_h'], feasible=valid,
+                    delta_veh_h=item['objective_veh_h']-baseline,
+                    components=[row[2] for row in components]))
+                if valid and item['objective_veh_h'] < best[1]['objective_veh_h']-tolerance:
+                    best, selected = (action, item, None), label
     return best, dict(baseline_objective=baseline, selected=selected, candidates=rows,
-                     additional_predictions=len(items), exhaustive=False)
+                     additional_predictions=additional, exhaustive=False)
 
 
 def audit_meter_budget_candidates(coord, best, budget_candidates, tolerance, evaluate, feasible):
@@ -700,6 +804,16 @@ def _dykstra_projection(target, scale, lower, upper, G, glo, ghi, max_sweeps=500
     return y/scale, max_sweeps, False
 
 
+def policy_token(policy):
+    """A verified calculation cache does not change the dual-price policy.
+
+    Keep every optimization/physics option in the identity. Only the new exact
+    cap-response reuse switch is omitted, preserving legacy saved receipts.
+    """
+    return token({k:v for k,v in policy.items()
+                  if k not in ('response_cap_cache', 'lazy_trial_derivatives', 'stock_geometry_hotpath', 'receiving_geometry_cache')})
+
+
 def load_prices(previous_path, state, policy):
     """native ApplyActionCsv 성공 receipt가 있는 직전 명령만 다음 가격으로 확정."""
     raw = json.loads(Path(previous_path).read_text(encoding='utf-8-sig'))
@@ -714,9 +828,20 @@ def load_prices(previous_path, state, policy):
     if (len(lines) != 3 or float(lines[0]) != state.time_sec-state._sdmpc_interval_sec
             or Path(lines[1]).resolve() != csv_path.resolve()
             or int(lines[2]) != csv_path.stat().st_size or saved['schema'] != SCHEMA
-            or saved['sim_sec'] != float(lines[0]) or saved['policy_sha256'] != token(policy)):
+            or saved['sim_sec'] != float(lines[0]) or saved['policy_sha256'] != policy_token(policy)):
         raise ValueError('SDMPC prior price/application context mismatch')
-    prices = np.array(saved['next_prices_scaled'], dtype=float)
+    regional = policy.get('regional_prediction_prototype')
+    if regional:
+        from evaluation.controllers.sdmpc_regional_contracts import active_resources
+        mask = active_resources(regional)
+        if saved.get('regional_mode') != regional or saved.get('active_resources') != mask:
+            raise ValueError('Persisted prices belong to a different information scope')
+        raw_prices = saved['next_prices_scaled']
+        if not isinstance(raw_prices, list) or len(raw_prices) != 2:
+            raise ValueError('Invalid persisted regional price envelope')
+        prices = np.array([raw_prices[i] if mask[i] else 0. for i in range(2)], dtype=float)
+    else:
+        prices = np.array(saved['next_prices_scaled'], dtype=float)
     if (prices.shape != (2,) or not np.all(np.isfinite(prices)) or prices[0] < 0
             or (policy.get('budget_caps') and prices[1] < 0)):
         raise ValueError('Invalid persisted SDMPC budget price')
@@ -733,6 +858,34 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
     cfg, policy = follower.cfg, dict(follower.cfg.network.sdmpc_options)
     central_mode = bool(policy.get('central_multiplier'))
     cap_mode = bool(policy.get('budget_caps'))
+    regional = policy.get('regional_prediction_prototype')
+    resource_mask = None
+    if regional:
+        from evaluation.controllers.sdmpc_regional_contracts import active_resources
+        resource_mask = active_resources(regional)
+        if (getattr(state, 'regional_boundary', {}).get('mode') != regional
+                or not cap_mode or not central_mode or not policy.get('surrogate_reuse')):
+            raise ValueError('Regional SDMPC requires a cut state and the existing continuous PFO-cap policy')
+        if policy.get('regional_context_required') and getattr(state, 'regional_context', {}) != {
+                'schema': 'regional-decision-context/v1', 'mode': regional, 'complete': True}:
+            raise ValueError('Incomplete regional decision context')
+        from evaluation.controllers.sdmpc_regional_contracts import project_forecast
+        forecast = project_forecast(forecast, regional)
+        # Bind leader-domain generation to the very same cut state/configuration.
+        # Do not let the original controller retain a separate live config.
+        private_controller = copy.copy(controller)
+        private_controller.cfg = cfg
+        private_controller.nash_solver = follower
+        private_controller.leader = copy.deepcopy(controller.leader)
+        private_controller.leader.cfg = cfg
+        controller = private_controller
+        # Adapter dispatch still requires the independent audited input context.
+        # Do not project a full-information state implicitly inside the optimizer.
+        historical = historical.copy()
+        if regional == 'freeway_only':
+            historical.N_P_star = 0.
+        else:
+            historical.N_UF_star = 0.
     if cap_mode:
         options = dict(options, nuf_tolerance_veh_h=policy['pfo_cap_options']['nuf_tolerance_veh_h'])
     if central_mode:
@@ -748,10 +901,15 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
     prices, price_receipt = load_prices(previous_path, state, policy)
     initial_central_dual = None
     if central_mode:
-        initial_central_dual = central.initialize_duals(prices, caps=cap_mode)
+        initial_central_dual = central.initialize_duals(prices, caps=cap_mode, active_resources=resource_mask)
         if price_receipt['committed']:
             saved = json.loads(Path(previous_path).read_text(encoding='utf-8-sig'))['metadata']['sdmpc_state']
-            initial_central_dual = np.asarray(saved['next_central_duals_scaled'], dtype=float)
+            raw_duals = saved['next_central_duals_scaled']
+            if regional:
+                if not isinstance(raw_duals, list) or len(raw_duals) != 2:
+                    raise ValueError('Invalid regional central dual envelope')
+                raw_duals = [raw_duals[i] if resource_mask[i] else 0. for i in range(2)]
+            initial_central_dual = np.asarray(raw_duals, dtype=float)
             if (initial_central_dual.shape != ((2,) if cap_mode else (3,)) or not np.isfinite(initial_central_dual).all()
                     or np.any(initial_central_dual < 0)
                     or not np.array_equal(central.signed_prices(initial_central_dual),prices)):
@@ -760,7 +918,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
     source_token = token(runtime_sources)
     reference = meters.prepare_held_actual_reference(historical, cfg)
     from evaluation.controllers.physical_ramp_branches import configure_operating_bounds
-    meter_operating_bounds = configure_operating_bounds(state, cfg, reference)
+    meter_operating_bounds = (dict(active=False, region=regional) if regional == 'urban_only'
+        else configure_operating_bounds(state, cfg, reference))
     if policy.get('fixed_vsl') is not None:
         from evaluation.controllers.control_hold import fixed_vsl_reference
         reference = fixed_vsl_reference(reference, policy['fixed_vsl'],
@@ -768,18 +927,23 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             cfg.simulation.T_c_sec, policy.get('control_blocks', 1))
         # historical remains the actual prior command for the writer/move box.
         # The scheduled command is present in every prediction, including PFO.
+    from evaluation.controllers.sdmpc_actuator_scope import check as check_scope
+    check_scope(reference, policy, cfg)
     scale = np.array([policy['budget_scale_np_veh'], policy['budget_scale_nuf_veh_h']])
     with joint.shared_query_runtime_scope(), ExitStack() as derivative_tasks:
         adapter._PHASE_VECTOR_FOLLOWER['ref'] = follower
         callbacks, context, fingerprint = joint._joint_runtime_callbacks(follower, state, forecast,
             historical, reference, mapping, runtime_sources, reference=reference, total_budget=None,
-            directional={}, tolerance=options['nuf_tolerance_veh_h'], budget=budget, price_probe=False)
-        query = joint.make_decision_shared_query(follower, state, reference, forecast,
-            horizon_steps=cfg.mpc.horizon_steps, source_fingerprint=source_token,
-            cache_enabled=True, check_budget=budget.check,
-            parallel_workers=options['response_parallel_workers'], worker_bootstrap=worker_bootstrap,
-            deadline_monotonic=None if budget.unlimited_time else budget.started+budget.seconds-budget.reserve_sec,
-            unlimited_time=budget.unlimited_time)
+            directional={}, tolerance=options['nuf_tolerance_veh_h'], budget=budget, price_probe=False,
+            regional_mode=regional)
+        query = None
+        if not regional:
+            query = joint.make_decision_shared_query(follower, state, reference, forecast,
+                horizon_steps=cfg.mpc.horizon_steps, source_fingerprint=source_token,
+                cache_enabled=True, check_budget=budget.check,
+                parallel_workers=options['response_parallel_workers'], worker_bootstrap=worker_bootstrap,
+                deadline_monotonic=None if budget.unlimited_time else budget.started+budget.seconds-budget.reserve_sec,
+                unlimited_time=budget.unlimited_time)
         budget.response_query = query
         coordinate_type = sequence.SequenceCoordinates if policy.get('control_blocks') == 3 else Coordinates
         coord = coordinate_type(cfg, reference, callbacks['move_box'], policy)
@@ -801,7 +965,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         if surrogate:
             from evaluation.controllers.sdmpc_tangent_surrogate import Query, MODEL
             from evaluation.controllers.sdmpc_tangent import prepare_request
-            query.close()  # The ordinary worker pool has not been started.
+            if query is not None:
+                query.close()  # The ordinary worker pool has not been started.
             query = Query(prepare_request(follower, state, forecast, reference, reference, coord, worker_bootstrap),
                 budget.check, lambda stage, **kw: progress({'stage': stage, **kw}) if progress else None)
             budget.response_query = query
@@ -820,7 +985,11 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     raise ValueError('SDMPC shared response/action mismatch')
             return answer
         def quantity(action, item):
-            return constraints.shared_quantity_constraints(follower, action, item['quantities'],
+            function = constraints.shared_quantity_constraints
+            if regional:
+                from evaluation.controllers.sdmpc_regional_contracts import quantity_constraints
+                function = quantity_constraints
+            return function(follower, action, item['quantities'],
                 start_sec=state.time_sec, horizon_steps=cfg.mpc.horizon_steps,
                 np_mode='cap', target_np_veh=action.N_P_star, np_tolerance_veh=options['np_tolerance_veh'],
                 nuf_mode='cap' if cap_mode else 'equality', target_nuf_veh_h=action.N_UF_star,
@@ -882,6 +1051,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             raise ValueError('SDMPC NUF refresh changed physical commands')
         hold_valid = feasible(anchor, held)
         best = (anchor, held, None) if hold_valid else None
+        if regional == 'freeway_only':
+            domain = {'np_values':(0.,), 'scope':'Inactive absent NP; no NP proposal generator called'}
         if domain is None:
             domain = joint.prepare_joint_leader_candidates(controller, state, forecast, historical,
                 budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check, np_only=True)
@@ -900,7 +1071,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         costs_order = (*coord.owners, PASSIVE)
         def costs(item):
             return np.array([item['sdmpc_omega_partition']['costs'][p] for p in costs_order])
-        derivatives_cache = GradientCache()
+        derivatives_cache = GradientCache(nuf_cap=bool(policy.get('response_cap_cache')))
         derivative_receipts = []
         pending_derivatives = None
         trial_overlap_rows = []
@@ -1007,7 +1178,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 G = np.vstack((G, A[:, ix]))
                 if central_mode:
                     eps = np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale
-                    resource_lo, resource_hi = central.qp_bounds(c, eps, caps=cap_mode)
+                    resource_lo, resource_hi = central.qp_bounds(c, eps, caps=cap_mode, active_resources=resource_mask)
                     lo, hi = np.r_[lo, resource_lo], np.r_[hi, resource_hi]
                 else:
                     lo, hi = np.r_[lo, -np.inf, -c[1]], np.r_[hi, -c[0], -c[1]]
@@ -1035,7 +1206,9 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 c = (vector(action, current)-target)/scale
                 proposal = np.zeros(len(z))
                 for owner in coord.owners:
-                    ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner])
+                    ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner], dtype=int)
+                    if not len(ix):
+                        continue  # Retain its cost/externality, but no actuator QP.
                     own = grad[costs_order.index(owner), ix]
                     external = grad[:, ix].sum(axis=0)-own
                     d, receipt = qp(z, np.zeros(len(ix)), own+external+(A.T@iteration_prices)[ix], policy['proximal'], ix=ix)
@@ -1049,7 +1222,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     before_dual = candidate_dual.copy()
                     candidate_dual = central.update_duals(candidate_dual,raw,
                         np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale,
-                        policy['dual_step'],caps=cap_mode)
+                        policy['dual_step'],caps=cap_mode,active_resources=resource_mask)
                     dual_updates.append(dict(cap=cap,nuf_target=requested_nuf,iteration=iteration,
                         before=before_dual.tolist(),after=candidate_dual.tolist(),
                         prices_used=iteration_prices.tolist(),raw_residual_scaled=raw.tolist(),
@@ -1083,7 +1256,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                             candidates=len(trial_actions),
                             reverse_workers_per_derivative=pending_derivatives.reverse_workers,
                             max_numerical_workers=pending_derivatives.receipt['max_numerical_workers'])
-                values = evaluate(trial_actions, derivatives=surrogate and iteration+1 < policy['max_iterations'])
+                values = evaluate(trial_actions, derivatives=surrogate
+                    and not policy.get('lazy_trial_derivatives') and iteration+1 < policy['max_iterations'])
                 winners = []
                 for a, value in zip(trial_actions, values):
                     ok = feasible(a, value)
@@ -1132,7 +1306,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 recovery = central.recover((*reference_model,final_item['central_physical']),
                     final_z,vector(final_action,final_item),target,scale,
                     np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']]),
-                    coord,policy['central_options'],candidate_best is not None,caps=cap_mode)
+                    coord,policy['central_options'],candidate_best is not None,caps=cap_mode,active_resources=resource_mask)
                 if query.stats()['total_rollouts'] != before_rollouts:
                     raise ValueError('Central recovery unexpectedly predicted traffic')
                 recovery.update(np_cap=cap,nuf_target=requested_nuf)
@@ -1144,7 +1318,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     limits = (sdmpc_budget.search_limits(targets[0],caps,cfg.network.total_ramp_capacity)
                         if cap_mode else ([min(caps),0.],[max(caps),cfg.network.total_ramp_capacity]))
                     new_target = central.next_budget(targets[0],recovery,targets,
-                        limits,policy['central_options'])
+                        limits,policy['central_options'],active_resources=resource_mask)
                     if new_target is not None:
                         targets.append(tuple(new_target))
             if candidate_best:
@@ -1153,11 +1327,15 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 if best is None or candidate_best[1]['objective_veh_h'] < best[1]['objective_veh_h']-policy['objective_tolerance']:
                     best = candidate_best
         held_candidate = None
-        if cap_mode and coord.valid(coord.encode(reference)):
-            best, held_candidate = retain_feasible_held(reference, pfo_initial['objective_veh_h'],
+        # PFO evaluated operating_seed, which may project the actual reference
+        # onto storage-protection bounds. Retain that same action/cost pair.
+        if cap_mode and coord.valid(coord.encode(operating_seed)):
+            best, held_candidate = retain_feasible_held(operating_seed, pfo_initial['objective_veh_h'],
                 best, best[0] if best is not None else anchor, policy['objective_tolerance'], evaluate, feasible)
         elif cap_mode:
             held_candidate = dict(evaluated=False,selected=False,reason='outside_current_operating_bounds')
+        if cap_mode:
+            held_candidate['reference_source'] = 'current_operating_seed'
         if best is None:
             raise ValueError('SDMPC found no executable feasible candidate; hold was also infeasible')
         meter_audit = None
@@ -1189,10 +1367,12 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             else:
                 next_prices += policy['dual_step']*np.array(signal['raw_local_residual_scaled'])
                 next_prices[0] = max(0., next_prices[0])
-        state_record = {'schema': SCHEMA, 'sim_sec': state.time_sec, 'policy_sha256': token(policy),
+        state_record = {'schema': SCHEMA, 'sim_sec': state.time_sec, 'policy_sha256': policy_token(policy),
             'prices_scaled': prices.tolist(), 'next_prices_scaled': next_prices.tolist(),
             'pending_native_application': True, 'price_update_signal': signal,
             'previous_application': price_receipt}
+        if regional:
+            state_record.update(regional_mode=regional, active_resources=resource_mask)
         if central_mode:
             state_record.update(central_duals_scaled=initial_central_dual.tolist(),
                 next_central_duals_scaled=signal['candidate_dual'] if signal is not None else initial_central_dual.tolist())
@@ -1224,6 +1404,13 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 nuf_definition='predicted_accepted_mainline_merge',
                 nuf_target_policy='initial_hold_merge_then_leader_candidate_search',
                 central_derivative_work=[row['central_physical']['derivative_work'] for row in derivative_receipts])
+        if regional:
+            metadata.update(regional_mode=regional,active_resources=resource_mask,
+                active_cost_owners=list(coord.owners),
+                nuf_definition='inactive_absent_resource' if regional == 'urban_only'
+                    else 'predicted_accepted_mainline_merge',
+                input_isolation_qualified=bool(policy.get('regional_context_required')),
+                input_context_schema=getattr(state, 'regional_context', {}).get('schema'))
         if cap_mode:
             metadata.pop('nuf_initialization'); metadata.pop('held_feasible')
             metadata.update(algorithm='sdmpc-central-pfo-cap/v3',pfo_warm_start=pfo_receipt,

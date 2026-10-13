@@ -12599,6 +12599,11 @@ def joint_runtime_source_pins(tuning, provenance, previous_pins):
     for folder in (WORKSPACE_ROOT / 'evaluation/controllers',
                    Path(provenance['numsim_repo_root']) / 'src', PLANT_PACKAGE_ROOT):
         paths.update(path.resolve() for path in folder.rglob('*.py'))
+    if (tuning or {}).get('urban', {}).get('calibrated_aggregate'):
+        # The native bridge deliberately reuses the reviewed projection and
+        # rollout implementations. Pin these lazy imports before worker spawn.
+        folder = WORKSPACE_ROOT / 'diagnostics/repin_v3c3_review_20261001/urban_rm269'
+        paths.update(path.resolve() for path in folder.rglob('*.py'))
     visited = set()
     def visit(value):
         if isinstance(value, dict):
@@ -12632,12 +12637,13 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
         # SDMPC differentiates the complete coupled endpoint and never calls
         # the legacy uniform-cell local GNE dynamics. Only this explicit lane
         # runtime may use variable geometry in joint selection.
+        from evaluation.controllers.multirate_freeway import supports_joint_clock
         if not (getattr(cfg.network, 'sdmpc_options', None) is not None
                 and getattr(cfg.network, 'lane_plant_enabled', False)
                 and all(hasattr(state, name) for name in ('lane_freeway_runtime',
                     'lane_ramp_runtime', 'lane_offramp_runtime', 'lane_urban_runtime'))
-                and cfg.simulation.T_f_sec == cfg.simulation.T_u_sec == 1):
-            raise NotImplementedError("Variable-cell joint control requires the complete one-second lane runtime and SDMPC; the local GNE kernel remains unsupported")
+                and supports_joint_clock(cfg, state)):
+            raise NotImplementedError("Variable-cell joint control requires the complete coupled runtime and SDMPC with urban1s and either freeway1s or explicitly configured aggregate5s; the local GNE kernel remains unsupported")
     from evaluation.controllers import area_follower_objective as joint
     from src.controllers.nash_solver import NashResult
     from src.controllers.stackelberg_mpc import DecisionResult
@@ -12672,9 +12678,21 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
         if getattr(getattr(cfg, 'network', None), 'sdmpc_options', None) is not None:
             import copy
             from evaluation.controllers import sdmpc
-            response, details = sdmpc.solve(controller, state, forecast, historical['previous'], mapping,
-                options=options, runtime_sources=sources, worker_bootstrap=bootstrap, budget=budget,
-                progress=progress, previous_path=previous_path)
+            if cfg.network.sdmpc_options.get('regional_context_required'):
+                from evaluation.controllers import sdmpc_regional_context
+                if not isinstance(worker_state_json, dict):
+                    raise ValueError('Regional decision requires its closed observation')
+                local = sdmpc_regional_context.prepare(controller, state, forecast,
+                    historical['previous'], mapping,
+                    derived=state._regional_boundary_observation, bootstrap=bootstrap)
+                report['regional_context'] = local.pop('evidence')
+                response, details = sdmpc.solve(**local,
+                    options=options, runtime_sources=sources, budget=budget,
+                    progress=progress, previous_path=previous_path)
+            else:
+                response, details = sdmpc.solve(controller, state, forecast, historical['previous'], mapping,
+                    options=options, runtime_sources=sources, worker_bootstrap=bootstrap, budget=budget,
+                    progress=progress, previous_path=previous_path)
             report.update(schema='sdmpc-runtime-decision/v1', selection=details,
                 leader_objective=response['final_score']['objective_veh_h'], completed=True)
             result = DecisionResult(control=copy.deepcopy(response['control']), leader_objective=report['leader_objective'],
@@ -13077,6 +13095,7 @@ def main() -> None:
         sys.modules[__name__], cfg, tuning, mapping, state_json,
         args.previous_action_json, detector_mapping, calibration, TrafficState,
         physical_projection_input=physical_projection_input,
+        controller_variant=args.controller,
     )
     joint_options = joint_owner_game_settings(tuning, cfg, args.controller)
     from evaluation.controllers import sdmpc
@@ -13307,7 +13326,14 @@ def main() -> None:
                 metadata["prediction_freeway_total_abs_error"] = float(freeway_error.get("abs_error", 0.0))
     try:
         controller = None
-        if args.controller == "no-control":
+        if (runtime_patch_metadata.get('native_startup_without_prediction')
+                and sdmpc_options is not None and sdmpc_options.get('regional_context_required')):
+            control = _make_no_control(ControlAction, cfg)
+            from evaluation.controllers.sdmpc_actuator_scope import check as check_scope
+            check_scope(control, sdmpc_options, cfg)
+            control.diagnostics["no_control_active"] = 1.0
+            metadata['regional_startup_baseline'] = True
+        elif args.controller == "no-control":
             control = _make_no_control(ControlAction, cfg)
             control.diagnostics["no_control_active"] = 1.0
         elif args.controller == "diagnostic-vsl-rm":
@@ -13576,7 +13602,12 @@ def main() -> None:
         )
         metadata.update(policy_guard_metadata)
         metadata.update(apply_actuation_guards_to_control(control, cfg, actuation))
-    prediction = build_one_step_prediction(state, control, forecast, cfg, calibration)
+    if runtime_patch_metadata.get('native_startup_without_prediction') is True:
+        prediction = {'schema_version': 1, 'status': 'not_requested',
+            'mode': 'native_startup_command_only', 'from_sim_sec': float(state.time_sec),
+            'wall_sec': 0., 'reason': runtime_patch_metadata['prediction_runtime_unavailable_reason']}
+    else:
+        prediction = build_one_step_prediction(state, control, forecast, cfg, calibration)
     post_guard_tuning: Mapping[str, Any] = tuning
     if args.controller == "pstack-flagship" and not bool(
         flagship_settings(tuning).get("post_guard_pfo_baseline", False)

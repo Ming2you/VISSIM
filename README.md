@@ -1,3 +1,5 @@
+Current controller and adopted urban/freeway plant: [2026-10-13 handoff](docs/sdmpc_plant_20261013/README.md).
+
 # VISSIM ↔ Numerical-Sim 통합 워크스페이스
 
 PTV Vissim 2020 (SP14) 플랜트와 Stackelberg MPC 계층 제어 모델을 COM 으로 결합해

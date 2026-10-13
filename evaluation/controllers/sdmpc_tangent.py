@@ -22,6 +22,26 @@ def prepare_request(follower, state, forecast, reference, action, coord, bootstr
     from evaluation.controllers import vissim_stackelberg_adapter as adapter
     if not bootstrap:
         raise ValueError('Tangent prediction requires the canonical worker bootstrap')
+    regional = follower.cfg.network.sdmpc_options.get('regional_prediction_prototype')
+    if regional:
+        from types import SimpleNamespace
+        if (regional not in ('freeway_only', 'urban_only')
+                or getattr(state, 'regional_boundary', {}).get('mode') != regional):
+            raise ValueError('Regional request requires a matching cut state')
+        # Configuration provenance remains a separate caller obligation. The
+        # worker receives no legacy follower price/history caches.
+        from evaluation.controllers.sdmpc_regional_contracts import project_forecast
+        local_forecast = project_forecast(forecast, regional)
+        detector = bootstrap['detector_mapping']
+        local_bootstrap = dict(state_json={'network_path':bootstrap['state_json']['network_path']},
+            detector_mapping={'link_to_origins':copy.deepcopy(detector.get('link_to_origins', {})),
+                'link_partition':{'owned_link_legs':copy.deepcopy(
+                    detector.get('link_partition', {}).get('owned_link_legs', {}))}},
+            runtime_sources=copy.deepcopy(bootstrap['runtime_sources']))
+        return dict(owned=(SimpleNamespace(cfg=follower.cfg), state, reference, local_forecast),
+            runtime={'_PHASE_VECTOR_FOLLOWER':{}}, action=action, axes=coord.axes,
+            green_vectors=coord.green_vectors, horizon=follower.cfg.mpc.horizon_steps,
+            bootstrap=local_bootstrap, costs_order=(*coord.owners, 'PASSIVE_OMEGA'))
     runtime = {k: v for k, v in vars(adapter).items()
                if k.startswith('_') and k.isupper() and isinstance(v, (dict, list, set))}
     memo = {id(follower): follower}

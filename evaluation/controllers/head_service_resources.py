@@ -30,7 +30,7 @@ def configure(cfg, tuning, raw, plan):
     if path is None:
         current = view(cfg)
         if current is not None:
-            if current.get('schema') not in ('physical-head-resource-join/v1','physical-head-resource-join/v2','physical-head-resource-join/v3','physical-head-resource-join/v4','physical-head-resource-join/v5','physical-head-resource-join/v6','physical-head-resource-join/v7','physical-head-resource-join/v8','physical-head-resource-join/v9'):
+            if current.get('schema') not in ('physical-head-resource-join/v1','physical-head-resource-join/v2','physical-head-resource-join/v3','physical-head-resource-join/v4','physical-head-resource-join/v5','physical-head-resource-join/v6','physical-head-resource-join/v7','physical-head-resource-join/v8','physical-head-resource-join/v9','physical-head-resource-join/v10','physical-head-resource-join/v11','physical-head-resource-join/v12','physical-head-resource-join/v13'):
                 raise ValueError('Cannot clear an unowned physical head resource view')
             delattr(cfg.network, 'head_service_resources')
         return {}
@@ -47,7 +47,11 @@ def configure(cfg, tuning, raw, plan):
               'physical-head-resource-join/v6':{'10619','10629','10633','10698','10283','10285','10119'},
               'physical-head-resource-join/v7':{'10619','10629','10633','10698','10283','10285','10119','10691'},
               'physical-head-resource-join/v8':{'10619','10629','10633','10698','10283','10285','10119','10691','10539'},
-              'physical-head-resource-join/v9':{'10619','10629','10633','10698','10283','10285','10119','10691','10539','10631'}}
+              'physical-head-resource-join/v9':{'10619','10629','10633','10698','10283','10285','10119','10691','10539','10631'},
+              'physical-head-resource-join/v10':{'10619','10629','10633','10698','10283','10285','10119','10691','10539','10631','10493'},
+              'physical-head-resource-join/v11':{'10619','10629','10633','10698','10283','10285','10119','10691','10539','10631','10493','10206'},
+              'physical-head-resource-join/v12':{'10619','10629','10633','10698','10283','10285','10119','10691','10539','10631','10493','10206','10286'},
+              'physical-head-resource-join/v13':{'10619','10629','10633','10698','10283','10285','10119','10691','10539','10631','10493','10206','10200'}}
     if set(document['resources']) != catalogs.get(document.get('schema')):
         raise ValueError('Unreviewed physical head resource set')
     network = _read(document['network'])
@@ -119,12 +123,20 @@ def configure(cfg, tuning, raw, plan):
                     and membership.get(link) is True and membership.get(row['target_link']) is False
                     and not actual.get('ramp') and not actual.get('unsignalized')
                     and actual.get('receiving_link') in cfg.network.urban_link_storage_veh)
-            elif connector in ('10691','10539'):
+            elif connector in ('10691','10539','10493','10206','10286','10200'):
                 link,phase,name,signal,origin,receiver,target_link,head_lanes = {
                     '10691':('329','p3','SC1002_E_SC101_to_W_SC1001','SC1002',
                              'SC101_to_SC1002','SC1002_to_SC1001','29',[2,3]),
                     '10539':('1220011503','p2','SC101_S_SC1_to_W_SC1002','SC101',
                              'SC1_to_SC101','SC101_to_SC1002','1220012402',[4,5]),
+                    '10493':('47','p1','SC1003_S_SC1004_to_N_SC1001','SC1003',
+                             'SC1004_to_SC1003','SC1003_to_SC1001','40',[2,3,4]),
+                    '10206':('1210018302','p2','SC6_S_SC12_to_W_SC5','SC6',
+                             'SC12_to_SC6','SC6_to_SC5','1220018404',[4]),
+                    '10286':('173','p4','SC109_W_SC108_to_N_SC16','SC109',
+                             'SC108_to_SC109','SC109_to_SC16','1220009502',[4,5]),
+                    '10200':('1220021201','p3','SC6_E_SC104_to_W_SC5','SC6',
+                             'SC104_to_SC6','SC6_to_SC5','1220018404',[1,2,3,4]),
                 }[connector]
                 expected={'kind':'internal','signal':signal,'phase':signal+'_'+phase,
                           'origin':origin,'receiving_link':receiver}
@@ -210,9 +222,16 @@ def configure(cfg, tuning, raw, plan):
                 overlap=[h for h in heads if h['lane'] in lanes]
                 upstream=(detail.get('upstream_of_head') is True and overlap
                           and all(float(origin.get('pos'))<h['position_m'] for h in overlap))
+                # A pre-head turn can continue through several physical links
+                # owned by the same receiver. Do not require its first turn to
+                # be the final three elements of the static route.
+                positions=[i for i in range(len(declared_path)-2) if declared_path[i:i+3]==path]
+                receiver_path=(len(positions)==1 and all(
+                    mapping.get('link_to_origins',{}).get(k)==[required.get('receiving_link')]
+                    for k in declared_path[positions[0]+2:]))
                 if (origin.get('lane').split()[0] != key[0] or end.get('lane').split()[0] != path[2]
                         or not lanes or (overlap and not upstream)
-                        or route_path != declared_path or declared_path[-3:] != path
+                        or route_path != declared_path or not receiver_path
                         or mapping.get('link_to_origins', {}).get(path[2]) != [required.get('receiving_link')]):
                     raise ValueError('Excluded consumer overlaps the head or lacks its native receiver')
                 if 'downstream_choice' in detail:
@@ -391,19 +410,33 @@ def extend_local_pool(cfg):
 
 def regular_context(cfg, control, step):
     spec = view(cfg)
-    groups = spec['extra_pool_groups'] if spec else {}
+    groups = dict(spec['extra_pool_groups']) if spec else {}
+    from evaluation.controllers import regular_alias_service
+    aliases = regular_alias_service.groups(cfg)
+    if set(groups) & set(aliases):
+        raise ValueError('Regular physical head has two owners')
+    groups.update(aliases)
     from evaluation.controllers import local_signal_service as pool
     from src.models import urban_queue_model as uqm
     limits = {}; members = {}
     for key, row in groups.items():
         for name in row['members']:
             movement = cfg.network.urban_movements[name]
-            if movement['kind'] != 'boundary_out' or movement.get('ramp'):
+            allowed = ('internal', 'boundary_in') if key in aliases else ('boundary_out',)
+            if movement['kind'] not in allowed or movement.get('ramp'):
                 raise ValueError('Regular resource acquired a non-regular service path')
+            if 'receivers' in row and movement.get('receiving_link')!=row['receivers'].get(name):
+                raise ValueError('Shared-lane physical receiver changed')
             fraction = uqm._phase_green_fraction(control, cfg, movement, urban_step_index=step)
             pool.register_limit(limits, key, row['service_veh_h'], cfg.simulation.T_u_h, fraction)
             members[name] = key
     return limits, {}, members
+
+
+def regular_cross_receiver_requests(cfg, by_receiver, without_receiver, ready, context):
+    from evaluation.controllers import regular_alias_service,local_signal_service
+    return local_signal_service.limit_multi_receiver_heads(
+        by_receiver,without_receiver,ready,regular_alias_service.groups(cfg),context[0],context[1])
 
 
 def regular_batch(cfg, intended, context):
@@ -419,3 +452,15 @@ def regular_accepted(movement, vehicles, context):
     if movement in members:
         from evaluation.controllers.local_signal_service import accepted
         accepted(vehicles, members[movement], limits, used)
+
+
+def regular_evidence(group, head_accepted, context):
+    """Join actual accepted sources to the kernel's debit, allowing roundoff."""
+    limits, used, members = context
+    sources = {'movement:' + m: value for m, value in head_accepted.items()
+               if members[m] == group}
+    # Python 3.12 sum uses compensated float summation whereas accepted()
+    # debits sequentially. Three positive turns can differ by one ULP.
+    if not abs(sum(sources.values()) - used.get(group, 0.0)) <= EPS:
+        raise ValueError('Regular head evidence differs from accepted debit: ' + str(group))
+    return sources

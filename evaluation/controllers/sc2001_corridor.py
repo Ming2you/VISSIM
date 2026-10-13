@@ -249,8 +249,11 @@ def initialize(state, cfg, raw, detectors=None):
     return {'sc2001_initial_veh': len(records), 'sc2001_initial_origin': 'unobserved; frozen pooled NC13 prior'}
 
 
-def receive_accepted(state, cfg, movement, vehicles, urban_step_index):
+def receive_accepted(state, cfg, movement, vehicles, urban_step_index, *, entry_step=None):
     """Reserve only: caller already moved actual accepted vehicles into storage."""
+    entry=urban_step_index if entry_step is None else entry_step
+    if not math.isfinite(entry) or int(entry)!=entry or entry<urban_step_index:
+        raise ValueError('SC2001 receipt entry cannot precede current service')
     spec = getattr(cfg.network, 'sc2001_corridor', None)
     if spec is None:
         return False
@@ -267,7 +270,7 @@ def receive_accepted(state, cfg, movement, vehicles, urban_step_index):
         raise ValueError('SC2001 accepted inflow requires the current explicit advanced step')
     if not math.isclose(_occupancy(state, spec), _tracked(local) + vehicles, abs_tol=1e-7):
         raise ValueError('SC2001 accepted inflow was not applied exactly once to physical storage')
-    _reserve(local, cfg, row['origin'], vehicles, urban_step_index, position=row['entry_78_position_m'],
+    _reserve(local, cfg, row['origin'], vehicles, entry, position=row['entry_78_position_m'],
              before_78_m=row['pre_78_distance_m'], speed=_speed(state, cfg), state=state)
     local['received_veh'] += vehicles
     return True

@@ -465,7 +465,7 @@ class ModelAreaLedger:
             raise ValueError('Duplicate constraint coverage completion: ' + scope)
         row.update(completed=True, missing_constraints=missing)
 
-    def record_freeway_operands(self, state, control, actual_ramp_release=None, *, initial=False):
+    def record_freeway_operands(self, state, control, actual_ramp_release=None, *, initial=False, multirate_exchange=False):
         """Capture existing coupled operands without introducing a model step.
 
         Initial operands precede the rollout. Frames must follow the existing
@@ -492,13 +492,25 @@ class ModelAreaLedger:
             self._response['initial_freeway_operands'] = row
             return
         stamp = self._response_stamp()
-        if stamp['stage'] != 'landing' or not self._response['residence']:
-            raise ValueError('Freeway operands require post-landing residence')
-        sample = self._response['residence'][-1]
-        if any(sample[key] != stamp[key] for key in ('stage', 'start_sec', 'end_sec')):
-            raise ValueError('Freeway operand and residence clocks differ')
-        if row['model_stock_veh'] != sample['model_stock_veh']:
-            raise ValueError('Freeway stock changed after its residence sample')
+        if multirate_exchange:
+            declared = any(r.get('exchange') == 'endpoint10' and r['T_f_sec'] == 5
+                           and r['T_u_sec'] == 10 and r['start_sec'] <= stamp['start_sec']
+                           and stamp['end_sec'] <= r['end_sec']
+                           for r in self._response['constraint_intervals'])
+            scopes = {r['scope'] for r in self._response['constraint_coverage']
+                      if r['expected'] and r['completed'] and all(r[k] == v for k, v in stamp.items())}
+            if (not declared or stamp['stage'] != 'freeway' or stamp['end_sec']-stamp['start_sec'] != 5
+                    or not {'physical_ramp_release', 'freeway_allocator'} <= scopes):
+                raise ValueError('Multirate operands require declared completed freeway allocations')
+            row['sampling'] = 'after_freeway_before_endpoint_exchange'
+        else:
+            if stamp['stage'] != 'landing' or not self._response['residence']:
+                raise ValueError('Freeway operands require post-landing residence')
+            sample = self._response['residence'][-1]
+            if any(sample[key] != stamp[key] for key in ('stage', 'start_sec', 'end_sec')):
+                raise ValueError('Freeway operand and residence clocks differ')
+            if row['model_stock_veh'] != sample['model_stock_veh']:
+                raise ValueError('Freeway stock changed after its residence sample')
         if actual_ramp_release is None:
             raise ValueError('Freeway operands require actual accepted ramp release')
         row.update(stamp)
@@ -555,7 +567,10 @@ class ModelAreaLedger:
         coverage = self._response['constraint_coverage']
         missing = sorted({name for row in coverage for name in row['missing_constraints']})
         visits_complete = bool(self._response['constraint_intervals']) and all(row['expected'] and row['completed'] for row in coverage)
-        planned_landings = [(row['start_sec'], row['end_sec']) for row in coverage if row['expected'] and row['scope'] == 'offramp_landing']
+        multirate = bool(self._response['constraint_intervals']) and all(
+            r.get('exchange') == 'endpoint10' for r in self._response['constraint_intervals'])
+        frame_scope = 'freeway_allocator' if multirate else 'offramp_landing'
+        planned_landings = [(row['start_sec'], row['end_sec']) for row in coverage if row['expected'] and row['scope'] == frame_scope]
         actual_landings = [(row['start_sec'], row['end_sec']) for row in self._response['freeway_frames']]
         initial = self._response.get('initial_freeway_operands')
         frames_complete = bool(initial and planned_landings and initial['start_sec'] == planned_landings[0][0] and actual_landings == planned_landings)

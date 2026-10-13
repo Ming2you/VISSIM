@@ -217,12 +217,19 @@ def initialize_kinematic_arrivals(adapter, state, cfg, tuning, raw, detectors):
         moving = [v['speed_kph'] for v in vehicles if not v['stopped']]
         gate_speed = max(math.fsum(moving) / len(moving), floor) if moving else floor
         gate_delay = min(pos for pos, lanes in geometry.values()) / (gate_speed / 3.6)
-        if not hasattr(cfg.network, 'urban_boundary_travel_time_sec'):
-            cfg.network.urban_boundary_travel_time_sec = {}
-        cfg.network.urban_boundary_travel_time_sec[source] = gate_delay
+        # An internal approach can include several upstream roads. Correcting
+        # this link's observed cohort must not replace the whole origin's
+        # future travel time with just the final road's length.
+        boundary_source = all(row['expected_spec']['kind'] == 'boundary_in'
+                              for row in movements.values())
+        if boundary_source:
+            if not hasattr(cfg.network, 'urban_boundary_travel_time_sec'):
+                cfg.network.urban_boundary_travel_time_sec = {}
+            cfg.network.urban_boundary_travel_time_sec[source] = gate_delay
         receipt[source] = dict(link=link, queue_veh=queues, residual_veh=len(residual),
                                last_arrival_delay_sec=(max(tags)-now)*dt if tags else 0.,
-                               gate_travel_sec=gate_delay, future_traffic_inputs=False)
+                               gate_travel_sec=gate_delay if boundary_source else None,
+                               future_traffic_inputs=False)
         if native_group is not None:
             receipt[source].update(known_destination_veh=known_count,
                                    before_choice_veh=prechoice_count, native_choice_group=group_key)

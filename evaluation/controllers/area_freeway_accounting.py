@@ -99,7 +99,7 @@ def continuity_vehicle_counts(state, cfg):
             for link in net.freeway_links}
 
 
-def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction, demand: _mn.DemandStep, cfg: _mn.ExperimentConfig, offramp_capacity_veh_h: _mn.Dict[str, float] | None=None, ramp_release_veh_h: _mn.Dict[str, float] | None=None, ramp_release_diagnostics: _mn.Dict[str, float] | None=None, update_ramp_queues: bool=True, include_ramp_queue_ttt: bool=True, complete_allocator_scope: bool=True, junction_ramp_speeds: _mn.Dict[str, float] | None=None) -> _mn.Tuple[float, _mn.Dict[str, float]]:
+def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction, demand: _mn.DemandStep, cfg: _mn.ExperimentConfig, offramp_capacity_veh_h: _mn.Dict[str, float] | None=None, ramp_release_veh_h: _mn.Dict[str, float] | None=None, ramp_release_diagnostics: _mn.Dict[str, float] | None=None, update_ramp_queues: bool=True, include_ramp_queue_ttt: bool=True, complete_allocator_scope: bool=True, junction_ramp_speeds: _mn.Dict[str, float] | None=None, complete_ramp_packets: bool=True) -> _mn.Tuple[float, _mn.Dict[str, float]]:
     """Spec 3.1/3.2 METANET plant를 정확히 한 `T_f` step만 전진한다."""
     net = cfg.network
     sim = cfg.simulation
@@ -159,7 +159,8 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         if ramp_velocity_moment is not None:
             ramp_velocity_moment[link][merge_idx] += accepted_release * junction_ramp_speeds[ramp]
         _area.emit_transfer(state, cfg, f"merge_pending:{ramp}", f"freeway:{link}",
-                            accepted_release * dt_h, target_inside=True, complete_source=physical_packets)
+                            accepted_release * dt_h, target_inside=True,
+                            complete_source=physical_packets and complete_ramp_packets)
         if update_ramp_queues:
             arrival = demand.ramp_arrival.get(ramp, 0.0)
             q0 = max(0.0, state.ramp_queue.get(ramp, 0.0))

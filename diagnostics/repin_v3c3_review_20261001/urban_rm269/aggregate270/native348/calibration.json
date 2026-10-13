@@ -1,0 +1,313 @@
+{
+  "schema": "calibrated-urban-native348/v1",
+  "training": "Prior closed seed29 runs; fixed before the new runs. This is an in-sample experiment, not held-out validation.",
+  "historical_cutoff_sec": 2400,
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "shared_groups": {
+    "1220012103:10242:p4:typed": {
+      "members": [
+        "SC12_W_SC11_to_N_SC6",
+        "SC12_W_to_N_SC6"
+      ],
+      "signal": "SC12",
+      "phase": "SC12_p4",
+      "receiver": "SC12_to_SC6",
+      "service_veh_h": 1707.1724955542493
+    },
+    "1220011200:180601:p3": {
+      "members": [
+        "SC16_E_to_W_SC7",
+        "SC16_E_to_N_SC12",
+        "SC16_E_to_S_SC109"
+      ],
+      "signal": "SC16",
+      "phase": "SC16_p3",
+      "receivers": {
+        "SC16_E_to_W_SC7": "SC16_to_SC7",
+        "SC16_E_to_N_SC12": "SC16_to_SC12",
+        "SC16_E_to_S_SC109": "SC16_to_SC109"
+      },
+      "service_veh_h": 1677.2727272727273
+    }
+  },
+  "movement_rates": {
+    "SC12_W_SC11_to_N_SC6": 1707.1724955542493,
+    "SC12_W_to_N_SC6": 1707.1724955542493,
+    "SC16_E_to_N_SC12": 1677.2727272727273,
+    "SC16_E_to_S_SC109": 1677.2727272727273,
+    "SC16_E_to_W_SC7": 1677.2727272727273
+  },
+  "service_floors": {
+    "SC101_S_SC1_to_N_SC2005": 5236.47858772522,
+    "SC109_W_SC108_to_N_SC16": 2000.0,
+    "SC108_W_to_E_SC109": 1812.5874125874127
+  },
+  "movement_contracts": {
+    "SC101_S_SC1_to_N_SC2005": {
+      "intersection": "SC101",
+      "approach": "S_SC1",
+      "exit": "N_SC2005",
+      "beta": 0.7227889115564623,
+      "signal": "SC101",
+      "turn": "through",
+      "phase": "SC101_p1",
+      "origin": "SC1_to_SC101",
+      "destination": "SC101_to_SC2005",
+      "receiving_link": "SC101_to_SC2005",
+      "kind": "internal"
+    },
+    "SC108_W_to_E_SC109": {
+      "intersection": "SC108",
+      "approach": "W",
+      "exit": "E_SC109",
+      "beta": 1.0,
+      "signal": "SC108",
+      "turn": "through",
+      "phase": "SC108_p3",
+      "origin": "in_SC108_W",
+      "destination": "SC108_to_SC109",
+      "receiving_link": "SC108_to_SC109",
+      "kind": "boundary_in"
+    },
+    "SC109_W_SC108_to_N_SC16": {
+      "intersection": "SC109",
+      "approach": "W_SC108",
+      "exit": "N_SC16",
+      "beta": 0.2379,
+      "signal": "SC109",
+      "turn": "left",
+      "phase": "SC109_p4",
+      "origin": "SC108_to_SC109",
+      "destination": "SC109_to_SC16",
+      "receiving_link": "SC109_to_SC16",
+      "kind": "internal"
+    },
+    "SC12_W_SC11_to_N_SC6": {
+      "intersection": "SC12",
+      "approach": "W_SC11",
+      "exit": "N_SC6",
+      "beta": 0.34429377175087,
+      "signal": "SC12",
+      "turn": "left",
+      "phase": "SC12_p4",
+      "origin": "SC11_to_SC12",
+      "destination": "SC12_to_SC6",
+      "receiving_link": "SC12_to_SC6",
+      "kind": "internal"
+    },
+    "SC12_W_to_N_SC6": {
+      "intersection": "SC12",
+      "approach": "W",
+      "exit": "N_SC6",
+      "beta": 0.2,
+      "signal": "SC12",
+      "turn": "left",
+      "phase": "SC12_p4",
+      "origin": "in_SC12_W",
+      "destination": "SC12_to_SC6",
+      "receiving_link": "SC12_to_SC6",
+      "kind": "boundary_in"
+    },
+    "SC16_E_to_N_SC12": {
+      "intersection": "SC16",
+      "approach": "E",
+      "exit": "N_SC12",
+      "beta": 0.2192,
+      "signal": "SC16",
+      "turn": "right",
+      "phase": "SC16_p3",
+      "origin": "in_SC16_E",
+      "destination": "SC16_to_SC12",
+      "receiving_link": "SC16_to_SC12",
+      "kind": "boundary_in"
+    },
+    "SC16_E_to_S_SC109": {
+      "intersection": "SC16",
+      "approach": "E",
+      "exit": "S_SC109",
+      "beta": 0.3599,
+      "signal": "SC16",
+      "turn": "left",
+      "phase": "SC16_p3",
+      "origin": "in_SC16_E",
+      "destination": "SC16_to_SC109",
+      "receiving_link": "SC16_to_SC109",
+      "kind": "boundary_in",
+      "merged_from": [
+        "SC16_E_to_S",
+        "SC16_E_to_S_SC109"
+      ]
+    },
+    "SC16_E_to_W_SC7": {
+      "intersection": "SC16",
+      "approach": "E",
+      "exit": "W_SC7",
+      "beta": 0.4209,
+      "signal": "SC16",
+      "turn": "through",
+      "phase": "SC16_p3",
+      "origin": "in_SC16_E",
+      "destination": "SC16_to_SC7",
+      "receiving_link": "SC16_to_SC7",
+      "kind": "boundary_in",
+      "merged_from": [
+        "SC16_E_to_W",
+        "SC16_E_to_W_SC7"
+      ]
+    }
+  },
+  "peeloff": {
+    "movement": "SC101_S_SC1_to_E_SC5",
+    "spec": {
+      "intersection": "SC101",
+      "approach": "S_SC1",
+      "exit": "E_SC5",
+      "beta": 0.04392175687027482,
+      "signal": "SC101",
+      "turn": "right",
+      "phase": "SC101_p1",
+      "origin": "SC1_to_SC101",
+      "destination": "SC101_to_SC5",
+      "receiving_link": "SC101_to_SC5",
+      "kind": "internal",
+      "unsignalized": true
+    }
+  },
+  "native_fixed_service": {
+    "1099": 2064.0,
+    "1100": 1920.0
+  },
+  "branch_service": {
+    "1129:branch:bypass": 904.0
+  },
+  "source_route_support": {
+    "schema": "aggregate-source-route-support303/v1",
+    "receiver": "SC1_to_SC101",
+    "movements": {
+      "straight": "SC101_S_SC1_to_N_SC2005",
+      "right": "SC101_S_SC1_to_E_SC5",
+      "left": "SC101_S_SC1_to_W_SC1002"
+    },
+    "base_beta": {
+      "straight": 0.7227889115564623,
+      "right": 0.04392175687027482,
+      "left": 0.23328933157326293
+    },
+    "sources": {
+      "1099": {
+        "input": "1086",
+        "entry_lane": 4,
+        "counts": {
+          "straight": 56,
+          "right": 0,
+          "left": 9,
+          "unresolved": 4
+        },
+        "n": 69,
+        "category_shares": {
+          "straight": 0.8115942028985508,
+          "right": 0.0,
+          "left": 0.13043478260869565,
+          "unresolved": 0.057971014492753624
+        },
+        "effective_route_shares_if_prior_used": {
+          "straight": 0.8534950093655921,
+          "right": 0.0025461888040739025,
+          "left": 0.14395880183033408
+        },
+        "identified_bounds": {
+          "straight": {
+            "lower": 0.8115942028985508,
+            "upper": 0.8695652173913043
+          },
+          "right": {
+            "lower": 0.0,
+            "upper": 0.057971014492753624
+          },
+          "left": {
+            "lower": 0.13043478260869565,
+            "upper": 0.18840579710144928
+          }
+        }
+      },
+      "1100": {
+        "input": "1087",
+        "entry_lane": 1,
+        "counts": {
+          "straight": 14,
+          "right": 31,
+          "left": 1,
+          "unresolved": 22
+        },
+        "n": 68,
+        "category_shares": {
+          "straight": 0.20588235294117646,
+          "right": 0.45588235294117646,
+          "left": 0.014705882352941176,
+          "unresolved": 0.3235294117647059
+        },
+        "effective_route_shares_if_prior_used": {
+          "straight": 0.43972582432709073,
+          "right": 0.4700923331050889,
+          "left": 0.09018184256782037
+        },
+        "identified_bounds": {
+          "straight": {
+            "lower": 0.20588235294117646,
+            "upper": 0.5294117647058824
+          },
+          "right": {
+            "lower": 0.45588235294117646,
+            "upper": 0.7794117647058824
+          },
+          "left": {
+            "lower": 0.014705882352941176,
+            "upper": 0.3382352941176471
+          }
+        }
+      }
+    },
+    "fit_window": [
+      900,
+      2100
+    ],
+    "route_followup_end": 2395.1,
+    "validation_start": 2400,
+    "unresolved_policy": "Keep explicit unresolved mass and distribute it using existing receiving-node beta at arrival; not an observed route or an identified probability.",
+    "assumptions": [
+      "Source-specific observed proportions transfer from the past period to the new accepted flow.",
+      "Unobserved route outcomes may be non-random; baseline-beta allocation is a modelling prior.",
+      "Source entry lane supports route distinction but no individual lane-change outcome is predicted."
+    ]
+  },
+  "sc16": {
+    "beta_before": {
+      "SC16_N_SC12_to_S_SC109": 0.7332000000000001,
+      "SC16_N_SC12_to_W_SC7": 0.21889999999999998,
+      "SC16_N_SC12_to_E": 0.0479
+    },
+    "beta_after": {
+      "SC16_N_SC12_to_S_SC109": 0.5651446208889688,
+      "SC16_N_SC12_to_W_SC7": 0.16872634685296678,
+      "SC16_N_SC12_to_E": 0.2661290322580645
+    },
+    "service_before_veh_h": 206.53061224489795,
+    "service_after_veh_h": 1440.0,
+    "cutoff_sec": 2400
+  },
+  "provenance": {
+    "diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\worker334\\capture_v2\\request.pickle": "13d2b1399ee41645530790fc75eb4f40b252be36773a890f38b744a63b971f4c",
+    "diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\sc101_route_tags303\\support.json": "112c93fef8e416d5ee342e28c05238508b578c032f4309eb45f5db3839804aaa",
+    "diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\branch_service314\\assessment.json": "43ce51c57a59eaa4490493e052c7960b4bb7d00be23024e33638fe76de6a216b",
+    "diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\sc16_aggregate323\\support.json": "ae16deaf9abba4ed73d703a64c2f95cc2ee072c7ad8d3df700eae35627ddc255"
+  },
+  "omitted": [
+    "342 competing hypotheses",
+    "343/345 unqualified local rate candidates"
+  ],
+  "projection": "Current paused records only: 306,339,323,325/339,340",
+  "rollout": "299/303,311,317,296,325,329 and static347"
+}

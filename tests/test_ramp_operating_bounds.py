@@ -86,3 +86,26 @@ def test_missing_geometry_fails_explicitly():
     cfg,s,a,b,p=fixture();del s.lane_ramp_runtime
     with pytest.raises(ValueError,match='actual physical ramp'):
         ramps.configure_operating_bounds(s,cfg,a)
+
+
+def test_combined_meter_owners_keep_real_three_block_bounds_and_caps():
+    cfg,s,a,b,p=fixture(10)
+    coord,proof=coordinates(cfg,s,a,b,p)
+    a.N_P_star,a.N_UF_star=123.,456.
+    calls=[]
+    def evaluate(actions):
+        result=[]
+        for action in actions:
+            calls.append(action)
+            coord.validate(action)
+            assert (action.N_P_star,action.N_UF_star)==(123.,456.)
+            greens=[row['green_sec'] for block in seq.actions(action,3)
+                    for row in ramps.physical_commands(block,cfg).values()]
+            result.append(dict(objective_veh_h=sum(greens)))
+        return result
+    best,audit=sdmpc.audit_meter_neighbors(coord,(a,dict(objective_veh_h=240.),None),
+                                         1e-7,evaluate,lambda action,item:True)
+    assert audit['selected']=='combined_meter_owners'
+    assert len(calls)==audit['additional_predictions']==11
+    for index,block in enumerate(seq.actions(best[0],3)):
+        assert set(row['green_sec'] for row in ramps.physical_commands(block,cfg).values())=={8-2*index}
