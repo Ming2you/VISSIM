@@ -374,11 +374,12 @@ If CLng(stateLogIntervalSec) <= 0 Then
 End If
 ' obs150 (plan A1): refuse every combination that would read a mislabeled or partial window.
 ValidateObs150Startup
+ValidateDecisionErrorPolicy
 
 ' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
 ' interpreter here means every decision fails, so failing now costs seconds
 ' instead of surfacing after a multi-hour run.
-Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures, optionalAttSkips
+Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures, optionalAttSkips, decisionsHeld
 Dim signalWriteAttempts, signalReadbackOk, signalPersistenceChecks, signalPersistenceOk, signalTraceSimSec
 Dim signalWriteSkips, sgPlanMidblockSkips, sgEnableMidblockSkips
 ' 결정 시점 스캔 캐시 — WriteStateJson 이 채우고 LogStateCsv 가 재사용한다(추가 스캔 0).
@@ -388,6 +389,7 @@ Dim scanCacheFreewayMeanSpeed, scanCacheStopped
 pythonExe = ""
 decisionsOk = 0
 decisionsFailed = 0
+decisionsHeld = 0
 observationFailures = 0
 signalFailures = 0
 actionFormatFailures = 0
@@ -559,6 +561,7 @@ On Error GoTo 0
 PerfReport
 WScript.Echo "DECISIONS_OK=" & CStr(decisionsOk)
 WScript.Echo "DECISIONS_FAILED=" & CStr(decisionsFailed)
+If EnvText("RW_DECISION_ERROR_POLICY") = "hold_previous_on_exception" Then WScript.Echo "DECISIONS_HELD_ON_EXCEPTION=" & CStr(decisionsHeld)
 WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
 If obsEnabled Then
     WScript.Echo "HEAD_OBSERVATION_BULK_READS=" & CStr(obsBulkReads)
@@ -1197,6 +1200,7 @@ Sub RunControllerDecision(simSec)
     Dim stateJsonPath, outJsonPath, outCsvPath, cmd, result, effController
     Dim wallT0, wallSec, exitCode, outText, errText, perfT0
     Dim captureOutPath, captureErrPath
+    Dim heldDecision, holdOut, holdErr, holdExit
     perfT0 = PerfNow()
     stateJsonPath = fso.BuildPath(decisionDir, "state_" & Pad6(simSec) & ".json")
     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
@@ -1234,6 +1238,27 @@ Sub RunControllerDecision(simSec)
     PerfAdd "decision.python", wallT0
     result = "exit=" & exitCode & " stdout=" & OneLine(outText) & " stderr=" & OneLine(errText)
     WScript.Echo "CONTROLLER_DECISION sim_sec=" & simSec & " wall_sec=" & CStr(Round(wallSec, 2)) & " result=" & result
+    ' K8-8 (amendment 21 P-2/P-3): with runtime.decision_error_policy = hold_previous_on_exception, a decision
+    ' that died on a Python exception (exit 1 + its decision_failure_report .error.txt) may hold the previous applied
+    ' command through scripts/decision_hold.py. Nested Ifs: VBScript And does not short-circuit, and exit 1 is
+    ' tested first, so a successful decision evaluates nothing else here. Every other failure stays strict.
+    heldDecision = False
+    If exitCode = 1 Then
+        If EnvText("RW_DECISION_ERROR_POLICY") = "hold_previous_on_exception" Then
+            If lastActionJson <> "" Then
+                If LCase(effController) = LCase(controllerName) And Left(LCase(CStr(controllerName)), 11) <> "diagnostic-" Then
+                    If CLng(simSec) >= CLng(controlStartSec) + CLng(controlInterval) Then
+                        If CLng(controlStartSec) >= 0 Then
+                            If fso.FileExists(Left(outJsonPath, Len(outJsonPath) - 5) & ".error.txt") Then
+                                heldDecision = DecisionHoldOnException(simSec, stateJsonPath, outJsonPath, outCsvPath, holdOut, holdErr, holdExit)
+                                If heldDecision Then exitCode = 0
+                            End If
+                        End If
+                    End If
+                End If
+            End If
+        End If
+    End If
     ' A failed decision leaves the plant uncontrolled for this interval. That is
     ' an error, not a warning - see the DECISIONS_OK/DECISIONS_FAILED summary.
     If exitCode <> 0 Then
@@ -1246,7 +1271,11 @@ Sub RunControllerDecision(simSec)
         decisionsFailed = decisionsFailed + 1
         WScript.Echo "ERROR=ACTION_CSV_INCOMPLETE sim_sec=" & simSec & " controller=" & effController
     Else
-        decisionsOk = decisionsOk + 1
+        If heldDecision Then
+            decisionsHeld = decisionsHeld + 1
+        Else
+            decisionsOk = decisionsOk + 1
+        End If
         lastActionJson = outJsonPath
         ' SDMPC 가격 상태는 실제 ApplyActionCsv 성공 이후에만 확정 가능하다.
         If fso.FileExists(outJsonPath & ".sdmpc_pending") Then
@@ -5268,6 +5297,57 @@ Function RunDecisionCapture(cmd, outPath, errPath, ByRef outText, ByRef errText)
     outText = ReadDecisionCaptureText(outPath)
     errText = ReadDecisionCaptureText(errPath)
     RunDecisionCapture = exec.ExitCode
+End Function
+
+' K8-8 (amendment 21 P-1) startup check of the hold policy, before any VISSIM work. The watchdog derives
+' RW_DECISION_ERROR_POLICY from the tuning key runtime.decision_error_policy (transport only). Unset or strict
+' prints nothing, so a strict run's log is unchanged; any other value stops the run here with exit 2.
+Sub ValidateDecisionErrorPolicy()
+    Dim policy
+    policy = EnvText("RW_DECISION_ERROR_POLICY")
+    If policy = "" Or policy = "strict" Then Exit Sub
+    If policy = "hold_previous_on_exception" Then
+        WScript.Echo "DECISION_ERROR_POLICY=hold_previous_on_exception"
+        Exit Sub
+    End If
+    WScript.Echo "ERROR=DECISION_ERROR_POLICY_INVALID value=" & policy
+    WScript.Quit 2
+End Sub
+
+' K8-8 one hold attempt (amendment 21 section 3.1). The helper checks E1-E10 and writes the held action_T.json,
+' action_T.csv and action_T.hold.json; the runner then applies the held CSV through the usual ApplyActionCsv path.
+' True only when the helper exited 0 and all three files exist. The decision's own exit code, stdout and stderr
+' are not touched here, so a failed hold falls into the existing strict lines with the decision's stderr.
+Function DecisionHoldOnException(simSec, stateJsonPath, outJsonPath, outCsvPath, ByRef holdOut, ByRef holdErr, ByRef holdExit)
+    Dim stem
+    DecisionHoldOnException = False
+    WScript.Echo "DECISION_HOLD_ATTEMPT sim_sec=" & simSec & " source=" & lastActionJson
+    holdExit = RunDecisionHold(simSec, stateJsonPath, outJsonPath, outCsvPath, holdOut, holdErr)
+    stem = Left(outJsonPath, Len(outJsonPath) - 5)
+    If holdExit = 0 And fso.FileExists(outJsonPath) And fso.FileExists(outCsvPath) And fso.FileExists(stem & ".hold.json") Then
+        WScript.Echo "DECISION_HELD_ON_EXCEPTION sim_sec=" & simSec & " " & OneLine(holdOut)
+        DecisionHoldOnException = True
+    Else
+        WScript.Echo "ERROR=DECISION_HOLD_FAILED sim_sec=" & simSec & " hold_exit=" & holdExit & " stderr=" & OneLine(holdErr)
+    End If
+End Function
+
+' K8-8 helper command. A pure function of its arguments (pinned by scripts/tests/test_k8_decision_hold_vbs.py).
+Function BuildHoldCommand(pyExe, helper, stateJson, failedJson, failedCsv, previousJson, tuning, controlStart)
+    BuildHoldCommand = pyExe & " " & Q(helper) & " --state-json " & Q(stateJson) & _
+        " --failed-action-json " & Q(failedJson) & " --failed-action-csv " & Q(failedCsv) & _
+        " --previous-action-json " & Q(previousJson) & " --tuning-json " & Q(tuning) & _
+        " --control-start-sec " & CStr(controlStart) & " --decision-exit 1"
+End Function
+
+' K8-8 helper call: scripts\decision_hold.py beside this runner, the same file capture as the decision call
+' (action_T.hold.stdout.txt / action_T.hold.stderr.txt in the decision folder), no deadline (amendment 21 P-8).
+Function RunDecisionHold(simSec, stateJsonPath, outJsonPath, outCsvPath, ByRef holdOut, ByRef holdErr)
+    Dim helperPath, holdCmd
+    helperPath = fso.BuildPath(fso.GetParentFolderName(WScript.ScriptFullName), "decision_hold.py")
+    holdCmd = BuildHoldCommand(pythonExe, helperPath, stateJsonPath, outJsonPath, outCsvPath, lastActionJson, tuningPath, controlStartSec)
+    RunDecisionHold = RunDecisionCapture(holdCmd, DecisionCapturePath(decisionDir, simSec, "hold.stdout"), _
+        DecisionCapturePath(decisionDir, simSec, "hold.stderr"), holdOut, holdErr)
 End Function
 
 Sub TerminateExecTree(exec)

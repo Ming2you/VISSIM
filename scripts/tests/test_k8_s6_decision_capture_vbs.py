@@ -470,7 +470,7 @@ class StaticDecisionCallTests(unittest.TestCase):
                                    "RunControllerDecision": 0})
         code = [line for line in self.source.splitlines() if not line.lstrip().startswith("'")]
         self.assertEqual(sum(line.count("RunCapture3(") for line in code), 5)  # 4 calls + declaration
-        self.assertEqual(sum(line.count("RunDecisionCapture(") for line in code), 2)  # 1 call + declaration
+        self.assertEqual(sum(line.count("RunDecisionCapture(") for line in code), 3)  # 2 calls + declaration (K8-8 hold)
         for name in NEW_PROCEDURES:
             procedure(self.source, name)  # exactly one declaration
         REPORT["static_call_sites"] = callers

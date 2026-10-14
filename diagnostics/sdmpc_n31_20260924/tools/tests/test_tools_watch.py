@@ -128,6 +128,40 @@ class Watch(unittest.TestCase):
         (self.syn.decisions / 'obs150' / 'derived_000900.json').unlink()
         self.assertIn('obs150 derived=missing', self.watch())
 
+    def test_held_decision_is_reported_once(self):
+        # K8-8 (amendment 21 section 3.1): a decision held on an exception has its hold receipt and no budget receipt
+        d = self.syn.decisions
+        held = json.loads((d / 'action_000900.json').read_text(encoding='utf-8'))
+        held['metadata'] = {'sim_sec': 1050.0, 'controller_status': 'hold_previous_on_exception',
+                            'hold_previous_on_exception': {'source_sim_sec': 900, 'chain_length': 1}}
+        (d / 'action_001050.json').write_text(json.dumps(held), encoding='utf-8')
+        (d / 'action_001050.hold.json').write_text(json.dumps({
+            'hold_previous_on_exception': {'sim_sec': 1050, 'source_sim_sec': 900, 'origin_sim_sec': 900,
+                                           'chain_length': 1},
+            'exception': {'type': 'RuntimeError', 'root_type': 'MembershipError'}}), encoding='utf-8')
+        (self.syn.run / f'runlog_{self.syn.name}.txt').write_text(
+            'CONTROLLER_DECISION sim_sec=1050 wall_sec=3 result=exit=1\n'
+            'DECISION_HOLD_ATTEMPT sim_sec=1050 source=x\n'
+            'DECISION_HELD_ON_EXCEPTION sim_sec=1050 HOLD_OK sim_sec=1050 source_sim_sec=900\n'
+            'DECISIONS_OK=7\nDECISIONS_FAILED=0\nDECISIONS_HELD_ON_EXCEPTION=1\n', encoding='utf-8')
+        text = self.watch()
+        lines = [l for l in text.splitlines() if 'sim_sec=1050' in l]
+        self.assertEqual(lines, ['DECISION HELD sim_sec=1050  type=RuntimeError root_type=MembershipError '
+                                 'source_sim_sec=900 chain=1'])
+        self.assertNotIn('DECISION FAILED', text)
+        self.log.write_text('2026-10-14 12:00:00  EXIT sdmpc31_g1 code=0\n', encoding='utf-8')
+        text = self.watch()                                     # resume: never repeated
+        self.assertNotIn('sim_sec=1050', text)
+        self.assertIn('DECISIONS_OK=7 DECISIONS_FAILED=0 DECISIONS_HELD_ON_EXCEPTION=1', text)
+        self.assertEqual(self.summary.read_text(encoding='utf-8').count('DECISION HELD sim_sec=1050'), 1)
+
+    def test_held_decision_from_the_runner_line_alone(self):
+        (self.syn.run / f'runlog_{self.syn.name}.txt').write_text(
+            'DECISION_HELD_ON_EXCEPTION sim_sec=1200 HOLD_OK sim_sec=1200\n', encoding='utf-8')
+        text = self.watch()
+        self.assertIn('DECISION HELD sim_sec=1200  runner: held previous command on exception', text)
+        self.assertEqual(self.watch().count('sim_sec=1200'), 0)
+
 
 if __name__ == '__main__':
     unittest.main()

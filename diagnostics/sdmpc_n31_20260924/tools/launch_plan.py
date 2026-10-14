@@ -179,6 +179,7 @@ def build_plan(args):
     network_dir = out_dir / 'network'
     network_file = network_dir / f'{NETWORK_PREFIX}{args.name}.inpx'
     env = oc.expected_runner_env(document, detectors['path'])
+    env['RW_DECISION_ERROR_POLICY'] = decision_error_policy(tuning_path)   # K8-8 (amendment 21 P-1)
     if gt:
         env['RW_OBS150_GT'] = oc.format_gt_windows(gt)
     watchdog = repo_path(root, WATCHDOG_REL)
@@ -200,6 +201,42 @@ def build_plan(args):
         'out_dir': str(out_dir), 'network_dir': str(network_dir), 'network_file': str(network_file),
         'watchdog': str(watchdog), 'expected_env': env, 'warnings': warnings,
     }
+
+
+DECISION_ERROR_POLICIES = ('strict', 'hold_previous_on_exception')
+
+
+def decision_error_policy(tuning_path):
+    """K8-8 (amendment 21 P-1): runtime.decision_error_policy of the tuning along its extends chain, child first.
+
+    The same rule as the watchdog's Read-DecisionErrorPolicy and scripts/decision_hold.py: every file of the chain is
+    read; a runtime deadline key, a non-object runtime, or a declared value that is not one of
+    DECISION_ERROR_POLICIES refuses; the child-most declared value is effective; none declared = 'strict'.
+    The watchdog sets RW_DECISION_ERROR_POLICY to this value, so check_provenance compares it through expected_env."""
+    path = Path(tuning_path).resolve()
+    seen, effective = set(), None
+    while True:
+        require(path.is_file(), f'Tuning file missing: {path}')
+        require(str(path).lower() not in seen, f'Cyclic tuning extends: {path}')
+        seen.add(str(path).lower())
+        document = json.loads(path.read_text(encoding='utf-8-sig'))
+        require(isinstance(document, dict), f'Tuning is not an object: {path}')
+        if 'runtime' in document:
+            runtime = document['runtime']
+            require(isinstance(runtime, dict), f'runtime is not an object: {path}')
+            require('decision_timeout_sec' not in runtime, f'runtime deadline key refused (no hold on time): {path}')
+            if 'decision_error_policy' in runtime:
+                value = runtime['decision_error_policy']
+                require(isinstance(value, str) and value in DECISION_ERROR_POLICIES,
+                        f'runtime.decision_error_policy {value!r} is not one of {DECISION_ERROR_POLICIES}: {path}')
+                if effective is None:
+                    effective = value
+        parent = document.get('extends', '')
+        if not parent:
+            break
+        parent_path = Path(str(parent))
+        path = (parent_path if parent_path.is_absolute() else path.parent / parent_path).resolve()
+    return effective or 'strict'
 
 
 def verify_network(plan):

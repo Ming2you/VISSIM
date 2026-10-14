@@ -34,6 +34,12 @@ For every finished decisions/action_<T>.json it prints and appends to <summary_l
 - The summary log is the resume point: a restarted watcher never repeats a decision.
 - Ends when <launch_log> has run_sdmpc_n31.ps1's 'EXIT ' line; prints the runner's
   DECISIONS_OK/DECISIONS_FAILED summary when present.
+- K8-8 hold (amendment 21 section 3.1): a decision held on an exception has action_T.hold.json and no budget
+  receipt of its own; it is reported once as 'DECISION HELD sim_sec=T  type=.. root_type=.. source_sim_sec=..
+  chain=..' (from the receipt, or from the runner's DECISION_HELD_ON_EXCEPTION line) and counted as done.
+  The end line adds DECISIONS_HELD_ON_EXCEPTION=n when the runner printed it. Monitoring only, not a verdict.
+  Note (amendment 21 S-11): the per-decision line prints obj= and gain=; do not run it on a J1 run before the
+  J1 analysis.
 """
 from __future__ import annotations
 
@@ -54,6 +60,7 @@ CEILING = {1: 1512.0, 2: 3024.0}   # rule_policy / measured_table meter ceilings
 TWO_LANE = {'RM_C10482', 'RM_C10681'}
 DEFAULT_CONTROL_START = 900
 FAILED_RE = re.compile(r'ERROR=DECISION_EXIT_NONZERO sim_sec=(\d+)')
+HELD_RE = re.compile(r'DECISION_HELD_ON_EXCEPTION sim_sec=(\d+)')
 # run_sdmpc_n31.ps1's own last line '<yyyy-MM-dd HH:mm:ss>  EXIT <Name> code=<n>'; relayed watchdog lines
 # carry a 'WD ' prefix after the stamp and never match.
 LAUNCH_EXIT_RE = re.compile(r'^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d  EXIT \S+ code=-?\d+\s*$', re.M)
@@ -64,6 +71,7 @@ def seen(summary):
         return set(), set()
     text = io.open(summary, encoding='utf-8').read()
     done = {int(m.group(1)) for m in re.finditer(r'^sim_sec=(\d+)', text, re.M)}
+    done |= {int(m.group(1)) for m in re.finditer(r'^DECISION HELD sim_sec=(\d+)', text, re.M)}
     failed = {int(m.group(1)) for m in re.finditer(r'^DECISION FAILED sim_sec=(\d+)', text, re.M)}
     return done, failed
 
@@ -168,6 +176,16 @@ def chain_links_of(provenance):
     return frozenset(int(x) for road in ('E', 'W') for x in constants[f'RW_FW_{road}_CHAIN_LINKS'].split(',') if x)
 
 
+def held_line(decisions, sec):
+    """K8-8: one line for a decision held on an exception, from its receipt (no objective, no prediction)."""
+    receipt = read_json(os.path.join(decisions, 'action_%06d.hold.json' % sec))
+    hold = receipt.get('hold_previous_on_exception') or {}
+    exc = receipt.get('exception') or {}
+    return 'DECISION HELD sim_sec=%d  type=%s root_type=%s source_sim_sec=%s chain=%s' % (
+        sec, exc.get('type') or '?', exc.get('root_type') or '?', hold.get('source_sim_sec', '?'),
+        hold.get('chain_length', '?'))
+
+
 def decision_line(decisions, sec, vsl_max, ceilings=None, chain_links=None):
     md, restricted, limited, meters = describe_action(os.path.join(decisions, 'action_%06d.json' % sec), vsl_max,
                                                       ceilings)
@@ -246,6 +264,16 @@ class Watch:
             sec = int(m.group(1))
             if sec in self.done:
                 continue
+            # K8-8: a held decision has its hold receipt and no budget receipt of its own; report it here,
+            # before the budget gate below would skip it forever.
+            if os.path.exists(path[:-5] + '.hold.json'):
+                try:
+                    line = held_line(d, sec)
+                except (ValueError, OSError, KeyError, AttributeError):
+                    continue
+                self.emit(line)
+                self.done.add(sec)
+                continue
             # The budget receipt is written last; warmup decisions may lack it.
             if not os.path.exists(path[:-5] + '.decision_budget.json') and sec >= self.control_start:
                 continue
@@ -274,6 +302,11 @@ class Watch:
                 self.failed.add(sec)
         runlog = self.run_dir / f'runlog_{self.name}.txt'
         if runlog.is_file():
+            for m in HELD_RE.finditer(runlog.read_text(encoding='utf-8', errors='replace')):
+                sec = int(m.group(1))
+                if sec not in self.done and sec not in self.failed:
+                    self.emit('DECISION HELD sim_sec=%d  runner: held previous command on exception' % sec)
+                    self.done.add(sec)
             for m in FAILED_RE.finditer(runlog.read_text(encoding='utf-8', errors='replace')):
                 sec = int(m.group(1))
                 if sec not in self.failed and sec not in self.done:
@@ -298,8 +331,12 @@ class Watch:
         if self.run_dir is not None:
             runlog = self.run_dir / f'runlog_{self.name}.txt'
             if runlog.is_file():
-                found = re.findall(r'DECISIONS_(?:OK|FAILED)=\d+', runlog.read_text(encoding='utf-8', errors='replace'))
+                text = runlog.read_text(encoding='utf-8', errors='replace')
+                found = re.findall(r'DECISIONS_(?:OK|FAILED)=\d+', text)
                 summary = ' '.join(found[-2:])
+                held = re.findall(r'DECISIONS_HELD_ON_EXCEPTION=\d+', text)
+                if held:
+                    summary = (summary + ' ' + held[-1]).strip()
         print('RUN ENDED  ' + ' | '.join(tail) + ('  ' + summary if summary else ''), flush=True)
         return True
 

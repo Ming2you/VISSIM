@@ -317,6 +317,50 @@ if ($Tuning -ne "") {
   }
 }
 "RW_DECISION_FAIL_FAST=$($env:RW_DECISION_FAIL_FAST) (control_area_objective.enabled)"
+# K8-8 (amendment 21 P-1): decision-exception hold policy. Transport only: always reset to strict first, then the
+# effective tuning key runtime.decision_error_policy (extends chain followed, child first) sets it. Every file of
+# the chain is checked: a runtime deadline key, a non-object runtime or another policy value refuses the launch.
+function Read-DecisionErrorPolicy([string]$TuningFile) {
+  $seenPolicyTuning = @{}
+  $effectivePolicy = $null
+  while ($TuningFile -ne "") {
+    $TuningFile = [System.IO.Path]::GetFullPath($TuningFile)
+    if ($seenPolicyTuning.ContainsKey($TuningFile)) { throw "Cyclic tuning extends: $TuningFile" }
+    $seenPolicyTuning[$TuningFile] = $true
+    $policyTuning = Get-Content -LiteralPath $TuningFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+    $runtimeProperty = $policyTuning.PSObject.Properties['runtime']
+    if ($null -ne $runtimeProperty) {
+      $policyRuntime = $runtimeProperty.Value
+      if ($null -eq $policyRuntime -or $policyRuntime -isnot [PSCustomObject]) { throw "runtime is not an object: $TuningFile" }
+      if ($null -ne $policyRuntime.PSObject.Properties['decision_timeout_sec']) { throw "runtime deadline key refused (no hold on time): $TuningFile" }
+      $policyProperty = $policyRuntime.PSObject.Properties['decision_error_policy']
+      if ($null -ne $policyProperty) {
+        $policyValue = $policyProperty.Value
+        if ($policyValue -isnot [string] -or ($policyValue -cne 'strict' -and $policyValue -cne 'hold_previous_on_exception')) {
+          throw "runtime.decision_error_policy must be strict or hold_previous_on_exception: $TuningFile"
+        }
+        if ($null -eq $effectivePolicy) { $effectivePolicy = $policyValue }
+      }
+    }
+    if (-not $policyTuning.extends) { break }
+    $parentPolicyTuning = [string]$policyTuning.extends
+    if (-not [System.IO.Path]::IsPathRooted($parentPolicyTuning)) {
+      $parentPolicyTuning = Join-Path (Split-Path -Parent $TuningFile) $parentPolicyTuning
+    }
+    $TuningFile = $parentPolicyTuning
+  }
+  if ($null -eq $effectivePolicy) { return 'strict' }
+  return $effectivePolicy
+}
+$env:RW_DECISION_ERROR_POLICY = "strict"
+if ($Tuning -ne "") {
+  try {
+    $env:RW_DECISION_ERROR_POLICY = Read-DecisionErrorPolicy (Resolve-RepoPath $Tuning)
+  } catch {
+    throw "Cannot resolve runtime.decision_error_policy: $($_.Exception.Message)"
+  }
+}
+"RW_DECISION_ERROR_POLICY=$($env:RW_DECISION_ERROR_POLICY) (runtime.decision_error_policy)"
 # 2026-09-05. RW_MAINLINE_SG_ONLY 를 config(urban.plan.mainline_only) 로 러너가 직접 세운다.
 # 종전엔 launch_*/queue_* 스크립트가 env 로 세우고 러너는 믿기만 했다. 그래서 Bash 로 띄운
 # 체인(2026-09-04 16:31 이후 22런)이 env 없이 돌아 SG 9+ (미드블록 횡단)까지 ContrByCOM 이
