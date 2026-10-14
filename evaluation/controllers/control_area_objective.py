@@ -249,6 +249,28 @@ class AreaMetrics:
     entered_veh: float = 0.0
 
 
+# K8-9 (K8 amendment 22 section 4.2; D-K9-16, D-K9-20): a phantom movement (route contract no_match, both
+# membership probabilities null) -> its one real sibling at the same signal, stop line 1220014100 and exit.
+# Read only where ModelAreaLedger.transfer would raise "unresolved destination" (emit_transfer passes the
+# sibling route; transfer uses it only then). Checked by diagnostics/sdmpc_n31_20260924/k9/phantom_route_alias.py.
+PHANTOM_ROUTE_ALIAS = {
+    "movement:SC5_S_to_E_SC6": "movement:SC5_S_SC11_to_E_SC6",
+    "movement:SC5_S_to_N_SC102": "movement:SC5_S_SC11_to_N_SC102",
+    "movement:SC5_S_to_W_SC101": "movement:SC5_S_SC11_to_W_SC101"
+}
+
+
+def _phantom_alias_probabilities_ok(route):
+    """Both sibling probabilities are numbers (not bool), finite and in [0, 1] (amendment 22 A-2 (d))."""
+    for key in ("inside_to_inside", "outside_to_inside"):
+        value = route.get(key)
+        if type(value) is bool or not isinstance(value, (int, float)):
+            return False
+        if not math.isfinite(float(value)) or not 0 <= float(value) <= 1:
+            return False
+    return True
+
+
 class ModelAreaLedger:
     """Candidate-private, explicitly routed inside/outside model cohorts.
 
@@ -605,7 +627,7 @@ class ModelAreaLedger:
 
     def transfer(self, source, target, vehicles, *, inside_to_inside=None,
                  outside_to_inside=None, source_inside=None, route_key=None, event_id=None,
-                 physical_source_inside=None, outward_crossings=None, inward_crossings=None):
+                 physical_source_inside=None, outward_crossings=None, inward_crossings=None, alias_route=None):
         count = _nonnegative(vehicles, "accepted transfer")
         if count == 0 and not has_tape(count):  # S3: a zero-primal transfer with tape is recorded
             return
@@ -627,6 +649,18 @@ class ModelAreaLedger:
             draw_in = count * row["inside"] / total if total else 0.0
         draw_out = count - draw_in
         probabilities = (inside_to_inside, outside_to_inside)
+        if (alias_route is not None and inside_to_inside is None and outside_to_inside is None
+                and (draw_in > 1e-9 or draw_out > 1e-9) and _phantom_alias_probabilities_ok(alias_route)):
+            # K8-9: only where the loop below would raise for a phantom of PHANTOM_ROUTE_ALIAS, use the values
+            # emit_transfer would have passed for its sibling route. route_key and payload stay the phantom's.
+            inside_to_inside = alias_route["inside_to_inside"]
+            outside_to_inside = alias_route["outside_to_inside"]
+            physical_source_inside = (alias_route.get("source_inside")
+                                      if "outward_crossings_per_vehicle" in alias_route else None)
+            outward_crossings = alias_route.get("outward_crossings_per_vehicle")
+            inward_crossings = alias_route.get("inward_crossings_per_vehicle")
+            probabilities = (inside_to_inside, outside_to_inside)
+            self.flow_counts["phantom_route_alias:" + str(route_key)] += count
         for amount, value in zip((draw_in, draw_out), probabilities):
             if amount > 1e-9 and (value is None or not math.isfinite(float(value)) or not 0 <= float(value) <= 1):
                 raise MembershipError(f"unresolved destination of {route_key or source}: {probabilities}")
@@ -708,6 +742,7 @@ def emit_transfer(state, cfg, source_stock, target_stock, vehicles, *, route_key
     ledger = get_ledger(state)
     if ledger is None:
         return
+    alias_route = None
     if preserve_area:
         p_in, p_out = 1.0, 0.0
         route = {}
@@ -721,12 +756,14 @@ def emit_transfer(state, cfg, source_stock, target_stock, vehicles, *, route_key
         p_in, p_out = route.get("inside_to_inside"), route.get("outside_to_inside")
         if p_in is None and p_out is None and type(route.get("target_inside")) is bool:
             p_in = p_out = float(route["target_inside"])
+        if p_in is None and p_out is None and route_key in PHANTOM_ROUTE_ALIAS:
+            alias_route = (getattr(cfg.network, "control_area_routes", {}) or {}).get(PHANTOM_ROUTE_ALIAS[route_key])
     ledger.transfer(source_stock, target_stock, vehicles, inside_to_inside=p_in,
                     outside_to_inside=p_out, source_inside=source_inside,
                     route_key=route_key, event_id=event_id,
                     physical_source_inside=route.get("source_inside") if "outward_crossings_per_vehicle" in route else None,
                     outward_crossings=route.get("outward_crossings_per_vehicle"),
-                    inward_crossings=route.get("inward_crossings_per_vehicle"))
+                    inward_crossings=route.get("inward_crossings_per_vehicle"), alias_route=alias_route)
     if route.get('status') == 'DIAGNOSTIC_UNRESOLVED_PRESERVE':
         ledger.flow_counts['unresolved_route:' + str(route_key)] += float(vehicles)
 
