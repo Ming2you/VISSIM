@@ -229,6 +229,63 @@ def install_wout_side_handoff(cfg, tuning):
                        'x_side_m': v['x_side_m'], 'branch': branch}}
 
 
+# ------------------------------------------------------------------------------------------- K9-2 bundle 1
+# K8_PREDECLARATION_AMENDMENT_24 (fixed version, sha d46db6dc...; D-K9-30..36): config keys only; every one absent =
+# the b9734abe path.  W: urban.sc109w_through_saturation; H-b: urban.capacity.head_floor_seed
+# (signal_head_observation.configure_head_floor_seed, needs this key: D-K9-31).
+K92_W_MOVEMENT = 'SC109_W_SC108_to_E'
+K92_W_SPEC = (('kind', 'boundary_out'), ('phase', 'SC109_p3'), ('origin', 'SC108_to_SC109'),
+              ('destination', 'out_SC109_E'), ('receiving_link', 'SC109_E_out'))
+K92_W_U4_SHA256 = '22384c00313a0104a9febf5344914acd15f20058a0a62fe91d2bc085dcbb292b'
+
+
+def install_sc109w_through_saturation(cfg, tuning, per_lane):
+    """K9-2 W (amendment 24 section 2.1, key urban.sc109w_through_saturation): right after the K9-1 W1 hook, the SC109
+    west through movement SC109_W_SC108_to_E takes the evidence group capacity values.capacity_veh_h (U4 F2 x lanes,
+    rounded to 0.1; 5209.8) in place of lanes x the 206.53 per-lane constant; a new capacity map with exactly this one
+    key changed replaces the old one.  Runtime assertions (ValueError): A1 capacity / lanes <= 2000; A2 the model
+    members of the physical group 173|p3 (signal SC109, phase SC109_p3, origin SC108_to_SC109) sum <= lanes x 2000;
+    A5 the value before = lanes x per_lane (+-1e-9); A6 the movement spec (kind, phase, origin, destination,
+    receiving link); A7 the map differs in this key only.  Key absent: {} and nothing is touched."""
+    pin = ((tuning or {}).get('urban') or {}).get('sc109w_through_saturation')
+    if pin is None:
+        return {}
+    document, digest = load_k8b_evidence(pin, 'k92-sc109w-through-saturation/v1', 'urban.sc109w_through_saturation')
+    v = document['values']
+    net = cfg.network
+    movement = v['movement']
+    if movement != K92_W_MOVEMENT or movement not in net.urban_movements:
+        raise ValueError('urban.sc109w_through_saturation: target movement %r is not %s' % (movement, K92_W_MOVEMENT))
+    spec = net.urban_movements[movement]
+    for field, want in K92_W_SPEC:
+        if str(spec.get(field)) != want:
+            raise ValueError('urban.sc109w_through_saturation: %s.%s = %r, not %r (A6)'
+                             % (movement, field, spec.get(field), want))
+    lanes = int(v['lanes'])
+    after = float(v['capacity_veh_h'])
+    if not lanes > 0 or not after / lanes <= 2000.0:
+        raise ValueError('urban.sc109w_through_saturation: capacity / lane %r > 2000 (A1)' % (after / max(lanes, 1)))
+    caps = net.movement_capacity_by_movement_veh_h
+    before = caps.get(movement)
+    if per_lane is None or before is None or abs(float(before) - lanes * float(per_lane)) > 1e-9:
+        raise ValueError('urban.sc109w_through_saturation: the value before %r is not lanes x the per-lane constant %r '
+                         '(the 206.53 path; A5)' % (before, per_lane))
+    changed = dict(caps)
+    changed[movement] = after
+    group = [m for m, s in net.urban_movements.items() if str(s.get('signal')) == 'SC109'
+             and str(s.get('phase')) == 'SC109_p3' and str(s.get('origin')) == 'SC108_to_SC109']
+    if sum(float(changed.get(m, 0.0)) for m in group) > lanes * 2000.0:
+        raise ValueError('urban.sc109w_through_saturation: group 173|p3 members %s exceed lanes x 2000 (A2)' % group)
+    if [k for k in changed if changed[k] != caps.get(k)] != [movement] or set(changed) != set(caps):
+        raise ValueError('urban.sc109w_through_saturation: the capacity map changes outside %s (A7)' % movement)
+    net.movement_capacity_by_movement_veh_h = changed
+    src = (document.get('sources') or {}).get('u4_table') or {}
+    return {'k92_w': {'before': before, 'after': after, 'lanes': lanes, 's_veh_h_lane': v['s_veh_h_lane'],
+                      'statistic': v['statistic'], 'u4_sha256': src.get('sha256'), 'u4_key': v['group'],
+                      'network_value_source': v['network_value_source'], 'network_deployed': v['network_deployed'],
+                      'heads': [h['head_id'] for h in v['heads']], 'evidence_sha256': digest}}
+
+
 def install_freeway_runtime(adapter, cfg, tuning=None):
     """Restore hooks after their values were configured; also safe in spawn."""
     from src.controllers import wu_faithful_follower
@@ -361,6 +418,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         cfg, tuning, state_json, previous_action_path))
     metadata.update(install_sc1002w_saturation(cfg, tuning))     # K8b-1 P-1 (urban.sc1002w_saturation); {} absent
     metadata.update(install_sc1001wout_saturation(cfg, tuning))  # K9-1 W1 (urban.sc1001_wout_saturation); {} absent
+    metadata.update(install_sc109w_through_saturation(               # K9-2 W (urban.sc109w_through_saturation); {} absent
+        cfg, tuning, metadata.get('movement_capacity_by_lanes_per_lane_veh_h')))
     metadata.update(a.install_measured_far_reservoir_rates(
         cfg, tuning, state_json, previous_action_path))
     metadata.update(a.install_observed_backpressure_price(

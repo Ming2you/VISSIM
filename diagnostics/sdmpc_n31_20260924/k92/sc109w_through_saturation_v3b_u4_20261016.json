@@ -1,0 +1,131 @@
+{
+ "schema": "k92-sc109w-through-saturation/v1",
+ "declaration": {
+  "amendment24_sha256": "d46db6dc3959b19525f0fce77ead5432682e3de0ef8060cdc3da09661559aadc",
+  "decisions_file": "K9_1_J1_NOTES_20261013.md (D-K9-34..36), sha bf6f01ab..."
+ },
+ "values": {
+  "movement": "SC109_W_SC108_to_E",
+  "group": "173|p3",
+  "lanes": 3,
+  "heads": [
+   {
+    "head_id": "1090201",
+    "link": "173",
+    "lane": 3,
+    "sg": "109 2",
+    "position_m": 25.928
+   },
+   {
+    "head_id": "1090202",
+    "link": "173",
+    "lane": 2,
+    "sg": "109 2",
+    "position_m": 25.746
+   },
+   {
+    "head_id": "1090203",
+    "link": "173",
+    "lane": 1,
+    "sg": "109 2",
+    "position_m": 26.342
+   }
+  ],
+  "statistic": "s_from_green_start_incl_startup",
+  "s_veh_h_lane": 1736.6,
+  "capacity_veh_h": 5209.8,
+  "capacity_repr": "5209.8",
+  "value_rule": "round(s_veh_h_lane * lanes, 1) (U4 build_table.py:363)",
+  "network_value_source": "v3b",
+  "network_deployed": "v3c3 3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+ },
+ "report_only": {
+  "s_unimpeded": 1900.2,
+  "s_unimpeded_capacity": {
+   "value": 5700.6,
+   "label": "D-K9-30 원래 값, 몫 가르기 CW 값, 보고 팔 Wu"
+  },
+  "exact_s31": 1909.7,
+  "sensitivity": {
+   "value": 5927.0,
+   "label": "J1 사후 자료 — 같은 시드 폐루프, 원인 분석·몫 가르기에 이미 씀, 독립 근거 아님"
+  },
+  "decision": "D-K9-34 (F2, 몫 가르기 뒤 선택)"
+ },
+ "sources": {
+  "u4_table": {
+   "name": "u4_saturation_table.json",
+   "sha256": "22384c00313a0104a9febf5344914acd15f20058a0a62fe91d2bc085dcbb292b",
+   "schema": "u4-saturation-table/v1",
+   "generated_by": "build_table.py",
+   "network": "v3b (heads, connectors and signal controllers identical in the 5 NC fit seeds, R-obs-b, S0e, S1 networks)",
+   "group_index": 27,
+   "measurer_sha256": {
+    "build_table.py": "57ef2e5167d6bd7b90218aadd9fb768fddb5a1d0d98cf2909df43a98892487ef",
+    "analyze_run.py": "54958a324e6217708022d67c2b1593bd7790a3ab101cc314eeec729f4db6bc29"
+   }
+  },
+  "input_row": {
+   "name": "u4_row_173_p3_v3b.json",
+   "sha256": "435bb673c43121ec40b796d31eac7f70f9ebc9d2b955cbfea289ffd3a682731c"
+  },
+  "inpx": {
+   "name": "baseline_s31_v3c3nc.inpx",
+   "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+  },
+  "lanes_file": {
+   "name": "movement_lanes_perimeter_20260824.json",
+   "sha256": "444a3047e872d972398c82e716426e797d3c09e321504fc109db0aeb27344cda",
+   "value": 3.0
+  }
+ },
+ "assertions": {
+  "A1": 1736.6000000000001,
+  "A2": {
+   "members": [
+    "SC109_W_SC108_to_E"
+   ],
+   "capacity": 5209.8,
+   "limit": 6000.0
+  },
+  "A3": 1736.6,
+  "A4": {
+   "lanes": 3,
+   "inpx_lanes": [
+    1,
+    2,
+    3
+   ],
+   "lanes_file": 3.0
+  },
+  "A8": true,
+  "A9": {
+   "1090201": {
+    "link": "173",
+    "lane": 3,
+    "sg": "109 2",
+    "pos": 25.927629118318755
+   },
+   "1090202": {
+    "link": "173",
+    "lane": 2,
+    "sg": "109 2",
+    "pos": 25.745704856146823
+   },
+   "1090203": {
+    "link": "173",
+    "lane": 1,
+    "sg": "109 2",
+    "pos": 26.3422
+   }
+  },
+  "A10": {
+   "1090501": 5,
+   "1090502": 4
+  },
+  "A11": {
+   "float_product_repr": "5209.799999999999",
+   "capacity_repr": "5209.8"
+  }
+ }
+}

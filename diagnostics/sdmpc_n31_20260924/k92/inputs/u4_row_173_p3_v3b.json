@@ -1,0 +1,239 @@
+{
+ "schema": "k92-u4-row/v1",
+ "source": {
+  "name": "u4_saturation_table.json",
+  "sha256": "22384c00313a0104a9febf5344914acd15f20058a0a62fe91d2bc085dcbb292b",
+  "schema": "u4-saturation-table/v1",
+  "generated_by": "build_table.py",
+  "network": "v3b (heads, connectors and signal controllers identical in the 5 NC fit seeds, R-obs-b, S0e, S1 networks)",
+  "group_index": 27,
+  "measurer_sha256": {
+   "build_table.py": "57ef2e5167d6bd7b90218aadd9fb768fddb5a1d0d98cf2909df43a98892487ef",
+   "analyze_run.py": "54958a324e6217708022d67c2b1593bd7790a3ab101cc314eeec729f4db6bc29"
+  }
+ },
+ "row": {
+  "key": "173|p3",
+  "signal": "SC109",
+  "phase": "p3",
+  "stopline_link": "173",
+  "signal_groups": [
+   "2"
+  ],
+  "sg_names": [
+   "EBT"
+  ],
+  "movement_type": "through",
+  "n_lanes": 3,
+  "heads": [
+   {
+    "head_id": "1090201",
+    "lane": 3,
+    "sg": "2",
+    "position_m": 25.928
+   },
+   {
+    "head_id": "1090202",
+    "lane": 2,
+    "sg": "2",
+    "position_m": 25.746
+   },
+   {
+    "head_id": "1090203",
+    "lane": 1,
+    "sg": "2",
+    "position_m": 26.342
+   }
+  ],
+  "status": "measured",
+  "saturation_veh_h_per_lane": 1900.2,
+  "flags": [],
+  "measured": {
+   "s_unimpeded_veh_h_lane": 1900.2,
+   "bins_5s": 266,
+   "exposure_s": 1330.0,
+   "passages": 702,
+   "cycles": 196,
+   "seeds_with_samples": 5,
+   "qualifying_bins_incl_impeded": 266,
+   "impeded_bins": 0,
+   "impeded_share": 0.0,
+   "s_effective_incl_partial_impediment_veh_h_lane": 1900.2,
+   "s_all_queue_bins_incl_zero_veh_h_lane": 1900.2,
+   "s_from_green_start_incl_startup_veh_h_lane": 1736.6,
+   "green_average_flow_veh_h_lane": 640.6,
+   "per_cycle_rate_quantiles": {
+    "n_cycles_ge15s": 14,
+    "p25": 1680.0,
+    "p50": 1680.0,
+    "p75": 1920.0
+   },
+   "per_seed": {
+    "s31": {
+     "s_veh_h_lane": 1920.0,
+     "bins": 39,
+     "passages": 104,
+     "cycles": 29
+    },
+    "s41": {
+     "s_veh_h_lane": 1878.3,
+     "bins": 46,
+     "passages": 120,
+     "cycles": 38
+    },
+    "s43": {
+     "s_veh_h_lane": 1893.7,
+     "bins": 73,
+     "passages": 192,
+     "cycles": 49
+    },
+    "s47": {
+     "s_veh_h_lane": 1927.7,
+     "bins": 62,
+     "passages": 166,
+     "cycles": 44
+    },
+    "s53": {
+     "s_veh_h_lane": 1878.3,
+     "bins": 46,
+     "passages": 120,
+     "cycles": 36
+    }
+   },
+   "per_seed_spread": {
+    "n_seeds": 5,
+    "min": 1878.3,
+    "max": 1927.7,
+    "mean": 1899.6,
+    "sd": 23.2,
+    "cv": 0.012
+   },
+   "per_head": {
+    "1090201": {
+     "lane": 3,
+     "s_veh_h": 1942.3,
+     "bins_5s": 86,
+     "cycles": 66,
+     "impeded_bins": 0
+    },
+    "1090202": {
+     "lane": 2,
+     "s_veh_h": 1870.2,
+     "bins_5s": 82,
+     "cycles": 62,
+     "impeded_bins": 0
+    },
+    "1090203": {
+     "lane": 1,
+     "s_veh_h": 1888.2,
+     "bins_5s": 98,
+     "cycles": 68,
+     "impeded_bins": 0
+    }
+   }
+  },
+  "validation_s31_exact": {
+   "s_trunc_fzp_s31": 1920.0,
+   "s_trunc_bins_counted_with_mer_s31": 1920.0,
+   "s_exact_headway_s31": 1909.7,
+   "s_exact_median_headway_s31": 1989.0,
+   "exact_headways_s31": 418,
+   "exact_cycles_cut_by_blocking_s31": 0,
+   "passages_mer_fzp_s31": [
+    2837,
+    2841
+   ],
+   "trunc_bin_passages_fzp_vs_mer_s31": [
+    104,
+    104
+   ]
+  },
+  "collector_rate_robsb_nc_s31": {
+   "group_median_veh_h": 2020.0,
+   "group_median_green30_veh_h": 2020.0,
+   "windows": 54,
+   "windows_green30": 54
+  },
+  "plant": {
+   "base": {
+    "members": {
+     "SC109_W_SC108_to_E": {
+      "kind": "boundary_out",
+      "beta": 0.7621,
+      "cap_T1_veh_h": 619.59
+     }
+    },
+    "members_internal": [],
+    "kinds_count": {
+     "boundary_out": 1
+    },
+    "kinds_cap_veh_h": {
+     "boundary_out": 619.6
+    },
+    "group_cap_naive_sum_veh_h": 619.6,
+    "group_cap_pool_aware_veh_h": 619.6,
+    "model_lane_units_206": 3.0,
+    "special_cap_members": {},
+    "overcount_lane_units_over_physical": 1.0,
+    "per_lane_pool_aware_veh_h": 206.5,
+    "internal_cap_veh_h": 0
+   },
+   "u1u3": {
+    "members": {
+     "SC109_W_SC108_to_E": {
+      "kind": "boundary_out",
+      "beta": 0.7621,
+      "cap_T1_veh_h": 619.59
+     }
+    },
+    "members_internal": [],
+    "kinds_count": {
+     "boundary_out": 1
+    },
+    "kinds_cap_veh_h": {
+     "boundary_out": 619.6
+    },
+    "group_cap_naive_sum_veh_h": 619.6,
+    "group_cap_pool_aware_veh_h": 619.6,
+    "model_lane_units_206": 3.0,
+    "special_cap_members": {},
+    "overcount_lane_units_over_physical": 1.0,
+    "per_lane_pool_aware_veh_h": 206.5,
+    "internal_cap_veh_h": 0
+   }
+  },
+  "plant_compare_u1u3": {
+   "head_floor_robsb_T9000_veh_h": null,
+   "head_floor_s0e_T9000_veh_h": null,
+   "head_floor_s1_T9000_veh_h": null,
+   "floor_eligible_with_internal_only": false,
+   "group_cap_current_nc_veh_h": 619.6,
+   "per_lane_current_nc_veh_h": 206.5,
+   "measured_group_cap_veh_h": 5700.6,
+   "measured_over_plant_T1": 9.2,
+   "measured_over_plant_current_nc": 9.2
+  },
+  "closed_loop_descriptive": {
+   "s0e": {
+    "s_trunc_fzp_veh_h_lane": 1884.8,
+    "bins": 450,
+    "s_exact_headway_veh_h_lane": 1908.3,
+    "exact_headways": 1431,
+    "collector_group_median_veh_h": 5164.8,
+    "collector_group_median_green30_veh_h": 3690.8,
+    "collector_windows_green30": 38
+   },
+   "s1": {
+    "s_trunc_fzp_veh_h_lane": 1881.1,
+    "bins": 364,
+    "s_exact_headway_veh_h_lane": 1919.3,
+    "exact_headways": 1170,
+    "collector_group_median_veh_h": 5357.1,
+    "collector_group_median_green30_veh_h": 4523.7,
+    "collector_windows_green30": 16
+   }
+  },
+  "value_proposed_veh_h_per_lane": 1900.2,
+  "value_proposed_group_veh_h": 5700.6
+ }
+}
