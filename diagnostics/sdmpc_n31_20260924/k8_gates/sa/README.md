@@ -194,6 +194,21 @@ SC1001 EB 안 1 v2(차로 FIFO 패킷, 모듈 SA)의 관문 G-EB-0…14와 FH �
 
 - 시험: `tests/test_k91_harness.py`(합성 입력: §3.1-4 자체 시험 세 경우, full 2700 허용·4950 거부, 허용 목록, 비스칼라, 단계 표지, 팔 동일성, `k91_outcome`의 NaN·null·n ≠ 9·미분류 사례, 기록기 규칙, 이력 복사, G5 한쪽 잎 허용).
 
+## K9-2-0 (보충 24 고정판 §4.1 K9-2-0 행, sha `d46db6dc…`; D-K9-30…38)
+
+| 무엇 | 어디 | 선언 |
+|---|---|---|
+| 판정 단계·가드 | `k92_common.k92_guard`(가 `sa_capture.run_capture`·`run_full`, `sa_jobs.k8b_job_guard`의 자식 전 가드를 대신함), `k92_judging_state(런 이름, T)`, `k92_stage_open`(`--gates-stage k92t` + 보충 24 sha만; `k8bt`·`k91t`는 거부), 첫 판정 상태 사용은 `<out>/sa/k92_judging_stage.json` | §3.1-3a (a) F 주 표본 v3c3-s47 22 = k92t 전 모든 팔 거부, (b) K9-1 판정 상태 = 키 있는 계산 거부·키 없는 계산은 K9-1 닫힌 목록만, (c) F 둘째 표본 16·K8b 탐침 표본 26 = 허용, (d) 씨앗 단독(튜닝 키 또는 포착 메타) = 어디서나 거부, (e) 옛 토큰 거부, (f) 열쇠 = (런 이름, T) |
+| 기록기 | `k92_record.py`(`sa_worker.py`가 부름: 응답 행·이전 행 읽기만) → `k92_record.json`(블록별 174 사슬 재고·SC109 서측 두 movement 방류·`SC109_E_out`·OUTW·FEED-4·유령 재고, 지평 450 s의 F 모형 쪽 M1–M3, 직진 용량·수신 제약 스텝) + `k92_series.npz`(응답 행마다 모든 장부 재고, 이전 간선) | §2.0-7: summary.json 잎 집합은 그대로(새 기록은 이 두 파일에만). VISSIM 쪽 값은 넣지 않음 — v3c3-s47은 `vissim: null`, 이유 `k92_blind_s47`(§3.1-3b) |
+| VISSIM 기준 | `k92_vissim_ref.py --states <seed>:<T,…>` → `<out>/sa/k92_vissim_ref.json`: P0-3 사슬 링크 13개 대수(T+150.1·T+450.1), 머리 1090201–03·1090501–02 통과((T+0.1, T+150.1]·(T+0.1, T+450.1]) | §5.3: 통과 판정기 = `k8b/u4` 바이트 사본(369c2fdb·73565c5c)의 접근 나무·건넘 규칙; v3c3-s47은 k92t가 아니면 FZP를 열지 않고 null |
+| 비교기 | `k92_compare.py` | §4.2: 보충 21 §6 그대로(옛 관문 비교기 `cmp21.py`와 같은 보고, OUTH G-H3 10짝 재현) + A_K92(RS 변환 원천 sha: 새 값 = 새 루트 RS, 옛 값 = 알려진 RS 다섯) + A_K92-M(다섯 하위 트리, 키 켬·한쪽만, D 잎 sha 조건) + H5 선언 차이(이름·값·묶임 1.0) |
+| 관문 계산기 | `k92_gates.py`(G-K0 plant P-a·P-b, G-K0 결정, G-K1 정적·동적, G-K2·G-K4, G-K5, U, 가드·3.1-3b 자체 시험, F 계산기) | §4.3·§4.4: 조작화는 이 파일 머리말에 적음(첫 관문 데이터 전 고정) |
+| 재생 실행기 | `k92_replay.py`(replay_decision_n31.ps1과 같은 인자·env·cwd, `--tuning`만 명시) · `k92_cfgsnap/sitecustomize.py`(configure_runtime 끝의 `cfg.network`·메타·소유 표를 쓰고 끝냄) | §2.0-6 상태별 튜닝 바이트(D-d), G-K1 정적 |
+| 팔 | `sa_arms.py --k92b1 [--base-file <K9-1 BASE>]` → `<out>/sa/tuning/config_n31_v2_stopline_observed_full_k91_k92b1.json` | §2.0-6·§2.3: SAF-K91(5f0d0e40) + 두 키(커밋 증거 핀), 두 경로 밖 차이 0 |
+
+- 시험: `tests/test_k92_harness.py`(합성 입력). 기존 `tests/test_sa_harness.py`는 새 가드 때문에 단계 토큰 줄 4개만 `k92t` + 보충 24 sha로 바꿈(단언 줄 0, §4.3 U).
+- K9-2-0은 판정 계산기 파일(`sa_gates.py`·`sa_stats.py`·`sa_tl3m.py`·`sa_vissim_ref.py`·`sa_common.py`)을 바꾸지 않습니다(J-b 계산기 = b9734abe 블롭, §4.2 끝).
+
 ## 운영: INCOMPLETE 다시 돌리기 (보충 8 §3, 검토 N-r6-4)
 
 도구는 이미 있는 결과를 건너뜁니다(`sa_jobs.py`는 summary.json, `sa_capture.py full`은 run.json, 포착은 capture.json이 있으면 skip). 자동으로 치워지는 것은 입력 없음 summary(`set_aside_input_absent`)와 새 포착 시도 전의 capture_failed.json(`stale_capture_failed_<k>.json`)뿐입니다. 그 밖의 "다시 돌릴 대상"(INCOMPLETE)은 손으로 치운 뒤 **같은 잡을 같은 인자로** 다시 돌립니다.

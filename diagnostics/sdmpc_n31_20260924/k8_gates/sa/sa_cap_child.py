@@ -48,7 +48,8 @@ STASH = {'bound': None}
 META_KEYS = ('stopline_approach_install_check', 'stopline_approach_initial', 'lane_ramp_head_service_normalisation',
              'lane_plant_install_check',
              'k8b_p1', 'k8b_p2', 'k8b_p2_init', 'k8b_p4', 'stopline_city_arrival_evidence_sha256',   # K8b-0
-             'k9_w1', 'k9_w2a', 'k9_f17b', 'k9_z1')                       # K9-1-0 (= sa_common.K9_META_KEYS)
+             'k9_w1', 'k9_w2a', 'k9_f17b', 'k9_z1',                       # K9-1-0 (= sa_common.K9_META_KEYS)
+             'k92_w', 'k92_hb', 'k92_hb_seed_binding')                   # K9-2-0 (absent keys stay absent)
 PROBE_LINKS = ('32', '10778', '129', '10777', '127', '10695', '10118', '10368', '10491', '10481')
 W_MEMBERS = ('SC1001_W_to_E_SC1002', 'SC1001_W_to_S_SC1003', 'SC1001_W_to_N_SC2002')
 TRANSPLANT = None

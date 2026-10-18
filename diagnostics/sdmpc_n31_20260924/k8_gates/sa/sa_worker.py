@@ -72,6 +72,7 @@ import importlib.abc
 
 import sa_errors  # stdlib only; this script's folder is sys.path[0] while its imports run
 import sa_s3parity as S3P  # stdlib only at import; must run untransformed (imported before the tangent finder)
+import k92_record as K92R  # K9-2-0 (amendment 24 section 2.0-7): stdlib only at import; writes k92_record.json / k92_series.npz only
 
 R = Path(os.environ.get('K8G_ROOT') or Path(__file__).resolve().parents[4]).resolve()
 
@@ -514,6 +515,8 @@ def wrap_uqm(module):
 
     def _allocate_receiving_counts(rule, intended, available_space):
         out = orig_alloc(rule, intended, available_space)
+        if STATE['T0'] is not None and K92R.W in intended:   # K9-2-0: SC109 west through receiving-limited steps
+            K92R.on_alloc(intended, out, _caller_step())
         if STATE['T0'] is not None:
             try:
                 hit = [m for m in W_MEMBERS if m in intended]
@@ -738,6 +741,7 @@ def summarize_and_continue(point, cfg):
         exit_cap = None
     k8_resp = [k8b0_response(point.control_area_response, T0, dt, exit_cap)]
     k91_resp = [k91_response(point.control_area_response, T0, dt)]
+    K92R.collect(point.control_area_response, T0, dt)          # K9-2-0 record (k92_record.json only)
     if 'T15b' in (job.get('probes') or ()):
         probe_kind_service(point, cfg)
     if TANGENT['nodes'] is None and job.get('variant') == 'TAN':
@@ -769,6 +773,7 @@ def summarize_and_continue(point, cfg):
                     dep[kk][m] += v
             k8_resp.append(k8b0_response(nxt.control_area_response, T0, dt, exit_cap))
             k91_resp.append(k91_response(nxt.control_area_response, T0, dt))
+            K92R.collect(nxt.control_area_response, T0, dt)
             done, last = done + seg, nxt.states[-1]
             SEGMENTS['sec'].append(time.perf_counter() - t1)
             del nxt
@@ -1085,6 +1090,7 @@ def main():
             result['or_d_w_cell'] = {k: int(v) for k, v in seg_index.items() if str(k) in ('OR_D_W', '10491', '10479')}
         except Exception:
             result['or_d_w_cell'] = None
+        K92R.network_facts(follower.cfg)                     # K9-2-0: SC109 west capacities, H-b seed attribute
         out = standard.run(request, finder, result)
         result['out_keys'] = sorted(out.keys())
         result['costs'] = [_f(x) for x in out.get('costs', [])]
@@ -1135,6 +1141,11 @@ def main():
     Path(result_path).with_name('k91_record.json').write_text(json.dumps(k91rec, indent=1, default=repr),
                                                               encoding='utf-8')
     Path(result_path).with_name('summary.json').write_text(json.dumps(summary, indent=1, default=repr), encoding='utf-8')
+    try:                                              # K9-2-0: k92_record.json / k92_series.npz (summary unchanged)
+        K92R.write(Path(result_path).parent, STATE['job'] or {}, STATE['T0'], STATE['dt'], STATE['H'],
+                   K92R.keyed_of(STATE['job'] or {}))
+    except Exception:  # noqa: BLE001  (a recorder failure never changes the job result)
+        pass
     return 1 if 'error' in result else 0
 
 

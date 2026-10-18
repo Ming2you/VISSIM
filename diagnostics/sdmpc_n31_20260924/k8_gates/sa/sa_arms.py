@@ -28,7 +28,14 @@ SAF/SAG   --source generate (default): make_config_n31.apply_stopline_approach(<
           freeway.offramp_split_forecast (urban.latent_reservation_touch only in the Z1-b form, value true); with the
           four K9 key paths removed its JSON value equals the K8b arm file config_n31_v2_stopline_<storage>_k8b.json of
           the same root, whose sha256 must be the K8b-4 pin (SAF af2a7783..., SAG f5189611...).  Without --k91 an arm
-          carrying a K9 key is refused."""
+          carrying a K9 key is refused.
+--k92b1 (K9-2-0, K8_PREDECLARATION_AMENDMENT_24 sections 2.0-6 / 2.3 / 4.1 / 5.2; generate only): SAF = the SAF-K92b1
+          arm "SAF-K91 + the W and H-b keys", written to <out>/sa/tuning/config_n31_v2_stopline_observed_full_k91_k92b1.json
+          from the repository SAF-K91 file (sha 5f0d0e40..., json.dumps(indent=2) + LF bytes, no K9-2 key) with
+          urban.sc109w_through_saturation and urban.capacity.head_floor_seed = the pins of the committed evidence
+          (k92_common.K92_EVIDENCE, schema checked, sha of the bytes); checks: the arm differs from SAF-K91 in exactly
+          these two paths, k92_strip(arm) = SAF-K91.  BASE = --base-file (the K9-1 BASE, sha 319d07aa..., for J-a /
+          J-b) or no BASE row; no SAG row."""
 import copy
 import importlib.util
 import json
@@ -128,14 +135,64 @@ def check_k91_arm(base_doc, arm_doc, storage, k8b_path, arm):
     return section, sc.k8b_keys_of(arm_doc), keys
 
 
+def k92b1_arms(args):
+    """--k92b1 (module docstring): arms.json with SAF = SAF-K92b1 (+ BASE = --base-file when given)."""
+    import k92_common as k92c
+    if args.k8b or args.k91:
+        raise SystemExit('--k92b1 builds on the committed SAF-K91 file; pass it alone')
+    if args.source != 'generate':
+        raise SystemExit('--k92b1 writes the SAF-K92b1 arm (--source generate only)')
+    root = c.R
+    saf = root / k92c.SAF_K91_REL
+    raw = saf.read_bytes()
+    if sc.sha256_file(saf) != k92c.SAF_K91_SHA256:
+        raise SystemExit(f'--k92b1: {saf} is not SAF-K91 {k92c.SAF_K91_SHA256[:16]}')
+    base_doc = json.loads(raw.decode('utf-8'))
+    if k92c.dumps_tuning(base_doc) != raw or k92c.k92_keys_of(base_doc):
+        raise SystemExit('--k92b1: SAF-K91 is not json.dumps(indent=2) + LF bytes without a K9-2 key')
+    arm = k92c.apply_k92b1(base_doc, root)
+    if json.dumps(k92c.k92_strip(arm), sort_keys=True) != json.dumps(base_doc, sort_keys=True):
+        raise SystemExit('--k92b1: the arm differs from SAF-K91 outside the two K9-2 paths')
+    if k92c.k92_keys_of(arm) != ['urban.sc109w_through_saturation', 'urban.capacity.head_floor_seed']:
+        raise SystemExit('--k92b1: the arm does not carry both K9-2 keys (D-K9-31)')
+    path = sc.sa_out() / 'tuning' / k92c.K92B1_SAF_FILE
+    rows = {}
+    if args.base_file:
+        if sc.sha256_file(args.base_file) != k92c.K91_BASE_SHA256:
+            raise SystemExit(f'--base-file {args.base_file} is not the K9-1 BASE {k92c.K91_BASE_SHA256[:16]}')
+        rows['BASE'] = {'path': str(Path(args.base_file).resolve()), 'storage': None, 'source': 'base-file',
+                        'k8b_keys': [], 'k9_keys': [], 'k92_keys': []}
+    if args.dry_run:
+        print(f'DRY SAF -> {path}', rows)
+        return 0
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(k92c.dumps_tuning(arm))
+    rows['SAF'] = {'path': str(path), 'storage': 'observed_full', 'source': 'generate', 'k8b_keys': sc.k8b_keys_of(arm),
+                   'k9_keys': sc.k9_keys_of(arm), 'k92_keys': k92c.k92_keys_of(arm),
+                   'pins': {'w': arm['urban']['sc109w_through_saturation'],
+                            'hb': arm['urban']['capacity']['head_floor_seed']},
+                   'base_saf_k91': {'path': str(saf), 'sha256': k92c.SAF_K91_SHA256}}
+    for row in rows.values():
+        row['sha256'] = sc.sha256_file(row['path'])
+    sc.write_json(arms_file(), {'schema': 'k8-sa-arms/v1', 'root': str(root), 'k8b': True, 'k91': True, 'k92b1': True,
+                                'amendment24_sha256': k92c.K92_AMENDMENT24_SHA256, 'arms': rows})
+    for arm_name, row in rows.items():
+        print(f'SA_ARM {arm_name} sha16={row["sha256"][:16]} {row["path"]}')
+    return 0
+
+
 def main():
     ap = c.parser(__doc__)
     ap.add_argument('--source', choices=('generate', 'repo'), default='generate')
     ap.add_argument('--k8b', action='store_true', help='K8b arms (amendment 16 section 5.2)')
     ap.add_argument('--k91', action='store_true', help='K91 arms (amendment 19 r2 section 2.6; implies the K8b base)')
+    ap.add_argument('--k92b1', action='store_true', help='K9-2 bundle-1 SAF arm (amendment 24; generate only)')
+    ap.add_argument('--base-file', help='--k92b1: the K9-1 BASE tuning (sha 319d07aa...) for the BASE row')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
     c.apply(args)
+    if args.k92b1:
+        return k92b1_arms(args)
     if args.k91 and args.k8b:
         raise SystemExit('--k91 already holds the K8b keys; pass one of --k8b / --k91')
     root = c.R

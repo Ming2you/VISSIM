@@ -52,6 +52,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import sa_common as sc  # noqa: E402
+import k92_common as k92c  # noqa: E402  K9-2-0 blind guard (amendment 24 section 3.1-3a)
 
 c = sc.c
 KINDS = ('tl3', 'dp', 'robs61', 'fh', 'full', 't9c')
@@ -197,11 +198,12 @@ def run_capture(args, row, tuning):
     if (out / 'capture.json').is_file():
         print(f'SA_CAPTURE_SKIP exists {out}', flush=True)
         return
-    # K9-1-0 blind guard (amendment 19 r2 sections 0.4 / 3.1-4 / 5.4): the island seed and the template frame count
-    sc.k91_guard(tuning['path'], row.get('seed'), row['T'], args, f'capture {row["harness"]} {args.arm}',
+    # K9-2-0 blind guard k92_common.k92_guard (amendment 24 section 3.1-3a; the K9-1 closed list kept for keyless
+    # runs on K9-1 judging states): the island seed and the template frame count
+    k92c.k92_guard(tuning['path'], row.get('seed'), row['T'], args, f'capture {row["harness"]} {args.arm}',
                  op='capture', harness=row['harness'], arm=args.arm)
     if row['frame_T'] != row['T'] or row['harness'] == 'FH':
-        sc.k91_guard(tuning['path'], sc.ROBS_SEED, row['frame_T'], args, f'capture frame {args.arm}',
+        k92c.k92_guard(tuning['path'], sc.ROBS_SEED, row['frame_T'], args, f'capture frame {args.arm}',
                      op='capture', harness=row['harness'], arm=args.arm)
     bad = replay_source_problem(replay) if rseed is not None else None
     if bad:
@@ -307,8 +309,8 @@ def run_full(args, row, tuning):
     if (out / 'run.json').is_file():
         print(f'SA_FULL_SKIP exists {out}', flush=True)
         return
-    sc.k91_guard(tuning['path'], sc.ROBS_SEED, row['T'], args, f'full {args.arm}', op='full', harness='FULL',
-                 arm=args.arm, chain=args.chain + ('' if not args.tag else ':' + args.tag))      # K9-1-0 blind guard
+    k92c.k92_guard(tuning['path'], sc.ROBS_SEED, row['T'], args, f'full {args.arm}', op='full', harness='FULL',
+                   arm=args.arm, chain=args.chain + ('' if not args.tag else ':' + args.tag))    # K9-2-0 blind guard
     if not chain.is_file():
         raise SystemExit(f'chained site missing: {chain}')
     out.mkdir(parents=True, exist_ok=True)

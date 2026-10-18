@@ -1457,7 +1457,7 @@ def test_capture_attempt_sets_aside_an_old_failure_and_marks_a_killed_child(out_
         return (4 if mode == 'child_error' else 0 if mode == 'ok' else 1), 0.1
     monkeypatch.setattr(sc.c, 'run', fake_run)
     args = SimpleNamespace(tree='k86', arm='SAF', kind='tl3', dry_run=False, fh_disabled=False,
-                           gates_stage='k91t', declaration_sha=sc.K91_AMENDMENT19_SHA256)   # K9-1-0: s31 2700 is a judging state (k91_guard)
+                           gates_stage='k92t', declaration_sha='d46db6dc3959b19525f0fce77ead5432682e3de0ef8060cdc3da09661559aadc')   # K9-2-0: s31 2700 is a judging state (k92_guard)
     row = dict(harness='TL3', T=2700, seed=31, frame_T=2700)
     tuning = {'path': 'tuning.json', 'sha256': None}
     out = sc.cap_dir('k86', 'TL3', 2700, 'SAF')
@@ -1582,7 +1582,7 @@ def test_job_without_capture_inputs_is_not_started_and_never_fails(out_root, mon
     monkeypatch.setattr(sc.c, 'run', fake_run)
     monkeypatch.setattr(sc.c, 'base_env', lambda *a, **k: {'PYTHONPATH': 'a;b'})
     args = SimpleNamespace(tree=tree, dry_run=False, plan_only=False, hooks=False, chain='site', s3_table=None,
-                           gates_stage='k91t', declaration_sha=sc.K91_AMENDMENT19_SHA256)   # K9-1-0: TL3 2700 is a judging state (k91_guard)
+                           gates_stage='k92t', declaration_sha='d46db6dc3959b19525f0fce77ead5432682e3de0ef8060cdc3da09661559aadc')   # K9-2-0: TL3 2700 is a judging state (k92_guard)
 
     def mk(H):
         return sa_jobs.base_job(SimpleNamespace(tree=tree, labels_only=True, hooks=False), 'TL3', 2700, 'SAF', 'OBS', H)
@@ -1972,7 +1972,7 @@ def test_full_run_records_the_site_of_its_last_traceback(out_root, monkeypatch):
                                            ('d', 'start\n', 0, None, 'unfinished')):
         logs.append((text, code))
         args = SimpleNamespace(tree='k86', arm='BASE', tag=tag, chain='site', s3_table=None, dry_run=False,
-                               gates_stage='k91t', declaration_sha=sc.K91_AMENDMENT19_SHA256)   # K9-1-0: tagged full runs are off the section 0.4 list
+                               gates_stage='k92t', declaration_sha='d46db6dc3959b19525f0fce77ead5432682e3de0ef8060cdc3da09661559aadc')   # K9-2-0: the K9-2 judging stage opens the tagged full runs
         sa_capture.run_full(args, {'T': 2700}, tuning)
         run = sc.read_json(sc.full_dir('k86', 2700, 'BASE', tag) / 'run.json')
         assert run['exit'] == code and run.get('error_site') == site, tag
@@ -2005,7 +2005,7 @@ def test_full_run_records_the_selected_objective(out_root, monkeypatch):
     assert sa_capture.FULL_OBJECTIVE_KEY == 'selected_objective'
     for tag, objective, held in (('sel', 496.8425457870215, 506.0624474786317), ('old', None, 2.0)):
         args = SimpleNamespace(tree='k86', arm='BASE', tag=tag, chain='site', s3_table=None, dry_run=False,
-                               gates_stage='k91t', declaration_sha=sc.K91_AMENDMENT19_SHA256)   # K9-1-0: tagged full runs are off the section 0.4 list
+                               gates_stage='k92t', declaration_sha='d46db6dc3959b19525f0fce77ead5432682e3de0ef8060cdc3da09661559aadc')   # K9-2-0: the K9-2 judging stage opens the tagged full runs
         sa_capture.run_full(args, {'T': 2700}, tuning)
         run = sc.read_json(sc.full_dir('k86', 2700, 'BASE', tag) / 'run.json')
         assert repr(run['objective']) == repr(objective) and repr(run['held_objective']) == repr(held), tag

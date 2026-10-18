@@ -50,6 +50,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import sa_common as sc  # noqa: E402
+import k92_common as k92c  # noqa: E402  K9-2-0 blind guard (amendment 24 section 3.1-3a)
 
 c = sc.c
 FAMILIES = ('tl3', 'long', 'c11', 'tan', 'dp', 'fh', 'h0', 'h3', 'h4', 'h5', 'adfull', 'tl3m')
@@ -325,13 +326,13 @@ def k8b_job_guard(args, job):
         return []
     path = (rec.get('tuning') or {}).get('path')
     meta = rec.get('metadata') or {}
-    extra = [f'capture metadata {k}' for k in sc.GUARD_META_KEYS if k in meta]
+    extra = [f'capture metadata {k}' for k in sc.GUARD_META_KEYS + k92c.K92_META_KEYS if k in meta]
     kw = dict(op='job', harness=job['harness'], arm=job['arm'], entry=job.get('entry'), H=job.get('H'),
               variant=job.get('variant', 'REF'), mode=job.get('mode', 'scalar'), hooks=bool(getattr(args, 'hooks', False)),
               arm_sha=(rec.get('tuning') or {}).get('sha256'))
-    keys = sc.k91_guard(path, job.get('seed'), job['T'], args, f'job {job["label"]}', extra_keys=extra, **kw)
+    keys = k92c.k92_guard(path, job.get('seed'), job['T'], args, f'job {job["label"]}', extra_keys=extra, **kw)
     if int(job.get('frame_T', job['T'])) != int(job['T']):
-        sc.k91_guard(path, sc.ROBS_SEED, job['frame_T'], args, f'job frame {job["label"]}', extra_keys=keys, **kw)
+        k92c.k92_guard(path, sc.ROBS_SEED, job['frame_T'], args, f'job frame {job["label"]}', extra_keys=keys, **kw)
     return keys
 
 
