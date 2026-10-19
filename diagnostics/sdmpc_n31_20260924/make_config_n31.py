@@ -76,6 +76,8 @@ K8-6 SA arms (separate files, key-only; see STOPLINE_EVIDENCE):
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric [--check]
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric --k8b [--check]
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --stopline-approach <evidence>       --stopline-storage observed_full|geometric --k91 [--check]
+K9-2 bundle-1 arm (CFG family, separate file, key-only; see K92_EVIDENCE):
+  python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --k92b1 [--check]
 """
 from __future__ import annotations
 
@@ -628,6 +630,38 @@ def apply_k91(doc, root=ROOT, parts=K91_PARTS, latent_touch=K91_Z1B):
     return out
 
 
+# K9-2 bundle 1 (K8_PREDECLARATION_AMENDMENT_24 sections 2.0-6 / 2.3, sha d46db6dc...; D-K9-31, D-K9-34..36): the
+# two keys pin their committed evidence by the sha256 of its bytes and always go together (2.3).  apply_k92b1 adds
+# them to the CFG document: the CFG-family arm config_n31_v2_k92b1.json (written by K9-2-3 with --k92b1).  The
+# SAF-K91-family arm is written by k8_gates/sa/sa_arms.py --k92b1 from the same evidence files.  The arm builds on
+# the committed CFG bytes (cfg_document), not on build(): the CFG carries sections build() does not write.
+K92_EVIDENCE = {'w': N31D + '/k92/sc109w_through_saturation_v3b_u4_20261016.json',
+                'hb': N31D + '/k92/head_floor_seed_v3c3_robs_20261016.json'}
+K92B1_OUT = HERE / 'config_n31_v2_k92b1.json'
+
+
+def cfg_document(path=OUT):
+    """The committed CFG document; its bytes must be dumps() of it (the arm then differs only by the two keys)."""
+    raw = Path(path).read_bytes()
+    doc = json.loads(raw.decode('utf-8'))
+    if dumps(doc) != raw:
+        raise ValueError('%s is not dumps() bytes' % Path(path).name)
+    return doc
+
+
+def apply_k92b1(doc, root=ROOT):
+    """Pure on doc: the CFG document plus urban.sc109w_through_saturation (appended to urban) and
+    urban.capacity.head_floor_seed (appended to urban.capacity), both pinned like the K8b keys (k8b_pin); the
+    seed never goes without the W key (D-K9-31)."""
+    urban = doc.get('urban', {})
+    if 'sc109w_through_saturation' in urban or 'head_floor_seed' in urban.get('capacity', {}):
+        raise ValueError('the K9-2 keys are already present')
+    out = copy.deepcopy(doc)
+    out['urban']['sc109w_through_saturation'] = k8b_pin(K92_EVIDENCE['w'], root)
+    out['urban']['capacity']['head_floor_seed'] = k8b_pin(K92_EVIDENCE['hb'], root)
+    return out
+
+
 def stopline_out(storage, k8b=False, k91=False):
     """config_n31_v2_stopline_<storage>.json, or with k8b the K8b arm config_n31_v2_stopline_<storage>_k8b.json (K8b-4,
     K8_PREDECLARATION_AMENDMENT_16 r2 section 4: the k86h arm + the three K8b keys of K8B_PARTS), or with k91 the K91
@@ -666,6 +700,9 @@ def main():
     parser.add_argument('--k91', action='store_true',
                         help='with --stopline-approach: the K91 arm (the K8b arm + urban.sc1001_wout_saturation, '
                              'urban.wout_side_handoff, freeway.offramp_split_forecast)')
+    parser.add_argument('--k92b1', action='store_true',
+                        help='the K9-2 bundle-1 arm config_n31_v2_k92b1.json (CFG + urban.sc109w_through_saturation '
+                             '+ urban.capacity.head_floor_seed); alone, on the default tree tuning')
     args = parser.parse_args()
     stopline = (args.stopline_approach, args.stopline_storage)
     if any(stopline) and not all(stopline):
@@ -678,7 +715,13 @@ def main():
         raise SystemExit('--k8b / --k91 go with --stopline-approach and --stopline-storage')
     if args.k8b and args.k91:
         raise SystemExit('--k91 already holds the K8b keys; pass one of --k8b / --k91')
-    if all(stopline):
+    if args.k92b1 and (any(stopline) or args.urban_batch1 or args.out_root is not None
+                       or args.vsl_family != VSL_FAMILY):
+        raise SystemExit('--k92b1 builds only on the default tree tuning, alone')
+    if args.k92b1:
+        out, name = K92B1_OUT, 'CONFIG_N31_K92B1_OK'
+        data = dumps(apply_k92b1(cfg_document()))
+    elif all(stopline):
         out = stopline_out(args.stopline_storage, k8b=args.k8b, k91=args.k91)
         name = ('CONFIG_N31_STOPLINE_K91_OK' if args.k91 else
                 'CONFIG_N31_STOPLINE_K8B_OK' if args.k8b else 'CONFIG_N31_STOPLINE_OK')
