@@ -151,6 +151,7 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
                 "head_observation_invalid_window": 0.0, "head_observation_short_exposure": 0.0,
                 "head_observation_missing_crossings": 0.0, "head_observation_unknown_link": 0.0,
                 "head_observation_no_model_members": 0.0, "head_observation_waiting_second_window": 0.0}
+    seed = getattr(cfg.network, "head_floor_seed", None) or {}  # K9-2 H-b (configure_head_floor_seed); {} = the b9734abe path
     valid = False
     observed = {}
     start = end = 0.0
@@ -205,6 +206,13 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
             estimates[link, phase] = max(base, carried)
             metadata["head_observation_groups_carried"] += 1
             metadata[estimate_key] = max(base, carried)
+        if (link, phase) in seed:  # K9-2 H-b: lower end max(rule, seed) even without a valid window (D-K9-36)
+            if (sorted(h["head_id"] for h in heads) != sorted(K92_HB_HEADS)
+                    or sorted(weights) != sorted(K92_HB_MEMBERS)):
+                raise ValueError("Head floor seed group heads / members differ from the evidence (K9-2 B3 / B4)")
+            estimates[link, phase] = max(base, carried, seed[link, phase])
+            metadata[estimate_key] = estimates[link, phase]
+            metadata["k92_hb_seed_binding"] = float(seed[link, phase] > max(base, carried))
         if not valid:
             continue
         if number(window.get("unknown_links", {}).get(link, 0)) > 0:
@@ -247,8 +255,13 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
         supported = min(rate, number(prior[candidate_key]))
         # This is an achieved-discharge lower bound, not an estimate of saturation.
         estimates[link, phase] = max(base, carried, supported)
+        if (link, phase) in seed:  # K9-2 H-b: max(base, carried, supported, seed)
+            estimates[link, phase] = max(base, carried, supported, seed[link, phase])
+            metadata["k92_hb_seed_binding"] = float(seed[link, phase] > max(base, carried, supported))
         metadata[estimate_key] = estimates[link, phase]
         metadata["head_observation_groups_updated"] += 1
+    if seed and "k92_hb_seed_binding" not in metadata:  # K9-2 H-b: the seeded group must have been reached
+        raise ValueError("Head floor seed group %s has no model members in this decision" % sorted(seed))
     if estimates:
         changed = dict(caps)
         distribute(cfg, groups, estimates, changed)
@@ -256,6 +269,64 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
     if getattr(cfg.network, "head_free_service", None) is not None:
         metadata.update(_install_head_free_service(cfg, state_json, previous_path, options, context))
     return metadata
+
+
+K92_HB_GROUP = ("173", "p4")
+K92_HB_HEADS = ("1090501", "1090502")
+K92_HB_MEMBERS = ("SC109_W_SC108_to_N_SC16",)
+K92_HB_OPTIONS = {"enabled": True, "min_green_sec": 30, "min_crossings": 5}
+
+
+def configure_head_floor_seed(cfg, tuning, raw, plan):
+    """K9-2 H-b (K8_PREDECLARATION_AMENDMENT_24 section 2.2, key urban.capacity.head_floor_seed, a sibling of
+    head_observation): the (173, p4) left-turn head floor gets the seed-independent lower end s of the evidence
+    (k92-head-floor-seed/v1); install() takes max(rule value, s) for that group only and keeps learning (D-K9-36).
+    The floor key name, the provenance identity and the head_observation_* counters are unchanged.  Needs
+    urban.sc109w_through_saturation (D-K9-31, else ValueError).  Checks: B1 s <= 4000, B2 s > the member's current
+    capacity, B3 the evidence heads / SG 109 5 -> phase p4 of the plan, B4 the evidence member and its origin = the
+    W movement's origin, B6 head_observation = {enabled true, 30, 5}, seed repr = seed_repr.  Key absent: the
+    attribute is removed (no stale value in a pickled network) and {} is returned."""
+    urban = (tuning or {}).get("urban", {}) or {}
+    section = urban.get("capacity", {}) or {}
+    pin = section.get("head_floor_seed")
+    if pin is None:
+        if hasattr(cfg.network, "head_floor_seed"):
+            delattr(cfg.network, "head_floor_seed")
+        return {}
+    if urban.get("sc109w_through_saturation") is None:
+        raise ValueError("head_floor_seed requires urban.sc109w_through_saturation (D-K9-31)")
+    if section.get("head_observation") != K92_HB_OPTIONS:
+        raise ValueError("head_floor_seed needs head_observation = %s (B6)" % K92_HB_OPTIONS)
+    from evaluation.controllers.runtime_setup import load_k8b_evidence
+    document, digest = load_k8b_evidence(pin, "k92-head-floor-seed/v1", "urban.capacity.head_floor_seed")
+    v = document["values"]
+    if tuple(v["group"]) != K92_HB_GROUP or sorted(h["head_id"] for h in v["heads"]) != sorted(K92_HB_HEADS) \
+            or tuple(v["members"]) != K92_HB_MEMBERS:
+        raise ValueError("head_floor_seed evidence group / heads / members differ (B3 / B4)")
+    seed = number(v["seed"])
+    if repr(seed) != v["seed_repr"]:
+        raise ValueError("head_floor_seed repr %r != %r" % (seed, v["seed_repr"]))
+    if not seed <= 4000.0:
+        raise ValueError("head_floor_seed %r > 2 lanes x 2000 (B1)" % seed)
+    net = cfg.network
+    member = K92_HB_MEMBERS[0]
+    movements = net.urban_movements
+    if member not in movements or "SC109_W_SC108_to_E" not in movements \
+            or movements[member].get("origin") != movements["SC109_W_SC108_to_E"].get("origin"):
+        raise ValueError("head_floor_seed member / W movement origin differ (D-K9-31 coupling)")
+    base = number(net.movement_capacity_by_movement_veh_h.get(member, net.movement_capacity_veh_h))
+    if not seed > base:
+        raise ValueError("head_floor_seed %r <= the member capacity %r (B2)" % (seed, base))
+    controller = (plan or {}).get("controllers", {}).get("109", {})
+    phases = [p for p, groups in controller.get("phase_signal_groups", {}).items() if "5" in map(str, groups)]
+    if phases != ["p4"]:
+        raise ValueError("head_floor_seed: SG 109 5 is not phase p4 of the actuation plan (B3)")
+    net.head_floor_seed = {K92_HB_GROUP: seed}
+    return {"k92_hb": {"group": list(K92_HB_GROUP), "heads": list(K92_HB_HEADS), "members": list(K92_HB_MEMBERS),
+                       "seed": seed, "statistic": v["statistic"], "base_at_configure": base,
+                       "per_seed_median": {k: x["median"] for k, x in (v.get("per_seed") or {}).items()},
+                       "n": {k: x["n"] for k, x in (v.get("per_seed") or {}).items()},
+                       "rule_code_sha256": v.get("rule_code_sha256"), "evidence_sha256": digest}}
 
 
 def configure_head_free_service(cfg, tuning, raw):

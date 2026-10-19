@@ -412,6 +412,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     from evaluation.controllers import head_service_resources
     from evaluation.controllers import signal_head_observation
     metadata.update(signal_head_observation.configure_head_free_service(cfg, tuning, state_json))
+    metadata.update(signal_head_observation.configure_head_floor_seed(  # K9-2 H-b (urban.capacity.head_floor_seed); {} absent
+        cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
     metadata.update(head_service_resources.configure(
         cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
     metadata.update(a.install_measured_movement_capacity(
