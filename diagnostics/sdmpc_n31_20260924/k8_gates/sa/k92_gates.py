@@ -28,11 +28,21 @@ Gate rules (operationalizations fixed here before any gate data; the amendment t
               row); summary leaves are classed by their entity (signal queue of a signal, SC1001 / SA / FW_W
               families, totals = C2, the rest C3 listed); STOP when an SC1001 / SA / FW_W summary leaf or ledger key
               is C3, or when the first C3 row comes before the first C0 row (fixed-action jobs).
-  G-K2        k92_compare.compare hard_verdict (H1-H5 with the declared H5 difference) SAME.
-  G-K4        k92_compare.numeric_hard (decisions: S1-S4 replays of G-K2 with the commit arm vs the probe arm) and
-              summary + k92_record (plant: v3c3-s31 1500 / v3c3-s43 1050 H3 OBS jobs vs the probe jobs): PASS = no
-              difference; EXPLAIN = differences all within relative 1e-9 (the amendment needs an operation-order
-              explanation, which this calculator cannot give: report and stop); FAIL otherwise.
+  G-K2        amendment 27 (D-K9-49; written after the K9-2-1 / K9-2-2 gate data, disclosed): judge_g2 = the
+              amendment-21 section 6.4 four outcomes of k92_compare.compare -- PASS = HARD H1-H5 same (after the
+              declared H5 difference) and 0 unclassified leaves; HOLD = HARD same and unclassified > 0; FAIL =
+              HARD different; INCOMPLETE -- after the CR pair check of the two producing trees (k92_a27.cr_pair;
+              not ok = INCOMPLETE).  Until amendment 27 this line read "hard_verdict SAME" (judge_hard); judge_hard
+              is kept as a report and is not the G-K2 verdict.
+  G-K4        amendment 27 (D-K9-50; same disclosure): decisions = judge_g4_decision_full -- k92_compare.compare
+              of the probe arm output (old) and the commit arm output (new), every leaf, allowed sets as
+              amendment 24 section 4.2, after k92_a27.cr_pair; PASS = full PASS; HOLD = HARD same and
+              unclassified > 0; EXPLAIN = HARD differs only in H2-H5 numbers within relative 1e-9 (numeric_hard;
+              H1 may differ) and 0 unclassified (an operation-order explanation is needed: report and stop);
+              FAIL otherwise; INCOMPLETE.  Plant (v3c3-s31 1500 / v3c3-s43 1050 H3 OBS jobs vs the probe jobs,
+              summary + k92_record) = judge_g4_plant, unchanged: PASS = compare_g5 equal; EXPLAIN = only numbers
+              differ, all within relative 1e-9; FAIL otherwise.  judge_g4_decision (HARD numbers only) is kept as
+              a report.
   G-K5        key-off pairs (A archive, B commit) per state A B A B, clean pairs only (VISSIM count 0 three times):
               median wall ratio B / A <= 1.05 / 1.033718118959995; the IQR is reported only (amendment 26).
   G-K0 D-d    the J1 record (RR decisions folder) vs the commit replay with the run's own tuning bytes (k92_replay.py
@@ -76,6 +86,7 @@ sys.path.insert(0, str(HERE))
 import k8b_commit_gates as cg  # noqa: E402
 import k92_common as k92c  # noqa: E402
 import k92_compare as k92cmp  # noqa: E402
+import k92_a27 as k92a  # noqa: E402
 
 sc = cg.sc
 c = sc.c
@@ -498,6 +509,49 @@ def judge_g4_decision(r):
     if r.get('status') != 'PASS':
         return 'FAIL'
     return 'PASS' if r.get('numeric_diffs') == 0 and r.get('csv_same') else 'EXPLAIN'
+
+
+# ------------------------------------------------------------------------------------------------ amendment 27
+def judge_g2(ref_dir, new_dir, T, new_root, keyed, ref_root):
+    """Amendment 27 (D-K9-49): the G-K2 (a)(b)(c) verdict = the four outcomes of k92_compare.compare (PASS only
+    when no unclassified leaf) after the CR pair check of the two producing trees (ref_root = the tree of the
+    reference output, new_root = the commit tree)."""
+    r = judge_hard(ref_dir, new_dir, T, new_root, keyed)
+    r['cr_pair'] = k92a.cr_pair(ref_root, new_root)
+    full = r.get('verdict_full')
+    r['verdict'] = full if r['cr_pair']['ok'] and full in ('PASS', 'HOLD', 'FAIL', 'INCOMPLETE') else 'INCOMPLETE'
+    r['rule'] = 'amendment 27: amendment 21 section 6.4 four outcomes (PASS only when no unclassified leaf)'
+    return r
+
+
+def judge_g4_decision_full(probe_dir, commit_dir, T, commit_root, keyed, probe_root):
+    """Amendment 27 (D-K9-50): one G-K4 decision row = every leaf of the probe arm output (old) vs the commit arm
+    output (new) with the amendment 24 section 4.2 allowed sets, after the CR pair check of the two trees."""
+    cr = k92a.cr_pair(probe_root, commit_root)
+    full = k92cmp.compare(probe_dir, commit_dir, T, commit_root, keyed=keyed)
+    num = (k92cmp.numeric_hard(probe_dir, commit_dir, T, tol_rel=TOL_REL) if full.get('verdict') != 'INCOMPLETE'
+           else {'status': 'INCOMPLETE'})
+    if not cr['ok'] or full.get('verdict') == 'INCOMPLETE' or num.get('status') == 'INCOMPLETE':
+        v = 'INCOMPLETE'
+    elif full.get('verdict') == 'PASS':
+        v = 'PASS'
+    elif full.get('hard_verdict') == 'SAME':
+        v = 'HOLD'
+    elif num.get('status') == 'PASS' and not full.get('unclassified_n'):
+        v = 'EXPLAIN'
+    else:
+        v = 'FAIL'
+    return {'verdict': v, 'cr_pair': cr, 'hard_verdict': full.get('hard_verdict'), 'verdict_full': full.get('verdict'),
+            'hard_groups': {g: full[g]['same'] for g in ('H1', 'H2', 'H3', 'H4', 'H5') if g in full},
+            'hard_diff_paths': {g: full[g]['diff_paths_generalized'][:10] for g in ('H2', 'H3', 'H4', 'H5')
+                                if g in full and not full[g]['same']},
+            'unclassified_n': full.get('unclassified_n'), 'unclassified': full.get('unclassified'),
+            'allowed_counts': full.get('allowed_counts'), 'k92_checks': full.get('k92_checks'),
+            'r3_checks': full.get('r3_checks'), 'h5_declared': full.get('h5_declared'),
+            'numeric': {k: num.get(k) for k in ('status', 'csv_same', 'numeric_diffs', 'worst_rel', 'n_problem',
+                                                 'non_numeric_or_above')},
+            'rule': 'amendment 27: every leaf (amendment 21 section 6 + amendment 24 section 4.2), 1e-9 class from '
+                    'numeric_hard'}
 
 
 # ------------------------------------------------------------------------------------------------ G-K5

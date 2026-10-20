@@ -25,7 +25,13 @@ Amendment 24 section 4.2 additions:
            new side's /metadata/k92_hb_seed_binding = 1.0 and the key name = keyed['floor_key'] (P0-2 (f)); then the
            leaf is a declared expected difference (listed), else it stays a HARD difference.  head_observation_*
            counter differences are never allowed.
-hard_verdict = SAME when H1-H5 are equal after the declared H5 exception (the G-K2 / probe rule 2 criterion)."""
+hard_verdict = SAME when H1-H5 are equal after the declared H5 exception (the probe rule 2 criterion).
+Amendment 27 (K8_PREDECLARATION_AMENDMENT_27; D-K9-49): N2 holds one more rule, before the amendment-21
+one-component gate-tree rule: the K9-2 tree roots D:/VISSIM-merge/k8_gate_trees/k92b1/<name>,
+.../k92b1/{a25,a26decl,a27}/<name> and .../k92attrib/<name> -> <root>, <name> a whole path component (followed by
+/ or the end of the string) that is not a group name (with one component stripped, the D5 keys of two K9-2 trees
+never met and every one became a one-sided unclassified leaf).  The result of a comparison is
+`verdict` (PASS / FAIL / HOLD / INCOMPLETE, amendment 21 section 6.4); hard_verdict is one part of it."""
 import hashlib
 import json
 import re
@@ -37,6 +43,7 @@ BS = chr(92)
 N2 = [
     (r'd:/vissim-merge/frozen/sdmpc31_[0-9a-f]{8}_[0-9]{12}', '<root>'),
     (r'd:/vissim-merge/sim3-n31-k8', '<root>'),
+    (r'd:/vissim-merge/k8_gate_trees/(?:k92b1/(?:(?:a25|a26decl|a27)/)?(?!(?:a25|a26decl|a27)(?![a-z0-9_]))|k92attrib/)[a-z0-9_]+(?=/|$)', '<root>'),   # amendment 27
     (r'd:/vissim-merge/k8_gate_trees/(?:s31fail/tree74(?:_base|_f1)?|[a-z0-9_]+)', '<root>'),
     (r'd:/vissim_runs/20261001_v3c3/reports/k8/(?:offline_gates|offline_gates_k8h)/(?:[a-z0-9_]+/)*?t[0-9]{6}(?:_[a-z0-9]+)*',
      '<bundle>'),
