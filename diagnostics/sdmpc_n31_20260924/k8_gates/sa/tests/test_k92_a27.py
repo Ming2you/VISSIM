@@ -2,7 +2,9 @@
 
     PYTHONHASHSEED=0 python -B -m pytest -p no:cacheprovider diagnostics/sdmpc_n31_20260924/k8_gates/sa/tests/test_k92_a27.py -v
 K8_PREDECLARATION_AMENDMENT_27: the K9-2 tree-root rule of N (section 2.1), the CR pair rule (section 2.2), the
-four-outcome G-K2 judge and the all-leaf G-K4 decision judge (section 2.3), and the R-old judges (section 3.3)."""
+four-outcome G-K2 judge and the all-leaf G-K4 decision judge (section 2.3), and the R-old judges (section 3.3).
+Amendment 29 (K9-2-5): the reference tree's runtime_setup.py bytes now give the old A_K92 value (OLD_RS, made a
+known value with monkeypatch), the comparisons pass old_root, and the bundle / group folders keep their own text."""
 import hashlib
 import json
 import sys
@@ -23,6 +25,9 @@ BODY = b'a = 1\nb = 2\n'
 
 def _sha(b):
     return hashlib.sha256(b).hexdigest()
+
+
+OLD_RS = _sha(b'old rs\n')         # amendment 29: the reference tree's runtime_setup.py sha = the old A_K92 value
 
 
 def _tree(path, rs=b'new rs\n', lane=BODY):
@@ -53,7 +58,7 @@ def _pair(tmp_path, *, lane_new=None, green_new=30.0, rs_old=None, csv_new='x\n'
     ref_tree = _tree(tmp_path / 'ref_tree', rs=b'old rs\n')
     new_tree = _tree(tmp_path / 'new_tree')
     rs_new = cmp.sha_file(new_tree / CTRL / 'runtime_setup.py')
-    rs_old = rs_old or 'ea79be3a6b60b300e660a88e7c3ec76c2df8321ca6c06a756e9b40b08a862a53'     # CWf, a known old RS
+    rs_old = rs_old or OLD_RS              # amendment 29: = the reference tree's RS sha (known through monkeypatch)
     src_old = {CTRL + 'runtime_setup.py': rs_old, LANE: _sha(BODY), CTRL + 'x.py': 'c' * 64}
     src_new = {CTRL + 'runtime_setup.py': rs_new, LANE: lane_new or _sha(BODY), CTRL + 'x.py': 'c' * 64}
     md_old = {'run_provenance': {'workspace_root': REF_ROOT}} if ws else None      # R3-04, a path-string item
@@ -74,7 +79,8 @@ def test_root_rule_and_selftest():
     gt = 'D:/VISSIM-merge/k8_gate_trees/'
     assert cmp.norm_s(gt + 'k92b1/a25/k92b1_probe.build.json') != cmp.norm_s(gt + 'k92b1/k921.build.json')
     assert cmp.norm_s(gt + 'k92b1/a25/a.py') != cmp.norm_s(gt + 'k92b1/a27/a.py')
-    assert cmp.norm_s(gt + 'k92b1/a25') == '<root>/a25' and not a27.tree_root_ok(gt + 'k92b1/a25')
+    assert cmp.norm_s(gt + 'k92b1/a25') == 'd:/vissim-merge/k8_gate_trees/k92b1/a25' and not a27.tree_root_ok(
+        gt + 'k92b1/a25')                                       # amendment 29: a group folder keeps its own text
     assert cmp.norm_s(REF_ROOT + '/' + LANE) != cmp.norm_s(NEW_ROOT + '/' + LANE.replace('lane', 'lan'))
     r = a27.selftest()
     assert r['verdict'] == 'PASS', [c for c in r['cases'] if not c['ok']]
@@ -95,6 +101,7 @@ def test_cr_pair(tmp_path, monkeypatch):
 
 def test_judge_g2_four_outcomes(tmp_path, monkeypatch):
     monkeypatch.setattr(a27, 'CR_FILES', {LANE: (_sha(BODY), _sha(BODY.replace(b'\n', b'\r\n')))})
+    monkeypatch.setattr(cmp, 'KNOWN_OLD_RS', frozenset({OLD_RS}))
     old, new, ref_tree, new_tree = _pair(tmp_path)
     r = kg.judge_g2(old, new, 3750, new_tree, None, ref_tree)
     assert r['verdict'] == 'PASS' and r['hard_verdict'] == 'SAME' and r['allowed_counts'].get('A_K92') == 1
@@ -117,6 +124,7 @@ def test_judge_g2_four_outcomes(tmp_path, monkeypatch):
 
 def test_judge_g4_decision_full(tmp_path, monkeypatch):
     monkeypatch.setattr(a27, 'CR_FILES', {LANE: (_sha(BODY), _sha(BODY.replace(b'\n', b'\r\n')))})
+    monkeypatch.setattr(cmp, 'KNOWN_OLD_RS', frozenset({OLD_RS}))
     old, new, ref_tree, new_tree = _pair(tmp_path)
     assert kg.judge_g4_decision_full(old, new, 3750, new_tree, None, ref_tree)['verdict'] == 'PASS'
     o, n, _, _ = _pair(tmp_path / 'e', green_new=30.0 * (1 + 1e-12))
@@ -135,14 +143,17 @@ def test_judge_g4_decision_full(tmp_path, monkeypatch):
 
 def test_rold_judges(tmp_path):
     text = (SA / 'k92_compare.py').read_text(encoding='utf-8')
-    line = "    (r'" + a27.K92_ROOT_RULE + "', '<root>'),   # amendment 27\n"
-    assert text.count(line) == 1
-    (tmp_path / 'old_cmp.py').write_text(text.replace(line, ''), encoding='utf-8')
+    line = "    (r'" + a27.K92_ROOT_RULE + "', '<root>'),   # amendment 29 (K9-2 tree roots)\n"
+    generic = "    (r'" + a27.GENERIC_RULE_A29 + "', '<root>'),   # amendment 29 (bundle folders are not trees)\n"
+    assert text.count(line) == 1 and text.count(generic) == 1
+    (tmp_path / 'old_cmp.py').write_text(text.replace(line, '').replace(
+        generic, "    (r'" + a27.GENERIC_RULE_A21 + "', '<root>'),\n"), encoding='utf-8')      # the K9-2-0 N
     old_mod = a27.load_comparator(tmp_path / 'old_cmp.py', 'k92_compare_old_t')
     new_mod = a27.load_comparator(SA / 'k92_compare.py', 'k92_compare_new_t')
+    new_mod.KNOWN_OLD_RS = frozenset({OLD_RS})
     old, new, ref_tree, new_tree = _pair(tmp_path, ws=True)
     ro = old_mod.compare(old, new, 3750, new_tree)
-    rn = new_mod.compare(old, new, 3750, new_tree)
+    rn = new_mod.compare(old, new, 3750, new_tree, old_root=ref_tree)
     assert ro['verdict'] == 'HOLD' and rn['verdict'] == 'PASS'
     assert ro['allowed_counts'].get('R3-04') == 1 and 'R3-04' not in rn['allowed_counts']    # root-only difference gone
     tails = [old_mod.norm_s(REF_ROOT), old_mod.norm_s(NEW_ROOT)]
@@ -150,7 +161,8 @@ def test_rold_judges(tmp_path):
     assert j['verdict'] == 'PASS' and j['removed_n'] == 6 and j['added_n'] == 0 and j['a_k92_delta'] == 1
     assert j['path_allowed_delta'] == {'R3-04': -1} and j['checks']['path_allowed_not_increased']
     o2, n2, _, _ = _pair(tmp_path / 'h', lane_new='d' * 64)
-    j2 = a27.rold_judge_r(old_mod.compare(o2, n2, 3750, new_tree), new_mod.compare(o2, n2, 3750, new_tree), tails)
+    j2 = a27.rold_judge_r(old_mod.compare(o2, n2, 3750, new_tree),
+                          new_mod.compare(o2, n2, 3750, new_tree, old_root=ref_tree), tails)
     assert j2['verdict'] == 'PASS' and [x['path'][-len(LANE):] for x in j2['revealed']] == [LANE]
     gwt8 = 'd:/vissim-merge/sim3-n31-k8'
     src = {CTRL + 'runtime_setup.py': cmp.sha_file(new_tree / CTRL / 'runtime_setup.py'), LANE: _sha(BODY)}

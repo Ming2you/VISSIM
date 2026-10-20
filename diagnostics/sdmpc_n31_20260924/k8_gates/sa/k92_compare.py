@@ -2,23 +2,26 @@
 unchanged + A_K92, A_K92-M and the declared H5 difference).  Diagnostics only.  BLIND: same / different, generalized
 paths, kinds, counts and sha only -- no objective or prediction value is printed or written.
 
-    compare(dir_old, dir_new, T, new_root, *, keyed=None, k92=None, label='') -> report dict
+    compare(dir_old, dir_new, T, new_root, *, keyed=None, old_root=None, label='') -> report dict
 
 dir_x holds action_<T>.json, action_<T>.csv and (SDMPC) action_<T>.joint.progress.jsonl.  "new" = the side whose new
-values are checked against real files (the K9-2 run).
+values are checked against real files (the K9-2 run); old_root = the tree that produced dir_old (amendment 29).
 Amendment 21 section 6 (ca369954...), ported unchanged from the K8 gate comparator (SP/j1/fix/gates/cmp21.py sha
 see K9-2-0 README): N (6.1), HARD H1-H5 (6.2), F1-F3 / L_T 55 (6.3), D1-D5 (6.3a), allowed = (V u R3-01..06,08 u F) - D
 with the R3-03 / R3-08 new-value file checks, verdicts PASS / FAIL / HOLD (= 보류) / INCOMPLETE (6.4).
 Amendment 24 section 4.2 additions:
   A_K92    the D5 leaf .../transformed_source_sha256/<root>/evaluation/controllers/runtime_setup.py may differ in value
-           only when the NEW value = the sha256 of the new root's RS bytes and the OLD value is one of the known RS
-           bytes (b9734abe / OUTH / RR 8a5aec79, CWf ea79be3a, X1f 0ba3fa61, attribution CW 38c7a580, X1H1 472d7f9c);
-           else unclassified.
-  A_K92-M  key-on comparisons only (keyed given): the five subtrees /metadata/k92_w, /metadata/k92_hb,
-           /metadata/k92_hb_seed_binding, /metadata/k92_attrib_capacity_override, /metadata/k92_attrib_head_173_p4_seed
-           may be present on ONE side only (present on both sides and different = unclassified).  Their deterministic
-           leaves must hold: evidence_sha256 = the pinned sha (keyed['evidence_sha256'][subtree]) = the sha256 of that
-           evidence file in the side's root (keyed['evidence_file'][subtree]); u4_sha256 = 22384c00...;
+           only when the NEW value = the sha256 of the new root's RS bytes, the OLD value = the sha256 of the old
+           root's RS bytes (old_root given; amendment 29) and the OLD value is one of the known RS bytes (b9734abe /
+           OUTH / RR 8a5aec79, CWf ea79be3a, X1f 0ba3fa61, attribution CW 38c7a580, X1H1 472d7f9c); else unclassified.
+  A_K92-M  key-on comparisons only (keyed given): the subtrees /metadata/k92_w, /metadata/k92_hb,
+           /metadata/k92_hb_seed_binding may be present on the NEW side only and /metadata/k92_attrib_capacity_override,
+           /metadata/k92_attrib_head_173_p4_seed on the OLD side only (amendment 29; present on the other side only, or
+           on both sides and different = unclassified).  Their deterministic nodes at any depth (amendment 29: every
+           node that an amendment 21 section 6.3a D rule names on the normalized (N) path, read from the normalized
+           side document) must be one of: evidence_sha256 = the pinned sha
+           (keyed['evidence_sha256'][subtree]) = the sha256 of that evidence file in the side's root
+           (keyed['evidence_file'][subtree]; the old side's root = old_root); u4_sha256 = 22384c00...;
            rule_code_sha256 = d9bd5392...; else unclassified.
   H5 decl. key-on (keyed['seed'] set): HARD H5 path /metadata/head_discharge_floor_173_p4_<hash16> differs only as
            (a) new side only with value = seed, or (b) both sides with old < seed and new = seed, and in both cases the
@@ -31,7 +34,13 @@ one-component gate-tree rule: the K9-2 tree roots D:/VISSIM-merge/k8_gate_trees/
 .../k92b1/{a25,a26decl,a27}/<name> and .../k92attrib/<name> -> <root>, <name> a whole path component (followed by
 / or the end of the string) that is not a group name (with one component stripped, the D5 keys of two K9-2 trees
 never met and every one became a one-sided unclassified leaf).  The result of a comparison is
-`verdict` (PASS / FAIL / HOLD / INCOMPLETE, amendment 21 section 6.4); hard_verdict is one part of it."""
+`verdict` (PASS / FAIL / HOLD / INCOMPLETE, amendment 21 section 6.4); hard_verdict is one part of it.
+Amendment 29 (K8_PREDECLARATION_AMENDMENT_29; D-K9-53, D-K9-54): compare() takes old_root for the A_K92 old-value
+condition and the old-side A_K92-M evidence (a report holds old_root, every A_K92 check holds old_is_root_rs), the
+A_K92-M sides and depths above, and N2 exactly as amendment 27 section 2.1 reads: the group names are excluded on the
+k92attrib branch too, and the amendment-21 one-component rule no longer takes the bundle folders k92b1 / k92attrib
+themselves as a tree, so a bundle folder, a group folder or a file directly under them keeps its own text and never
+meets a path inside a declared tree root."""
 import hashlib
 import json
 import re
@@ -43,8 +52,8 @@ BS = chr(92)
 N2 = [
     (r'd:/vissim-merge/frozen/sdmpc31_[0-9a-f]{8}_[0-9]{12}', '<root>'),
     (r'd:/vissim-merge/sim3-n31-k8', '<root>'),
-    (r'd:/vissim-merge/k8_gate_trees/(?:k92b1/(?:(?:a25|a26decl|a27)/)?(?!(?:a25|a26decl|a27)(?![a-z0-9_]))|k92attrib/)[a-z0-9_]+(?=/|$)', '<root>'),   # amendment 27
-    (r'd:/vissim-merge/k8_gate_trees/(?:s31fail/tree74(?:_base|_f1)?|[a-z0-9_]+)', '<root>'),
+    (r'd:/vissim-merge/k8_gate_trees/(?:k92b1/(?:(?:a25|a26decl|a27)/)?|k92attrib/)(?!(?:a25|a26decl|a27)(?![a-z0-9_]))[a-z0-9_]+(?=/|$)', '<root>'),   # amendment 29 (K9-2 tree roots)
+    (r'd:/vissim-merge/k8_gate_trees/(?:s31fail/tree74(?:_base|_f1)?|(?!(?:k92b1|k92attrib)(?![a-z0-9_]))[a-z0-9_]+)', '<root>'),   # amendment 29 (bundle folders are not trees)
     (r'd:/vissim_runs/20261001_v3c3/reports/k8/(?:offline_gates|offline_gates_k8h)/(?:[a-z0-9_]+/)*?t[0-9]{6}(?:_[a-z0-9]+)*',
      '<bundle>'),
     (r'd:/vissim_runs/20261004_sdmpc31_k8/sdmpc31_v3c3_k8j1[a-z]*_s[0-9]+', '<run>'),
@@ -100,6 +109,10 @@ KNOWN_OLD_RS = frozenset({'8a5aec79c79e24e568f5f419cb0d9a70f7580c2c8db62d1eadff3
                           '472d7f9cc5174ab82d2a3767a3259e54798a436e7e10a36aa34710cf0a5d101a'})  # attribution X1H1
 K92M = ('/metadata/k92_w', '/metadata/k92_hb', '/metadata/k92_hb_seed_binding', '/metadata/k92_attrib_capacity_override',
         '/metadata/k92_attrib_head_173_p4_seed')
+# amendment 29 (amendment 24 section 4.2 :271): the side each one-sided subtree belongs to
+K92M_NEW = ('/metadata/k92_w', '/metadata/k92_hb', '/metadata/k92_hb_seed_binding')
+K92M_OLD = ('/metadata/k92_attrib_capacity_override', '/metadata/k92_attrib_head_173_p4_seed')
+RS_REL = Path('evaluation') / 'controllers' / 'runtime_setup.py'
 U4_SHA256 = '22384c00313a0104a9febf5344914acd15f20058a0a62fe91d2bc085dcbb292b'
 RULE_CODE_SHA256 = 'd9bd53920eea89ace2b71a589d780069c3c7191be889aca894994ddf65bcc106'
 FLOOR_PREFIX = '/metadata/head_discharge_floor_173_p4_'
@@ -333,19 +346,35 @@ def h5_declared(path, kind, va, vb, B, keyed):
     return False
 
 
+def _nodes(x, p, out):
+    """Every node below a subtree root (amendment 29), depth first in document order: (path, value)."""
+    if isinstance(x, dict):
+        for k, v in x.items():
+            out.append((p + '/' + k, v))
+            _nodes(v, p + '/' + k, out)
+    elif isinstance(x, list):
+        for i, v in enumerate(x):
+            out.append((p + '[%d]' % i, v))
+            _nodes(v, p + '[%d]' % i, out)
+
+
 def k92m_check(path, side_doc, keyed, side_root):
-    """A_K92-M deterministic leaves of a one-sided subtree; returns (ok, why)."""
+    """A_K92-M deterministic nodes of a one-sided subtree at any depth (amendment 29); returns (ok, why).
+    side_doc = the normalized (N) document of that side, so that the D rules read the N path (amendment 21 section
+    6.3a); side_root = the tree of that side (the old side: old_root, None when not given)."""
     name = path[len('/metadata/'):]
     sub = (side_doc.get('metadata') or {}).get(name, MISSING)
     if sub is MISSING:
         return False, 'subtree missing'
-    if not isinstance(sub, dict):
-        return True, 'leaf'
-    for leaf, v in sub.items():
+    nodes = []
+    _nodes(sub, path, nodes)
+    for q, v in nodes:
+        leaf = last(q)
         if leaf == 'evidence_sha256':
             want = ((keyed or {}).get('evidence_sha256') or {}).get(name)
             rel = ((keyed or {}).get('evidence_file') or {}).get(name)
-            actual = sha_file(Path(side_root) / rel) if rel and (Path(side_root) / rel).is_file() else None
+            f = Path(side_root) / rel if side_root is not None and rel else None
+            actual = sha_file(f) if f is not None and f.is_file() else None
             if not (isinstance(v, str) and want is not None and v == want and actual == want):
                 return False, 'evidence_sha256 != pinned / file sha'
         elif leaf == 'u4_sha256':
@@ -354,17 +383,19 @@ def k92m_check(path, side_doc, keyed, side_root):
         elif leaf == 'rule_code_sha256':
             if v != RULE_CODE_SHA256:
                 return False, 'rule_code_sha256'
-        elif leaf.endswith('sha256'):
-            return False, 'unexpected sha leaf %s' % leaf
-    return True, 'ok'
+        elif d_rule(q) is not None:
+            return False, 'unexpected decisive node %s' % gen(q)[len(path):]
+    return True, ('ok' if isinstance(sub, dict) else 'leaf')
 
 
 def compare(dir_old, dir_new, T, new_root, *, keyed=None, old_root=None, label=''):
     """keyed (key-on comparisons only): {'seed': s or None, 'floor_key': name or None,
-    'evidence_sha256': {subtree: sha}, 'evidence_file': {subtree: repo-relative path}}."""
+    'evidence_sha256': {subtree: sha}, 'evidence_file': {subtree: repo-relative path}}.
+    old_root (amendment 29): the tree that produced dir_old; None leaves every A_K92 leaf unclassified."""
     s6 = '%06d' % T
     do, dn = Path(dir_old), Path(dir_new)
-    rep = {'T': T, 'label': label, 'old': str(do), 'new': str(dn), 'new_root': str(new_root), 'keyed': bool(keyed)}
+    rep = {'T': T, 'label': label, 'old': str(do), 'new': str(dn), 'new_root': str(new_root),
+           'old_root': None if old_root is None else str(old_root), 'keyed': bool(keyed)}
     co, cn = do / ('action_%s.csv' % s6), dn / ('action_%s.csv' % s6)
     jo, jn = do / ('action_%s.json' % s6), dn / ('action_%s.json' % s6)
     missing = [str(p) for p in (co, cn, jo, jn) if not p.is_file()]
@@ -414,9 +445,14 @@ def compare(dir_old, dir_new, T, new_root, *, keyed=None, old_root=None, label='
             continue
         if p in K92M:
             if keyed and kind == 'presence':
-                side_doc, side_root = (raw_n, new_root) if va is MISSING else (raw_o, old_root or new_root)
-                ok, why = k92m_check(p, side_doc, keyed, side_root)
-                k92_checks.append({'path': p, 'side': 'new' if va is MISSING else 'old', 'ok': ok, 'why': why})
+                side = 'new' if va is MISSING else 'old'
+                if side != ('new' if p in K92M_NEW else 'old'):
+                    ok, why = False, 'side: belongs to the %s side only' % ('new' if p in K92M_NEW else 'old')
+                else:
+                    # the normalized documents: the D rules of amendment 21 section 6.3a read the N path
+                    side_doc, side_root = (B, new_root) if side == 'new' else (A, old_root)
+                    ok, why = k92m_check(p, side_doc, keyed, side_root)
+                k92_checks.append({'path': p, 'side': side, 'ok': ok, 'why': why})
                 if ok:
                     allowed['A_K92-M'] = allowed.get('A_K92-M', 0) + 1
                     continue
@@ -430,9 +466,15 @@ def compare(dir_old, dir_new, T, new_root, *, keyed=None, old_root=None, label='
         g = gen(p)
         m5 = D5.match(g)
         if m5 and m5.group(1) == RS_KEY:
-            actual = sha_file(Path(new_root) / 'evaluation' / 'controllers' / 'runtime_setup.py')
-            ok = kind == 'value' and isinstance(vb, str) and vb == actual and isinstance(va, str) and va in KNOWN_OLD_RS
-            k92_checks.append({'path': g, 'rule': 'A_K92', 'ok': ok, 'new_is_root_rs': vb == actual,
+            nf = Path(new_root) / RS_REL
+            actual = sha_file(nf) if nf.is_file() else None
+            of = Path(old_root) / RS_REL if old_root is not None else None
+            old_actual = sha_file(of) if of is not None and of.is_file() else None
+            new_is = actual is not None and vb == actual
+            old_is = old_actual is not None and va == old_actual      # amendment 29 (amendment 24 section 4.2 :270)
+            ok = (kind == 'value' and isinstance(vb, str) and new_is and isinstance(va, str) and old_is
+                  and va in KNOWN_OLD_RS)
+            k92_checks.append({'path': g, 'rule': 'A_K92', 'ok': ok, 'new_is_root_rs': new_is, 'old_is_root_rs': old_is,
                                'old_known': va in KNOWN_OLD_RS if isinstance(va, str) else False})
             if ok:
                 allowed['A_K92'] = allowed.get('A_K92', 0) + 1
@@ -561,7 +603,8 @@ def numeric_hard(dir_a, dir_b, T, tol_rel=1e-9):
 
 
 if __name__ == '__main__':
-    r = compare(sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4])
+    r = compare(sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4],
+                old_root=sys.argv[6] if len(sys.argv) > 6 else None)       # argv[6] = old_root (amendment 29)
     if len(sys.argv) > 5:
         Path(sys.argv[5]).write_text(json.dumps(r, indent=1, default=str), encoding='utf-8')
     print('K92CMP T=%s verdict=%s hard=%s unclassified=%s allowed=%s' % (

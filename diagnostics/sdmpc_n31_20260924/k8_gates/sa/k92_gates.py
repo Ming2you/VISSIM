@@ -16,7 +16,8 @@ Gate rules (operationalizations fixed here before any gate data; the amendment t
               K9-1 commit gates (k8b_commit_gates.compare_g5, tolerance 0: template / capture.json / summary numeric
               leaves bit-equal, string leaves equal except sha / hash keys (listed) and root path strings (listed),
               one-sided leaves: none allowed), jobs ok, no recorder error, objective repr equal.
-  G-K0 decis. k92_compare.compare (keyed=None) of each declared pair -> every verdict PASS.
+  G-K0 decis. k92_compare.compare (keyed=None) of each declared pair -> every verdict PASS (amendment 29: a pair may
+              carry old_root, the tree that produced the old output, as a sixth element).
   G-K1 static configure snapshots (k92_cfgsnap) key off vs key on of one state: cfg.network flattened structurally;
               the differing paths must be the W capacity (new value repr 5209.8), for B1 also the left-turn capacity
               (only when its key-off value < s, new value = s by repr) and the attribute head_floor_seed (key-on side
@@ -33,7 +34,7 @@ Gate rules (operationalizations fixed here before any gate data; the amendment t
               declared H5 difference) and 0 unclassified leaves; HOLD = HARD same and unclassified > 0; FAIL =
               HARD different; INCOMPLETE -- after the CR pair check of the two producing trees (k92_a27.cr_pair;
               not ok = INCOMPLETE).  Until amendment 27 this line read "hard_verdict SAME" (judge_hard); judge_hard
-              is kept as a report and is not the G-K2 verdict.
+              is kept as a report and is not the G-K2 verdict.  Amendment 29 (D-K9-53): old_root = ref_root.
   G-K4        amendment 27 (D-K9-50; same disclosure): decisions = judge_g4_decision_full -- k92_compare.compare
               of the probe arm output (old) and the commit arm output (new), every leaf, allowed sets as
               amendment 24 section 4.2, after k92_a27.cr_pair; PASS = full PASS; HOLD = HARD same and
@@ -42,7 +43,7 @@ Gate rules (operationalizations fixed here before any gate data; the amendment t
               FAIL otherwise; INCOMPLETE.  Plant (v3c3-s31 1500 / v3c3-s43 1050 H3 OBS jobs vs the probe jobs,
               summary + k92_record) = judge_g4_plant, unchanged: PASS = compare_g5 equal; EXPLAIN = only numbers
               differ, all within relative 1e-9; FAIL otherwise.  judge_g4_decision (HARD numbers only) is kept as
-              a report.
+              a report.  Amendment 29 (D-K9-53): the decision rows pass old_root = probe_root.
   G-K5        key-off pairs (A archive, B commit) per state A B A B, clean pairs only (VISSIM count 0 three times):
               median wall ratio B / A <= 1.05 / 1.033718118959995; the IQR is reported only (amendment 26).
   G-K0 D-d    the J1 record (RR decisions folder) vs the commit replay with the run's own tuning bytes (k92_replay.py
@@ -219,10 +220,12 @@ def judge_plant(base_out, base_label, base_root, new_out, new_label, new_root, p
 
 # ------------------------------------------------------------------------------------------------ G-K0 decisions
 def judge_decisions(pairs):
-    """pairs = [(label, old_dir, new_dir, T, new_root)]: k92_compare (keyed=None), all PASS."""
+    """pairs = [(label, old_dir, new_dir, T, new_root[, old_root])]: k92_compare (keyed=None), all PASS.  Amendment 29:
+    old_root = the tree that produced old_dir (without it an A_K92 leaf stays unclassified)."""
     rows, ok = {}, True
-    for label, old, new, T, root in pairs:
-        r = k92cmp.compare(old, new, T, root, label=label)
+    for p in pairs:
+        label, old, new, T, root = p[:5]
+        r = k92cmp.compare(old, new, T, root, label=label, old_root=p[5] if len(p) > 5 else None)
         rows[label] = {k: r.get(k) for k in ('verdict', 'hard_verdict', 'unclassified_n', 'unclassified', 'allowed_counts',
                                              'r3_checks', 'k92_checks', 'why', 'json_sha256')}
         rows[label]['hard_groups'] = {g: r[g]['same'] for g in ('H1', 'H2', 'H3', 'H4', 'H5') if g in r}
@@ -466,8 +469,8 @@ def judge_dynamic(off_job, on_job):
 
 
 # ------------------------------------------------------------------------------------------------ G-K2 / G-K4
-def judge_hard(ref_dir, new_dir, T, new_root, keyed):
-    r = k92cmp.compare(ref_dir, new_dir, T, new_root, keyed=keyed)
+def judge_hard(ref_dir, new_dir, T, new_root, keyed, old_root=None):
+    r = k92cmp.compare(ref_dir, new_dir, T, new_root, keyed=keyed, old_root=old_root)      # old_root: amendment 29
     return {'hard_verdict': r.get('hard_verdict'), 'verdict_full': r.get('verdict'), 'h5_declared': r.get('h5_declared'),
             'hard_groups': {g: r[g]['same'] for g in ('H1', 'H2', 'H3', 'H4', 'H5') if g in r},
             'hard_diff_paths': {g: r[g]['diff_paths_generalized'][:10] for g in ('H2', 'H3', 'H4', 'H5')
@@ -515,8 +518,8 @@ def judge_g4_decision(r):
 def judge_g2(ref_dir, new_dir, T, new_root, keyed, ref_root):
     """Amendment 27 (D-K9-49): the G-K2 (a)(b)(c) verdict = the four outcomes of k92_compare.compare (PASS only
     when no unclassified leaf) after the CR pair check of the two producing trees (ref_root = the tree of the
-    reference output, new_root = the commit tree)."""
-    r = judge_hard(ref_dir, new_dir, T, new_root, keyed)
+    reference output, new_root = the commit tree; amendment 29: ref_root is the comparison's old_root)."""
+    r = judge_hard(ref_dir, new_dir, T, new_root, keyed, old_root=ref_root)
     r['cr_pair'] = k92a.cr_pair(ref_root, new_root)
     full = r.get('verdict_full')
     r['verdict'] = full if r['cr_pair']['ok'] and full in ('PASS', 'HOLD', 'FAIL', 'INCOMPLETE') else 'INCOMPLETE'
@@ -526,9 +529,10 @@ def judge_g2(ref_dir, new_dir, T, new_root, keyed, ref_root):
 
 def judge_g4_decision_full(probe_dir, commit_dir, T, commit_root, keyed, probe_root):
     """Amendment 27 (D-K9-50): one G-K4 decision row = every leaf of the probe arm output (old) vs the commit arm
-    output (new) with the amendment 24 section 4.2 allowed sets, after the CR pair check of the two trees."""
+    output (new) with the amendment 24 section 4.2 allowed sets, after the CR pair check of the two trees
+    (amendment 29: probe_root is the comparison's old_root)."""
     cr = k92a.cr_pair(probe_root, commit_root)
-    full = k92cmp.compare(probe_dir, commit_dir, T, commit_root, keyed=keyed)
+    full = k92cmp.compare(probe_dir, commit_dir, T, commit_root, keyed=keyed, old_root=probe_root)
     num = (k92cmp.numeric_hard(probe_dir, commit_dir, T, tol_rel=TOL_REL) if full.get('verdict') != 'INCOMPLETE'
            else {'status': 'INCOMPLETE'})
     if not cr['ok'] or full.get('verdict') == 'INCOMPLETE' or num.get('status') == 'INCOMPLETE':
@@ -640,8 +644,8 @@ def judge_b(rows):
 
 
 # ------------------------------------------------------------------------------------------------ G-K2 (e) report
-def report_g2e(ref_dir, new_dir, T, new_root, keyed):
-    r = k92cmp.compare(ref_dir, new_dir, T, new_root, keyed=keyed)
+def report_g2e(ref_dir, new_dir, T, new_root, keyed, old_root=None):
+    r = k92cmp.compare(ref_dir, new_dir, T, new_root, keyed=keyed, old_root=old_root)      # old_root: amendment 29
     paths = []
     for g in ('H1', 'H2', 'H3', 'H4', 'H5'):
         if g in r and not r[g]['same']:

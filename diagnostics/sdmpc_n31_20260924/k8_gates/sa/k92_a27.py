@@ -10,7 +10,9 @@ only; no objective or prediction value is printed or written.
    of the string) that is not itself a group name.  k92_compare.N2 maps exactly these roots to <root> with
    K92_ROOT_RULE, placed before the amendment-21 one-component gate-tree rule (review r2: a file or a group folder
    directly under k92b1 is not a root and keeps the amendment-21 one-component form).  tree_root_ok(path) tells
-   whether a path is such a root.
+   whether a path is such a root.  Amendment 29 (D-K9-54, section 2.1 exactly): the group names are excluded on
+   the k92attrib branch too, and the one-component rule (GENERIC_RULE_A29) no longer takes the bundle folders k92b1
+   / k92attrib as a tree, so a bundle folder, a group folder and a file directly under them keep their own text.
 2. CR pair rule (amendment 27 section 2.2).  CR_FILES = the 10 files of TK/cr_only_files.json (sha256 CR_LIST_SHA256)
    with the sha256 of their committed bytes (the b9734abe blob = FRZ_K8b bytes; the blob is the same at K9-2-1,
    K9-2-2 and K9-2-3) and of their git-archive bytes (core.autocrlf=true: every LF -> CRLF).  l_form(tree) gives per
@@ -36,8 +38,13 @@ sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 AMENDMENT = 27
 GROUPS = ('a25', 'a26decl', 'a27')
-K92_ROOT_RULE = (r'd:/vissim-merge/k8_gate_trees/(?:k92b1/(?:(?:a25|a26decl|a27)/)?(?!(?:a25|a26decl|a27)(?![a-z0-9_]))'
-                 r'|k92attrib/)[a-z0-9_]+(?=/|$)')
+K92_ROOT_RULE = (r'd:/vissim-merge/k8_gate_trees/(?:k92b1/(?:(?:a25|a26decl|a27)/)?|k92attrib/)'
+                 r'(?!(?:a25|a26decl|a27)(?![a-z0-9_]))[a-z0-9_]+(?=/|$)')                 # amendment 29
+K92_ROOT_RULE_A27 = (r'd:/vissim-merge/k8_gate_trees/(?:k92b1/(?:(?:a25|a26decl|a27)/)?(?!(?:a25|a26decl|a27)'
+                     r'(?![a-z0-9_]))|k92attrib/)[a-z0-9_]+(?=/|$)')                        # K9-2-4 (report only)
+GENERIC_RULE_A21 = r'd:/vissim-merge/k8_gate_trees/(?:s31fail/tree74(?:_base|_f1)?|[a-z0-9_]+)'     # K9-2-0 .. K9-2-4
+GENERIC_RULE_A29 = (r'd:/vissim-merge/k8_gate_trees/(?:s31fail/tree74(?:_base|_f1)?|(?!(?:k92b1|k92attrib)'
+                    r'(?![a-z0-9_]))[a-z0-9_]+)')                                           # amendment 29
 _ROOT_FULL = re.compile('^' + K92_ROOT_RULE + '$')
 CR_LIST_SHA256 = 'd7da2fe968a117180677e487cc2a8b45c3c5d6a9114230fa8940de17ead8312f'
 CR_FILES = {
@@ -228,18 +235,27 @@ SELFTEST_N = [
      '<root>/vb_b887f99f/diagnostics/x.json'),
     ('D:/VISSIM-merge/k8_gate_trees/k92attrib/t74_CW/evaluation/controllers/a.py',
      '<root>/evaluation/controllers/a.py', '<root>/t74_cw/evaluation/controllers/a.py'),
-    ('D:/VISSIM-merge/k8_gate_trees/k92b1', '<root>', '<root>'),
-    # review r2: only a whole path component that is a tree name; a file or a group folder keeps the old form
-    ('D:/VISSIM-merge/k8_gate_trees/k92b1/a25', '<root>/a25', '<root>/a25'),
-    ('D:/VISSIM-merge/k8_gate_trees/k92b1/a25/k92b1_probe.build.json', '<root>/a25/k92b1_probe.build.json',
-     '<root>/a25/k92b1_probe.build.json'),
-    ('D:/VISSIM-merge/k8_gate_trees/k92b1/k921.build.json', '<root>/k921.build.json', '<root>/k921.build.json'),
-    ('D:/VISSIM-merge/k8_gate_trees/k92b1/a27/a.py', '<root>/a27/a.py', '<root>/a27/a.py'),
-    ('D:/VISSIM-merge/k8_gate_trees/k92b1/k921-x/a.py', '<root>/k921-x/a.py', '<root>/k921-x/a.py'),
-    ('D:/VISSIM-merge/k8_gate_trees/k92attrib/t74_CW.build.json', '<root>/t74_cw.build.json',
-     '<root>/t74_cw.build.json'),
-    ('x D:/VISSIM-merge/k8_gate_trees/k92b1/a25/ref_t74_CWf;y', 'x <root>/a25/ref_t74_cwf;y',
-     'x <root>/a25/ref_t74_cwf;y'),
+    # amendment 29: a bundle folder, a group folder and a file directly under them keep their own text (no <root>)
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1', 'd:/vissim-merge/k8_gate_trees/k92b1', '<root>'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1/a25', 'd:/vissim-merge/k8_gate_trees/k92b1/a25', '<root>/a25'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1/a25/k92b1_probe.build.json',
+     'd:/vissim-merge/k8_gate_trees/k92b1/a25/k92b1_probe.build.json', '<root>/a25/k92b1_probe.build.json'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1/k921.build.json', 'd:/vissim-merge/k8_gate_trees/k92b1/k921.build.json',
+     '<root>/k921.build.json'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1/k921_t74_W/k921.build.json', '<root>/k921.build.json',
+     '<root>/k921_t74_w/k921.build.json'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1/a27/a.py', 'd:/vissim-merge/k8_gate_trees/k92b1/a27/a.py', '<root>/a27/a.py'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1/k921-x/a.py', 'd:/vissim-merge/k8_gate_trees/k92b1/k921-x/a.py',
+     '<root>/k921-x/a.py'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92attrib/t74_CW.build.json',
+     'd:/vissim-merge/k8_gate_trees/k92attrib/t74_cw.build.json', '<root>/t74_cw.build.json'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92attrib/a25/x.py', 'd:/vissim-merge/k8_gate_trees/k92attrib/a25/x.py',
+     '<root>/a25/x.py'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92attrib', 'd:/vissim-merge/k8_gate_trees/k92attrib', '<root>'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1.x', 'd:/vissim-merge/k8_gate_trees/k92b1.x', '<root>.x'),
+    ('x D:/VISSIM-merge/k8_gate_trees/k92b1/a25/ref_t74_CWf;y',
+     'x d:/vissim-merge/k8_gate_trees/k92b1/a25/ref_t74_cwf;y', 'x <root>/a25/ref_t74_cwf;y'),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1x/a.py', '<root>/a.py', '<root>/a.py'),
     # unchanged by amendment 27
     ('D:/VISSIM-merge/k8_gate_trees/k91t/evaluation/controllers/a.py', '<root>/evaluation/controllers/a.py',
      '<root>/evaluation/controllers/a.py'),
@@ -267,18 +283,24 @@ SELFTEST_ROOTS = [
     ('D:/VISSIM-merge/k8_gate_trees/k91t', False),
     ('D:/VISSIM-merge/k8_gate_trees/k92b1/k92-x', False),
     ('D:/VISSIM-merge/sim3-n31-k8', False),
+    ('D:/VISSIM-merge/k8_gate_trees/k92attrib/a25', False),          # amendment 29: group names on k92attrib too
+    ('D:/VISSIM-merge/k8_gate_trees/k92attrib/a27', False),
+    ('D:/VISSIM-merge/k8_gate_trees/k92b1', False),
 ]
 
 
 def selftest():
-    """No child process, no file outside a temporary folder: N table (this commit's N and the N without the amendment
-    27 rule = the K9-2-0 N), tree roots, CR forms, R-old judges on synthetic reports."""
+    """No child process, no file outside a temporary folder: N table (this commit's N and the N without the K9-2 root
+    rule and with the amendment-21 one-component rule = the K9-2-0 N), tree roots, CR forms, R-old judges on
+    synthetic reports."""
     global CR_FILES
     import tempfile
     sys.path.insert(0, str(HERE))
     import k92_compare as cmp
     cases = []
-    old_n2 = [r for r in cmp.N2 if r[0] != K92_ROOT_RULE]
+    old_n2 = [(GENERIC_RULE_A21, b) if a == GENERIC_RULE_A29 else (a, b) for a, b in cmp.N2 if a != K92_ROOT_RULE]
+    cases.append({'case': 'generic_rule_a29_once', 'ok': [a for a, _ in cmp.N2].count(GENERIC_RULE_A29) == 1
+                  and GENERIC_RULE_A21 not in [a for a, _ in cmp.N2]})
 
     def old_norm(s):
         s = s.lower().replace('\\\\', '/').replace('\\', '/')

@@ -145,17 +145,22 @@ def _decision(path, T, md, root_tag='d:/vissim-merge/sim3-n31-k8', rs_sha='a' * 
     return d
 
 
-def test_a_k92_rs_key(tmp_path):
+def test_a_k92_rs_key(tmp_path, monkeypatch):
     root = tmp_path / 'root'
     (root / 'evaluation' / 'controllers').mkdir(parents=True)
     (root / 'evaluation' / 'controllers' / 'runtime_setup.py').write_bytes(b'new rs')
     new_sha = cmp.sha_file(root / 'evaluation' / 'controllers' / 'runtime_setup.py')
-    old = _decision(tmp_path / 'o', 900, {}, rs_sha=sorted(cmp.KNOWN_OLD_RS)[0])
+    old_root = tmp_path / 'old_root'                   # amendment 29: the old value = the old root's RS bytes sha
+    (old_root / 'evaluation' / 'controllers').mkdir(parents=True)
+    (old_root / 'evaluation' / 'controllers' / 'runtime_setup.py').write_bytes(b'old rs')
+    old_sha = cmp.sha_file(old_root / 'evaluation' / 'controllers' / 'runtime_setup.py')
+    monkeypatch.setattr(cmp, 'KNOWN_OLD_RS', frozenset({old_sha}))
+    old = _decision(tmp_path / 'o', 900, {}, rs_sha=old_sha)
     new = _decision(tmp_path / 'n', 900, {}, rs_sha=new_sha)
-    r = cmp.compare(old, new, 900, root)
+    r = cmp.compare(old, new, 900, root, old_root=old_root)
     assert r['verdict'] == 'PASS' and r['allowed_counts'].get('A_K92') == 1
     bad = _decision(tmp_path / 'b', 900, {}, rs_sha='b' * 64)
-    r2 = cmp.compare(bad, new, 900, root)
+    r2 = cmp.compare(bad, new, 900, root, old_root=old_root)
     assert r2['verdict'] == 'HOLD'
 
 
