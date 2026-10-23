@@ -38,6 +38,44 @@ if ($replayControlStart -lt 0 -or $replayControlStart % 150 -or $replayControlSt
     throw 'Invalid native-to-controlled transition time'
 }
 function Hash([string]$p) { (Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash.ToLowerInvariant() }
+function Assert-ControlledPrefix($protocol, [string]$taskRoot, [int]$controlStart) {
+    # A controlled baseline can be reused only with its verified native command
+    # receipt and every byte-identical prefix file. This is not traffic parity;
+    # the completed replay still needs an exact FZP-prefix check.
+    $prefix=$protocol.controlled_prefix
+    if ($null -eq $prefix -or $prefix.control_start_sec -ne $controlStart -or
+        (Hash $prefix.execution) -cne $prefix.execution_sha256 -or
+        (Hash $prefix.provenance) -cne $prefix.provenance_sha256) { throw 'Controlled prefix proof missing or changed' }
+    $execution=Get-Content -LiteralPath $prefix.execution -Raw | ConvertFrom-Json
+    $provenance=Get-Content -LiteralPath $prefix.provenance -Raw | ConvertFrom-Json
+    $baseline=[IO.Path]::GetFullPath($protocol.reuse_native_baseline.run)
+    if (-not $execution.native_execution_passed -or -not $execution.checks.actual_commands.passed -or
+        [IO.Path]::GetFullPath($execution.run_directory) -ne $baseline -or
+        [IO.Path]::GetFullPath((Split-Path -Parent $prefix.provenance)) -ne $baseline -or
+        $execution.terminal_sec -lt $protocol.end_sec -or $provenance.sim_period_sec -lt $protocol.end_sec -or
+        $execution.run_id -cne $provenance.run_id -or $provenance.seed -ne $protocol.seed -or
+        $provenance.files.network.sha256 -cne $protocol.network_sha256) { throw 'Controlled baseline execution context differs' }
+    $firstSignal=@($execution.checks.actual_commands.decisions | Where-Object { $_.kinds.signal -gt 0 } | Select-Object -First 1)
+    if ($firstSignal.Count -ne 1 -or $firstSignal[0].sim_sec -ne $controlStart) { throw 'Controlled baseline start differs' }
+    $times=@(1)+@(150..([int]$protocol.start_sec-1) | Where-Object { $_ % 150 -eq 0 })
+    if (@($prefix.commands).Count -ne $times.Count -or
+        (@($prefix.commands.sim_sec) -join ',') -cne ($times -join ',')) { throw 'Incomplete controlled command prefix' }
+    $source=Join-Path $baseline ('decisions_'+$provenance.name)
+    $destination=Join-Path $taskRoot 'selected/commands'
+    foreach ($record in $prefix.commands) {
+        $witness=@($execution.checks.actual_commands.decisions | Where-Object { $_.sim_sec -eq $record.sim_sec })
+        if ($witness.Count -ne 1 -or $witness[0].sha256 -cne $record.csv.sha256) { throw 'Prefix CSV lacks native execution witness' }
+        foreach ($suffix in @('json','csv')) {
+            $pin=$record.$suffix
+            $filename='action_{0:D6}.{1}' -f [int]$record.sim_sec,$suffix
+            if ([IO.Path]::GetFullPath($pin.source) -ne [IO.Path]::GetFullPath((Join-Path $source $filename)) -or
+                [IO.Path]::GetFullPath($pin.destination) -ne [IO.Path]::GetFullPath((Join-Path $destination $filename)) -or
+                (Hash $pin.source) -cne $pin.sha256 -or (Hash $pin.destination) -cne $pin.sha256) {
+                throw 'Controlled command prefix source/destination mismatch'
+            }
+        }
+    }
+}
 function Get-UnreservedVissim($live) {
     # An optional protocol pins already-owned concurrent runs. Never stop them.
     $reserved=@($protocol.allowed_concurrent_vissim | Where-Object { $null -ne $_ })
@@ -113,7 +151,7 @@ try {
         if (-not $baselineResult.counterfactual_valid -or -not $baselineResult.paired_prefix_exact) {
             throw 'Baseline native execution/prefix was not validated'
         }
-        if ($replayControlStart -ne $protocol.start_sec) { throw 'Preserve native urban signals throughout the replay prefix' }
+        if ($replayControlStart -ne $protocol.start_sec) { Assert-ControlledPrefix $protocol $taskRoot $replayControlStart }
     }
     # Physical runtime settings match the completed R3 prefix. Observations are
     # retained for one matched replay; the controller itself is never called.
@@ -137,8 +175,9 @@ try {
             $name='sdmpc31_g_'+$protocol.start_sec+'_'+$arm+'_s'+$protocol.seed
             $network=Join-Path $networkDir ($name+'.inpx')
             Copy-Item -LiteralPath $protocol.network -Destination $network
+            (Get-Item -LiteralPath $network).IsReadOnly=$false
             Get-ChildItem -LiteralPath (Split-Path -Parent $protocol.network) -Filter '*.sig' |
-              ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $networkDir }
+              ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $networkDir; (Get-Item -LiteralPath (Join-Path $networkDir $_.Name)).IsReadOnly=$false }
             if ((Hash $network) -cne $protocol.network_sha256) { throw 'Copied network differs' }
             $configDir=Join-Path $taskRoot $arm
             $runnerConfig=Join-Path $configDir 'replay.vbs'

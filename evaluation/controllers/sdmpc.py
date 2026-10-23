@@ -132,7 +132,7 @@ def configure(tuning, cfg, controller='wu-link'):
             pfo_cap_options[key] = sdmpc_budget.checked_margin(pfo_cap_options[key], key)
         options = dict(options, budget_caps=True, pfo_each_interval=True, pfo_cap_options=pfo_cap_options)
     for name in ('response_np_cache', 'response_cap_cache', 'lazy_trial_derivatives', 'stock_geometry_hotpath', 'receiving_geometry_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
-                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant', 'meter_neighbor_audit'):
+                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant', 'meter_neighbor_audit', 'vsl_schedule_audit'):
         value = tuning.get('adapter', {}).get('sdmpc_'+name)
         if value is not None:
             if type(value) is not bool:
@@ -204,6 +204,8 @@ def configure(tuning, cfg, controller='wu-link'):
         options = dict(options, control_blocks=blocks)
     if options.get('meter_neighbor_audit') and options.get('control_blocks') != 3:
         raise ValueError('Finite meter schedule audit requires three control blocks')
+    if options.get('vsl_schedule_audit') and options.get('control_blocks') != 3:
+        raise ValueError('Finite VSL schedule audit requires three control blocks')
     if options.get('fast_primitives') and (backend != 'reverse-v1' or primal_audit is not True):
         raise ValueError('sdmpc_fast_primitives requires reverse-v1 and primal_audit')
     if options.get('compact_audit') and primal_audit is not True:
@@ -1345,6 +1347,16 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             best, meter_audit = audit_meter_budget_candidates(coord, best, meter_budget_candidates,
                 policy['objective_tolerance'], evaluate, feasible)
             emit('sdmpc_meter_neighbors_done', **meter_audit)
+        vsl_schedule_audit = None
+        if policy.get('vsl_schedule_audit'):
+            from evaluation.controllers.vsl_schedule_neighbors import audit as audit_vsl_schedules
+            finish_trial_derivatives()
+            emit('sdmpc_vsl_schedules_start')
+            vsl_started = perf_counter()
+            best, vsl_schedule_audit = audit_vsl_schedules(coord, best,
+                policy['objective_tolerance'], evaluate, feasible)
+            vsl_schedule_audit['seconds'] = perf_counter()-vsl_started
+            emit('sdmpc_vsl_schedules_done', **vsl_schedule_audit)
         selected, item, signal = best
         sequence_proof = coord.validate(selected) if policy.get('control_blocks') == 3 else None
         # 기존 검증의 물리/제약/명령 부분만 재사용한다. hold 또는 Nash로 명명하지 않는다.
@@ -1394,9 +1406,11 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             **({'tangent_derivatives': derivative_receipts}
                if policy.get('derivatives') == 'tangent-v1' else {}),
             'trial_rows': trials, 'local_trial_traffic_rollouts': 0,
-            'finite_neighbor_audit_performed': meter_audit is not None, 'policy': policy}
+            'finite_neighbor_audit_performed': meter_audit is not None or vsl_schedule_audit is not None, 'policy': policy}
         if meter_audit is not None:
             metadata['meter_neighbor_audit'] = meter_audit
+        if vsl_schedule_audit is not None:
+            metadata['vsl_schedule_audit'] = vsl_schedule_audit
         if central_mode:
             metadata.update(algorithm='sdmpc-central-reuse/v2',central_multiplier=central_rows,
                 iteration_dual_updates=dual_updates, price_update='each_lower_iteration_after_all_players',

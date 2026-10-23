@@ -1,0 +1,79 @@
+{
+  "hypothesis": "Transferred FD and dynamic coefficients jointly misrepresent the refined transient; identify a finite local correction from autonomous baseline trajectories, not one-step population changes.",
+  "train_start_sec": [
+    1650,
+    2250,
+    2850
+  ],
+  "train_end_sec": [
+    2100,
+    2700,
+    3300
+  ],
+  "evaluation_reserved": [
+    "seed67",
+    "seed71"
+  ],
+  "horizon_sec": 450,
+  "train_controls": "Existing completed OFF110 replay city/RM.1650 free flow,2250 breakdown,2850 recovery. Previous2250 holdout is now explicitly development/training. All90 outcomes and seeds67/71 excluded from fitting.",
+  "objective": "Equalized native stock /10veh and speed /20kmh residuals at150/300/450 over cells14,15a/b/c,16,17,18. Parameter step regularizer0.1; controller Omega TTT objective unchanged.",
+  "parameters": [
+    "rho_crit",
+    "metanet_a_m",
+    "tau_sec",
+    "nu_ge",
+    "nu_lt"
+  ],
+  "initial": [
+    37.93479125576254,
+    2.072346780874629,
+    13.426875815725065,
+    38.51440958844298,
+    32.678376389327994
+  ],
+  "relative_lower": [
+    -0.40028666965330595,
+    -0.27618291791544236,
+    -0.5,
+    -0.5,
+    -0.5
+  ],
+  "relative_upper": [
+    0.47621742854570837,
+    0.4476341641691153,
+    0.5,
+    0.5,
+    0.5
+  ],
+  "historical_bounds": "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\parameter_spec.json",
+  "fixed": "v_free, kappa, remaining cells, geometry, VSL law, city/ramp physics, source/demand; FW5/U10,internalcap0.625,terminalOFF,Omega701",
+  "optimizer": "At most two measured bounded regularized Gauss-Newton updates. Relative0.05 forward Jacobian; no grid, line-search or restart. Stop after a non-improving nonlinear step. Reuse two previous identical trajectories.",
+  "budgets": {
+    "max_new_training450": 37,
+    "max_development_response450": 1,
+    "max_new_forecasts": 38,
+    "max_updates": 2,
+    "native": 0,
+    "SDMPC_optimizations": 0
+  },
+  "train_gate": "Keep lowest measured nonlinear training loss. Improvement>=1percent and no regime stock/speed RMSE increase>10percent. If passed, one90 response forecast at2250 is development diagnostic only. Frozen independent67/71 validation and AD/NP/NUF remain required.",
+  "reporting": "Best measured bounded update, not converged calibration.2250 is no longer held-out. Seed67/71 outcomes were previously inspected during model development, but no data from them enters this fit. Report this limit; no blind-test claim.",
+  "prior_review": "Aggregate247 distinguished instantaneous acceleration from population mean changes and nonlinear averaging atcells21-25; it did not calibrate the current refinedcell15. Existing proof reused, not repeated.",
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_update_audit.json": "c4b76b39fabe8ae812943d755d3c2d6550a2f609a88528ef7a35ec1f5fd8cd54",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\parameter_spec.json": "4a2941ec3f2b1637b84e49d0c232bb5d32bd5739df11441711df523c21389dc9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\selection.json": "97b47ab3c8238b776c546f1e7c79ae4ec8974beb1a3789bb4e6c6c120c921d5d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_calibration\\fit.json": "b90744866814ee9e237945d83032b4b5562fa25ca90fa1d5354b32b395eb585e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\assessment.json": "70c49c47cbc1531c31c5e1d1f94177c850ee8bbec44575fdd81cf91e740c3f72",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regimes\\off110_snapshots.json": "e57331797495719014ab096ddc52fb6edd07714a88e1d1d87233df6c1fe2e800",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\completion.json": "420fa152aa0e5dedba329d5e5685fd7ea25f306bc90a0e87461b9079ad30db30",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\repin_v3c3_review_20261001\\aggregate_recovery247\\verification.json": "d045b2245e0e65105d2c35948b14c690aacf7accd94f63db1ed0ed0a6deab4ac",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\run_refine15_regime_fit.py": "322644e1807eabe0c3608bb5ec223d3cec620a956dedd87e5d113e69c1892a1a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_approach15.py": "5c6705a56b4836c1461841b08cb62f51ab154e8748af9ea7609533132924d5df",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\vsl_schedules_20261015\\config.json": "d815be18409f3725588456adf3e621ef716d08dec91ab41c47bbd3045336f0c6",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\repin_v3c3_review_20261001\\urban260\\verify.py": "070592b4b5e812a2b27be410630f1fba7f3f6afeba5a0b846caafdcb75be3e77",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\evaluation\\controllers\\freeway_fd.py": "3c0c5892a70f6a0372f1457a53d12c69fe5ab03e94e3660306848f84576f236c",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\evaluation\\controllers\\area_freeway_accounting.py": "cd182276beaedec0a237e205d2c0b79a40a762d571028aa655a3d67d91cceee2",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\evaluation\\controllers\\multirate_freeway.py": "31fa119c107d982f041f56539438794eac7e7fac3e06a59ab4ced63a438613a3"
+  }
+}

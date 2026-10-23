@@ -1,0 +1,49 @@
+{
+  "created_utc": "2026-10-19T02:59:02.157865+00:00",
+  "purpose": "Resolution-specific baseline dynamic calibration, not VSL-benefit fitting.",
+  "measurement": "New5s cell14/three cell15 compartments/cell16 stock and spatial-mean speed. Existing Omega TTT caches untouched.",
+  "data_source": "E:\\VISSIM_runs\\20261011_vsl349_off2250_s29\\hold\\vissim_eval\\sdmpc31_g_2250_hold_s29_001.fzp",
+  "baseline": "Completed qualified hold110, city/RM as recorded; no VSL90 samples in calibration.",
+  "training": {
+    "start_sec": 900.1,
+    "end_sec": 2100.1
+  },
+  "purge": {
+    "start_sec": 2100.1,
+    "end_sec": 2250.1
+  },
+  "validation": {
+    "start_sec": 2250.1,
+    "end_sec": 2695.1
+  },
+  "models": [
+    "Parent-resolution control fit",
+    "Three-compartment fit with shared dynamic coefficients"
+  ],
+  "coefficients": [
+    "1/tau_sec",
+    "nu_downstream_ge/tau_sec",
+    "nu_downstream_lt/tau_sec"
+  ],
+  "fixed": [
+    "FD free speed/critical density/shape",
+    "kappa",
+    "geometry/lanes",
+    "convection coefficient",
+    "demand/controls",
+    "macroFW5/U10"
+  ],
+  "method": "One nonnegative linear least-squares fit per spatial resolution; no coefficient grid. Weight by min of current/next observed stock. Input data from observed current states only; next observation is a training/validation target, never a rollout boundary.",
+  "budgets": {
+    "fits": 2,
+    "native": 0,
+    "optimizer": 0,
+    "coefficient_grid": 0
+  },
+  "qualification": "Full-column rank, finite positive relaxation; report fit and baseline held-out one-step speed errors. At least10percent held-out weighted-RMSE reduction versus transferred parent coefficients is required before at most two autonomous450s fine-grid forecast checks. No adoption based on one-step regression.",
+  "limitations": [
+    "FZP time grid is0.1mod5, different from integer-time snapshots; never silently align them.",
+    "Cell mean change includes population turnover; regression is an empirical Eulerian equation fit, not identification of vehicle acceleration.",
+    "One seed and contiguous time validation are preliminary; independent seed67/71 and response/physics/AD gates remain mandatory."
+  ]
+}

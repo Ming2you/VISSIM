@@ -1,3 +1,5 @@
+Latest controller/VSL/storage work and calibration status: [2026-10-23 handoff](docs/sdmpc_vsl_20261023/README.md).
+
 Current controller and adopted urban/freeway plant: [2026-10-13 handoff](docs/sdmpc_plant_20261013/README.md).
 
 # VISSIM ↔ Numerical-Sim 통합 워크스페이스

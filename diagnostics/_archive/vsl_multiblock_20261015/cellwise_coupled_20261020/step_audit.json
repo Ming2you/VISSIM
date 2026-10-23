@@ -1,0 +1,282 @@
+{
+  "status": "rejected_step_linearization_audited",
+  "new_forecasts": 0,
+  "new_native": 0,
+  "new_fits": 0,
+  "baseline_data_loss": 2.281206427563583,
+  "linear_predicted_loss": 2.0397476714013605,
+  "measured_candidate_loss": 2.962942703510933,
+  "predicted_reduction": 0.24145875616222234,
+  "observed_reduction": -0.6817362759473502,
+  "reduction_agreement_ratio": -2.8234067249536006,
+  "linearization_error_norm": 0.9247757520130043,
+  "actual_residual_change_norm": 1.0631268854485454,
+  "singular_values": [
+    2.096518712134426,
+    0.513142013947515,
+    0.18011291195957563,
+    0.0688602964510077,
+    0.030043187953963588,
+    0.026053655066870445,
+    0.016368367900032706,
+    0.014054130880370374,
+    0.010573298337589429,
+    0.007047898971820608,
+    0.0030782300227168245,
+    0.002243390290026394,
+    0.00159626429956937,
+    0.0007843086621516289,
+    2.6741288392310636e-05
+  ],
+  "data_condition": 78400.06365352511,
+  "cells": [
+    {
+      "cell": 16,
+      "step": [
+        0.24999999999999997,
+        0.24999999999999997,
+        -0.24999999999998845,
+        -0.24999999999999997,
+        0.03982388557901331
+      ],
+      "names": [
+        [
+          16,
+          "rho_crit"
+        ],
+        [
+          16,
+          "metanet_a_m"
+        ],
+        [
+          16,
+          "tau_sec"
+        ],
+        [
+          16,
+          "nu_ge"
+        ],
+        [
+          16,
+          "nu_lt"
+        ]
+      ]
+    },
+    {
+      "cell": 17,
+      "step": [
+        0.24999999999999986,
+        0.24999999999999997,
+        0.2499999999999999,
+        -0.24999999999999997,
+        0.02754922961360404
+      ],
+      "names": [
+        [
+          17,
+          "rho_crit"
+        ],
+        [
+          17,
+          "metanet_a_m"
+        ],
+        [
+          17,
+          "tau_sec"
+        ],
+        [
+          17,
+          "nu_ge"
+        ],
+        [
+          17,
+          "nu_lt"
+        ]
+      ]
+    },
+    {
+      "cell": 18,
+      "step": [
+        -0.24999999999999997,
+        -0.24999999999999997,
+        0.21075869233562586,
+        -0.16599468531064598,
+        0.0004726367310024625
+      ],
+      "names": [
+        [
+          18,
+          "rho_crit"
+        ],
+        [
+          18,
+          "metanet_a_m"
+        ],
+        [
+          18,
+          "tau_sec"
+        ],
+        [
+          18,
+          "nu_ge"
+        ],
+        [
+          18,
+          "nu_lt"
+        ]
+      ]
+    }
+  ],
+  "window_losses": [
+    {
+      "start": 1650,
+      "baseline_loss": 0.9812730755778175,
+      "linear_prediction_loss": 0.9661329278327826,
+      "measured_loss": 1.2216074317407382
+    },
+    {
+      "start": 2250,
+      "baseline_loss": 0.7325443855110073,
+      "linear_prediction_loss": 0.6012576063879808,
+      "measured_loss": 0.6303934566562167
+    },
+    {
+      "start": 2850,
+      "baseline_loss": 0.5673889664747579,
+      "linear_prediction_loss": 0.4723571371805972,
+      "measured_loss": 1.1109418151139776
+    }
+  ],
+  "clock_event_summaries": [
+    {
+      "start": 1650,
+      "rows": {
+        "baseline": {
+          "event_rows": 207,
+          "duration_counts": {
+            "2.5": 129,
+            "1.25": 6,
+            "1.66666667": 72
+          }
+        },
+        "fitted1": {
+          "event_rows": 207,
+          "duration_counts": {
+            "2.5": 129,
+            "1.25": 6,
+            "1.66666667": 72
+          }
+        }
+      }
+    },
+    {
+      "start": 2250,
+      "rows": {
+        "baseline": {
+          "event_rows": 208,
+          "duration_counts": {
+            "2.5": 149,
+            "1.25": 50,
+            "1.66666667": 9
+          }
+        },
+        "fitted1": {
+          "event_rows": 208,
+          "duration_counts": {
+            "2.5": 149,
+            "1.25": 50,
+            "1.66666667": 9
+          }
+        }
+      }
+    },
+    {
+      "start": 2850,
+      "rows": {
+        "baseline": {
+          "event_rows": 207,
+          "duration_counts": {
+            "2.5": 134,
+            "1.66666667": 57,
+            "1.25": 16
+          }
+        },
+        "fitted1": {
+          "event_rows": 207,
+          "duration_counts": {
+            "2.5": 134,
+            "1.66666667": 57,
+            "1.25": 16
+          }
+        }
+      }
+    }
+  ],
+  "interpretation": "The tested coefficient vector failed measured nonlinear improvement. This does not establish impossibility of per-cell calibration; local linearization trust must be reduced before inferring model failure. Event clocks are a diagnostic, not proof of causal error.",
+  "next": "Reuse the15 saved finite-difference columns. Prepare a smaller measured trust-region step, with no new Jacobian probes or parameter-grid search; preserve previous rejection. Validate the same fixed3OFF trajectories before VSL or independent-case expansion.",
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\protocol.json": "82278874670fbf0ea0d2b5b4897b3c5e57c1e2c9ddd8df05d95108d05c87626b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\selection.json": "3c423eddf6ecda68d0fc681d47904b091227a74de2d20a6aef2dc185c436a52a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\training_truth.json": "9ce0133a971003af8be40504d07b2130c9526ae989bd5391fcc36387699c128a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\evaluations.json": "d9a35d11aeea695cb69906f80b11abab19e4eaec9ae1fea9d4cdd1d3133771a3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\baseline_1650.json": "a98a878569967d5a9690ca585527dc3c2b2b06712d958b7cd042842213149798",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\baseline_2250.json": "410bc2c476174124cf444d0717a9d881a3d80cbef760ee8982856ff8853055ff",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\baseline_2850.json": "7562a763bcfeee368f2d9ca74bcda6461a8ec035bdff2309d58933fcd2cb515e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\fitted1_1650.json": "fddc37be581794ef7d3041db9964dcdab2089fe91a3f5cd289579fbc06dcb29c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\fitted1_2250.json": "faa71c6920ed38852ad4506a016b088ab5c842d13409b12bcf27fe40482bff1f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\fitted1_2850.json": "d0af488b2ff98640a0b46b734d6e4fdb7e5c2b4d0a5f06a9349d8cc7f12d75e9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_rho_crit_1650.json": "4ddf3a733f0bc4d83664849ce9c4af574fb08695ec53033f0e1da47c9b4748e2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_rho_crit_2250.json": "766cae074daa50ad5557cce533feb93b953835f6139124433e3e260d4eaec864",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_rho_crit_2850.json": "2e291dbc535a4625c787a509644bddaf0948aff084bd3bac72c318655a083827",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_metanet_a_m_1650.json": "93f6ff4c2076314ddf285bfd4f1178f552d6122aa092881a69f9809ad167a33a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_metanet_a_m_2250.json": "69f2005f1fd4fced22e178e8231299ab3c7e95599a0bc06e06c405aa95174a83",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_metanet_a_m_2850.json": "be918ab603fe8bd078aedba14b56b926ee930496328b55c7acbdcc3efb516d46",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_tau_sec_1650.json": "5299aad316bd3728087ed4e3d74ad9a141c5951423f038a41abe968c794dc8df",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_tau_sec_2250.json": "f3e2f52a6276370912db609e5910585454958b124d0f700be7e540ac5190e849",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_tau_sec_2850.json": "fc544fc27bb2a14e5690e0c6e252d8b41b8b55afff1ac974f9d82bd213eec376",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_nu_ge_1650.json": "a37b5ef112304fc338f47a6ae8d11da150f85ba42d49b4f24817cc4427333997",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_nu_ge_2250.json": "7d90b2864ce290874f091262a76c5147528c3fe8c97c4a6c1ad7506e646b8971",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_nu_ge_2850.json": "16a90de0638c0ed4c3dfcabcd57c18ce0e93ae6c8b05678e5f80a479c1b90d07",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_nu_lt_1650.json": "911166878f70444671b999377afad84ad4f7ce892c1bf5a2597a220bf96bdabc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_nu_lt_2250.json": "5c33ed3100f110de5670afe1099789962cbfc01d8fc57bf13cdd4fd433ee7623",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c16_nu_lt_2850.json": "9a0564ebc40ed6b0f588320afca41c3c70cc7055b5cc1553fd78b0bb05e629dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_rho_crit_1650.json": "18b6589111829e3cfbac3360ada056729d2f8d138034c1f8146adbb24f801425",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_rho_crit_2250.json": "e2593821838c5fbbb708dfcf48642ee801691a05b7d69c01cb2de1629ef2f4ba",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_rho_crit_2850.json": "f547b95ba59e975d4bf63a6578e24ffed5df92cee29918a8cdca06fbbfd9d81d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_metanet_a_m_1650.json": "86a3527c9dd394f4a3218585b86ee92d6d8922bcf2744890e1a1d51867f7d700",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_metanet_a_m_2250.json": "023b73976342cda56cab069b09c92daa3c981c3261540e51ea1dcba2b8719131",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_metanet_a_m_2850.json": "2e6e565b561b4a647056b64a46b77c1abf66af3a64f45fedfaf12eda7390b4b9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_tau_sec_1650.json": "f17599b24707c502a01c5be38da05680a3cfd7797a6386af5cd84c0f71b08635",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_tau_sec_2250.json": "a96b56e2efbc8d6353a65e8b1d940dbeb682eaefd134efdf7d2cd31d15e57d78",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_tau_sec_2850.json": "fddc14b01295d7debc47064ef576a851507643e4a26b321c6eab962ddedd1fa3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_nu_ge_1650.json": "3c41abbbf250f67c738f4abdb4da7ca79836746d5ede927c43d5fa44213719fd",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_nu_ge_2250.json": "5a7307165b71c568667a71901b5406d41e7664ee9bef9c49d678e1570d92a704",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_nu_ge_2850.json": "b64e9f203f3063ad8c1c98a1d693fde46b501aa6d08e505539f1949c9acf6da2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_nu_lt_1650.json": "b3b22419a87b4cc8095c088348a904605b219fc7c55e6c1dda5465769bca3047",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_nu_lt_2250.json": "f5d34d7a94c6847359917c4edc8605e75e0a9383a377af7bf119da9a2aaf1d2d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c17_nu_lt_2850.json": "4336fa4d6313765483b31b70189a651ffab019a79a35a4201197ef6b7b97ab73",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_rho_crit_1650.json": "1310e88bd7c455c0c20e8d97222eeb08d2b3f7d9488a8473b016fae1b295b129",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_rho_crit_2250.json": "e073c8ef5601851808ad8455e72eb515f5a67e5ba70cc2031dee95d46cd4c345",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_rho_crit_2850.json": "34c45aeca97c1daaf273e369102e3cabe8bc73d8afb813cd3b6b75ee2624d35b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_metanet_a_m_1650.json": "dfd73b487bee0240f5c746dc4f59d9ea14bda3944b4c6917800904b7c97967a9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_metanet_a_m_2250.json": "38356f4425ddf60d0e39311c55aa7a6073703fc66caa3b5deb4edcaee3594cda",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_metanet_a_m_2850.json": "3803695ed4a30e9566b83ab7f3e22cb95b6b87f1ea6abefc45016eca01094f5f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_tau_sec_1650.json": "c3fae78d9f74e47e96d170280cb4b6380938c709018c3da3d7e777c14d15fa3f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_tau_sec_2250.json": "d58156131913e1f54291a89d42cbcb62d5110e1cc80e8bedc24c639d0bdfa673",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_tau_sec_2850.json": "07675114e5ef148139060e587429cb9ce758000eb0c59dbce8c3b41c9af2ee11",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_nu_ge_1650.json": "29052892fdd6e0ebc725bf71b5a9d7f62845d03793531a0465682257e9d5b680",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_nu_ge_2250.json": "ded3782aaf788de4a172644718ab3551ae6537a50bfe0ba35a9774b0660327aa",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_nu_ge_2850.json": "eb8087e83b5ce972ddb5a74e1cfc5c98057fbacba89b0574e12cd47ea4ecbace",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_nu_lt_1650.json": "4877a6c6f380e5e45ff6f3f343c4c79fdf1fae63fb233cdf7fe2382592bd5554",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_nu_lt_2250.json": "d20abba2e9c7eef40bb0e509653ecbdcdb73612f21e27eb4ba05576c9bb1a8a3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\probe1_c18_nu_lt_2850.json": "d617370576d612203e082128f024dffbaa396f96f85006a96dcb5c37ebd3ce28",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\baseline_1650_response.json.gz": "061d44763b18b1a1ff9e2783d1bc7d5329ab7c445a5aed23132560edd229e18e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\fitted1_1650_response.json.gz": "a40ab2b3f076c1dec0944f6533db94019294b45f5e6b5b42fab472f49cf38124",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\baseline_2250_response.json.gz": "f2163cf841e619d525fa2ceab70e53f1bacea11f8afa33b2ca5ae63b3808ad33",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\fitted1_2250_response.json.gz": "1af76f0bd905903a3f37e190740e50d86c136079f755b0aaaf2bf1b8f5a1eb2b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\baseline_2850_response.json.gz": "ee6237de51140ce2092690bf9a33be613a6d949682fb200c9b23f9f8cd09b062",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\fitted1_2850_response.json.gz": "0d4bbfe73117f13d51d9a5e47bd61e2aedb307389ebcdaf936cc2d045ff2023f"
+  },
+  "goal_complete": false,
+  "candidate_adopted": false
+}

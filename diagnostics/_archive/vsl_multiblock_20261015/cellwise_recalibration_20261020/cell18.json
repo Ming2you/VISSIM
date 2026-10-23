@@ -1,0 +1,153 @@
+{
+  "cell": 18,
+  "baseline": {
+    "rho_crit": 38.17602482771074,
+    "metanet_a_m": 2.504186319000639,
+    "tau_sec": 12.240453497722328,
+    "nu_ge": 17.769280401396696,
+    "nu_lt": 18.39123545434044
+  },
+  "candidate": {
+    "rho_crit": 34.79033496812777,
+    "metanet_a_m": 3.0,
+    "tau_sec": 13.30762519983818,
+    "nu_ge": 8.868391178235848,
+    "nu_lt": 21.89281568858922
+  },
+  "bounds": {
+    "rho_crit": [
+      22.75,
+      56.0
+    ],
+    "metanet_a_m": [
+      1.5,
+      3.0
+    ],
+    "tau_sec": [
+      6.0,
+      30.0
+    ],
+    "nu_ge": [
+      4.59375,
+      73.5
+    ],
+    "nu_lt": [
+      4.59375,
+      73.5
+    ]
+  },
+  "scores": {
+    "training": {
+      "baseline": {
+        "rows": 41,
+        "rmse": 9.474334820197907,
+        "bias": -1.4028253359814702,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 41,
+        "rmse": 8.113727965953515,
+        "bias": -0.21674144263515968,
+        "floor_count": 0
+      },
+      "persistence": {
+        "rows": 41,
+        "rmse": 3.6507972101871826,
+        "bias": 1.0303765527195141,
+        "floor_count": 0
+      }
+    },
+    "validation": {
+      "baseline": {
+        "rows": 44,
+        "rmse": 21.626095487649025,
+        "bias": -9.453733458097439,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 44,
+        "rmse": 15.620202206115694,
+        "bias": -6.579004067109272,
+        "floor_count": 0
+      },
+      "persistence": {
+        "rows": 44,
+        "rmse": 4.056110523273292,
+        "bias": 0.17468039479502995,
+        "floor_count": 0
+      }
+    }
+  },
+  "validation_regimes": {
+    "slow": {
+      "baseline": {
+        "rows": 8,
+        "rmse": 14.624847490282434,
+        "bias": 12.13015088751506,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 8,
+        "rmse": 11.359980953716894,
+        "bias": 8.401623469299214,
+        "floor_count": 0
+      }
+    },
+    "middle": {
+      "baseline": {
+        "rows": 36,
+        "rmse": 23.316911888461796,
+        "bias": -15.916127232582596,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 36,
+        "rmse": 16.685477791060837,
+        "bias": -11.064328051383056,
+        "floor_count": 0
+      }
+    },
+    "fast": {
+      "baseline": null,
+      "fitted": null
+    }
+  },
+  "coverage": {
+    "training": {
+      "rows": 41,
+      "density_range": [
+        22.801207236226208,
+        54.15286718603724
+      ],
+      "slow": 15,
+      "fast": 0,
+      "downstream_ge": 37
+    },
+    "validation": {
+      "rows": 44,
+      "density_range": [
+        24.226282688490347,
+        49.87764082924483
+      ],
+      "slow": 8,
+      "fast": 0,
+      "downstream_ge": 35
+    }
+  },
+  "solver": {
+    "success": true,
+    "status": 2,
+    "message": "`ftol` termination condition is satisfied.",
+    "nfev": 17,
+    "residual_calls": 102,
+    "optimality": 3.715953493009088e-06
+  },
+  "bound_hits": [
+    "metanet_a_m"
+  ],
+  "data_jacobian_rank": 5,
+  "data_normalized_condition": 6.686262066507714,
+  "baseline_formula_error": 2.842170943040401e-14,
+  "eligible_for_autonomous_verification": false,
+  "candidate_adopted": false
+}

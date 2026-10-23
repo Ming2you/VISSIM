@@ -342,7 +342,7 @@ def fzp_comparison(a, b, start, end):
 
 
 def readbacks(p, fields, expected, *, command_check, numeric=False, distribution_ids=None, require_dense=False, control_interval=None,
-              require_next_step_post=True):
+              require_next_step_post=True, through_sec=None):
     """Keep transition order including post-step before immediate at each second."""
     before = p.stat(); latest = {}; first = {}; last_post = {}; events = []; rows = 0
     previous = (-1, -1); duplicate_holds = 0; counts = Counter(); observed_writes = Counter(); writes = []; grids = {}; post_states = {}
@@ -365,6 +365,8 @@ def readbacks(p, fields, expected, *, command_check, numeric=False, distribution
             sec = integer(row['sim_sec']); stage = row['stage']
             require(stage in STAGES and (sec, STAGES[stage]) >= previous, 'Reordered pre/post readback rows')
             previous = sec, STAGES[stage]
+            if through_sec is not None and sec > through_sec:
+                continue  # Explicit stopped-run prefix; retain the unmodified raw sidecar.
             ids = ('dsd_no', 'veh_class_no') if numeric else ('sc_no', 'sg_no')
             key = ':'.join(str(integer(row[k])) for k in ids)
             require(key in expected, 'Unknown physical readback address: ' + key)
@@ -445,7 +447,7 @@ def transition_comparison(a, b):
                      'Timing and pre/post stages of transitions remain exact. Sparse holds are not continuously verified.'}
 
 
-def lsa_coverage(p, signals, end):
+def lsa_coverage(p, signals, end, *, allow_later=False):
     """Coverage against ACTUAL readbacks, never command CSV or intended clocks."""
     before = p.stat(); events = set(); rows = 0; digest = hashlib.sha256(); previous = Decimal('-1')
     with p.open('rb') as stream:
@@ -456,8 +458,10 @@ def lsa_coverage(p, signals, end):
             parts = [v.strip() for v in raw.decode('ascii').rstrip('\r\n').split(';')]
             require(len(parts) == 9 and parts[-1] == '', 'Malformed native LSA event')
             sec = number(parts[0]); number(parts[1]); number(parts[5])
-            require(previous <= sec <= end and sec >= 0, 'Invalid/reordered LSA event time')
+            require(previous <= sec and sec >= 0 and (allow_later or sec <= end), 'Invalid/reordered LSA event time')
             previous = sec; rows += 1
+            if sec > end:
+                continue
             key = str(integer(parts[2])) + ':' + str(integer(parts[3]))
             events.add((sec, key, state(parts[4])))
     require(rows > 0, 'Native LSA has no events')
@@ -914,12 +918,211 @@ def qualify_native_300(left, right):
     return result
 
 
-def verify_native_execution(run, terminal, *, run_name=None):
-    """Audit one completed canonical run, without FZP or process inference.
+def decision_recovery_evidence(run, run_name, provenance, lines, *, through_sec=None):
+    """Account for explicitly enabled calculation failures without waiving native checks.
+
+    This proves a copied command and its provenance, never actuator execution.
+    The caller must still verify full LDP and immediate setter readbacks.
+    """
+    from evaluation.controllers.action_csv_schema import ACTION_CSV_FIELDS
+    run=Path(run)
+    prefix_decisions = None
+    if through_sec is not None:
+        interval=integer(provenance['control_interval_sec'])
+        require(1 < through_sec < integer(provenance['sim_period_sec']) and through_sec % interval == 0,
+                'Invalid stopped-run decision cutoff')
+        prefix_decisions = {}
+        for raw in lines:
+            raw = raw if isinstance(raw, bytes) else raw.encode('utf-8')
+            if not raw.startswith(b'CONTROLLER_DECISION '): continue
+            match=re.match(rb'CONTROLLER_DECISION sim_sec=([0-9]+) wall_sec=[0-9.]+ result=exit=([0-9]+) ',raw)
+            require(match is not None, 'Malformed controller decision receipt')
+            sec,code=map(int,match.groups())
+            if sec > through_sec: continue
+            require(sec not in prefix_decisions, 'Duplicate controller decision receipt')
+            prefix_decisions[sec]=code
+        require(set(prefix_decisions)=={1,*range(interval,through_sec+1,interval)},
+                'Controller decision receipts do not cover the stopped-run prefix')
+    # Controller stderr may contain CP949 inside an otherwise UTF-8 log.
+    # Decode only records consumed here; keep counters and source paths strict.
+    prefixes=tuple(k+'=' for k in (*FAILURE_COUNTERS,'DECISIONS_OK','DECISIONS_HELD_PREVIOUS'))
+    prefixes+=('DECISION_HELD_PREVIOUS ','DECISION_HOLD_ATTEMPT ')
+    byte_prefixes=tuple(p.encode('ascii') for p in prefixes)
+    lines=[(z.split(b' cause=',1)[0]+b' cause=' if z.startswith(b'DECISION_HOLD_ATTEMPT ') else z).decode('utf-8-sig')
+           if isinstance(z,bytes) else z for z in lines
+           if (z.removeprefix(b'\xef\xbb\xbf').startswith(byte_prefixes) if isinstance(z,bytes)
+               else z.startswith(prefixes))]
+    if through_sec is not None:
+        lines=[z for z in lines if not z.startswith(('DECISION_HELD_PREVIOUS ','DECISION_HOLD_ATTEMPT '))
+               or int(re.search(r'sim_sec=([0-9]+)',z)[1]) <= through_sec]
+    def counter(key, optional=False):
+        found=[z.split('=',1)[1] for z in lines if z.startswith(key+'=')]
+        if optional and not found:return 0
+        require(len(found)==1 and re.fullmatch(r'[0-9]+',found[0]) is not None,'Missing/invalid counter: '+key)
+        return int(found[0])
+    enabled=provenance.get('env',{}).get('RW_DECISION_HOLD_PREVIOUS')=='1'
+    if through_sec is None:
+        failed=counter('DECISIONS_FAILED');held=counter('DECISIONS_HELD_PREVIOUS',not enabled)
+        for key in FAILURE_COUNTERS:
+            if key!='DECISIONS_FAILED':require(counter(key)==0,'Nonrecoverable failure: '+key)
+    else:
+        failed=sum(code != 0 for code in prefix_decisions.values())
+        held=sum(z.startswith('DECISION_HELD_PREVIOUS ') for z in lines)
+    entries=[]
+    for line in lines:
+        if not line.startswith('DECISION_HELD_PREVIOUS '):continue
+        match=re.fullmatch(r'DECISION_HELD_PREVIOUS sim_sec=([0-9]+) source=(.+)',line)
+        require(match is not None,'Malformed hold event')
+        entries.append((int(match[1]),Path(match[2])))
+    require(failed==held==len(entries),'Failed decisions are not all accounted for by hold events')
+    require(len({t for t,_ in entries})==held,'Duplicate hold event')
+    if through_sec is not None:
+        require({t for t,_ in entries}=={t for t,code in prefix_decisions.items() if code != 0},
+                'Failed prefix decisions and held-command receipts disagree')
+    result=dict(passed=True,calculation_failures=failed,held_decisions=held,holds={},
+        no_calculation_failures=failed==0,
+        through_sec=through_sec, terminal_counters_available=through_sec is None,
+        scope='Copied physical command evidence only; native LDP/readbacks and process closure remain required.')
+    folder=run/('decisions_'+run_name)
+    if enabled:
+        declared={int(p.stem.split('_')[1]) for p in folder.glob('action_*.json')
+                  if re.fullmatch(r'action_[0-9]+',p.stem)
+                  and (through_sec is None or int(p.stem.split('_')[1]) <= through_sec)
+                  and read(p).get('metadata',{}).get('controller_status')=='hold_previous_error'}
+        require(declared=={t for t,_ in entries},'Hold metadata and terminal log disagree')
+    if not held:return result
+    require(enabled and provenance['controller']=='wu-link','Hold was not enabled for this controller')
+    config_path=pin(provenance['files']['tuning']);tuning=read(config_path)
+    require(tuning.get('runtime',{}).get('decision_error_policy')=='hold_previous','Pinned tuning disallows hold')
+    attempts=[]
+    for line in lines:
+        if line.startswith('DECISION_HOLD_ATTEMPT '):
+            match=re.match(r'DECISION_HOLD_ATTEMPT sim_sec=([0-9]+) cause=',line)
+            require(match is not None,'Malformed hold attempt');attempts.append(int(match[1]))
+    require(Counter(attempts)==Counter(t for t,_ in entries),'Hold attempt/completion timestamps disagree')
+    interval=integer(provenance['control_interval_sec']);terminal=through_sec or integer(provenance['sim_period_sec'])
+    if through_sec is None:
+        require(counter('DECISIONS_OK')+held==len({1,*range(interval,terminal+1,interval)}),
+                'Completed and held decisions do not cover the native schedule')
+    policy=tuning.get('adapter',{}).get('sdmpc_fixed_vsl')
+    for sec,logged in entries:
+        require(sec in range(interval,terminal+1,interval),'Hold outside decision clock')
+        prior=1 if sec==interval else sec-interval
+        previous=folder/f'action_{prior:06d}.json';current=folder/f'action_{sec:06d}.json'
+        require(logged.resolve()==previous.resolve(),'Hold log uses another prior command')
+        old,new=read(previous),read(current);meta=new['metadata'];proof=meta['hold_previous']
+        require(meta['controller_status']=='hold_previous_error' and meta['prediction_status']=='not_computed',
+                'Hold claims optimizer or prediction success')
+        require(meta['sim_sec']==sec and old['metadata']['sim_sec']==prior and proof['source_sim_sec']==prior,
+                'Stale hold source time')
+        require(Path(proof['source']).resolve()==previous.resolve(),'Hold receipt uses another source')
+        require(proof['json_sha256']==sha(previous) and proof['csv_sha256']==sha(previous.with_suffix('.csv')),
+                'Prior physical command hashes differ')
+        for data in (old,new):
+            require(data['run_provenance']['run_id']==provenance['run_id']
+                    and data['metadata']['run_provenance']['run_id']==provenance['run_id'],'Hold crosses run identity')
+        require(not any(k in new for k in ('prediction','prediction_error','projection_diagnostics')),
+                'Hold reuses a stale prediction')
+        omitted={'metadata','diagnostics','vsl','prediction','prediction_error','projection_diagnostics'}
+        require({k:v for k,v in new.items() if k not in omitted}=={k:v for k,v in old.items() if k not in omitted},
+                'Hold JSON changes other physical command fields')
+        tables=[]
+        for p in (previous.with_suffix('.csv'),current.with_suffix('.csv')):
+            with p.open(encoding='utf-8-sig',newline='') as f:
+                reader=csv.DictReader(f);rows=list(reader)
+            require(reader.fieldnames==list(ACTION_CSV_FIELDS) and rows
+                    and all(None not in r and None not in r.values() for r in rows),'Malformed hold command CSV')
+            tables.append(rows)
+        require(len(tables[0])==len(tables[1]),'Hold drops or adds command rows')
+        for oldrow,newrow in zip(*tables):
+            expected=dict(oldrow);expected['metadata']+=';hold_previous_error=1'
+            if oldrow['kind']=='vsl':
+                m=re.fullmatch(r'RW_(FW_[EW])_S([0-9]+)',oldrow['id'])
+                require(m is not None,'Unknown held VSL address')
+                key=f'{m[1]}__seg{int(m[2])}'
+                require(float(oldrow['speed_kph'])==float(old['vsl'].get(key,old['vsl'][m[1]]))
+                        and float(newrow['speed_kph'])==float(new['vsl'].get(key,new['vsl'][m[1]])),
+                        'Held VSL JSON/CSV mismatch')
+                speed=float(oldrow['speed_kph'])
+                if policy is not None:
+                    head=max(h for h in tuning['freeway']['vsl_zone_heads'][m[1]] if h<=int(m[2]))
+                    speed=(policy['zone_kmh'].get(f'{m[1]}__seg{head}',policy['base_kmh'])
+                           if policy['start_sec']<=sec<policy.get('end_sec',float('inf')) else policy['base_kmh'])
+                require(float(newrow['speed_kph'])==speed,'Held VSL differs from pinned schedule')
+                expected['speed_kph']=newrow['speed_kph']
+            require(expected==newrow,'Held physical row differs from prior applied command')
+        result['holds'][str(sec)]=dict(source_sim_sec=prior,source_json_sha256=sha(previous),
+            source_csv_sha256=sha(previous.with_suffix('.csv')),command_json_sha256=sha(current),
+            command_csv_sha256=sha(current.with_suffix('.csv')),rows=len(tables[1]),
+            prediction_status='not_computed',optimizer_success=False)
+    result['tuning']={'path':str(config_path),'sha256':sha(config_path)}
+    return result
+
+
+def _require_closed_windows_pids(pids):
+    """Read process handles only; an inaccessible or live owner is not closure."""
+    import ctypes
+    from ctypes import wintypes
+    require(sys.platform == 'win32', 'Stopped native owner audit requires Windows')
+    api=ctypes.WinDLL('kernel32',use_last_error=True)
+    api.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD]
+    api.OpenProcess.restype=wintypes.HANDLE
+    api.CloseHandle.argtypes=[wintypes.HANDLE]
+    api.WaitForSingleObject.argtypes=[wintypes.HANDLE,wintypes.DWORD]
+    api.WaitForSingleObject.restype=wintypes.DWORD
+    for pid in pids:
+        require(type(pid) is int and pid > 0, 'Invalid recorded owner PID')
+        handle=api.OpenProcess(0x101000,False,pid)
+        if handle:
+            state=api.WaitForSingleObject(handle,0)
+            api.CloseHandle(handle)
+            require(state==0, 'Recorded owner PID is live (or reused); re-audit closure: '+str(pid))
+            continue  # Terminated process objects may survive until all external handles close.
+        require(ctypes.get_last_error()==87, 'Cannot establish owner closure: '+str(pid))
+
+
+def user_stop_evidence(run, terminal, receipt_path):
+    """Explicit user-stop authority for a closed, preserved prefix; never SIM_DONE."""
+    run=path(run);receipt_path=path(receipt_path);receipt=read(receipt_path)
+    require(receipt_path.parent==run.parent and path(receipt['run'])==run.parent,
+            'User-stop receipt belongs to another run')
+    require(receipt['status']=='user_stopped_all_owned_closed'
+            and receipt['native9000_complete'] is False and receipt['analysis_end_sec']==terminal
+            and receipt['remaining_owned']==[] and receipt['vissim_still_present'] is False
+            and receipt['exclusive_file_open_passed'] is True, 'Incomplete explicit user-stop closure')
+    stop=run.parent/'STOP'
+    require(stop.is_file() and stop.read_text(encoding='utf-8-sig').startswith('USER_STOP_'),
+            'Explicit user STOP must remain preserved')
+    owners=receipt['owned_controller_tree']
+    require(owners and all(x.get('CreationDate') for x in owners)
+            and receipt['vissim'].get('created_at'), 'Missing owner identity timestamps')
+    pids=[x['ProcessId'] for x in owners]+[receipt['vissim']['pid']]
+    require(len(pids)==len(set(pids)), 'Duplicate recorded owners')
+    _require_closed_windows_pids(pids)
+    files=list((run/'vissim_eval').glob('*.fzp'))
+    require(len(files)==1 and len(receipt['fzp_after'])==1, 'Ambiguous stopped FZP')
+    fzp=files[0];stat=fzp.stat();record=receipt['fzp_after'][0]
+    require(path(record['FullName'])==fzp and stat.st_size==record['Length'] and stat.st_size>0,
+            'Stopped FZP differs from closure receipt')
+    with fzp.open('rb') as stream:
+        stream.seek(max(0,stat.st_size-65536))
+        tail=stream.read().splitlines()
+    require(tail and number(tail[-1].split(b';')[0].decode('ascii'))>=terminal,
+            'Native vehicle recording does not cover requested cutoff')
+    return dict(passed=True,path=str(receipt_path),sha256=sha(receipt_path),
+        execution_scope='user-stopped prefix only; requested simulation did not complete',
+        analysis_end_sec=terminal,normal_run_completed=False,process_exit_verified=True,
+        verified_absent_pids=pids,stop_sha256=sha(stop),fzp_bytes=stat.st_size,
+        native_last_vehicle_record_sec=float(tail[-1].split(b';')[0]))
+
+
+def verify_native_execution(run, terminal, *, run_name=None, user_stop_receipt=None):
+    """Audit a completed run, or an explicitly closed user-stopped prefix.
 
     Native LDP supplies continuous actual states; command rows supply only the
     independent expectation. Actual setter readbacks remain separate evidence.
-    The caller owns watchdog exit/PID checks (including when composing a receipt).
+    Default completion is strict. Prefix mode checks the explicit stop receipt,
+    closed owner handles and FZP extent, without calculating traffic metrics.
     Existing pair/short qualifier verdicts are deliberately unchanged.
     """
     import xml.etree.ElementTree as ET
@@ -947,14 +1150,25 @@ def verify_native_execution(run, terminal, *, run_name=None):
         require(isinstance(run_name, str) and re.fullmatch(r'[A-Za-z0-9_-]+', run_name), 'Invalid run name')
         require(terminal > 1, 'Post-control terminal must exceed one second')
         pp = run / ('run_provenance_' + run_name + '.json'); prov = read(pp)
+        requested_terminal=integer(prov['sim_period_sec'])
         require(prov['name'] == run_name and isinstance(prov['run_id'], str) and prov['run_id']
-                and integer(prov['sim_period_sec']) == terminal, 'Run/provenance identity or terminal differs')
+                and (requested_terminal > terminal if user_stop_receipt else requested_terminal == terminal),
+                'Run/provenance identity or terminal differs')
         log = run / ('runlog_' + run_name + '.txt'); lines = log.read_bytes().splitlines()
-        require(lines.count(b'STAGE=SIM_DONE') == 1 and lines.count(f'SIM_SEC={terminal}'.encode()) == 1
-                and not any(row.startswith(b'ERROR') for row in lines), 'Missing/failed terminal runlog')
-        for key in FAILURE_COUNTERS:
-            require([row for row in lines if row.startswith((key+'=').encode())] == [(key+'=0').encode()],
-                    'Failure counter missing/nonzero: ' + key)
+        require(not any(row.startswith(b'ERROR') for row in lines), 'Failed native runlog')
+        if user_stop_receipt:
+            result['user_stop']=user_stop_evidence(run,terminal,user_stop_receipt)
+            require(b'STAGE=SIM_DONE' not in lines, 'Stopped run must not claim normal completion')
+            progress=[int(m[1]) for row in lines
+                      if (m:=re.match(rb'OBS150_BUNDLE sim_sec=([0-9]+) ',row))]
+            require(progress and max(progress)>=terminal, 'Actual observations do not cover stopped prefix')
+            result['process_exit_verified']=True
+        else:
+            require(lines.count(b'STAGE=SIM_DONE') == 1 and lines.count(f'SIM_SEC={terminal}'.encode()) == 1,
+                    'Missing/failed terminal runlog')
+        recovery=decision_recovery_evidence(run,run_name,prov,lines,
+            through_sec=terminal if user_stop_receipt else None)
+        result['decision_recovery']=recovery
         native_paths = {key: pin(prov['files'][key]) for key in
                         ('network', 'main_vbs_runner', 'generated_vbs_config', 'control_mapping')}
         obs150_event = prov['env'].get('RW_OBSERVATION_CADENCE') == 'decision150'
@@ -1031,7 +1245,7 @@ def verify_native_execution(run, terminal, *, run_name=None):
         return {'passed': True, 'provenance': {'path': str(pp), 'sha256': sha(pp)},
                 'runlog': {'path': str(log), 'sha256': sha(log)},
                 'native_source_pins': {key:prov['files'][key] for key in native_paths},
-                'ramp_meter_timing': ramp_timing,
+                'ramp_meter_timing': ramp_timing, 'decision_recovery': recovery,
                 'observation_mode': 'obs150_event_with_native_ldp' if obs150_event else 'primary_1s',
                 'plan': {'path': str(plan), 'sha256': sha(plan), 'authority': plan_source},
                 'expected_recorded_groups': sum(map(len, expected.values())),
@@ -1046,6 +1260,8 @@ def verify_native_execution(run, terminal, *, run_name=None):
         interval = integer(sources['provenance']['control_interval_sec']); require(interval > 0, 'Invalid control cadence')
         actual_files = list(folder.glob('action_*.csv'))
         times = [integer(p.stem.split('_')[1]) for p in actual_files]
+        if user_stop_receipt:
+            times=[t for t in times if t<=terminal]
         require(len(times) == len(set(times)) and set(times) == {1,*range(interval,terminal+1,interval)},
                 'Missing/extra actual command application time')
         dsds = [integer(row['dsd_no']) for segment in sources['mapping']['segments']
@@ -1090,9 +1306,10 @@ def verify_native_execution(run, terminal, *, run_name=None):
     folder = run / ('decisions_'+run_name)
     signals = check('actual_signal_readbacks', lambda: readbacks(folder/'signal_readback.csv', SG_FIELDS, expected_sg,
         command_check=clock.check_signal, control_interval=checks['actual_commands']['interval_sec'],
-        require_next_step_post=not sources['obs150_event']))
+        require_next_step_post=not sources['obs150_event'], through_sec=terminal if user_stop_receipt else None))
     check('actual_vsl_apply_readbacks', lambda: readbacks(folder/'vsl_readback.csv', VSL_FIELDS, expected_vsl,
-        command_check=clock.check_vsl, numeric=True, distribution_ids=distributions))
+        command_check=clock.check_vsl, numeric=True, distribution_ids=distributions,
+        through_sec=terminal if user_stop_receipt else None))
 
     def changed_writes():
         require(signals['passed'], 'Actual signal readback parser failed')
@@ -1123,7 +1340,8 @@ def verify_native_execution(run, terminal, *, run_name=None):
             require(len(matches)==1 and matches[0].resolve().is_relative_to(run), 'Missing/ambiguous actual native LDP SC '+str(sc))
             files[sc] = matches[0]
         record = read_ldp_frames(files,expected,1,terminal)
-        require(all(count == terminal for count in record['file_row_count_by_sc'].values()),
+        require(all((count >= terminal if user_stop_receipt else count == terminal)
+                    for count in record['file_row_count_by_sc'].values()),
                 'Native LDP contains rows outside the completed run extent')
         controlled = {int(sc): [int(sg) for sg in sgs if sc+':'+sg in expected_sg]
                       for sc,sgs in {**groups,**{sc:{'1':1} for sc in meters}}.items()}
@@ -1140,7 +1358,7 @@ def verify_native_execution(run, terminal, *, run_name=None):
         require(signals['passed'], 'Actual signal observations required for independent LSA check')
         candidates = list((run/'vissim_eval').glob('*.lsa'))
         require(len(candidates)==1 and candidates[0].resolve().is_relative_to(run), 'Missing/ambiguous native LSA')
-        return lsa_coverage(candidates[0],signals,terminal)
+        return lsa_coverage(candidates[0],signals,terminal,allow_later=bool(user_stop_receipt))
     check('native_lsa',lsa)
     result['native_execution_passed'] = all(checks[k]['passed'] is True for k in
         ('sources_and_terminal_log','actual_commands','actual_signal_readbacks','actual_vsl_apply_readbacks',

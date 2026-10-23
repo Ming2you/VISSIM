@@ -1,0 +1,55 @@
+{
+  "created_utc": "2026-10-20T01:55:52.867474+00:00",
+  "purpose": "User-directed cell-specific recalibration: assess separately identifiable FD and dynamic coefficients before a coupled450s refit.",
+  "cells": [
+    16,
+    17,
+    18
+  ],
+  "physical_cell_ids_are_zero_based": true,
+  "inputs": "Previously qualified seed29 hold110 five-second current states. Next-state speed is a training label, never a forecast input.",
+  "training": {
+    "start": 2240.1,
+    "end": 2445.1
+  },
+  "validation": {
+    "start": 2475.1,
+    "end": 2695.1
+  },
+  "gap_seconds": 30,
+  "validation_is_blind": false,
+  "qualification": "Exploratory time-block development check; the entire trajectory was previously inspected. Adjacent samples are correlated, and this is not independent seed validation.",
+  "parameters": [
+    "rho_crit",
+    "metanet_a_m",
+    "tau_sec",
+    "nu_ge",
+    "nu_lt"
+  ],
+  "bounds": "Reuse original cellwise parameter_spec engineering bounds, not confidence intervals; no widening after results.",
+  "fixed": [
+    "v_free",
+    "kappa",
+    "lane_drop_phi",
+    "geometry",
+    "convection law",
+    "VSL A/E",
+    "urban/RM/demand",
+    "production sources"
+  ],
+  "loss": "Weighted next-speed squared error/100 plus0.1*mean(log(parameter/current)**2). FD and dynamic terms fitted together, separately per cell.",
+  "optimizer": "scipy least_squares trf, single current-parameter start per cell, max_nfev100, numerical Jacobian; no grid, restarts or selection on validation.",
+  "budget": {
+    "fits": 3,
+    "autonomous_forecasts": 0,
+    "native": 0,
+    "fzp_scans": 0,
+    "optimizer_controller_calls": 0
+  },
+  "identification_gate": "Converged; no active/borderline parameter bound; data-only normalized Jacobian full rank with condition<=1000; validation speed RMSE improves>=10% and no speed-regime RMSE worsens>10%. This only permits preparation of autonomous verification, never adoption.",
+  "future_verification": "Freeze any eligible candidate, evaluate conserved coupled150/300/450 trajectories with actualFW5/U10, then previously seen independent seeds67/71 and VSL contrasts. No automatic native/fullSDMPC run.",
+  "supersedes_pending_cdf_independent_plan": true,
+  "app_goal_status_last_observed": "blocked",
+  "user_resumed_analysis": true,
+  "goal_complete": false
+}

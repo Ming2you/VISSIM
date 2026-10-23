@@ -1,0 +1,164 @@
+{
+  "cell": 17,
+  "baseline": {
+    "rho_crit": 35.597622209448126,
+    "metanet_a_m": 2.3877417816643565,
+    "tau_sec": 14.82235127157874,
+    "nu_ge": 40.74078345971432,
+    "nu_lt": 36.0650564119074
+  },
+  "candidate": {
+    "rho_crit": 24.965669666216037,
+    "metanet_a_m": 3.0,
+    "tau_sec": 10.665073414702773,
+    "nu_ge": 9.1875,
+    "nu_lt": 31.047456298395353
+  },
+  "bounds": {
+    "rho_crit": [
+      22.75,
+      56.0
+    ],
+    "metanet_a_m": [
+      1.5,
+      3.0
+    ],
+    "tau_sec": [
+      6.0,
+      30.0
+    ],
+    "nu_ge": [
+      9.1875,
+      147.0
+    ],
+    "nu_lt": [
+      9.1875,
+      147.0
+    ]
+  },
+  "scores": {
+    "training": {
+      "baseline": {
+        "rows": 41,
+        "rmse": 27.093835049926124,
+        "bias": -12.826998527792034,
+        "floor_count": 3
+      },
+      "fitted": {
+        "rows": 41,
+        "rmse": 10.306019127790588,
+        "bias": -1.3966802482878682,
+        "floor_count": 0
+      },
+      "persistence": {
+        "rows": 41,
+        "rmse": 7.548628474616566,
+        "bias": 1.95523228774016,
+        "floor_count": 0
+      }
+    },
+    "validation": {
+      "baseline": {
+        "rows": 44,
+        "rmse": 23.55575873327807,
+        "bias": 9.942706397516622,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 44,
+        "rmse": 16.71151589283339,
+        "bias": 4.0799847410379995,
+        "floor_count": 0
+      },
+      "persistence": {
+        "rows": 44,
+        "rmse": 4.1440486305133835,
+        "bias": -1.2396156339485278,
+        "floor_count": 0
+      }
+    }
+  },
+  "validation_regimes": {
+    "slow": {
+      "baseline": {
+        "rows": 16,
+        "rmse": 30.274205868371702,
+        "bias": 29.22999213007253,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 16,
+        "rmse": 21.228532912738782,
+        "bias": 18.737990997656404,
+        "floor_count": 0
+      }
+    },
+    "middle": {
+      "baseline": {
+        "rows": 26,
+        "rmse": 12.79184305313682,
+        "bias": -5.464392071193765,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 26,
+        "rmse": 11.009892292410422,
+        "bias": -8.64139190496099,
+        "floor_count": 0
+      }
+    },
+    "fast": {
+      "baseline": {
+        "rows": 2,
+        "rmse": 37.321161905643756,
+        "bias": -36.942443392922,
+        "floor_count": 0
+      },
+      "fitted": {
+        "rows": 2,
+        "rmse": 14.753632681760825,
+        "bias": -14.568683928103715,
+        "floor_count": 0
+      }
+    }
+  },
+  "coverage": {
+    "training": {
+      "rows": 41,
+      "density_range": [
+        11.400603618113104,
+        52.7277917337731
+      ],
+      "slow": 2,
+      "fast": 20,
+      "downstream_ge": 38
+    },
+    "validation": {
+      "rows": 44,
+      "density_range": [
+        24.226282688490347,
+        58.42809354282966
+      ],
+      "slow": 16,
+      "fast": 2,
+      "downstream_ge": 23
+    }
+  },
+  "solver": {
+    "success": true,
+    "status": 2,
+    "message": "`ftol` termination condition is satisfied.",
+    "nfev": 14,
+    "residual_calls": 84,
+    "optimality": 1.485830295642802e-06
+  },
+  "bound_hits": [
+    "metanet_a_m",
+    "nu_ge"
+  ],
+  "data_jacobian_rank": 5,
+  "data_normalized_condition": 7.867047345103393,
+  "baseline_formula_error": 1.4210854715202004e-14,
+  "eligible_for_autonomous_verification": false,
+  "candidate_adopted": false
+}

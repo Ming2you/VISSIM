@@ -1,0 +1,40 @@
+{
+  "hypothesis": "Determine whether the fixed-parameter cell15 refinement response and rapid speed-floor contact are mostly time-integration effects.",
+  "budget": {
+    "forecasts": 4,
+    "native": 0,
+    "optimizer": 0,
+    "fits": 0
+  },
+  "internal_cap_sec": [
+    1.25,
+    0.625
+  ],
+  "macro_clock_sec": {
+    "freeway": 5,
+    "urban": 10
+  },
+  "horizon_sec": 450,
+  "controls": "Two matched hold110/two-zone90 pairs with original city/RM and all other commands. No changes to coefficients, objective, demand, geometry or initial state versus the completed refined candidate.",
+  "comparisons": [
+    "Initial first10s middle-compartment minimum speed and floor duration",
+    "Fixed hold baseline subcell stocks/speeds at150/300/450 against existing native snapshots",
+    "Approach14-18 throughflow/inventory and wholeOmega contrast, plus conservation and source pins"
+  ],
+  "reporting_rule": "Treat agreement between two capped grids as sensitivity evidence, not a proof of an exact solution or of behavioral calibration. No candidate is adopted by this test. Do not choose coefficients or grids to obtain a VSL benefit sign.",
+  "preregistered_screen": {
+    "hold_subcell_max_speed_change_kmh": 2.0,
+    "hold_subcell_max_stock_change_veh": 1.0,
+    "response_throughflow_change_veh": 1.0,
+    "omega_contrast_change_veh_h": 0.05
+  },
+  "prior_diagnostic": "Existing440 tested unrefined31-cell internal1s on seed67/71. Those results remain; this tests the newly refined cell15 representation on seed29 and does not repeat them.",
+  "new_native": 0,
+  "production_changes": 0,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\run_refine15.py": "0d187990c9ec786f90a1d95f863c379fef60a028adc1d6dcfa8ce76737a01cce",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_approach15.py": "5c6705a56b4836c1461841b08cb62f51ab154e8748af9ea7609533132924d5df",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_candidate\\completion.json": "eba6c4ebf96b2adadcb6785200e7d666a8c97bd680589e9dfc634b17fdc67a2b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refinement_decision.json": "d3380a504afae70f3f5caa3617fad60a8ae185f89c88d5ef17e1bf118029b671"
+  }
+}

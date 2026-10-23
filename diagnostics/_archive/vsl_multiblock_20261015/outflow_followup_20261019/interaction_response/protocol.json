@@ -1,0 +1,42 @@
+{
+  "question": "Does a desired-speed change directly alter acceleration of already constrained vehicles, and is downstream loss caused by available sending or blocked receiving?",
+  "scope": "Completed seed29 hold/single90/twozone90; physical cells14..25; 2240.1..2695.1 at5s. New interaction/acceleration fields, not a repetition of TTT integration.",
+  "budget": {
+    "new_native": 0,
+    "forecasts": 0,
+    "fits": 0,
+    "fzp_streams": 3
+  },
+  "fields": [
+    "time",
+    "vehicle",
+    "cell",
+    "lane",
+    "chain_m",
+    "speed_kph",
+    "desired_kph",
+    "acceleration_m_s2",
+    "interaction",
+    "target_type",
+    "target_number",
+    "lane_change",
+    "destination_lane"
+  ],
+  "interpretation": "Native states are literal labels. Matching a vehicle across policies alone does not hold its leader or gap fixed. Later observed states are never rollout inputs. No acceleration coefficient or VSL gain is fitted.",
+  "reference": "https://cgi.ptvgroup.com/vision-help/VISSIM_11_ENG/Content/9_SimulationundTest/Fz-Interaktionszustand.htm",
+  "earlier_fd_fit": {
+    "path": "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\repin_v3c3_review_20261001\\vsl_fd253\\verified\\assessment.json",
+    "adopted": false
+  },
+  "source_pins": {
+    "E:\\VISSIM_analysis\\20261011_vsl_response349\\causal_off2250_analysis_v2\\native_analysis\\runtime_closure.json": "f8fe053fcada27acc32d06091337f055a84c1499de937b155c0306b31d4e71d8",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\native_analysis_repaired_20261016\\runtime_closure.json": "0c017723b679858c7bb44e3783dfc9bb02d8bdb9d623881ede7bab8f66b8ce5f",
+    "E:\\VISSIM_analysis\\20261011_vsl_response349\\causal_off2250_analysis_v2\\native_analysis\\hold\\execution.json": "8b0c5d2bb21860d673bba6456ab441477c6d6e0e955b65d6a142b154efe6ebde",
+    "E:\\VISSIM_analysis\\20261011_vsl_response349\\causal_off2250_analysis_v2\\native_analysis\\vsl90\\execution.json": "030f2d360f1eb55e5f642830d8bc8c77f7dc538ede38f8afeac6a7762ebbd7e6",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\native_analysis_repaired_20261016\\selected\\execution.json": "350659abbfdac6c9afb574fea223dc463114a3dc725dfe35e5c5956637ca303b",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\repin_v3c3_review_20261001\\vsl_fd253\\verified\\assessment.json": "a0046e7eca3641901be2e633b6cc688a7fe700029c0c109289dbcdef6c92f821",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\repin_v3c3_review_20261001\\unrouted10646\\route_contract.json": "2519275b24267335d1e985659b562b3319a08e8027287ac677a3306e1031732e",
+    "D:\\VISSIM_packages\\vsl_multizone355_20261015\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\route_inventory\\mapping31.json": "075467c61ee386d0c98e0762bb3ad9c579ea57c304a0a22ef2cd9c3b4449ca0d"
+  },
+  "created_utc": "2026-10-19T04:07:19.329456+00:00"
+}

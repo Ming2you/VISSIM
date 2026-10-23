@@ -126,8 +126,9 @@ try {
         if (-not (Test-Path -LiteralPath $out)) {
             New-Item -ItemType Directory -Path $netDir | Out-Null
             Copy-Item -LiteralPath (Join-Path $selectedRoot 'network/native_seed29.inpx') -Destination $network
+            (Get-Item -LiteralPath $network).IsReadOnly=$false
             Get-ChildItem -LiteralPath (Join-Path $selectedRoot 'network') -Filter '*.sig' |
-              ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $netDir}
+              ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $netDir; (Get-Item -LiteralPath (Join-Path $netDir $_.Name)).IsReadOnly=$false}
         }
         if ((Get-FileHash -LiteralPath $network -Algorithm SHA256).Hash.ToLowerInvariant() -cne '64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc') { throw 'Network differs' }
         if ($ResumeAfterCompletedNc -and $arm -eq 'nc') {

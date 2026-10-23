@@ -1,3 +1,5 @@
+> 2026-10-23 증분 전달과 현재 저장 방식: [최신 안내](../sdmpc_vsl_20261023/README.md). 아래 검증 수치는 10월13일 기록이다.
+
 # S-DMPC controller and adopted mixed-network plant — 2026-10-13
 
 이 인계는 공동 S-DMPC 컨트롤러, 채택된 도시부·고속도로부 플랜트, 실행 입력, VSL 세 설정, 영역별 정보 분리 두 설정을 함께 전달한다. 기준 이력은 `ca181e843058872ac4726758625e5c4057daba5f`, 실제 전달 소스는 채택355를 가져온 `solo355` 패키지의 `2f28000ab0ea61b646badade70c172200e9c7f1a`이다. 별도 저장소의 소스와 아직 Git에 등록되지 않았던 실행 의존성을 원래 upstream 이력에 통합했다. `source_manifest.json`이 전달 파일의 SHA256 정본이다.
@@ -64,7 +66,10 @@ $pwsh = (Get-Command pwsh).Source
 새 실행을 별도로 결정했을 때만 기존 정본 freezer를 한 번 호출한다. 출력은 사용하지 않은 디렉터리여야 한다. 로그의 `FREEZE_DONE`와 실제 `FRZ=` 경로를 확인해 `$frozen`에 넣는다.
 
 ```powershell
-& $pwsh -NoProfile -File tools/sdmpc31/freeze_worktree.ps1 -Source $repo -FrozenRoot D:/VISSIM_runtime/new_publication/frozen -Python $python
+$tuning = 'diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/optimized_config.json'
+$inputs = Join-Path $env:TEMP 'vissim_publication_inputs.json'
+& $python -B tools/sdmpc31/runtime_package.py prepare --source $repo --config $tuning --out $inputs
+& $pwsh -NoProfile -File tools/sdmpc31/freeze_worktree.ps1 -Source $repo -FrozenRoot D:/VISSIM_runtime/new_publication/frozen -Python $python -InputManifest $inputs -SharedStoreRoot D:/VISSIM_shared
 $frozen = 'D:/VISSIM_runtime/new_publication/frozen/REPLACE_WITH_ACTUAL_FRZ'
 $results = 'D:/VISSIM_runs/new_unique_condition'
 $tuning = 'diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/optimized_config.json'

@@ -1,0 +1,236 @@
+{
+  "schema": "publication-validation/v1",
+  "created_utc": "2026-10-23T05:00:28.440572+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "name": "pytest",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_sdmpc_vsl_schedules.py",
+        "tests/test_runtime_package.py",
+        "tests/test_solo355_scope.py",
+        "tests/test_sdmpc_meter_owner_combination.py",
+        "tests/test_sdmpc_green_rounding.py",
+        "tests/test_sdmpc_cap_response_reuse.py",
+        "tests/test_sdmpc_lazy_derivatives.py",
+        "diagnostics/solo355_local_20261013/test_regional_contracts.py",
+        "diagnostics/com_execution_equivalence/test_verify_pair.py",
+        "diagnostics/com_execution_equivalence/test_verify_native_execution.py",
+        "diagnostics/com_execution_equivalence/test_recovered_decision.py",
+        "diagnostics/com_execution_equivalence/test_recovered_vsl_window.py",
+        "diagnostics/com_execution_equivalence/test_held_decision_summary.py"
+      ],
+      "exit_code": 0,
+      "seconds": 18.599,
+      "output_tail": "........................................................................ [ 42%]\n.................................................................. [ 81%]\n...............................                                [100%]\n169 passed, 16 subtests passed in 18.09s\n"
+    },
+    {
+      "name": "parameters_0",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "scripts/verify_parameters.py",
+        "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/window_config.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.955,
+      "output_tail": "  OK   선언된 override — network.v_free: parameters=100.0 실효=120.0\n  OK   선언된 override — network.rho_crit: parameters=33.5 실효=27.0\n  OK   선언된 override — network.freeway_capacity_veh_h: parameters=4000.0 실효=6937.0\n  OK   선언된 override — network.metanet_a_m: parameters=1.867 실효=1.6\n  OK   선언된 override — network.metanet_delta_merge: parameters=0.0 실효=0.3\n  WARN calibration 값이 버려진다 — network.v_free: calibration=120.0 parameters=100.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.rho_crit: calibration=30.0 parameters=33.5 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.freeway_capacity_veh_h: calibration=6900.0 parameters=4000.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — leader.N_P_crit_veh: calibration=600.0 parameters=509.448830418254 (calibration 값은 버려진다)\n  WARN 위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json 또는 config_overrides 를 고쳐라.\n  OK   순수 중복 키 없음 — parameters.json 편집이 실효한다\n  OK   리더 롤아웃 깊이 3 · follower 3\n  OK   녹색 예산 138.0 = cycle 150.0 - lost 12.0\n  OK   기본 현시녹색 파생 34.50 대 저장 34.50 (현시 4개)\n  OK   현시 상한 파생 78.0 = 예산 138.0 - (현시 4-1)x green_min 20 · 저장 78.0\n  OK   FD 함의 용량 6937 대 저장 6937 (비 1.00) — 용량은 rho_crit·v_free·a·차로수의 파생값이라 어긋나면 둘 중 하나가 틀렸다\n파라미터 검사 PASS — window_config.json\n"
+    },
+    {
+      "name": "parameters_1",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "scripts/verify_parameters.py",
+        "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/optimized_config.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.551,
+      "output_tail": "  OK   선언된 override — network.v_free: parameters=100.0 실효=120.0\n  OK   선언된 override — network.rho_crit: parameters=33.5 실효=27.0\n  OK   선언된 override — network.freeway_capacity_veh_h: parameters=4000.0 실효=6937.0\n  OK   선언된 override — network.metanet_a_m: parameters=1.867 실효=1.6\n  OK   선언된 override — network.metanet_delta_merge: parameters=0.0 실효=0.3\n  WARN calibration 값이 버려진다 — network.v_free: calibration=120.0 parameters=100.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.rho_crit: calibration=30.0 parameters=33.5 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.freeway_capacity_veh_h: calibration=6900.0 parameters=4000.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — leader.N_P_crit_veh: calibration=600.0 parameters=509.448830418254 (calibration 값은 버려진다)\n  WARN 위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json 또는 config_overrides 를 고쳐라.\n  OK   순수 중복 키 없음 — parameters.json 편집이 실효한다\n  OK   리더 롤아웃 깊이 3 · follower 3\n  OK   녹색 예산 138.0 = cycle 150.0 - lost 12.0\n  OK   기본 현시녹색 파생 34.50 대 저장 34.50 (현시 4개)\n  OK   현시 상한 파생 78.0 = 예산 138.0 - (현시 4-1)x green_min 20 · 저장 78.0\n  OK   FD 함의 용량 6937 대 저장 6937 (비 1.00) — 용량은 rho_crit·v_free·a·차로수의 파생값이라 어긋나면 둘 중 하나가 틀렸다\n파라미터 검사 PASS — optimized_config.json\n"
+    },
+    {
+      "name": "parameters_2",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "scripts/verify_parameters.py",
+        "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/off_config.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.598,
+      "output_tail": "  OK   선언된 override — network.v_free: parameters=100.0 실효=120.0\n  OK   선언된 override — network.rho_crit: parameters=33.5 실효=27.0\n  OK   선언된 override — network.freeway_capacity_veh_h: parameters=4000.0 실효=6937.0\n  OK   선언된 override — network.metanet_a_m: parameters=1.867 실효=1.6\n  OK   선언된 override — network.metanet_delta_merge: parameters=0.0 실효=0.3\n  WARN calibration 값이 버려진다 — network.v_free: calibration=120.0 parameters=100.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.rho_crit: calibration=30.0 parameters=33.5 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.freeway_capacity_veh_h: calibration=6900.0 parameters=4000.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — leader.N_P_crit_veh: calibration=600.0 parameters=509.448830418254 (calibration 값은 버려진다)\n  WARN 위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json 또는 config_overrides 를 고쳐라.\n  OK   순수 중복 키 없음 — parameters.json 편집이 실효한다\n  OK   리더 롤아웃 깊이 3 · follower 3\n  OK   녹색 예산 138.0 = cycle 150.0 - lost 12.0\n  OK   기본 현시녹색 파생 34.50 대 저장 34.50 (현시 4개)\n  OK   현시 상한 파생 78.0 = 예산 138.0 - (현시 4-1)x green_min 20 · 저장 78.0\n  OK   FD 함의 용량 6937 대 저장 6937 (비 1.00) — 용량은 rho_crit·v_free·a·차로수의 파생값이라 어긋나면 둘 중 하나가 틀렸다\n파라미터 검사 PASS — off_config.json\n"
+    },
+    {
+      "name": "parameters_3",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "scripts/verify_parameters.py",
+        "diagnostics/solo355_local_20261013/freeway_only_config.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.587,
+      "output_tail": "  OK   선언된 override — network.v_free: parameters=100.0 실효=120.0\n  OK   선언된 override — network.rho_crit: parameters=33.5 실효=27.0\n  OK   선언된 override — network.freeway_capacity_veh_h: parameters=4000.0 실효=6937.0\n  OK   선언된 override — network.metanet_a_m: parameters=1.867 실효=1.6\n  OK   선언된 override — network.metanet_delta_merge: parameters=0.0 실효=0.3\n  WARN calibration 값이 버려진다 — network.v_free: calibration=120.0 parameters=100.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.rho_crit: calibration=30.0 parameters=33.5 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.freeway_capacity_veh_h: calibration=6900.0 parameters=4000.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — leader.N_P_crit_veh: calibration=600.0 parameters=509.448830418254 (calibration 값은 버려진다)\n  WARN 위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json 또는 config_overrides 를 고쳐라.\n  OK   순수 중복 키 없음 — parameters.json 편집이 실효한다\n  OK   리더 롤아웃 깊이 3 · follower 3\n  OK   녹색 예산 138.0 = cycle 150.0 - lost 12.0\n  OK   기본 현시녹색 파생 34.50 대 저장 34.50 (현시 4개)\n  OK   현시 상한 파생 78.0 = 예산 138.0 - (현시 4-1)x green_min 20 · 저장 78.0\n  OK   FD 함의 용량 6937 대 저장 6937 (비 1.00) — 용량은 rho_crit·v_free·a·차로수의 파생값이라 어긋나면 둘 중 하나가 틀렸다\n파라미터 검사 PASS — freeway_only_config.json\n"
+    },
+    {
+      "name": "parameters_4",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "scripts/verify_parameters.py",
+        "diagnostics/solo355_local_20261013/urban_only_config.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.593,
+      "output_tail": "  OK   선언된 override — network.v_free: parameters=100.0 실효=120.0\n  OK   선언된 override — network.rho_crit: parameters=33.5 실효=27.0\n  OK   선언된 override — network.freeway_capacity_veh_h: parameters=4000.0 실효=6937.0\n  OK   선언된 override — network.metanet_a_m: parameters=1.867 실효=1.6\n  OK   선언된 override — network.metanet_delta_merge: parameters=0.0 실효=0.3\n  WARN calibration 값이 버려진다 — network.v_free: calibration=120.0 parameters=100.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.rho_crit: calibration=30.0 parameters=33.5 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.freeway_capacity_veh_h: calibration=6900.0 parameters=4000.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — leader.N_P_crit_veh: calibration=600.0 parameters=509.448830418254 (calibration 값은 버려진다)\n  WARN 위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json 또는 config_overrides 를 고쳐라.\n  OK   순수 중복 키 없음 — parameters.json 편집이 실효한다\n  OK   리더 롤아웃 깊이 3 · follower 3\n  OK   녹색 예산 138.0 = cycle 150.0 - lost 12.0\n  OK   기본 현시녹색 파생 34.50 대 저장 34.50 (현시 4개)\n  OK   현시 상한 파생 78.0 = 예산 138.0 - (현시 4-1)x green_min 20 · 저장 78.0\n  OK   FD 함의 용량 6937 대 저장 6937 (비 1.00) — 용량은 rho_crit·v_free·a·차로수의 파생값이라 어긋나면 둘 중 하나가 틀렸다\n파라미터 검사 PASS — urban_only_config.json\n"
+    },
+    {
+      "name": "parameters_5",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "scripts/verify_parameters.py",
+        "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/vsl_schedules_20261015/config.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.57,
+      "output_tail": "  OK   선언된 override — network.v_free: parameters=100.0 실효=120.0\n  OK   선언된 override — network.rho_crit: parameters=33.5 실효=27.0\n  OK   선언된 override — network.freeway_capacity_veh_h: parameters=4000.0 실효=6937.0\n  OK   선언된 override — network.metanet_a_m: parameters=1.867 실효=1.6\n  OK   선언된 override — network.metanet_delta_merge: parameters=0.0 실효=0.3\n  WARN calibration 값이 버려진다 — network.v_free: calibration=120.0 parameters=100.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.rho_crit: calibration=30.0 parameters=33.5 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — network.freeway_capacity_veh_h: calibration=6900.0 parameters=4000.0 (calibration 값은 버려진다)\n  WARN calibration 값이 버려진다 — leader.N_P_crit_veh: calibration=600.0 parameters=509.448830418254 (calibration 값은 버려진다)\n  WARN 위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json 또는 config_overrides 를 고쳐라.\n  OK   순수 중복 키 없음 — parameters.json 편집이 실효한다\n  OK   리더 롤아웃 깊이 3 · follower 3\n  OK   녹색 예산 138.0 = cycle 150.0 - lost 12.0\n  OK   기본 현시녹색 파생 34.50 대 저장 34.50 (현시 4개)\n  OK   현시 상한 파생 78.0 = 예산 138.0 - (현시 4-1)x green_min 20 · 저장 78.0\n  OK   FD 함의 용량 6937 대 저장 6937 (비 1.00) — 용량은 rho_crit·v_free·a·차로수의 파생값이라 어긋나면 둘 중 하나가 틀렸다\n파라미터 검사 PASS — config.json\n"
+    },
+    {
+      "name": "python_syntax",
+      "exit_code": 0,
+      "files": 119,
+      "errors": []
+    },
+    {
+      "name": "powershell_parse",
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "$failed=$false\nforeach($file in @('tools/sdmpc31/freeze_worktree.ps1','diagnostics/sdmpc_n31_20260924/integration_20260926/run_closedloop3000.ps1','diagnostics/sdmpc_n31_20260924/integration_20260926/native_pair1200/run_pair.ps1')) { $tokens=$null; $parseErrors=$null; [void][System.Management.Automation.Language.Parser]::ParseFile((Join-Path (Get-Location) $file),[ref]$tokens,[ref]$parseErrors); if($parseErrors.Count) { $failed=$true; $parseErrors | Format-List } }\nif($failed){exit 1}; Write-Output 'PowerShell parse: 3 passed'\n"
+      ],
+      "exit_code": 0,
+      "seconds": 0.475,
+      "output_tail": "PowerShell parse: 3 passed\n"
+    },
+    {
+      "name": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.242,
+      "output_tail": ""
+    },
+    {
+      "name": "protected_sources_unchanged",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "HEAD",
+        "--",
+        "plant",
+        "vendor",
+        "network",
+        "evaluation/parameters.json",
+        "evaluation/controllers/area_follower_objective.py",
+        "evaluation/controllers/runtime_setup.py",
+        "evaluation/controllers/vissim_stackelberg_adapter.py",
+        "evaluation/controllers/sdmpc_pfo.py",
+        "evaluation/controllers/sdmpc_regional_context.py",
+        "evaluation/controllers/sdmpc_regional_contracts.py",
+        "evaluation/controllers/sdmpc_regional_prototype.py",
+        "evaluation/controllers/sdmpc_actuator_scope.py",
+        "diagnostics/solo355_local_20261013",
+        "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355"
+      ],
+      "exit_code": 0,
+      "seconds": 0.072,
+      "output_tail": ""
+    }
+  ],
+  "native_runs": 0,
+  "forecast_runs": 0,
+  "refits": 0,
+  "note": "Fresh quick publication regressions only. Prior native/calibration evidence remains historical; no new native performance qualification.",
+  "initial_attempts": [
+    {
+      "name": "pytest",
+      "command": [
+        "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_sdmpc_vsl_schedules.py",
+        "tests/test_runtime_package.py",
+        "tests/test_solo355_scope.py",
+        "tests/test_sdmpc_meter_owner_combination.py",
+        "tests/test_sdmpc_green_rounding.py",
+        "tests/test_sdmpc_cap_response_reuse.py",
+        "tests/test_sdmpc_lazy_derivatives.py",
+        "diagnostics/solo355_local_20261013/test_regional_contracts.py",
+        "diagnostics/com_execution_equivalence/test_verify_pair.py",
+        "diagnostics/com_execution_equivalence/test_verify_native_execution.py",
+        "diagnostics/com_execution_equivalence/test_recovered_decision.py",
+        "diagnostics/com_execution_equivalence/test_recovered_vsl_window.py",
+        "diagnostics/com_execution_equivalence/test_held_decision_summary.py"
+      ],
+      "exit_code": 0,
+      "seconds": 18.599,
+      "output_tail": "........................................................................ [ 42%]\n.................................................................. [ 81%]\n...............................                                [100%]\n169 passed, 16 subtests passed in 18.09s\n"
+    },
+    {
+      "name": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.242,
+      "output_tail": ""
+    }
+  ],
+  "environment_correction": "Test collection initially omitted vendor/NumSim-mine from PYTHONPATH; no controller fix was required. CRLF source hashes now have explicit -text and cr-at-eol publication attributes.",
+  "additional_analysis_checks": {
+    "command": [
+      "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "diagnostics/repin_v3c3_review_20261001/urban_rm269/test_controlled_pair_context.py",
+      "diagnostics/repin_v3c3_review_20261001/urban_rm269/isolated10681/test_analysis_scope.py"
+    ],
+    "exit_code": 1,
+    "passed": 14,
+    "subtests_passed": 3,
+    "status": "partial: two historical-data qualifications unavailable",
+    "unavailable_tests": [
+      "test_completed_actual_prediction_at_equal_endpoint",
+      "test_reused_area_is_the_actual_pinned_model_area"
+    ],
+    "missing_inputs": [
+      "isolated10681/forecast2400/summary.json",
+      "native_urbanrm269_10681only_2400/protocol.json"
+    ],
+    "note": "These two pre-existing historical-data tests are not counted as passed. No rerun, synthetic observations, or new native evidence.",
+    "output_tail": "otocol=json.loads((ROOT/'diagnostics/sdmpc_n31_20260924/integration_20260926/native_urbanrm269_10681only_2400/protocol.json').read_bytes())\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ndiagnostics\\repin_v3c3_review_20261001\\urban_rm269\\isolated10681\\test_analysis_scope.py:33: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\nC:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\pathlib.py:1019: in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = WindowsPath('D:/VISSIM_publish/sdmpc-plant-20261013/diagnostics/sdmpc_n31_20260924/integration_20260926/native_urbanrm269_10681only_2400/protocol.json')\nmode = 'rb', buffering = -1, encoding = None, errors = None, newline = None\n\n    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: 'D:\\\\VISSIM_publish\\\\sdmpc-plant-20261013\\\\diagnostics\\\\sdmpc_n31_20260924\\\\integration_20260926\\\\native_urbanrm269_10681only_2400\\\\protocol.json'\n\nC:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\pathlib.py:1013: FileNotFoundError\n=========================== short test summary info ===========================\nFAILED diagnostics/repin_v3c3_review_20261001/urban_rm269/isolated10681/test_analysis_scope.py::ScopeTests::test_completed_actual_prediction_at_equal_endpoint\nFAILED diagnostics/repin_v3c3_review_20261001/urban_rm269/isolated10681/test_analysis_scope.py::ScopeTests::test_reused_area_is_the_actual_pinned_model_area\n2 failed, 14 passed, 3 subtests passed in 1.01s\n"
+  }
+}

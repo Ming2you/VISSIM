@@ -1,0 +1,47 @@
+공유 저장소 안내
+
+같은 내용의 네트워크·지도·코드·실험 기록은 드라이브별로 공유합니다.
+과거 폴더의 파일은 같은 실제 파일을 가리키는 하드링크이며, 내용이 다른 버전은 보존합니다.
+수정할 작업 소스와 고유 실험 결과는 독립적으로 유지합니다.
+공유 파일을 직접 수정하지 마세요. 실험 중 수정해야 하는 INPX/SIG는 러너가 별도 복사합니다.
+새 동결본은 InputManifest에 명시한 코드와 입력만 포함하며, 과거 출력·분할 자료 묶음은 자동 복사하지 않습니다.
+폴더 용량 합계는 공유 파일을 중복 계산하므로, 확보 공간은 드라이브 여유 공간으로 확인하세요.
+VISSIM shared storage layout (2026-10-19)
+
+1. Common, immutable data
+   D:/VISSIM_shared/objects/sha256 and E:/VISSIM_shared/objects/sha256
+   Identical contents share the same physical file on each volume. Historical
+   experiment paths remain readable as read-only NTFS hardlinks. High-use small
+   inputs use additional verified shards to stay below the NTFS link limit.
+   Different versions of a network remain distinct by content hash.
+
+2. Editable code and input preparation
+   E:/VISSIM_workspaces/vsl349_causal_20261011 remains an independent editable
+   source. Shared inputs must not be edited in place. The canonical runners
+   create private writable INPX/SIG copies when an experiment must modify them.
+
+3. Future packages
+   Use tools/sdmpc31/runtime_package.py prepare with the actual source-relative
+   --config (or protocol) and any necessary --include entries. This produces a
+   pinned input manifest. Historical result archives and evidence.part files
+   are not copied implicitly.
+   Pass that manifest as -InputManifest to tools/sdmpc31/freeze_worktree.ps1,
+   together with -Source, a unique -FrozenRoot, -SharedStoreRoot and -Python.
+   Freezing without an explicit input manifest is refused. The canonical
+   freeze manifest verifier remains mandatory.
+   A prepared input manifest can be reused while its pins still match. Source
+   or dependency changes require an updated selection. External references
+   are pinned and remain external; they are not silently bundled as outputs.
+
+4. Run results
+   Use a separate, unique ResultsRoot and the established canonical preflight
+   and runner. Do not resume an old queue merely to test this storage change.
+   Storage verification does not qualify new native controller behavior.
+
+5. Historical records and physical capacity
+   Directory size totals count each hardlink path again. To measure reclaimed
+   capacity, use drive free space, not the sum of folder sizes.
+   Unique original results/FZPs, editable workspaces and small metadata remain.
+   The migration plan and journal record every replacement and restoration.
+   storage_layout_complete.json is the final completion record; its absence
+   means the migration has not yet been closed and verified.

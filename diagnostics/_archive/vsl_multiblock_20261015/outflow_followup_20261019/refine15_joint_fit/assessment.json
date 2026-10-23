@@ -1,0 +1,143 @@
+{
+  "status": "bounded_joint_update_failed_validation_gate",
+  "training": {
+    "eligible": true,
+    "baseline": {
+      "label": "baseline",
+      "relative": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "values": [
+        31.629526620024713,
+        1.6389238667240507,
+        13.323924529220516,
+        45.40241642965459,
+        32.1326386013365
+      ],
+      "data_loss": 0.9398589100079384,
+      "stock_rmse": 5.5077800380715365,
+      "speed_rmse": 15.956221363846083
+    },
+    "fitted": {
+      "label": "fitted",
+      "relative": [
+        0.19934742342131517,
+        0.2644557950192781,
+        0.007726798983194984,
+        -0.15171013754044846,
+        0.01698390831709629
+      ],
+      "values": [
+        37.93479125576254,
+        2.072346780874629,
+        13.426875815725065,
+        38.51440958844298,
+        32.678376389327994
+      ],
+      "data_loss": 0.7374410571568802,
+      "stock_rmse": 5.32062437391569,
+      "speed_rmse": 13.481107074329213
+    },
+    "data_jacobian_singular_values": [
+      1.425616568525373,
+      0.051911125471502034,
+      0.04044330890099404,
+      0.015012635900067186,
+      0.00586549627051098
+    ],
+    "active_bounds": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "converged_nonlinear": false,
+    "method": "One measured bounded Gauss-Newton update; no nonlinear convergence claim",
+    "frozen_before_validation": true
+  },
+  "new_forecasts": 16,
+  "fits": 1,
+  "new_native": 0,
+  "new_SDMPC_optimizations": 0,
+  "candidate_adopted": false,
+  "goal_complete": false,
+  "max_route_balance": 1.1546319456101628e-14,
+  "max_vsl_balance": 6.679101716144942e-13,
+  "validation_gates": {
+    "holdout_stock_rmse": false,
+    "holdout_speed_rmse": false,
+    "response_flow_direction": false,
+    "response_stock_direction": false,
+    "response_flow_error": false,
+    "response_stock_error": false,
+    "omega_contrast_error": true
+  },
+  "rows": [
+    {
+      "horizon": 150,
+      "native_flow_delta": 1,
+      "native_first_meter_stock_delta": 1,
+      "baseline_flow_delta": -13.38087927025066,
+      "fitted_flow_delta": -14.203337980432764,
+      "native_stock_delta": -2,
+      "baseline_stock_delta": 12.770641807457338,
+      "fitted_stock_delta": 13.583691665302212
+    },
+    {
+      "horizon": 300,
+      "native_flow_delta": 23,
+      "native_first_meter_stock_delta": 0,
+      "baseline_flow_delta": -22.739678663557243,
+      "fitted_flow_delta": -23.731841888172426,
+      "native_stock_delta": -22,
+      "baseline_stock_delta": 21.064983967317033,
+      "fitted_stock_delta": 22.100797396550604
+    },
+    {
+      "horizon": 450,
+      "native_flow_delta": 31,
+      "native_first_meter_stock_delta": 0,
+      "baseline_flow_delta": -28.87958613070657,
+      "fitted_flow_delta": -29.440958559981823,
+      "native_stock_delta": -30,
+      "baseline_stock_delta": 26.384399138637775,
+      "fitted_stock_delta": 27.3005421401638
+    }
+  ],
+  "whole_omega_delta": {
+    "native": -0.045833333333,
+    "same_grid_baseline": 1.1094872923556522,
+    "fitted": 1.0688070615744891
+  },
+  "holdout_rmse": {
+    "stock_baseline": 8.617014466914071,
+    "stock_fitted": 8.678788109026849,
+    "speed_baseline": 21.2655194345492,
+    "speed_fitted": 22.266666533275338
+  },
+  "initial_refinement_exact": true,
+  "independent_seed_validation_performed": false,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\completion.json": "420fa152aa0e5dedba329d5e5685fd7ea25f306bc90a0e87461b9079ad30db30",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\selection.json": "97b47ab3c8238b776c546f1e7c79ae4ec8974beb1a3789bb4e6c6c120c921d5d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\validation.json": "15a15afaefcd5e524af1adf149576c52b080af948dd36f163ea02571b333cd23",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\validation_truth.json": "be55a8a200dcc51aec01e9971d8994e84bbf9db3ebf16363232095b6cace6432",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\results.json": "f2563325b716351bee15028e82dd242c2f37ab438e14ce5c9c616c268c3d8471",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\assessment.json": "70c49c47cbc1531c31c5e1d1f94177c850ee8bbec44575fdd81cf91e740c3f72",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\approach_flux.json": "0545185b5a3c33075c021eee70a4018a2f596a476db8a7ff2c222153c910dc14",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\hold0625_subcells.json": "06937d215b210c4ea6ea470a9b840723544a8c843b8511dd1731e775bd79362b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\distribution_assessment.json": "d573a8ae5ca5e4290bfd1e43e8254ab683396e8589d61eee59ac97bb85bec627",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\capture_2250\\isolated_capture.json": "e3b54a3671f30bc9a6602c8e0ab23fbc0ea1df3f03e8df8d35dfc227ded6e60e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_candidate\\initial_refinement.json": "4d069d6b52a77cb99fe760b6431c528114f849423f36ed888d7c4b18034eb5a3"
+  },
+  "limitations": [
+    "This is a single bounded Gauss-Newton update, not completed nonlinear calibration or a converged optimum.",
+    "Native conditional VSL response is under the recorded city/RM schedule; no autonomous8100-policy gain is claimed.",
+    "Parameter boundaries and training-window coverage may limit transfer. Spatial refinement as a model class is not rejected by this candidate result."
+  ]
+}

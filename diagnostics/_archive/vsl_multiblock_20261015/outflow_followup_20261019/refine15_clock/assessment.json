@@ -1,0 +1,136 @@
+{
+  "status": "completed_time_step_sensitivity_not_adopted",
+  "results": {
+    "hold": {
+      "steps": 208,
+      "max_dt_sec": 2.5000000000004547,
+      "first10_middle_floor_sec": 6.25,
+      "first10_middle_min_speed": 5.0,
+      "holdout_subcell_speed_rmse": 18.415385051039493,
+      "holdout_subcell_stock_rmse": 6.076726704264658
+    },
+    "selected": {
+      "steps": 207,
+      "max_dt_sec": 2.5000000000004547,
+      "first10_middle_floor_sec": 6.25,
+      "first10_middle_min_speed": 5.0,
+      "holdout_subcell_speed_rmse": 22.46211601689857,
+      "holdout_subcell_stock_rmse": 4.359093418044752
+    },
+    "hold125": {
+      "steps": 360,
+      "max_dt_sec": 1.25,
+      "first10_middle_floor_sec": 3.75,
+      "first10_middle_min_speed": 5.0,
+      "holdout_subcell_speed_rmse": 18.653116523607128,
+      "holdout_subcell_stock_rmse": 6.134495401842502
+    },
+    "selected125": {
+      "steps": 360,
+      "max_dt_sec": 1.25,
+      "first10_middle_floor_sec": 3.75,
+      "first10_middle_min_speed": 5.0,
+      "holdout_subcell_speed_rmse": 22.00331842136382,
+      "holdout_subcell_stock_rmse": 4.270040872058872
+    },
+    "hold0625": {
+      "steps": 720,
+      "max_dt_sec": 0.625,
+      "first10_middle_floor_sec": 0.0,
+      "first10_middle_min_speed": 6.236711185591321,
+      "holdout_subcell_speed_rmse": 18.696888371443166,
+      "holdout_subcell_stock_rmse": 6.144864550015933
+    },
+    "selected0625": {
+      "steps": 720,
+      "max_dt_sec": 0.625,
+      "first10_middle_floor_sec": 0.0,
+      "first10_middle_min_speed": 6.162650270364183,
+      "holdout_subcell_speed_rmse": 21.894101259096466,
+      "holdout_subcell_stock_rmse": 4.251873504291834
+    }
+  },
+  "contrasts": [
+    {
+      "grid": "original",
+      "delta_throughflow": [
+        -13.424635970735494,
+        -22.944845340727056,
+        -29.37788887819329
+      ],
+      "delta_omega": 1.1324814322139218,
+      "delta_stock": [
+        12.813325705352554,
+        21.255292189662526,
+        26.773767748538745
+      ]
+    },
+    {
+      "grid": "cap1.25",
+      "delta_throughflow": [
+        -13.393387401297048,
+        -22.781344901156103,
+        -28.992284191321914
+      ],
+      "delta_omega": 1.1146155648891636,
+      "delta_stock": [
+        12.783410286541283,
+        21.10539807012708,
+        26.48928752051438
+      ]
+    },
+    {
+      "grid": "cap0.625",
+      "delta_throughflow": [
+        -13.38087927025066,
+        -22.739678663557243,
+        -28.87958613070657
+      ],
+      "delta_omega": 1.1094872923556522,
+      "delta_stock": [
+        12.770641807457338,
+        21.064983967317033,
+        26.384399138637775
+      ]
+    }
+  ],
+  "screen": {
+    "hold_subcell_max_speed_change_kmh": 0.1937128521250031,
+    "hold_subcell_max_stock_change_veh": 0.035055652313991104,
+    "response_throughflow_change_veh": 0.11269806061534382,
+    "omega_contrast_change_veh_h": 0.0051282725335113355
+  },
+  "screen_pass": {
+    "hold_subcell_max_speed_change_kmh": true,
+    "hold_subcell_max_stock_change_veh": true,
+    "response_throughflow_change_veh": true,
+    "omega_contrast_change_veh_h": true
+  },
+  "max_tag_balance": 1.3100631690576847e-14,
+  "max_cohort_balance": 8.313350008393172e-13,
+  "new_forecasts": 4,
+  "new_native": 0,
+  "new_fits": 0,
+  "candidate_adopted": false,
+  "goal_complete": false,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\completion.json": "147407f6a253fa4392a84401787eae8fab9b9d35e6a3ad2e31ebc4ccd75a265f",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\results.json": "f2563325b716351bee15028e82dd242c2f37ab438e14ce5c9c616c268c3d8471",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_candidate\\results.json": "d572ec8775ec16da97cb5774fda7be6e147e86d463267cc3399854a7d55e8b49",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\observed_variance.json": "70d8ad84c8cc821f6fa15432d842f10a38236b07d50cfdda170d47ff225decb9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_candidate\\hold_subcells.json": "a60cd7e8dc0e73fe41a4b5bf4b7c9baf12210c76849cb0445d11ac98fe01f3a2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_candidate\\hold_response.json.gz": "0d9bf3e0877487eecd483b8195855dc8ba2f9c56f831a34083a0ca2beaedb18c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_candidate\\selected_subcells.json": "2891d24ddf42eaabe428b7ce68967c96b2a3c28d203a86a64d33383c77e15a4d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_candidate\\selected_response.json.gz": "4984b48311dd925c2f434da15b1e7061f7a733df875a9fac63bc21b28c6b8bf0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\hold125_subcells.json": "6ed16ab14eaf04f755edaf3f7501c5626fc1fb33360b71811e09262e99e84ad3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\hold125_response.json.gz": "13f11ea52fc393c5b299b8e792e4446f221159ca047d620587f2e063cc617398",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\selected125_subcells.json": "b8c2d4671b3659a5a9312d638b088fda22620aab1393831c97003394efdb9c0c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\selected125_response.json.gz": "61316876f5fed54e88b2aa13eb12ec528a74c7b0bc541c4352e10a485b2b7215",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\hold0625_subcells.json": "06937d215b210c4ea6ea470a9b840723544a8c843b8511dd1731e775bd79362b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\hold0625_response.json.gz": "402c8d4e6f7370f08cdf38e7320302936b00a5218ff50dc13aac026d134323e3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\selected0625_subcells.json": "02305697e720a2731dc5ab21c420561e9ba552080f9dca5abbaddfe321a30d1a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\forecasts\\selected0625_response.json.gz": "f24719533a979e7d06f6ccf1c4e1be04286bdf576eeeceb205e3f45255c749b0",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_clock\\protocol.json": "fcd0a361b67f6414e5d180631c70097f9ef54091742a420f4330d494acaa4810"
+  },
+  "interpretation": "Shorter internal steps do not establish a calibrated spatial model. Inspect speed-floor contact separately from450s response convergence; native gain is not an acceptance target for choosing a grid."
+}

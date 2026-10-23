@@ -1,0 +1,243 @@
+{
+  "status": "completed_regime_fit_pending_independent_validation",
+  "training": {
+    "eligible": true,
+    "baseline": {
+      "label": "baseline",
+      "relative": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "values": [
+        37.93479125576254,
+        2.072346780874629,
+        13.426875815725065,
+        38.51440958844298,
+        32.678376389327994
+      ],
+      "data_loss": 1.1563829984702447,
+      "stock_rmse": 6.6301032478994815,
+      "speed_rmse": 16.932812025085173,
+      "regimes": {
+        "1650": {
+          "stock_rmse": 4.732848296037857,
+          "speed_rmse": 13.573712093952976
+        },
+        "2250": {
+          "stock_rmse": 8.678788109026849,
+          "speed_rmse": 22.266666533275338
+        },
+        "2850": {
+          "stock_rmse": 5.844107391101521,
+          "speed_rmse": 13.4205167827844
+        }
+      },
+      "reused": 2
+    },
+    "fitted": {
+      "label": "fitted2",
+      "relative": [
+        -0.06895012135525629,
+        -0.021368143798839605,
+        -0.4999999999999162,
+        0.25247782590702283,
+        0.3383352712085565
+      ],
+      "values": [
+        35.3191827950914,
+        2.0280645768598378,
+        6.713437907863658,
+        48.23844398742566,
+        43.73462372766657
+      ],
+      "data_loss": 1.1266794559651299,
+      "stock_rmse": 6.542512756888593,
+      "speed_rmse": 16.716874399535698,
+      "regimes": {
+        "1650": {
+          "stock_rmse": 4.655320120101093,
+          "speed_rmse": 13.577326819114262
+        },
+        "2250": {
+          "stock_rmse": 8.500013948699513,
+          "speed_rmse": 21.436817398261102
+        },
+        "2850": {
+          "stock_rmse": 5.872918948312296,
+          "speed_rmse": 13.945634634183081
+        }
+      },
+      "reused": 0
+    },
+    "updates": [
+      {
+        "iteration": 1,
+        "measured_improvement": true,
+        "data_jacobian_singular_values": [
+          0.7946094223645176,
+          0.14956158775080722,
+          0.029574937971794463,
+          0.01577140130692089,
+          0.009746698968803673
+        ],
+        "active_bounds": [
+          0,
+          0,
+          -1,
+          0,
+          1
+        ],
+        "candidate": {
+          "label": "fitted1",
+          "relative": [
+            -0.09404140527758294,
+            0.0008757377042271166,
+            -0.2499999999999923,
+            0.24999999902218484,
+            0.2499999999999975
+          ],
+          "values": [
+            34.36735017715886,
+            2.0741616130868747,
+            10.070156861793901,
+            48.143011947893754,
+            40.84797048665991
+          ],
+          "data_loss": 1.1396959448940296,
+          "stock_rmse": 6.587616126653022,
+          "speed_rmse": 16.801536627018848,
+          "regimes": {
+            "1650": {
+              "stock_rmse": 4.685008276121552,
+              "speed_rmse": 13.6281476026303
+            },
+            "2250": {
+              "stock_rmse": 8.55672893885044,
+              "speed_rmse": 21.582176634977873
+            },
+            "2850": {
+              "stock_rmse": 5.918035655192426,
+              "speed_rmse": 13.977057762802039
+            }
+          },
+          "reused": 0
+        }
+      },
+      {
+        "iteration": 2,
+        "measured_improvement": true,
+        "data_jacobian_singular_values": [
+          0.980886786461527,
+          0.1516442052626271,
+          0.03197291938606202,
+          0.01695731014873648,
+          0.00888110070922858
+        ],
+        "active_bounds": [
+          0,
+          0,
+          -1,
+          0,
+          0
+        ],
+        "candidate": {
+          "label": "fitted2",
+          "relative": [
+            -0.06895012135525629,
+            -0.021368143798839605,
+            -0.4999999999999162,
+            0.25247782590702283,
+            0.3383352712085565
+          ],
+          "values": [
+            35.3191827950914,
+            2.0280645768598378,
+            6.713437907863658,
+            48.23844398742566,
+            43.73462372766657
+          ],
+          "data_loss": 1.1266794559651299,
+          "stock_rmse": 6.542512756888593,
+          "speed_rmse": 16.716874399535698,
+          "regimes": {
+            "1650": {
+              "stock_rmse": 4.655320120101093,
+              "speed_rmse": 13.577326819114262
+            },
+            "2250": {
+              "stock_rmse": 8.500013948699513,
+              "speed_rmse": 21.436817398261102
+            },
+            "2850": {
+              "stock_rmse": 5.872918948312296,
+              "speed_rmse": 13.945634634183081
+            }
+          },
+          "reused": 0
+        }
+      }
+    ],
+    "converged_nonlinear": false,
+    "method": "At most two measured bounded Gauss-Newton updates",
+    "frozen_before_development_response": true,
+    "independent_evaluation_reserved": [
+      67,
+      71
+    ]
+  },
+  "new_forecasts": 38,
+  "reused_forecasts": 2,
+  "updates": 2,
+  "new_native": 0,
+  "new_SDMPC_optimizations": 0,
+  "production_edits": 0,
+  "candidate_adopted": false,
+  "goal_complete": false,
+  "max_route_balance": 1.2878587085651816e-14,
+  "max_vsl_balance": 1.6058265828178264e-12,
+  "development2250_now_used_for_training": true,
+  "heldout_seeds_used_for_training": false,
+  "independent_validation_performed": false,
+  "nonlinear_convergence_claimed": false,
+  "development_response": {
+    "rows": [
+      {
+        "horizon": 150,
+        "native_flow_delta": 1,
+        "native_face_stock": 1,
+        "predicted_flow_delta": -14.4317199926262,
+        "native_stock_delta": -2,
+        "predicted_stock_delta": 13.785679158897267
+      },
+      {
+        "horizon": 300,
+        "native_flow_delta": 23,
+        "native_face_stock": 0,
+        "predicted_flow_delta": -24.837141126146435,
+        "native_stock_delta": -22,
+        "predicted_stock_delta": 23.051183737510968
+      },
+      {
+        "horizon": 450,
+        "native_flow_delta": 31,
+        "native_face_stock": 0,
+        "predicted_flow_delta": -31.4859656662245,
+        "native_stock_delta": -30,
+        "predicted_stock_delta": 29.034330827392807
+      }
+    ],
+    "predicted_omega_delta": 1.1051267421105422,
+    "native_omega_delta": -0.045833333333,
+    "scope": "Native hold2250 is now a calibration case. VSL90 outcomes are excluded from fit, but this is development response, not untouched validation."
+  },
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\completion.json": "b3094bff26df56e25794492087991baef72254f9216783f12e4b4de6e49dbced",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\selection.json": "c75237fe84fe075e7f6673b1e57fa07d9e916af60eb7d90e24339cd2a6c5920b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\development_response.json": "96ab1bf3e6ddda208ef24d66b8c8aac778b99fe17e31ea4fc7531a987ebd1166",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\approach_flux.json": "0545185b5a3c33075c021eee70a4018a2f596a476db8a7ff2c222153c910dc14",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\distribution_assessment.json": "d573a8ae5ca5e4290bfd1e43e8254ab683396e8589d61eee59ac97bb85bec627"
+  }
+}

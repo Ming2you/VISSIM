@@ -1,0 +1,66 @@
+{
+  "status": "offline_metadata_repair_verified",
+  "root_cause": "Preparation passed offset_writer=experiment to canonical writer but omitted matching metadata fields. JSON source lacked fields present in original successful CSV. All213 rows rejected by unchanged native metadata validator.",
+  "failed_rows": 639,
+  "fixed_rows": 639,
+  "fixed_invalid_rows": 0,
+  "unchanged_baseline_passed": true,
+  "negative_fixture_rejections": 6,
+  "physical_writer_checks": [
+    {
+      "sim_sec": 2250,
+      "changed_dsd": [
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66
+      ],
+      "canonical_writer": true,
+      "city_rm_unchanged": true
+    },
+    {
+      "sim_sec": 2400,
+      "changed_dsd": [
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66
+      ],
+      "canonical_writer": true,
+      "city_rm_unchanged": true
+    },
+    {
+      "sim_sec": 2550,
+      "changed_dsd": [
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66
+      ],
+      "canonical_writer": true,
+      "city_rm_unchanged": true
+    }
+  ],
+  "metadata_matches_validated_baseline_all_rows": true,
+  "new_forecasts": 0,
+  "new_native_runs": 0,
+  "failed_frozen_and_results_preserved": true,
+  "validation_outputs": [
+    "ROWS=639 INVALID=0 EXPECTED=0",
+    "ROWS=213 INVALID=0 EXPECTED=0",
+    "ROWS=6 INVALID=6 EXPECTED=6"
+  ],
+  "verified_utc": "2026-10-15T08:47:48.4761112Z"
+}

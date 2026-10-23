@@ -8,13 +8,14 @@ import argparse
 import json
 import math
 import hashlib
+from collections import Counter
 from pathlib import Path
 import sys
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT))
-from diagnostics.com_execution_equivalence.verify_pair import verify_native_execution
+from diagnostics.com_execution_equivalence.verify_pair import verify_native_execution, decision_recovery_evidence, user_stop_evidence
 from diagnostics.fast_fixed_profile_verify import prefix_digest
 from diagnostics.capture_native_runtime_errors import parse_bytes
 from scripts.measure_control_area import read_fzp_frames, measure_frames, terminal_lengths, sha256
@@ -31,6 +32,75 @@ def load(p):
 def save(p, value):
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False)+'\n', encoding='utf-8')
+
+
+def controlled_reuse_metadata(protocol, prediction, baseline_terminal_sec):
+    """Report the requested window, including a baseline ending exactly there.
+
+    Missing outside-cost predictions stay unknown. This does not qualify native
+    execution, prefix identity or actual gain; those checks remain in main().
+    """
+    start, end = protocol['start_sec'], protocol['end_sec']
+    assert end - start == 450 and baseline_terminal_sec >= end
+    values = [prediction[k] for k in ('delta_omega_ttt_veh_h', 'delta_omega_veh_h') if k in prediction]
+    assert values and all(math.isfinite(float(x)) for x in values)
+    assert all(abs(float(x) - float(values[0])) < 1e-9 for x in values)
+    omega = float(values[0])
+    outside = prediction.get('delta_tracked_outside_veh_h')
+    if outside is not None:
+        assert math.isfinite(float(outside))
+    result = dict(predicted_delta_omega_veh_h=omega,
+        predicted_delta_tracked_total_veh_h=None if outside is None else omega + float(outside))
+    limitations = [f'Controlled command prefix is checked against the reused baseline; comparison window is {start}..{end}s. No fresh SDMPC selection during replay.']
+    if baseline_terminal_sec > end:
+        limitations.append(f'Reused baseline ends at{baseline_terminal_sec}s; its terminal native latent delay and uninserted count are not{end}s measurements and are omitted.')
+    if outside is None:
+        limitations.append('Outside-cost prediction is unavailable here; no zero outside cost or predicted tracked-total gain is assumed.')
+    return result, limitations
+
+
+def controlled_reuse_area(protocol, membership_path, *, root=ROOT):
+    """Keep an explicit replay area identical to its pinned model configuration."""
+    assert protocol.get('reuse_native_baseline') and protocol.get('controlled_prefix')
+    configs = []
+    for name, digest in protocol['command_pins'].items():
+        path = Path(name)
+        if path.suffix != '.json' or 'config' not in path.stem:
+            continue
+        assert sha256(path) == digest, str(path)
+        area = load(path).get('control_area_objective', {})
+        if not area.get('enabled'):
+            continue
+        assert (root / area['membership_path']).resolve() == membership_path.resolve(), 'Model and native comparison areas differ'
+        configs.append(dict(path=str(path), sha256=digest))
+    assert configs, 'No pinned model area for this reused controlled pair'
+    return dict(model_configs=configs, membership_path=str(membership_path.resolve()),
+                membership_sha256=sha256(membership_path))
+
+
+def measurement_area(path, *, root=ROOT):
+    """Load one pinned area for BOTH arms, including explicit area revisions."""
+    document = load(path)
+    pins = {str((root/item['path']).resolve()): item
+            for item in [document['network'], *document.get('sources', [])]}
+    revisions = document.get('area_revision_sources', [])
+    if revisions:
+        # The revised ledger retains historical source metadata. Its declared
+        # revision pins supersede only the same files; all other pins remain.
+        previous = document['previous_membership']
+        assert sha256(root/previous['path']) == previous['sha256'], previous['path']
+        assert load(root/previous['path'])['network'] == document['network']
+        for item in revisions:
+            pins[str((root/item['path']).resolve())] = item
+    for resolved, item in pins.items():
+        assert sha256(Path(resolved)) == item['sha256'], item['path']
+    membership = physical_membership_from_ledger(document)
+    assert sum(membership.values()) == document['counts']['inside_total']
+    return document, membership, dict(path=str(path.resolve()), sha256=sha256(path),
+        inside_links=sum(membership.values()), outside_links=sum(not x for x in membership.values()),
+        network_sha256=document['network']['sha256'],
+        current_source_pins={p:x['sha256'] for p,x in pins.items()},
+        previous_membership=document.get('previous_membership'), same_area_for_both_arms=True)
 
 
 def table(p, rows):
@@ -57,6 +127,27 @@ def native_network_cost(run, end):
         'native_network_end_vehicles': values['VehAct'],
         'native_arrived_vehicles': values['VehArr'],
     }
+
+
+def closed_loop_analysis_end(run_end, requested_end):
+    end = run_end if requested_end is None else requested_end
+    if not 900 < end <= run_end or end % 150:
+        raise ValueError('Analysis end must be a 150-second boundary after900, within the recorded run')
+    return end
+
+
+def completed_nc_identity(run, end):
+    candidates=list(run.glob('run_provenance_sdmpc31_nc*_s29.json'))
+    assert len(candidates)==1, 'Ambiguous reused NC provenance'
+    prov=load(candidates[0]);period=prov['sim_period_sec']
+    assert type(period) is int and period>=end and prov['seed']==29
+    assert prov['name']==f'sdmpc31_nc{period}_s29'
+    return prov['name'],period
+
+
+def traffic_events_through(events, end):
+    return [e for e in events if e.get('kind') != 'unfinished_vehicle_input'
+            and e.get('time_sec') is not None and e['time_sec'] <= end]
 
 
 def independent_four_protocol(protocol):
@@ -164,7 +255,72 @@ def selected_vsl_prefix(protocol, alignment_path):
     return baseline['prefixes']['release'],proof
 
 
-def decision_summary(decisions, start, end):
+def controlled_pair_context(protocol, source, model_config, membership_path, *, protocol_dir, root=ROOT):
+    """Qualify a prospective held/selected replay against its observed state.
+
+    This verifies inputs only. Native prefix equality, command application,
+    runtime closure and both measured costs remain separate gates below.
+    """
+    assert protocol['controller'] == 'wu-link'
+    assert protocol['arms'] == ['hold', 'selected'] and not protocol.get('reuse_native_baseline')
+    start, end = protocol['start_sec'], protocol['end_sec']
+    assert start % 150 == 0 and end - start == 450
+    assert protocol['control_start_sec'] < start
+    assert protocol['future_observation_inputs'] is False and protocol['controller_optimization'] is False
+    assert protocol['sim_resolution'] == 10 and protocol['vehicle_record_interval_sec'] == 5
+    pins = {Path(p).resolve(): h for p, h in protocol['command_pins'].items()}
+    for p, digest in pins.items():
+        assert sha256(p) == digest, str(p)
+    state_path = source / f'state_{start:06d}.json'
+    assert pins[state_path.resolve()] == sha256(state_path)
+    state = load(state_path)
+    assert state['sim_sec'] == start and state['vehicle_records']['complete']
+    for sec in (1, *range(150, start, 150)):
+        for suffix in ('.json', '.csv'):
+            path = source / f'action_{sec:06d}{suffix}'
+            assert pins[path.resolve()] == sha256(path)
+    provenance_path, = source.parent.glob('run_provenance_*.json')
+    provenance = load(provenance_path)
+    assert pins[provenance_path.resolve()] == sha256(provenance_path)
+    assert provenance['seed'] == protocol['seed']
+    assert provenance['files']['network']['sha256'] == protocol['network_sha256']
+    assert provenance['sim_period_sec'] >= end
+    assert pins[model_config.resolve()] == sha256(model_config)
+    model_area = root / load(model_config)['control_area_objective']['membership_path']
+    assert model_area.resolve() == membership_path.resolve(), 'Model and native comparison areas differ'
+    prediction_path = Path(protocol['prediction_summary'])
+    assert pins[prediction_path.resolve()] == sha256(prediction_path)
+    prediction = load(prediction_path)
+    assert prediction['status'] == 'two_discrete_predictions_complete'
+    assert prediction['selected_model_caps_feasible']
+    prediction_pins = {(root / p).resolve(): h for p, h in prediction['source_pins'].items()}
+    assert prediction_pins[state_path.resolve()] == sha256(state_path)
+    assert prediction_pins[model_config.resolve()] == sha256(model_config)
+    target_caps = None
+    for arm in ('hold', 'selected'):
+        result = prediction['results'][arm]
+        quantities = result['shared_constraints']
+        assert quantities['feasible']
+        assert quantities['window']['start_sec'] == start and quantities['window']['end_sec'] == end
+        caps = [quantities[key]['target'] for key in ('np', 'nuf')]
+        if target_caps is None:
+            target_caps = caps
+        assert caps == target_caps, 'Held/selected predictions used different caps'
+        assert [r['sim_sec'] for r in result['commands']] == list(range(start, end, 150))
+        for row in result['commands']:
+            command = protocol_dir / arm / 'commands' / ('action_%06d.csv' % row['sim_sec'])
+            assert pins[command.resolve()] == sha256(command) == row['csv_sha256']
+    expected_delta = prediction['results']['selected']['omega_ttt_veh_h'] - prediction['results']['hold']['omega_ttt_veh_h']
+    assert abs(expected_delta - prediction['delta_omega_ttt_veh_h']) < 1e-8
+    return dict(source_decisions=str(source.resolve()), state_sha256=sha256(state_path),
+                provenance_sha256=sha256(provenance_path),
+                model_config_sha256=sha256(model_config), membership_sha256=sha256(membership_path),
+                prediction_path=str(prediction_path), prediction_sha256=sha256(prediction_path),
+                predicted_delta_omega_veh_h=prediction['delta_omega_ttt_veh_h'],
+                validation_scope='Pinned input/context only; does not establish native equivalence or gain')
+
+
+def decision_summary(decisions, start, end, *, recovery=None):
     """Read completed decisions only, keeping proposed commands distinct from native proof."""
     rows = []
     # First control slew is relative to the last written warmup command,
@@ -176,17 +332,25 @@ def decision_summary(decisions, start, end):
     assert len(previous_rows) == len(previous_meters) == 8, previous_path
     for sec in range(start, end, 150):
         stem = decisions / f'action_{sec:06d}'
-        report = load(stem.with_suffix('.joint.json'))
-        assert report['completed'] is True, f'Incomplete SDMPC decision: {sec}'
-        selected = report['selection']
-        assert selected['feasible'] is True, f'Infeasible selected SDMPC command: {sec}'
-        binding = load(stem.with_suffix('.joint_written.json'))
-        assert binding['prewrite_binding_passed'] and binding['written_command_binding_passed'], sec
-        for key, suffix in (('action_csv', '.csv'), ('action_json', '.json')):
-            path = stem.with_suffix(suffix)
-            assert Path(binding[key]['path']).resolve() == path.resolve(), (sec, key, 'path')
-            assert sha256(path) == binding[key]['sha256'], (sec, key, 'sha256')
-        pfo = selected['pfo_warm_start']
+        held=load(stem.with_suffix('.json')).get('metadata',{}).get('controller_status')=='hold_previous_error'
+        if held:
+            assert recovery is not None and recovery['passed'] and str(sec) in recovery['holds'], 'Unverified held decision'
+            proof=recovery['holds'][str(sec)]
+            assert proof['command_json_sha256']==sha256(stem.with_suffix('.json'))
+            assert proof['command_csv_sha256']==sha256(stem.with_suffix('.csv'))
+        else:
+            assert recovery is None or str(sec) not in recovery['holds'], 'Recovery record/command mismatch'
+            report = load(stem.with_suffix('.joint.json'))
+            assert report['completed'] is True, f'Incomplete SDMPC decision: {sec}'
+            selected = report['selection']
+            assert selected['feasible'] is True, f'Infeasible selected SDMPC command: {sec}'
+            binding = load(stem.with_suffix('.joint_written.json'))
+            assert binding['prewrite_binding_passed'] and binding['written_command_binding_passed'], sec
+            for key, suffix in (('action_csv', '.csv'), ('action_json', '.json')):
+                path = stem.with_suffix(suffix)
+                assert Path(binding[key]['path']).resolve() == path.resolve(), (sec, key, 'path')
+                assert sha256(path) == binding[key]['sha256'], (sec, key, 'sha256')
+            pfo = selected['pfo_warm_start']
         with stem.with_suffix('.csv').open(encoding='utf-8-sig', newline='') as stream:
             commands = list(csv.DictReader(stream))
         vsl, meters = {}, {}
@@ -206,6 +370,17 @@ def decision_summary(decisions, start, end):
         assert all(abs(delta) <= 2 for delta in changes.values()), (sec, 'RM slew', changes)
         assert all(vsl.get(key) == 110 for key in ('RW_FW_E_S0', 'RW_FW_W_S0')), (sec, 'entry VSL')
         previous_meters = meters
+        if held:
+            rows.append(dict(sim_sec=sec,vsl_commands_kph=vsl,meter_green_commands_sec=meters,
+                written_command_binding_passed=None,command_bounds_and_slew_passed=True,
+                meter_green_change_sec=changes,restricted_vsl={k:v for k,v in vsl.items() if v<110},
+                restricted_meters={k:v for k,v in meters.items() if v<10},
+                hold_previous_error=True,optimizer_success=False,recovery_evidence=proof,
+                prediction_status='not_computed',predicted_reduction_from_held_veh_h=None,
+                predicted_ttt_reduction_from_held_veh_h=None,predicted_objective_reduction_from_held_veh_h=None,
+                pfo=None,sdmpc_candidates=None,sdmpc_converged=False,model_constraints=None,
+                native_execution_verified=False))
+            continue
         rows.append({
             'sim_sec': sec, 'vsl_commands_kph': vsl, 'meter_green_commands_sec': meters,
             'written_command_binding_passed': True,
@@ -235,6 +410,8 @@ def decision_summary(decisions, start, end):
         })
     return {'scope': 'Model decision and CSV command summary; native execution is verified separately.',
             'warning': 'Rolling predicted reductions have different initial states; do not sum them as realized gain.',
+            'held_error_decisions':sum(bool(r.get('hold_previous_error')) for r in rows),
+            'optimized_decisions':sum(not r.get('hold_previous_error',False) for r in rows),
             'decisions': rows}
 
 
@@ -529,6 +706,64 @@ def cached_diagnostics(runs, output, nc_run=None):
                                   r['east_meter_gradient_rows']) for r in gradients]}), flush=True)
 
 
+def captured_controlled_replay_ramps(protocol, selected_run, output):
+    """Read frozen accepted-flow traces, without another model rollout or fit."""
+    import gzip
+    from types import SimpleNamespace as NS
+    from evaluation.controllers.physical_ramp_branches import predicted_merge_quantity
+    prediction_path=Path(protocol['prediction_summary'])
+    preparation=prediction_path.parent
+    launch=load(preparation/'native_launch.json')
+    frozen=Path(launch['frozen_tree'])
+    assert sha256(frozen/'FREEZE.json')==launch['freeze_sha256']
+    manifest=load(frozen/'FREEZE.json')['files']
+    pins={}
+    def pinned(path):
+        digest=sha256(path)
+        assert manifest[path.relative_to(ROOT).as_posix()]==digest,path
+        pins[str(path)]=digest
+        return path
+    predictions=load(pinned(prediction_path))
+    prepared=load(pinned(preparation/'protocol.json'))
+    baseline=load(Path(protocol['controlled_prefix']['provenance']))
+    actual=load(selected_run/f'run_provenance_sdmpc31_g_{protocol["start_sec"]}_selected_s{protocol["seed"]}.json')
+    assert Path(actual['workspace_root']).resolve()==frozen.resolve()
+    initial_path=Path(protocol['reuse_native_baseline']['run'])/('decisions_'+baseline['name'])/f'state_{protocol["start_sec"]:06d}.json'
+    assert sha256(initial_path)==prepared['source_sha256'][str(initial_path)]
+    initial=load(initial_path)
+    assert initial['vehicle_records']['complete'] and initial['sim_sec']==protocol['start_sec']
+    pins[str(initial_path)]=sha256(initial_path)
+    mapping=load(pinned(ROOT/'evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json'))
+    ramps={r['id']:r for r in mapping['ramp_meters']}
+    assert len(ramps)==8
+    cfg=NS(network=NS(physical_ramp_branches={'ramps':ramps}))
+    result={}
+    for arm,case in (('hold','held_actual'),('selected','selected')):
+        path=pinned(preparation/(arm+'_response.json.gz'))
+        with gzip.open(path,'rt',encoding='utf-8') as stream:response=json.load(stream)
+        assert response['conditional_model_feasibility_witness'] and response['model_constraint_coverage']['complete']
+        accepted=predicted_merge_quantity(response,cfg,start_sec=protocol['start_sec'],end_sec=protocol['end_sec'])
+        assert abs(accepted['total_rate_veh_h']-predictions[arm]['inherited_constraints']['nuf']['actual'])<1e-7
+        rows={}
+        for ramp,spec in ramps.items():
+            start=sum(int(v['link_no'])==int(spec['connector']) for v in initial['vehicle_records']['records'])
+            arrivals=math.fsum(x['vehicles'] for x in response['transfers'] if x['target']=='ramp:'+ramp)
+            outgoing=[x for x in response['transfers'] if x['source']=='ramp:'+ramp]
+            assert all(x['target']=='merge_pending:'+ramp for x in outgoing)
+            merge=accepted['accepted_vehicles_by_ramp'][ramp]
+            assert abs(math.fsum(x['vehicles'] for x in outgoing)-merge)<1e-7
+            ending=start+arrivals-merge
+            assert ending>=-1e-7
+            rows[ramp]=dict(arrival=arrivals,merge=merge,final_stock=max(0.,ending),residual=0.,
+                initial_stock=start,final_stock_source='initial connector stock plus captured accepted entries minus accepted merges; original endpoint ledger checks passed')
+        result[case]=dict(ramps=rows,omega_ttt_veh_h=predictions[arm]['omega_ttt_veh_h'])
+        del response, outgoing
+    document=dict(results=result,source_sha256=pins,freeze_sha256=launch['freeze_sha256'],
+        new_model_predictions=0,fit=0,future_states_used_as_prediction_inputs=False)
+    save(output/'captured_prediction_ramps.json',document)
+    return document
+
+
 def replay_ramp_audit(runs, output, protocol_path, prediction_override=None, *, paired_history_only=False,
                       recording_alignment=None):
     """Compare frozen predictions with closed native detector bundles, without FZP scans."""
@@ -559,6 +794,7 @@ def replay_ramp_audit(runs, output, protocol_path, prediction_override=None, *, 
     selected_vsl_pair=protocol.get('arms')==['selected','vsl90']
     reused=protocol.get('reuse_native_baseline')
     factorial=protocol.get('native_factorial',False)
+    controlled_reuse=bool(reused and protocol.get('controlled_prefix'))
     if independent_four:
         assert load(protocol_path.parent/'status.json')['stage']=='requested_native_arms_complete_unanalyzed'
         assert prediction_override is not None and not paired_history_only and recording_alignment is None
@@ -580,8 +816,9 @@ def replay_ramp_audit(runs, output, protocol_path, prediction_override=None, *, 
     audit_output=prediction_override.parent if rm_pair else output
     target = audit_output/'ramp_response_audit.json'
     assert not target.exists(), 'Preserve completed ramp audit'
-    prediction_path = prediction_override if rm_pair else Path(protocol['prediction_source'])
-    document=load(prediction_path)
+    prediction_path = (Path(protocol['prediction_summary']) if controlled_reuse else
+                       prediction_override if rm_pair else Path(protocol['prediction_source']))
+    document=(captured_controlled_replay_ramps(protocol,runs/'selected',output) if controlled_reuse else load(prediction_path))
     if independent_four:
         receipt_path=output/'observation_reuse.json'
         receipt=load(receipt_path)
@@ -595,7 +832,7 @@ def replay_ramp_audit(runs, output, protocol_path, prediction_override=None, *, 
         assert Path(proof['native_summary']).resolve()==(output/'summary.json').resolve()
         assert proof['observation_cutoff_sec']==2700 and proof['future_states_used'] is False
         assert all(sha256(Path(path))==digest for path,digest in proof['files'].items())
-    else:
+    elif not controlled_reuse:
         assert sha256(prediction_path) == protocol['prediction_sha256']
     predictions = document['results']
     if selected_vsl_pair:
@@ -632,6 +869,10 @@ def replay_ramp_audit(runs, output, protocol_path, prediction_override=None, *, 
     if reused:
         report['scope']='Eight physical ramps: completed native hold vs saved selected city/RM commands'
         report['limitations'][-1]='Joint city/RM response; not an isolated RM or VSL efficacy test.'
+    if controlled_reuse:
+        report['scope']='Eight physical ramps: matched10681 g0 vs2/4/6 with all other commands fixed'
+        report['limitations'][-1]='Isolated10681 actuator diagnostic at one existing seed29 state; not fresh PFO-feasible SDMPC selection.'
+        report['captured_prediction_evidence']=str(output/'captured_prediction_ramps.json')
     if rm_pair and observation_profile_pair(protocol)=='vsl73':
         report['scope']='Eight physical ramps: seed73 VSL110/90 replication under identical RM release schedules'
         report['limitations'][-1]='New seed73, one fixed-policy contrast; no isolated RM effect or general VSL robustness claim.'
@@ -657,6 +898,7 @@ def replay_ramp_audit(runs, output, protocol_path, prediction_override=None, *, 
         assert comparison['arms'][arm]['native_execution_passed']
         run = Path(reused['run']) if reused and arm=='hold' else runs/arm
         name = f'sdmpc31_g_{start}_{arm}_s{protocol["seed"]}'
+        if controlled_reuse and arm=='hold':name=load(Path(protocol['controlled_prefix']['provenance']))['name']
         decisions = run/f'decisions_{name}'
         prediction = predictions[case]['ramps']
         assert len(prediction) == 8
@@ -726,6 +968,7 @@ def main():
     modes.add_argument('--short-connection', action='store_true')
     modes.add_argument('--observation-reuse2250', action='store_true')
     modes.add_argument('--closed-loop-3000', action='store_true')
+    modes.add_argument('--closed-loop-8100', action='store_true')
     modes.add_argument('--closed-loop-9000', action='store_true')
     modes.add_argument('--replay-protocol', type=Path)
     parser.add_argument('--runs-root', type=Path)
@@ -739,7 +982,38 @@ def main():
     parser.add_argument('--cached-diagnostics', action='store_true')
     parser.add_argument('--cached-replay-ramp-audit', action='store_true')
     parser.add_argument('--prediction-summary', type=Path)
+    parser.add_argument('--membership-json', type=Path,
+                        help='Pinned area for a fresh closed-loop or controlled held/selected comparison')
+    parser.add_argument('--controlled-pair-source', type=Path,
+                        help='Original observed decisions for a two-arm held/selected450s replay')
+    parser.add_argument('--controlled-pair-model-config', type=Path,
+                        help='Pinned model config used for the completed discrete selection check')
+    parser.add_argument('--analysis-end-sec', type=int,
+                        help='Censor traffic comparison at this time; retain actual run completion checks')
+    parser.add_argument('--user-stop-receipt', type=Path,
+                        help='Explicit closed user-stop receipt for the SDMPC arm; NC must remain normally completed')
     args = parser.parse_args()
+    controlled_pair = args.controlled_pair_source is not None
+    reused_controlled_area = False
+    if args.replay_protocol:
+        replay = load(args.replay_protocol)
+        reused_controlled_area = bool(replay.get('reuse_native_baseline') and replay.get('controlled_prefix'))
+    if controlled_pair != (args.controlled_pair_model_config is not None):
+        parser.error('Controlled pair requires both original decisions and model config')
+    if controlled_pair and (not args.replay_protocol or args.membership_json is None
+            or args.cached_diagnostics or args.cached_replay_ramp_audit or args.recording_start_alignment):
+        parser.error('Controlled pair requires a fresh replay comparison and explicit model-matched area')
+    if args.user_stop_receipt is not None and (not (args.closed_loop_3000 or args.closed_loop_8100 or args.closed_loop_9000)
+            or args.analysis_end_sec is None or args.nc_run_dir is None
+            or args.cached_diagnostics or args.cached_replay_ramp_audit):
+        parser.error('--user-stop-receipt requires a fresh censored closed-loop comparison with completed NC')
+    if args.analysis_end_sec is not None and (not (args.closed_loop_3000 or args.closed_loop_8100 or args.closed_loop_9000)
+                                             or args.cached_diagnostics or args.cached_replay_ramp_audit):
+        parser.error('--analysis-end-sec requires a fresh closed-loop comparison')
+    if args.membership_json is not None and not (args.closed_loop_3000 or args.closed_loop_8100 or args.closed_loop_9000 or controlled_pair or reused_controlled_area):
+        parser.error('--membership-json requires a fresh closed-loop or controlled pair comparison')
+    if args.membership_json is not None and (args.cached_diagnostics or args.cached_replay_ramp_audit):
+        parser.error('A changed area cannot reuse cached metrics from another area')
     selected_vsl_alignment = bool(args.replay_protocol and not args.cached_diagnostics
                                   and load(args.replay_protocol).get('arms') == ['selected','vsl90'])
     if args.recording_start_alignment is not None and not (args.replay_protocol and not args.paired_history_only
@@ -765,19 +1039,26 @@ def main():
         return
     if args.cached_replay_ramp_audit and (not args.replay_protocol or args.cached_diagnostics):
         parser.error('--cached-replay-ramp-audit requires --replay-protocol, without --cached-diagnostics')
-    closed_loop = args.closed_loop_3000 or args.closed_loop_9000
+    closed_loop = args.closed_loop_3000 or args.closed_loop_8100 or args.closed_loop_9000
     if args.nc_run_dir is not None and not closed_loop:
         parser.error('--nc-run-dir requires a closed-loop comparison')
     if closed_loop:
-        end = 9000 if args.closed_loop_9000 else 3000
-        if end == 9000 and args.runs_root is None:
-            parser.error('--closed-loop-9000 requires --runs-root')
+        run_end = 9000 if args.closed_loop_9000 else 8100 if args.closed_loop_8100 else 3000
+        try:
+            end = closed_loop_analysis_end(run_end, args.analysis_end_sec)
+        except ValueError as exc:
+            parser.error(str(exc))
+        if run_end != 3000 and args.runs_root is None:
+            parser.error('An explicit --runs-root is required outside the default3000 fixture')
         runs = args.runs_root or Path('D:/VISSIM_runs/20260926_sd31_closedloop3000')
         arms, start = ('nc', 'sdmpc'), 900
         output = HERE.parent/f'closedloop{end}_analysis'
-        status_path = HERE.parent/f'closedloop{end}_status.json'
-        names = {arm: f'sdmpc31_{arm}{end}_s29' for arm in arms}
-        scope = f'matched no-control and actual receding-horizon SDMPC{end}; execution alone does not establish gain'
+        status_path = HERE.parent/f'closedloop{run_end}_status.json'
+        names = {arm: f'sdmpc31_{arm}{run_end}_s29' for arm in arms}
+        nc_run_end=run_end
+        if args.nc_run_dir is not None:
+            names['nc'],nc_run_end=completed_nc_identity(args.nc_run_dir,end)
+        scope = f'matched traffic through{end}s from completed SDMPC{run_end}s and NC; execution alone does not establish gain'
     elif args.replay_protocol:
         if args.runs_root is None:
             parser.error('--replay-protocol requires --runs-root')
@@ -796,6 +1077,9 @@ def main():
         output, status_path = HERE/'analysis', HERE/'status.json'
         names = {arm: f'sdmpc31_g_1200_{arm}_s29' for arm in arms}
         scope = 'one frozen SDMPC450s decision replay; not closed-loop performance'
+    if not closed_loop:
+        run_end = end
+    traffic_censored = closed_loop and (end < run_end or end < nc_run_end)
     if args.output_dir is not None:
         output = args.output_dir
     if args.status_json is not None:
@@ -810,15 +1094,29 @@ def main():
         cached_diagnostics(runs, output, args.nc_run_dir)
         return
     status = load(status_path)
-    assert status['stage'] in ('both_native_complete_unanalyzed', 'requested_native_arms_complete_unanalyzed'), status
-    if closed_loop:
+    stopped_evidence=None
+    if args.user_stop_receipt:
+        assert end < run_end, 'User-stop analysis cannot claim the requested run completed'
+        stopped_evidence=user_stop_evidence(runs/'sdmpc',end,args.user_stop_receipt)
+        scope=f'matched traffic through{end}s: explicitly user-stopped SDMPC prefix versus completed NC'
+    else:
+        assert status['stage'] in ('both_native_complete_unanalyzed', 'requested_native_arms_complete_unanalyzed'), status
+        assert not (runs/'STOP').exists(), 'User STOP exists'
+    if closed_loop and not args.user_stop_receipt:
         assert Path(status['details']['out_dir']).resolve() == runs.resolve(), 'Completed queue belongs to another result directory'
+        assert status['details']['terminal'] == run_end, 'Completion receipt must retain the actual run length'
         if 'arms' in status['details']:
             expected_arms = ['sdmpc'] if args.nc_run_dir is not None else list(arms)
             assert status['details']['arms'] == expected_arms, 'Requested native arms must have completed'
-    assert not (runs/'STOP').exists(), 'User STOP exists'
     assert not (output/'summary.json').exists(), 'Preserve existing completed comparison'
     protocol = load(args.replay_protocol or HERE/'protocol.json')
+    controlled_context = None
+    if controlled_pair:
+        controlled_context = controlled_pair_context(protocol, args.controlled_pair_source,
+            args.controlled_pair_model_config, args.membership_json, protocol_dir=args.replay_protocol.parent)
+        closure = load(output/'runtime_closure.json')
+        assert closure['all_owned_processes_closed'] and closure['owner_exit_code'] == 0
+        assert Path(closure['runs_root']).resolve() == runs.resolve()
     factorial = protocol.get('native_factorial',False)
     independent_four = independent_four_protocol(protocol)
     if independent_four:
@@ -831,6 +1129,7 @@ def main():
         if not independent_four:
             assert sha256(Path(protocol['prediction_source']))==protocol['prediction_sha256']
     reused=protocol.get('reuse_native_baseline')
+    controlled_reuse=bool(reused and protocol.get('controlled_prefix'))
     reused_summary=None
     if reused:
         assert protocol['arms']==['selected'] and arms==('hold','selected')
@@ -838,6 +1137,21 @@ def main():
         reused_summary=load(Path(reused['summary']))
         assert reused_summary['counterfactual_valid'] and reused_summary['paired_prefix_exact']
         for path,digest in protocol['command_pins'].items():assert sha256(Path(path))==digest,path
+    if controlled_reuse:
+        proof=protocol['controlled_prefix']
+        if args.membership_json is not None:
+            controlled_reuse_area(protocol, args.membership_json)
+        assert sha256(Path(proof['execution']))==proof['execution_sha256']
+        assert sha256(Path(proof['provenance']))==proof['provenance_sha256']
+        baseline_execution=load(Path(proof['execution']))
+        baseline_provenance=load(Path(proof['provenance']))
+        assert baseline_execution['native_execution_passed'] and baseline_execution['terminal_sec']>=end
+        assert baseline_execution['run_id']==baseline_provenance['run_id']
+        assert Path(baseline_execution['run_directory']).resolve()==Path(reused['run']).resolve()
+        names['hold']=baseline_provenance['name']
+        closure=load(output/'runtime_closure.json')
+        assert closure['all_owned_processes_closed'] and closure['owner_exit_code']==0
+        assert Path(closure['runs_root']).resolve()==runs.resolve()
     profile_pair = observation_profile_pair(protocol) if args.replay_protocol else None
     rm_observation_pair = profile_pair is not None
     if profile_pair == 'vsl73':
@@ -849,18 +1163,29 @@ def main():
     if rm_observation_pair:
         for path,digest in protocol['command_pins'].items():
             assert sha256(Path(path))==digest, path
-    ledger_path = HERE.parent/'selected/scenario/control_area_membership_213a5d.json'
-    ledger = load(ledger_path)
-    for item in [ledger['network'], *ledger['sources']]:
-        assert sha256(ROOT/item['path']) == item['sha256'], item['path']
-    membership = physical_membership_from_ledger(ledger)
+    ledger_path = args.membership_json or HERE.parent/'selected/scenario/control_area_membership_213a5d.json'
+    ledger, membership, area_receipt = measurement_area(ledger_path)
+    assert ledger['network']['sha256'] == protocol['network_sha256']
     terminals = terminal_lengths(ledger)
     summary = {'scope': scope,
-               'start_sec': start, 'end_sec': end, 'arms': {},
+               'start_sec': start, 'end_sec': end, 'recorded_run_end_sec': run_end, 'arms': {},
+               'traffic_censored_before_run_end': traffic_censored,
                'reused_nc_run': str(args.nc_run_dir.resolve()) if args.nc_run_dir is not None else None,
-               'whole_omega_gain_qualified': False, 'new_calibration': False}
+               'whole_omega_gain_qualified': False, 'new_calibration': False,
+               'physical_area': area_receipt}
     if closed_loop:
-        decisions = decision_summary(runs/'sdmpc'/f"decisions_{names['sdmpc']}", start, end)
+        summary['requested_run_period_sec_by_arm']={'nc':nc_run_end,'sdmpc':run_end}
+    if stopped_evidence:
+        summary.update(user_stop=stopped_evidence,requested_sim_period_sec=run_end,
+                       recorded_run_end_sec=None,sdmpc_execution_verified_through_sec=end)
+    if closed_loop:
+        control_run=runs/'sdmpc';control_name=names['sdmpc']
+        recovery=decision_recovery_evidence(control_run,control_name,
+            load(control_run/f'run_provenance_{control_name}.json'),
+            (control_run/f'runlog_{control_name}.txt').read_bytes().splitlines(),
+            through_sec=end if args.user_stop_receipt else None)
+        decisions = decision_summary(control_run/f'decisions_{control_name}', start, end,recovery=recovery)
+        summary['decision_recovery']=recovery
         save(output/'sdmpc_decisions.json', decisions)
     original_prefix = None
     if selected_vsl_pair:
@@ -869,38 +1194,47 @@ def main():
     if profile_pair == 'vsl67':
         original_prefix, proof = previous_vsl67_prefix(protocol)
         summary['original_prefix_source'] = proof
-    if reused:
+    if controlled_reuse:
+        baseline_fzp,=(Path(reused['run'])/'vissim_eval').glob('*.fzp')
+        original_prefix=prefix_digest(baseline_fzp,start,recording_grid=(5,.1))
+    elif reused:
         original_prefix=reused_summary['prefixes']['hold']
     elif not rm_observation_pair and not closed_loop and not selected_vsl_pair:
-        original_run=Path(protocol['original_run']) if args.replay_protocol else ORIGINAL
+        original_run=(args.controlled_pair_source.parent if controlled_pair else
+                      Path(protocol['original_run']) if args.replay_protocol else ORIGINAL)
         original_fzp, = (original_run/'vissim_eval').glob('*.fzp')
         original_prefix = prefix_digest(original_fzp, start, recording_grid=(5, .1))
     prefixes = {}
     common_start_records = None
     for arm in arms:
-        if reused and arm=='hold':
+        if reused and arm=='hold' and not controlled_reuse:
             summary['arms'][arm]=reused_summary['arms']['hold']
             prefixes[arm]=reused_summary['prefixes']['hold']
             assert summary['arms'][arm]['native_execution_passed']
             save(output/arm/'reused_result.json',dict(source=reused,metrics=summary['arms'][arm],prefix=prefixes[arm],fzp_rescanned=False))
             continue
-        run = args.nc_run_dir if arm == 'nc' and args.nc_run_dir is not None else runs/arm
+        baseline_window=controlled_reuse and arm=='hold'
+        run = (Path(reused['run']) if baseline_window else
+               args.nc_run_dir if arm == 'nc' and args.nc_run_dir is not None else runs/arm)
         name = names[arm]
+        arm_run_end=nc_run_end if closed_loop and arm=='nc' else run_end
         if args.nc_run_dir is not None and arm == 'nc':
             assert not (run.parent/'STOP').exists(), 'Reused NC belongs to a stopped job'
             log = (run/f'runlog_{name}.txt').read_text(encoding='utf-8-sig').splitlines()
-            assert 'STAGE=SIM_DONE' in log and f'SIM_SEC={end}' in log, 'Reused NC is incomplete'
+            assert 'STAGE=SIM_DONE' in log and f'SIM_SEC={arm_run_end}' in log, 'Reused NC is incomplete'
             assert f'OK {name} attempt=1 ' in (run/'launch.log').read_text(encoding='utf-8-sig')
         provenance = load(run/f'run_provenance_{name}.json')
         assert provenance['files']['network']['sha256'] == protocol['network_sha256']
-        assert provenance['seed'] == protocol['seed'] and provenance['sim_period_sec'] == end
-        if reused or factorial and not independent_four or selected_vsl_pair:
+        assert provenance['seed'] == protocol['seed']
+        assert provenance['sim_period_sec']>=end if baseline_window else provenance['sim_period_sec']==arm_run_end
+        if controlled_pair or (reused and not baseline_window) or factorial and not independent_four or selected_vsl_pair:
             decisions=run/f'decisions_{name}'
             for sec in (1,*range(150,end+1,150)):
                 for suffix in ('.json','.csv'):
                     planned=args.replay_protocol.parent/arm/'commands'/f'action_{sec:06d}{suffix}'
                     assert sha256(decisions/planned.name)==sha256(planned),(arm,sec,suffix)
-            baseline_dir=(Path(protocol['common_prefix_source']) if selected_vsl_pair else
+            baseline_dir=(args.controlled_pair_source if controlled_pair else
+                          Path(protocol['common_prefix_source']) if selected_vsl_pair else
                           Path(reused['run'])/f'decisions_{names["hold"]}' if reused else
                           Path(protocol['original_run'])/'decisions_sdmpc31_sdmpc9000_s29')
             baseline_state=load(baseline_dir/f'state_{start:06d}.json')
@@ -908,6 +1242,10 @@ def main():
             assert baseline_state['vehicle_records']['complete'] and selected_state['vehicle_records']['complete']
             assert baseline_state['vehicle_records']['records']==selected_state['vehicle_records']['records'],'Different actual initial vehicle state'
             summary['common_start_vehicle_records_exact']=True
+            if controlled_reuse:
+                for key in ('network','main_vbs_runner','control_mapping','demand_profile','vehicle_input_roles',
+                            'urban_input_gate_map','signal_group_plan'):
+                    assert provenance['files'][key]['sha256']==baseline_provenance['files'][key]['sha256'],key
         if rm_observation_pair:
             decisions=run/f'decisions_{name}'
             initial = load(decisions/f'state_{start:06d}.json')
@@ -928,29 +1266,45 @@ def main():
                       for sec in (1,end)]
             assert native==expected, 'Native urban signal ownership missing at initialization or termination'
         out = output/arm
-        execution = verify_native_execution(run, end, run_name=name)
+        stopped_arm=bool(args.user_stop_receipt and arm=='sdmpc')
+        execution = baseline_execution if baseline_window else verify_native_execution(
+            run, end if stopped_arm else arm_run_end, run_name=name,
+            user_stop_receipt=args.user_stop_receipt if stopped_arm else None)
         save(out/'execution.json', execution)
         if args.replay_protocol or closed_loop:
             assert execution['native_execution_passed'], f'Native execution failed: {out}'
         errors = []
         events = []
-        for p in sorted(run.rglob('*.err')):
+        for p in ([] if baseline_window else sorted(run.rglob('*.err'))):
             parsed = parse_bytes(p.read_bytes())
             assert not parsed['unparsed_removal_lines'], str(p)
+            if traffic_censored:
+                parsed['events'] = traffic_events_through(parsed['events'], end)
+                parsed['counts'] = dict(Counter(e['kind'] for e in parsed['events']))
+                parsed['unparsed'] = traffic_events_through(parsed['unparsed'], end)
+                parsed['traffic_end_sec'] = end
+                parsed['terminal_uninserted_count_unavailable'] = True
             errors.append({'path': str(p), 'sha256': sha256(p), **parsed})
             events.extend(parsed['events'])
         # Some native .err files are copied into the run root: count each event once.
         events = [json.loads(s) for s in sorted({json.dumps(e, sort_keys=True) for e in events})]
+        if baseline_window:
+            cached_errors=Path(proof['execution']).parent/'native_errors.json'
+            events=[e for e in load(cached_errors)['unique_events']
+                    if e.get('kind')!='unfinished_vehicle_input' and e.get('time_sec',0)<=end]
+            errors=[dict(reused_source=str(cached_errors),sha256=sha256(cached_errors),
+                         truncated_at_sec=end,terminal_uninserted_count_unavailable=True)]
         removals = {str(e['vehicle_id']): e for e in events if e['kind'] == 'lane_change_removal'}
         save(out/'native_errors.json', {'files': errors, 'unique_events': events})
         fzp, = (run/'vissim_eval').glob('*.fzp')
-        prefixes[arm] = prefix_digest(fzp, start, recording_grid=(5, .1))
+        prefixes[arm] = original_prefix if baseline_window else prefix_digest(fzp, start, recording_grid=(5, .1))
         before = fzp.stat()
         previous = None
 
         def audited_frames():
             nonlocal previous
             for frame in read_fzp_frames(fzp):
+                if frame.time_sec>end:break  # Reused longer run: never account later traffic.
                 if previous:
                     dt = frame.time_sec - previous.time_sec
                     for no in previous.vehicles.keys() - frame.vehicles.keys():
@@ -970,6 +1324,21 @@ def main():
         assert metrics['sampling']['nominal_step_sec'] == 5 and metrics['sampling']['missing_snapshot_gaps'] == 0
         save(out/'area_metrics.json', metrics)
         table(out/'area_timeseries.csv', times)
+        if baseline_window:
+            cached_path=Path(proof['execution']).parent/'area_timeseries.csv'
+            with cached_path.open(encoding='utf-8-sig',newline='') as stream:
+                cached={float(r['sim_sec']):r for r in csv.DictReader(stream)}
+            checked=0
+            for row in times:
+                if row['sim_sec']==end:continue  # Newly censored final tail, not the old9000 endpoint.
+                old=cached[row['sim_sec']]
+                assert all(abs(float(old[key])-row[key])<1e-8 for key in (
+                    'inside_vehicles','outside_vehicles','ttt_veh_h_cumulative','ttd_observed_plus_terminal_cumulative'))
+                checked+=1
+            save(out/'reused_window.json',dict(source=reused,execution_receipt=proof['execution'],
+                execution_validated_through_sec=baseline_execution['terminal_sec'],
+                traffic_read_through_sec=end,cached_timeseries_sha256=sha256(cached_path),
+                unchanged_cached_samples=checked,full9000_traffic_reanalysis=False))
         at_start = next(r for r in times if abs(r['sim_sec']-(start+.1)) < 1e-7)
         row = {'native_execution_passed': execution['native_execution_passed'],
                'lsa_passed': execution['native_lsa_com_coverage_passed'],
@@ -978,7 +1347,7 @@ def main():
                'Omega_TTD_events': metrics['ttd_observed_plus_terminal_events'],
                'Omega_end_vehicles': metrics['censored_last_observed_inside_vehicles'],
                'native_removals': len(removals),
-               'uninserted_at_end': sum(e['remaining_vehicles'] for e in events if e['kind']=='unfinished_vehicle_input'),
+               'uninserted_at_end': None if baseline_window or traffic_censored else sum(e['remaining_vehicles'] for e in events if e['kind']=='unfinished_vehicle_input'),
                'unresolved_Omega_disappearances': metrics['unresolved_inside_disappearances'],
                'outside_Omega_residence_veh_h': sum(r['ttt_veh_h'] for r in metrics['physical_link_residence'].values() if not r['inside']),
                'last_fzp_sec': metrics['boundaries']['last_fzp_sec'],
@@ -986,7 +1355,7 @@ def main():
         row.update(sampled_TVD_Omega_veh_km=metrics['distance']['sampled_tvd_omega_veh_km'],
                    sampled_TVD_censored_tail_veh_km=metrics['distance']['censored_tail_hold_veh_km'],
                    distance_definition=metrics['distance']['definition'])
-        if args.closed_loop_9000 or (run/'native_network_performance.json').exists():
+        if not baseline_window and not traffic_censored and (args.closed_loop_9000 or (run/'native_network_performance.json').exists()):
             row.update(native_network_cost(run, end))
         summary['arms'][arm] = row
         print(json.dumps({arm: row}), flush=True)
@@ -1009,6 +1378,11 @@ def main():
         summary['delta_native_uninserted_delay_veh_h'] = b['native_uninserted_delay_veh_h']-a['native_uninserted_delay_veh_h']
     else:
         summary['limitations'].append('Uninserted terminal count is not the external input-queue time integral; native delay is missing.')
+    if traffic_censored:
+        summary['limitations'].append(f'Traffic, exit/removal events and residual stock stop at{end}s. '
+            +(f'SDMPC was explicitly user-stopped; command verification covers1..{end}s, not normal completion. '
+              if stopped_evidence else f'Native completion and command verification retain{run_end}s. ')
+            +f'Terminal uninserted count and whole-run cost are not{end}s measurements and are omitted.')
     if factorial:
         summary.update(protocol_path=str(args.replay_protocol),protocol_sha256=sha256(args.replay_protocol),
             prediction_source=None if independent_four else protocol['prediction_source'],
@@ -1044,6 +1418,25 @@ def main():
             counterfactual_valid=summary['paired_prefix_exact'] and summary['original_initial_history_exact']
                 and summary['common_start_vehicle_records_exact'] and all(r['native_execution_passed'] for r in summary['arms'].values()))
         summary['limitations'][1]='Same selected SDMPC city/RM sequence; only DSD63..66 differ110vs90 after2700. Original observed2700 state and qualified new67 prefix required. No independent-seed claim.'
+    elif controlled_reuse:
+        prediction=load(Path(protocol['prediction_summary']))
+        predicted_fields, reuse_limitations = controlled_reuse_metadata(protocol, prediction, baseline_execution['terminal_sec'])
+        summary.update(protocol_path=str(args.replay_protocol),protocol_sha256=sha256(args.replay_protocol),
+            prediction_source=protocol['prediction_summary'],
+            **predicted_fields,
+            counterfactual_valid=summary['paired_prefix_exact'] and summary['original_initial_history_exact']
+                and summary['common_start_vehicle_records_exact'] and all(r['native_execution_passed'] for r in summary['arms'].values()))
+        summary['limitations'][1] = reuse_limitations[0]
+        summary['limitations'].extend(reuse_limitations[1:])
+    elif controlled_pair:
+        summary.update(protocol_path=str(args.replay_protocol),protocol_sha256=sha256(args.replay_protocol),
+            controlled_pair_context=controlled_context,
+            prediction_source=controlled_context['prediction_path'],
+            predicted_delta_omega_veh_h=controlled_context['predicted_delta_omega_veh_h'],
+            counterfactual_valid=summary['paired_prefix_exact'] and summary['original_initial_history_exact']
+                and summary['common_start_vehicle_records_exact']
+                and all(row['native_execution_passed'] for row in summary['arms'].values()))
+        summary['limitations'][1]='Held physical commands versus a previously selected city/RM three-block sequence after the identical observed prefix. No reoptimization during replay; not RM-only attribution or closed-loop performance.'
     elif args.replay_protocol:
         summary.update(protocol_path=str(args.replay_protocol),protocol_sha256=sha256(args.replay_protocol),
             prediction_source=protocol['prediction_source'],

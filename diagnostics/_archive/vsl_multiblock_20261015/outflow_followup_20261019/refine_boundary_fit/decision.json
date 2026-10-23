@@ -1,0 +1,66 @@
+{
+  "status": "boundary_update_improves_baseline_but_worsens_vsl_response_not_adopted",
+  "updated_utc": "2026-10-19T04:02:28.627939+00:00",
+  "app_goal_status": "active",
+  "automation_status": "PAUSED",
+  "goal_complete": false,
+  "current_goal_turn_classification": "progress:16 finite boundary-identification forecasts completed and assessed; annotation-stage attribution corrected",
+  "candidate_adopted": false,
+  "spatial_model_class_rejected": false,
+  "nonlinear_fit_converged": false,
+  "new_forecasts": 16,
+  "reused_forecasts": 3,
+  "updates": 1,
+  "independent_new_forecasts": 0,
+  "new_native": 0,
+  "remaining_native_budget": 0,
+  "production_edits": 0,
+  "training_loss_reduction": 0.07277845696680174,
+  "development_response": {
+    "rows": [
+      {
+        "horizon": 150,
+        "native_flow_delta": 1,
+        "native_face_stock": 1,
+        "prior_predicted_flow_delta": -14.4317199926262,
+        "predicted_flow_delta": -14.493035233455487,
+        "native_stock_delta": -2,
+        "prior_predicted_stock_delta": 13.785679158897267,
+        "predicted_stock_delta": 13.727667417478102
+      },
+      {
+        "horizon": 300,
+        "native_flow_delta": 23,
+        "native_face_stock": 0,
+        "prior_predicted_flow_delta": -24.837141126146435,
+        "predicted_flow_delta": -26.059117197214846,
+        "native_stock_delta": -22,
+        "prior_predicted_stock_delta": 23.051183737510968,
+        "predicted_stock_delta": 24.044164698344815
+      },
+      {
+        "horizon": 450,
+        "native_flow_delta": 31,
+        "native_face_stock": 0,
+        "prior_predicted_flow_delta": -31.4859656662245,
+        "predicted_flow_delta": -34.18666387662154,
+        "native_stock_delta": -30,
+        "prior_predicted_stock_delta": 29.034330827392807,
+        "predicted_stock_delta": 31.522127716554337
+      }
+    ],
+    "predicted_omega_delta": 1.1397024519772003,
+    "prior_predicted_omega_delta": 1.1051267421105422,
+    "native_omega_delta": -0.045833333333
+  },
+  "annotation_correction": "The quoted -28.9 to -29.4 vehicles came from the one-update five-parameter joint fit, not the initial fixed-parameter spatial split. That fit was not converged and lacked congested training coverage. The candidate was not adopted; calibrated spatial refinement was not ruled out.",
+  "next": "Reuse all completed forecasts. The boundary update improves baseline loss but worsens the VSL contrast; do not deploy it or repeat independent runs for this candidate. Before another parameter update, use saved matched trajectories, resource allocations and native observations to separate baseline state errors from the downstream outflow response mechanism and identify a nonduplicate hypothesis. Do not infer that calibrated spatial refinement is impossible or expand bounds merely to fit the sign. No new native, full optimization, grid, production edit or push. Goal ACTIVE/incomplete; automation PAUSED.",
+  "evidence": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\completion.json": "9adb7330920644b332aec40196cb48c7db5246967c72599a64e432a0a5ebbea4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\selection.json": "c7897ab57c3ba40f7d98465c3164a7fa7de82a8a01049d19f1fb55954334a8ed",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\assessment.json": "66d3782c439c755f8c9eaaad116c31c00d3af3c261591a2b877f52d1bb8e5f0b",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\owner_closure.json": "521b9b67ced26f490522972f6c6689fa7b2f981b09ad729038753ab3762e56cc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_residual_audit.json": "a9264e8ce8b3da18a66fa5e476dbd856a363c114235f31dff380228526b1451a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\README.md": "a744605caf2368fdd4344574a151f988e1bcdf983843507621d9fac157f6d391"
+  }
+}

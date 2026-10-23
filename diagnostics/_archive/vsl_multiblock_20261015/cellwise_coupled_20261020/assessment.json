@@ -1,0 +1,173 @@
+{
+  "status": "coupled_fit_training_gate_not_met",
+  "previous_goal_turn": "progress: completed independent-cell conditional fits and changed next stage to regime-inclusive coupled trajectories",
+  "goal_turn_classification": "progress: measured regime-inclusive fifteen-parameter coupled trajectories and bounded updates",
+  "training_rows": [
+    {
+      "start": 1650,
+      "baseline": {
+        "n_rmse": 11.661264308794747,
+        "speed_rmse": 25.17116106926933,
+        "all31_n_rmse": 11.276881813270288,
+        "all31_speed_rmse": 19.500190390195236
+      },
+      "selected": {
+        "n_rmse": 11.661264308794747,
+        "speed_rmse": 25.17116106926933,
+        "all31_n_rmse": 11.276881813270288,
+        "all31_speed_rmse": 19.500190390195236
+      }
+    },
+    {
+      "start": 2250,
+      "baseline": {
+        "n_rmse": 10.528502561960385,
+        "speed_rmse": 20.87236924319765,
+        "all31_n_rmse": 9.376135525224836,
+        "all31_speed_rmse": 16.970676404372927
+      },
+      "selected": {
+        "n_rmse": 10.528502561960385,
+        "speed_rmse": 20.87236924319765,
+        "all31_n_rmse": 9.376135525224836,
+        "all31_speed_rmse": 16.970676404372927
+      }
+    },
+    {
+      "start": 2850,
+      "baseline": {
+        "n_rmse": 8.913661158096701,
+        "speed_rmse": 19.053958612431753,
+        "all31_n_rmse": 10.181823704241616,
+        "all31_speed_rmse": 19.566508912363997
+      },
+      "selected": {
+        "n_rmse": 8.913661158096701,
+        "speed_rmse": 19.053958612431753,
+        "all31_n_rmse": 10.181823704241616,
+        "all31_speed_rmse": 19.566508912363997
+      }
+    }
+  ],
+  "training_loss_reduction": 0.0,
+  "parameters": [
+    [
+      16,
+      "rho_crit"
+    ],
+    [
+      16,
+      "metanet_a_m"
+    ],
+    [
+      16,
+      "tau_sec"
+    ],
+    [
+      16,
+      "nu_ge"
+    ],
+    [
+      16,
+      "nu_lt"
+    ],
+    [
+      17,
+      "rho_crit"
+    ],
+    [
+      17,
+      "metanet_a_m"
+    ],
+    [
+      17,
+      "tau_sec"
+    ],
+    [
+      17,
+      "nu_ge"
+    ],
+    [
+      17,
+      "nu_lt"
+    ],
+    [
+      18,
+      "rho_crit"
+    ],
+    [
+      18,
+      "metanet_a_m"
+    ],
+    [
+      18,
+      "tau_sec"
+    ],
+    [
+      18,
+      "nu_ge"
+    ],
+    [
+      18,
+      "nu_lt"
+    ]
+  ],
+  "initial": [
+    29.000419094058614,
+    2.046760300788147,
+    9.493561095433822,
+    39.63548306677848,
+    39.31580940905085,
+    35.597622209448126,
+    2.3877417816643565,
+    14.82235127157874,
+    40.74078345971432,
+    36.0650564119074,
+    38.17602482771074,
+    2.504186319000639,
+    12.240453497722328,
+    17.769280401396696,
+    18.39123545434044
+  ],
+  "selected": [
+    29.000419094058614,
+    2.046760300788147,
+    9.493561095433822,
+    39.63548306677848,
+    39.31580940905085,
+    35.597622209448126,
+    2.3877417816643565,
+    14.82235127157874,
+    40.74078345971432,
+    36.0650564119074,
+    38.17602482771074,
+    2.504186319000639,
+    12.240453497722328,
+    17.769280401396696,
+    18.39123545434044
+  ],
+  "bound_contacts": [],
+  "forecasts": 51,
+  "updates": 1,
+  "nonlinear_convergence_proven": false,
+  "new_native": 0,
+  "production_edits": 0,
+  "controller_optimizations": 0,
+  "physical_checks": true,
+  "candidate_adopted": false,
+  "goal_complete": false,
+  "app_goal_status": "active",
+  "independent_validation_complete": false,
+  "limitations": [
+    "All three OFF windows are training/development, not held-out performance.",
+    "The optimizer budget is two updates, so no nonlinear convergence/global optimum is claimed.",
+    "Native conditional VSL contrast is under the recorded city/RM policy, not complete8100s policy gain.",
+    "Native first-meter/no-loss correction and 5s integration limits remain; terminal residual is not normal exit.",
+    "No AD/NP/NUF full-controller selection or independent-seed qualification was performed in this stage."
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\completion.json": "3a5a8bebe9aa4427d5b7126994ba2bf11784f0e09d9a06fab8cd605bab0f6eae",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\selection.json": "3c423eddf6ecda68d0fc681d47904b091227a74de2d20a6aef2dc185c436a52a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\protocol.json": "82278874670fbf0ea0d2b5b4897b3c5e57c1e2c9ddd8df05d95108d05c87626b"
+  }
+}

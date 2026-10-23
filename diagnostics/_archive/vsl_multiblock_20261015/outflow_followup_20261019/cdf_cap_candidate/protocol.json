@@ -1,0 +1,108 @@
+{
+  "status": "qualified_for_two_scalar_conditional_forecasts",
+  "hypothesis": "A mean FD shift applies excess VSL braking below the effective desired-speed constraint. Replace only the active desired-speed target with a native-CDF mixture under a common density-dependent traffic cap, with the unchanged110 FD reproduced exactly.",
+  "formula": "s=vfree/E[Q110]; choose w so E[min(Q110,w)]=V110(rho)/s; Vc(rho)=s E[min(Qc,w)]",
+  "comparison": "This inferred common traffic cap is an aggregate closure assumption, not a native Wiedemann rule or empirical capacity gain. Existing VSL cohort transport/point exposure and all other coefficients are unchanged.",
+  "budget": {
+    "forecasts": 2,
+    "fits": 0,
+    "native": 0,
+    "full_optimizations": 0
+  },
+  "cases": [
+    "single90",
+    "selected"
+  ],
+  "baseline": "Reuse unchanged110 matched_off2250_v3; no baseline forecast",
+  "checks": [
+    "analytic_uniform_integral",
+    "constant_distribution",
+    "independent_midpoint_quadrature",
+    "inverse_baseline_parity",
+    "inactive110_exact",
+    "deep_congestion_no_extra_braking",
+    "freeflow_native_cdf_mean_ratio",
+    "unqualified_commands_rejected"
+  ],
+  "first_exposure_strata": [
+    {
+      "case": "single90",
+      "stratum": "below_new_desired_by10",
+      "n": 136,
+      "mean_speed_delta": -0.3073529411764706,
+      "mean_endpoint_acceleration_delta": -0.03794044117647059,
+      "unchanged_speed": 85
+    },
+    {
+      "case": "single90",
+      "stratum": "within10",
+      "n": 160,
+      "mean_speed_delta": -5.387937500000001,
+      "mean_endpoint_acceleration_delta": -0.35232125000000003,
+      "unchanged_speed": 14
+    },
+    {
+      "case": "single90",
+      "stratum": "above_new_desired_by10",
+      "n": 49,
+      "mean_speed_delta": -9.768163265306123,
+      "mean_endpoint_acceleration_delta": -0.832595918367347,
+      "unchanged_speed": 1
+    },
+    {
+      "case": "selected",
+      "stratum": "below_new_desired_by10",
+      "n": 445,
+      "mean_speed_delta": -0.9182247191011238,
+      "mean_endpoint_acceleration_delta": -0.12884067415730338,
+      "unchanged_speed": 301
+    },
+    {
+      "case": "selected",
+      "stratum": "within10",
+      "n": 231,
+      "mean_speed_delta": -6.574025974025974,
+      "mean_endpoint_acceleration_delta": -0.24001731601731602,
+      "unchanged_speed": 34
+    },
+    {
+      "case": "selected",
+      "stratum": "above_new_desired_by10",
+      "n": 16,
+      "mean_speed_delta": -11.826875000000001,
+      "mean_endpoint_acceleration_delta": 0.0016999999999999884,
+      "unchanged_speed": 0
+    }
+  ],
+  "gate": "Conservation, exact initial/command parity, feasible450 model path; inspect150/300/450 flow, stocks, Omega and external costs. A clear wrong response or degraded local error rejects the candidate as sufficient. Tiny Omega sign alone is never a gate. Independent native cases plus scalar/AD and NP/NUF checks remain required before adoption.",
+  "limitations": [
+    "Common cap and homogeneous per-command CDF within a cell are hypotheses; no leader gaps or lane sorting represented.",
+    "One common vfree/CDFmean normalization preserves the calibrated baseline but is not a literal physical speed cap.",
+    "Some low native fractiles INCREASE under distribution90; retain the original distributions rather than forcing monotonicity.",
+    "First-exposure comparisons span up to5s with unknown within-step crossing time and interacting traffic; they do not identify an acceleration coefficient.",
+    "Endpoint acceleration may recover after braking; speed change is also retained.",
+    "Scalar90/110 prototype only; no AD, other commands, or SDMPC selection qualification."
+  ],
+  "references": [
+    "https://www.dcsc.tudelft.nl/~bdeschutter/pub/rep/02_015.pdf",
+    "https://cgi.ptvgroup.com/vision-help/VISSIM_2020_ENG/Content/5_Netzbearbeiten/Strassennetz_Wunschg_vWunsch_aendern.htm",
+    "https://www.cgi.ptvgroup.com/vision-help/VISSIM_2020_ENG/Content/4_BasisdatenSim/BasisdatenWunschgeschw_verteil_verw.htm"
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\distribution_contract.json": "2653516ca55a751683c205552a4d351e2204359176cbf650e0cb3f908c09874a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\interaction_response\\decision.json": "1eb7120f48ae4448d5642f4ece0191da1dda64de33b1b9370d2e5db724ec9371",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\interaction_response\\first_exposures.json": "930a8fbd0e1037efb02a43a5e9e293645fc121073c146356aa6c8ed82581b978",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\interaction_response\\hold_records.json.gz": "79a8decd2e4a583537f15f7da8a10fd66f52e7e3aa1acae475d0674dfc05f793",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\prepare_cdf_cap_probe.py": "c2873c5e2f67cba3cc7d312cad71e709b0732435aa9770a527fe03d6eb89fed8",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\cdf_congestion_cap.py": "e03e921922e7cc91076f2fbb78e9914a95b32edebdbcb9b96b053f2c7718963e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\run_cdf_cap_candidate.py": "c2159422ed1f9413bae763d2dd4fda5074cc05035d7eec2afdc95b8259eaa73d"
+  },
+  "candidate_adopted": false,
+  "integration_hook_review": {
+    "old_helper_sha256": "4cdbe5eb887a9f946bf28889c55013f19cd5b2fea7170dc2a87f79cd07231f6b",
+    "new_helper_sha256": "e03e921922e7cc91076f2fbb78e9914a95b32edebdbcb9b96b053f2c7718963e",
+    "reason": "Remove nonexistent lane_freeway_runtime alias before any forecast; PhysicalLaneGroups imports freeway_fd hook at call time.",
+    "alias_install_and_restore_fixture": "PASS",
+    "forecasts_started": 0
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "status": "bounded_boundary_update_assessed",
+  "training_gate_passed": true,
+  "training_loss_reduction": 0.07277845696680174,
+  "baseline": {
+    "label": "baseline",
+    "relative": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "values": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "data_loss": 1.1266794559651299,
+    "stock_rmse": 6.542512756888593,
+    "speed_rmse": 16.716874399535698,
+    "regimes": {
+      "1650": {
+        "stock_rmse": 4.655320120101093,
+        "speed_rmse": 13.577326819114262
+      },
+      "2250": {
+        "stock_rmse": 8.500013948699513,
+        "speed_rmse": 21.436817398261102
+      },
+      "2850": {
+        "stock_rmse": 5.872918948312296,
+        "speed_rmse": 13.945634634183081
+      }
+    },
+    "reused": 3
+  },
+  "fitted": {
+    "label": "fitted1",
+    "relative": [
+      -0.24999999999999997,
+      0.24999999999999997,
+      0.24832611394705087,
+      -0.17871178840281424
+    ],
+    "values": [
+      0.75,
+      1.25,
+      1.248326113947051,
+      0.8212882115971858
+    ],
+    "data_loss": 1.044681463663792,
+    "stock_rmse": 6.1626342091196715,
+    "speed_rmse": 16.3082906487427,
+    "regimes": {
+      "1650": {
+        "stock_rmse": 4.496555115947959,
+        "speed_rmse": 14.13733388891641
+      },
+      "2250": {
+        "stock_rmse": 7.886289485722466,
+        "speed_rmse": 19.638523477169667
+      },
+      "2850": {
+        "stock_rmse": 5.614411048619584,
+        "speed_rmse": 14.572069784404595
+      }
+    },
+    "reused": 0
+  },
+  "fixed_cell15": [
+    35.3191827950914,
+    2.0280645768598378,
+    6.713437907863658,
+    48.23844398742566,
+    43.73462372766657
+  ],
+  "original_response": {
+    "14": {
+      "anticipation": {
+        "downstream_ge_local": 15.848964620306466,
+        "downstream_lt_local": 17.026700379185826
+      },
+      "relaxation": {
+        "acceleration_sec": 13.336187652909366,
+        "deceleration_sec": 13.336187652909366
+      }
+    },
+    "18": {
+      "anticipation": {
+        "downstream_ge_local": 17.769280401396696,
+        "downstream_lt_local": 18.39123545434044
+      },
+      "relaxation": {
+        "acceleration_sec": 12.240453497722328,
+        "deceleration_sec": 12.240453497722328
+      }
+    }
+  },
+  "new_forecasts": 16,
+  "reused_forecasts": 3,
+  "updates": 1,
+  "new_native": 0,
+  "production_edits": 0,
+  "candidate_adopted": false,
+  "goal_complete": false,
+  "nonlinear_convergence_claimed": false,
+  "max_route_balance": 1.3988810110276972e-14,
+  "max_vsl_balance": 1.6555645743210334e-12,
+  "independent_validation_performed": false,
+  "next_independent_comparison_warranted": false,
+  "limits": [
+    "One bounded local update is not converged parameter calibration.",
+    "2250 is a training/development case; its VSL90 outcomes did not enter fitting.",
+    "Scalar conditional feasibility does not establish optimizer NP/NUF or AD validity.",
+    "No production adoption, new native experiment or policy improvement claim."
+  ],
+  "development_response": {
+    "rows": [
+      {
+        "horizon": 150,
+        "native_flow_delta": 1,
+        "native_face_stock": 1,
+        "prior_predicted_flow_delta": -14.4317199926262,
+        "predicted_flow_delta": -14.493035233455487,
+        "native_stock_delta": -2,
+        "prior_predicted_stock_delta": 13.785679158897267,
+        "predicted_stock_delta": 13.727667417478102
+      },
+      {
+        "horizon": 300,
+        "native_flow_delta": 23,
+        "native_face_stock": 0,
+        "prior_predicted_flow_delta": -24.837141126146435,
+        "predicted_flow_delta": -26.059117197214846,
+        "native_stock_delta": -22,
+        "prior_predicted_stock_delta": 23.051183737510968,
+        "predicted_stock_delta": 24.044164698344815
+      },
+      {
+        "horizon": 450,
+        "native_flow_delta": 31,
+        "native_face_stock": 0,
+        "prior_predicted_flow_delta": -31.4859656662245,
+        "predicted_flow_delta": -34.18666387662154,
+        "native_stock_delta": -30,
+        "prior_predicted_stock_delta": 29.034330827392807,
+        "predicted_stock_delta": 31.522127716554337
+      }
+    ],
+    "predicted_omega_delta": 1.1397024519772003,
+    "prior_predicted_omega_delta": 1.1051267421105422,
+    "native_omega_delta": -0.045833333333
+  },
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\completion.json": "9adb7330920644b332aec40196cb48c7db5246967c72599a64e432a0a5ebbea4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\selection.json": "c7897ab57c3ba40f7d98465c3164a7fa7de82a8a01049d19f1fb55954334a8ed",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\protocol.json": "8b6e2977af6453c95e7c2228d8a50c36fabee1dab72842b2cb43e130081cc43a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\development_response.json": "b399181d48e73daf9e6b8a4a1b9b2be98dec10ce76a8f9f16d8122d9813f8902",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\approach_flux.json": "0545185b5a3c33075c021eee70a4018a2f596a476db8a7ff2c222153c910dc14",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\assessment.json": "95decb2bac458c0e70fe88da4821c734f64df04ebd0a38b5a7f6e208feb1c99e"
+  }
+}

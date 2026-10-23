@@ -1,0 +1,65 @@
+{
+  "status": "completed_interaction_and_cell18_transport_audit_no_candidate_adopted",
+  "updated_utc": "2026-10-19T04:16:28.579165+00:00",
+  "annotation_correction": "The quoted -28.9 to -29.4 vehicles is the result of one bounded joint update of five FD/dynamics parameters after spatial subdivision, not a length-only trial. Calibration convergence and adequate congested coverage were not established. This rejects only that candidate for deployment, not calibrated spatial refinement as a model class.",
+  "joint_fit_converged": false,
+  "joint_fit_training_loss_reduction_percent": 21.537046751979883,
+  "cell18_receiving_unmet_zero_in_all_audited_blocks": true,
+  "cell18_audited_rows": 12,
+  "native_450sec_transport_contrasts": [
+    {
+      "case": "single90",
+      "horizon": 450,
+      "transport_proxy_delta": -2.355938850358939,
+      "spatial_storage_moment_delta_delta": -7.522370073514075,
+      "observed_mainline_face_delta": 6.0,
+      "observed_off_face_delta": 0.0,
+      "storage_adjusted_mainline_proxy_delta": 5.166431223155087,
+      "adjusted_error_delta": -0.8335687768448565
+    },
+    {
+      "case": "selected",
+      "horizon": 450,
+      "transport_proxy_delta": 31.472260337007242,
+      "spatial_storage_moment_delta_delta": -3.1891672646551577,
+      "observed_mainline_face_delta": 31.0,
+      "observed_off_face_delta": 0.0,
+      "storage_adjusted_mainline_proxy_delta": 34.66142760166247,
+      "adjusted_error_delta": 3.6614276016625524
+    }
+  ],
+  "interpretation": [
+    "In the audited cell18 model trajectories, receiving does not trim the offered flow; investigate computed sending and its density/speed evolution.",
+    "For two-zone90, native integrated Nv/L changes by about +31.47 vehicles and measured mainline exit by +31. Spatial storage correction alone cannot explain the model negative response.",
+    "For single-zone90, the native Nv/L contrast is about -2.36 while mainline exit changes by +6; within-cell storage position matters for this small contrast.",
+    "Recorded microscopic interaction/desired-speed fields are useful diagnostic evidence, not future forecast inputs or an identified causal suppression coefficient."
+  ],
+  "limitations": [
+    "Five-second samples are correlated within vehicles; sample counts are not independent experiments.",
+    "Free/Follow/Brake labels are recorded native states, not inferred from a speed threshold.",
+    "A matched vehicle is not a controlled microscopic counterfactual after leaders/gaps diverge.",
+    "Similar-current-state filters are descriptive and condition on post-intervention quantities.",
+    "No causal coefficient or universal suppression rule is identified by this comparison.",
+    "Resource availability is a model request; no restriction means the receiving constraint did not reduce it, not that native capacity is unlimited.",
+    "Five-second velocity quadrature and rounded FZP positions/speeds are approximate; left/right are numerical choices, not confidence bounds.",
+    "No unobserved source or deletion inside cell18 is assumed in the identity; residual is retained rather than assigned to normal outflow.",
+    "Off-ramp source is inside cell18, not at its downstream face. Its actual position and separate detector counts are retained.",
+    "First-meter detector storage corrections retain the original no-unobserved-loss-in-that-meter qualification."
+  ],
+  "counts_this_evidence_stage": {
+    "new_completed_native_fzp_streams": 3,
+    "new_forecasts": 0,
+    "new_fits": 0,
+    "new_native": 0,
+    "ttt_reanalysis": 0,
+    "production_edits": 0
+  },
+  "candidate_adopted": false,
+  "goal_complete": false,
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\interaction_response\\completion.json": "5039b1e1acfdd5ee4feddaa2e825f8b3dd17b5ed364664036bfdee34c69b322d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\interaction_response\\assessment.json": "9f14b3941cc762e2a65f6582a4673fad006d503c9c574dde96ece7aaedd11772",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\interaction_response\\native_cell18_transport.json": "192ddfa1bb43cd674a3a94d4f6d2a41704a1e6ab46d5f2f603f80e01c0d8eee8"
+  },
+  "next": "Keep the unadopted spatial candidates and all completed forecasts. Test a nonduplicate, state-dependent desired-speed response hypothesis using the saved interaction observations and existing independent cases; separate insufficient calibration from closure error. Do not assume Follow means zero VSL response, introduce a capacity bonus, or expand bounds solely to match the sign. No new native, full optimization, grid, production edit or push. Goal ACTIVE/incomplete; automation PAUSED."
+}

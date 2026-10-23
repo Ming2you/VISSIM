@@ -1,0 +1,558 @@
+{
+  "status": "offline_vsl_response_calibration_incomplete",
+  "results": [
+    {
+      "at": 2250,
+      "predictions": 27,
+      "summary_sha256": "f2cfea7cf4e242d4abba7a711cc219ce88b1256f9c295df217f9c1db51d7cdaf",
+      "seconds": 165.8827610000153,
+      "beneficial": 0,
+      "neutral": 2,
+      "comparisons": {
+        "FW_E__seg13:90x1": 0.6489805808336087,
+        "FW_E__seg13:90x2": 0.9294249647020933,
+        "FW_E__seg13:90x3": 0.9416471298071656,
+        "FW_E:adjacent:FW_E__seg10+FW_E__seg13:90x3": 1.1394322787851934,
+        "FW_E:all:90x3": 1.9366772206109317,
+        "all_roads:90x3": 5.148990730277546
+      }
+    },
+    {
+      "at": 3300,
+      "predictions": 27,
+      "summary_sha256": "94659675fc987f9d3c5b92f039791b906dd966903f77bb3faa8fa0443592faa7",
+      "seconds": 191.5830658999912,
+      "beneficial": 0,
+      "neutral": 2,
+      "comparisons": {
+        "FW_E__seg13:90x1": 0.8275426971154047,
+        "FW_E__seg13:90x2": 1.1928332362350602,
+        "FW_E__seg13:90x3": 1.2053408686107332,
+        "FW_E:adjacent:FW_E__seg10+FW_E__seg13:90x3": 1.4725698814817179,
+        "FW_E:all:90x3": 2.344847283786862,
+        "all_roads:90x3": 4.903747440971301
+      }
+    }
+  ],
+  "predictions": 54,
+  "optimizer_runs": 1,
+  "native_runs": 2,
+  "tests_passed": 18,
+  "parameters_check": "PASS",
+  "source_installation": {
+    "status": "implemented_opt_in_not_native_deployed",
+    "developer_tree": "E:\\VISSIM_workspaces\\vsl349_causal_20261011",
+    "source_pins": {
+      "E:\\VISSIM_workspaces\\vsl349_causal_20261011\\evaluation\\controllers\\sdmpc.py": "af850d3ccb5e5fe7b3cc6e5fbbff40181a951f2a8364b1c0ecd1428dbb2259c2",
+      "E:\\VISSIM_workspaces\\vsl349_causal_20261011\\evaluation\\controllers\\vsl_schedule_neighbors.py": "69d4a6f21237591f36d9763f2ccbfdd118d4a759cd48d4ad09d4b2ce90a294a3",
+      "E:\\VISSIM_workspaces\\vsl349_causal_20261011\\tests\\test_sdmpc_vsl_schedules.py": "b7745d86f68742f8dbbe1203e123e42e29f51b6aba275f9291e53b36d06cabdf",
+      "E:\\VISSIM_workspaces\\vsl349_causal_20261011\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\vsl_schedules_20261015\\config.json": "d815be18409f3725588456adf3e621ef716d08dec91ab41c47bbd3045336f0c6"
+    },
+    "previous_sdmpc_sha256": "5c1ba251a3526cafa6574459e23627e59cb96e9373ff7d1c5588bcdde3c3a0c0",
+    "default_off": true,
+    "native_deployments": 0,
+    "frozen_files_modified": false,
+    "existing_configs_modified": false,
+    "dynamics_modified": false,
+    "objective_modified": false
+  },
+  "limitations": [
+    "Saved selected horizon plans, not the subsequently applied future commands; conditional predictions only.",
+    "Exact plant stock/capacity and physical command checks passed; NP/NUF were unchanged but this probe is not a full SDMPC feasibility/selection validation.",
+    "90 km/h is not assumed beneficial. No native multizone observation is available for these two states.",
+    "Existing seed67/71 evidence demonstrates state-dependent recovery/stock-response errors, not a universal VSL bonus.",
+    "Full selection and exact selected model checks completed; native deployment/performance of the new opt-in audit remains unverified."
+  ],
+  "preparation_issues": [
+    "Existing RM tests are pytest functions: initial unittest command found0 tests; actual pytest run passed18 tests.",
+    "Parameter checker first invocation lacked required tuning argument; corrected invocation passed."
+  ],
+  "full_optimizer_runs": 1,
+  "exact_selected_validation_predictions": 2,
+  "full_selection_verification": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\full_selection_verification.json",
+  "app_goal_status": "blocked",
+  "matched_conditional_forecasts": {
+    "count": 3,
+    "hold_veh_h": 542.0310739056491,
+    "single90_delta_veh_h": 0.9216831257338072,
+    "twozone90_delta_veh_h": 1.1113290261981774,
+    "physical_constraints_pass": true,
+    "native_effect_verified": false,
+    "source": "matched_off2250_v3/summary.json"
+  },
+  "native_attempt": {
+    "attempts": 1,
+    "normal_completion": false,
+    "stopped_sec": 2250,
+    "cause": "replay preparation omitted experiment CSV metadata",
+    "owner_closure": "D:/VISSIM_runtime/20261015_vsl_multizone2250/failure_owner_closure.json",
+    "retry": 0,
+    "multizone_response_available": false
+  },
+  "metadata_repair": {
+    "receipt": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\metadata_repair_verification.json",
+    "repaired_rows_passed": 639,
+    "negative_cases_rejected": 6,
+    "new_forecasts": 0,
+    "new_native": 0,
+    "replacement_native_authorization": "Explicitly approved2026-10-16; replacement1 consumed and normal2700 completed."
+  },
+  "offline_vsl_transport_audit": {
+    "status": "cached_transport_and_active_component_fd_audited",
+    "summary": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cached_vsl_exposure_audit_v2\\summary.json",
+    "summary_sha256": "d63581bf481f529102d72d3ea2a5f66fb10be4287b76d7bd4142e3daf49b7dd8",
+    "active_component_fd": {
+      "law": "carlson",
+      "A": 0.5,
+      "E": 2.0,
+      "alpha": 0.0
+    },
+    "parent_top_level_flag_absence_does_not_disable_component": true,
+    "new_forecasts": 0,
+    "new_native": 0,
+    "new_fzp_scans": 0,
+    "new_fits": 0,
+    "production_edits": 0,
+    "candidate_adopted": false,
+    "replacement_native_authorization": "Explicit approval received and consumed; no further native budget."
+  },
+  "updated_utc": "2026-10-20T02:13:37.297605+00:00",
+  "normal_native_completions": 1,
+  "blocked_audit": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\blocked_audit.json",
+  "authorized_replacement_20261016": {
+    "preparation": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\replacement_preparation_20261016.json",
+    "runtime": "D:\\VISSIM_runtime\\20261016_vsl_multizone2250_repaired",
+    "results": "D:\\VISSIM_runs\\20261016_vsl_multizone2250_repaired_s29",
+    "additional_budget": 1,
+    "retries": 0,
+    "status": "replacement_native_and_qualified_cached_comparison_complete",
+    "prior_failure_preserved": true,
+    "no_new_forecasts": true,
+    "first_actual_progress_receipt": "D:\\VISSIM_runtime\\20261016_vsl_multizone2250_repaired\\first_actual_progress.json",
+    "completion_receipt": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\native_analysis_repaired_20261016\\completion_receipt.json",
+    "result_report": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\native_analysis_repaired_20261016\\RESULTS.md",
+    "normal_sim_done_sec": 2700,
+    "all_owned_processes_closed": true
+  },
+  "native_run_accounting": "One failed attempt plus one explicitly approved replacement; zero automatic retries.",
+  "conditional_native_result_20261016": {
+    "comparison450": {
+      "native_delta_omega_veh_h": -0.04583333333403061,
+      "model_delta_omega_veh_h": 1.1113290261981774,
+      "model_minus_native_veh_h": 1.157162359532208
+    },
+    "interpretation": "Near-neutral conditional native response; model overpredicts late east-mainline outflow/inventory penalty. No robust VSL benefit or8100 policy gain established.",
+    "next_offline_focus": "Identify east-mainline VSL outflow/offramp/inventory recovery mismatch against existing independent cases before a localized correction; native internal flow is unavailable in this cache. No blanket gain factor or unsupported coefficient change.",
+    "new_production_or_coefficient_edits": 0,
+    "goal_complete": false
+  },
+  "automation": {
+    "id": "vissim-2",
+    "status": "PAUSED",
+    "verified_utc": "2026-10-16T05:32:38.943100+00:00",
+    "reason": "Finite authorized replacement and qualified result reporting complete; calibration goal remains incomplete."
+  },
+  "offline_followup_20261019": {
+    "status": "approach_response_localized_no_correction_adopted",
+    "updated_utc": "2026-10-19T02:23:33.366517+00:00",
+    "app_goal_status": "active",
+    "goal_complete": false,
+    "previous_goal_turn": "progress: new saved native boundary evidence located the response mismatch",
+    "current_goal_turn": "progress: exact cached speed-term decomposition, native diverge/lane evidence, and existing independent-pair cut responses changed correction criteria",
+    "new_native": 0,
+    "new_forecasts": 0,
+    "new_optimizer_runs": 0,
+    "new_fzp_scans": 0,
+    "new_fits": 0,
+    "production_edits": 0,
+    "candidate_adopted": false,
+    "remaining_native_budget": 0,
+    "automation_status": "PAUSED",
+    "evidence": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\summary.json": "328b27857c08a2e854e7d228d3f59f1f150bb0972b0f7d5a711528a6eae5928d",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\approach_flux.json": "0545185b5a3c33075c021eee70a4018a2f596a476db8a7ff2c222153c910dc14",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\approach_terms_summary.json": "6c8b33bd05e143433567568b25621930b36f5b165cb860f88d7584f66e6853b1",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\approach_lane_evidence.json": "6f577ce244d67fda441219beed436e42e92c0cb7288c2366f0f9877464bbf08e",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\independent_approach.json": "75e3b8586dd824e91783cb7c3238c13a4d2792acf80d33c4bae296021dc9668a",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\README.md": "cc775dcfec7a1417c29334409358e7d3569044f963ef3ad6e77814f0a6ea12ce"
+    },
+    "correction_not_yet_verified": [
+      "No justified production correction yet",
+      "Independent response validation of a correction pending",
+      "NP/NUF, actuator, AD and walltime validation of a correction pending"
+    ],
+    "next": "Audit aggregate representation of diverge lane imbalance and within-approach congestion location against prior183/195/212/213/247 before proposing one nonduplicate conservative closure. No blanket lane-drop removal, VSL reward, duplicate center-distance/phase/numerics experiments or new native."
+  },
+  "distribution_followup_20261019": {
+    "status": "rejected_as_sufficient_response_correction",
+    "updated_utc": "2026-10-19T02:33:11.462207+00:00",
+    "app_goal_status": "active",
+    "goal_complete": false,
+    "current_goal_turn": "progress: verified native CDF actuator mismatch, eight algebraic tests and one bounded450s correction forecast; no duplicate baseline/native runs",
+    "new_native": 0,
+    "new_forecasts": 1,
+    "new_optimizer_runs": 0,
+    "new_fzp_scans": 0,
+    "new_fits": 0,
+    "production_edits": 0,
+    "candidate_adopted": false,
+    "remaining_native_budget": 0,
+    "automation_status": "PAUSED",
+    "next": "Mean-actuation amplitude alone failed the local response-direction gate. Do not tune this multiplier or run its independent forecasts. Preserve native CDF contract and inspect missing spatial/variance state using existing lane/vehicle observations; no capacity bonus or new native.",
+    "evidence": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\distribution_contract.json": "2653516ca55a751683c205552a4d351e2204359176cbf650e0cb3f908c09874a",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\distribution_candidate_protocol.json": "49a9018de631f7bbf0e443921c872ee3441e5922680f8d05e75ea19309d5c93e",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\distribution_candidate\\completion.json": "c78ab6de2d9f4e96400d7371acbb3d1258cca1ac187ab37138b4fd6164b65c13",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\distribution_assessment.json": "d573a8ae5ca5e4290bfd1e43e8254ab683396e8589d61eee59ac97bb85bec627"
+    }
+  },
+  "spatial_refinement_followup_20261019": {
+    "status": "fixed_parameter_refinement_not_adopted_calibrated_refinement_unresolved",
+    "decision": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refinement_decision.json",
+    "report": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refinement_qualification.md",
+    "new_forecasts": 2,
+    "new_native": 0,
+    "new_fits": 0,
+    "candidate_adopted": false,
+    "goal_complete": false
+  },
+  "refinement_calibration_20261019": {
+    "status": "numerical_sensitivity_measured_baseline_dynamic_fit_requires_joint_identification",
+    "decision": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_calibration\\decision.json",
+    "report": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_calibration\\README.md",
+    "new_forecasts": 4,
+    "new_fits": 2,
+    "new_native": 0,
+    "candidate_adopted": false,
+    "goal_complete": false
+  },
+  "refinement_joint_fit_20261019": {
+    "status": "bounded_joint_update_failed_validation_gate",
+    "decision": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\decision.json",
+    "report": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\README.md",
+    "new_forecasts": 16,
+    "new_fits": 1,
+    "new_native": 0,
+    "candidate_adopted": false,
+    "goal_complete": false
+  },
+  "next": "Use completed62-cell observation coverage to prepare parameter identifiability and episode-level coupled calibration; weakly observed cells retain priors. Preserve fixed seed67/71 checks as validation; no retuning to their errors. Current focused16–18 correction is unadopted; completed predictions and baseline caches are reusable.",
+  "refinement_regime_fit_20261019": {
+    "status": "bounded_regime_fit_failed_independent_transfer_not_adopted",
+    "updated_utc": "2026-10-19T03:48:00.843770+00:00",
+    "current_goal_turn_classification": "progress:completed 38 finite forecasts, two bounded updates and eight frozen independent predictions; nonuniform transfer measured",
+    "app_goal_status": "active",
+    "automation_status": "PAUSED",
+    "goal_complete": false,
+    "candidate_adopted": false,
+    "spatial_model_class_rejected": false,
+    "nonlinear_fit_converged": false,
+    "new_forecasts": 46,
+    "training_development_forecasts": 38,
+    "independent_forecasts": 8,
+    "reused_forecasts": 2,
+    "updates": 2,
+    "new_native": 0,
+    "remaining_native_budget": 0,
+    "new_optimizer_runs": 0,
+    "new_fzp_scans": 0,
+    "production_edits": 0,
+    "independent_from_fit": true,
+    "blind_validation_claimed": false,
+    "training_loss_reduction": 0.025686595655945332,
+    "parameter_tau_at_relative_lower_bound": true,
+    "max_route_balance": 1.9539925233402755e-14,
+    "max_vsl_balance": 1.7905676941154525e-12,
+    "independent_450": [
+      {
+        "seed": 67,
+        "variant": "original",
+        "horizon": 450,
+        "native_flow": 33,
+        "predicted_flow": 7.458336898466655,
+        "native_stock": -64,
+        "predicted_stock": -8.781205911781,
+        "native_omega": -2.065000000000964,
+        "predicted_omega": 0.03163676388010117
+      },
+      {
+        "seed": 67,
+        "variant": "fitted",
+        "horizon": 450,
+        "native_flow": 33,
+        "predicted_flow": 7.944362777610877,
+        "native_stock": -64,
+        "predicted_stock": -8.516646521640723,
+        "native_omega": -2.065000000000964,
+        "predicted_omega": 0.037140011314136245
+      },
+      {
+        "seed": 71,
+        "variant": "original",
+        "horizon": 450,
+        "native_flow": -24,
+        "predicted_flow": -11.604927542368046,
+        "native_stock": 24,
+        "predicted_stock": 10.684715586427899,
+        "native_omega": 1.4553333333337832,
+        "predicted_omega": -0.035937161080596525
+      },
+      {
+        "seed": 71,
+        "variant": "fitted",
+        "horizon": 450,
+        "native_flow": -24,
+        "predicted_flow": -4.337077018071909,
+        "native_stock": 24,
+        "predicted_stock": 3.568321689971839,
+        "native_omega": 1.4553333333337832,
+        "predicted_omega": -0.17553945052065956
+      }
+    ],
+    "next": "Reuse completed 38 calibration/development forecasts and 8 frozen independent forecasts. Before any further fit, use saved per-cell trajectories and finite-difference probes to localize baseline versus VSL-contrast residuals and coefficient sensitivity; assess whether cell15-only parameters can address the error or neighboring/averaged speed dynamics dominate. Do not widen bounds or fit evaluation signs blindly. No new native, full optimization, grid, repetition of completed forecasts, production edit or push. Spatial calibration remains unresolved; the nonconverged bounded candidate is not adopted. Goal ACTIVE/incomplete; automation PAUSED.",
+    "evidence": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\completion.json": "b3094bff26df56e25794492087991baef72254f9216783f12e4b4de6e49dbced",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\selection.json": "c75237fe84fe075e7f6673b1e57fa07d9e916af60eb7d90e24339cd2a6c5920b",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\assessment.json": "95decb2bac458c0e70fe88da4821c734f64df04ebd0a38b5a7f6e208feb1c99e",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_regime_fit_v3\\README.md": "2b6ef1e23c364008da6478cf9ea91a8c98ee65e489307adc3be3780afee4553b",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_independent_assessment.json": "6d633b52c53c28d1ae3568a19c204dacdeb18afe28621cd840f26e531e85a5f8",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_independent_closure.json": "801a2d20d9d1f099b0dea2763a0f5faaf7492eeb0c040f92858f76e870650a9f",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_independent_s67\\summary.json": "1b337b2abf0dab804bfad524dad1128701c1300f652cb1facb798cc63115e2cb",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_independent_s71\\summary.json": "c4e9bbaa7c585a32909db57c1630aa93bf7d7a0b0d04e3881626a7fbeab93ced"
+    }
+  },
+  "boundary_identification_20261019": {
+    "status": "boundary_update_improves_baseline_but_worsens_vsl_response_not_adopted",
+    "updated_utc": "2026-10-19T04:02:28.627939+00:00",
+    "app_goal_status": "active",
+    "automation_status": "PAUSED",
+    "goal_complete": false,
+    "current_goal_turn_classification": "progress:16 finite boundary-identification forecasts completed and assessed; annotation-stage attribution corrected",
+    "candidate_adopted": false,
+    "spatial_model_class_rejected": false,
+    "nonlinear_fit_converged": false,
+    "new_forecasts": 16,
+    "reused_forecasts": 3,
+    "updates": 1,
+    "independent_new_forecasts": 0,
+    "new_native": 0,
+    "remaining_native_budget": 0,
+    "production_edits": 0,
+    "training_loss_reduction": 0.07277845696680174,
+    "development_response": {
+      "rows": [
+        {
+          "horizon": 150,
+          "native_flow_delta": 1,
+          "native_face_stock": 1,
+          "prior_predicted_flow_delta": -14.4317199926262,
+          "predicted_flow_delta": -14.493035233455487,
+          "native_stock_delta": -2,
+          "prior_predicted_stock_delta": 13.785679158897267,
+          "predicted_stock_delta": 13.727667417478102
+        },
+        {
+          "horizon": 300,
+          "native_flow_delta": 23,
+          "native_face_stock": 0,
+          "prior_predicted_flow_delta": -24.837141126146435,
+          "predicted_flow_delta": -26.059117197214846,
+          "native_stock_delta": -22,
+          "prior_predicted_stock_delta": 23.051183737510968,
+          "predicted_stock_delta": 24.044164698344815
+        },
+        {
+          "horizon": 450,
+          "native_flow_delta": 31,
+          "native_face_stock": 0,
+          "prior_predicted_flow_delta": -31.4859656662245,
+          "predicted_flow_delta": -34.18666387662154,
+          "native_stock_delta": -30,
+          "prior_predicted_stock_delta": 29.034330827392807,
+          "predicted_stock_delta": 31.522127716554337
+        }
+      ],
+      "predicted_omega_delta": 1.1397024519772003,
+      "prior_predicted_omega_delta": 1.1051267421105422,
+      "native_omega_delta": -0.045833333333
+    },
+    "annotation_correction": "The quoted -28.9 to -29.4 vehicles came from the one-update five-parameter joint fit, not the initial fixed-parameter spatial split. That fit was not converged and lacked congested training coverage. The candidate was not adopted; calibrated spatial refinement was not ruled out.",
+    "next": "Reuse all completed forecasts. The boundary update improves baseline loss but worsens the VSL contrast; do not deploy it or repeat independent runs for this candidate. Before another parameter update, use saved matched trajectories, resource allocations and native observations to separate baseline state errors from the downstream outflow response mechanism and identify a nonduplicate hypothesis. Do not infer that calibrated spatial refinement is impossible or expand bounds merely to fit the sign. No new native, full optimization, grid, production edit or push. Goal ACTIVE/incomplete; automation PAUSED.",
+    "evidence": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\completion.json": "9adb7330920644b332aec40196cb48c7db5246967c72599a64e432a0a5ebbea4",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\selection.json": "c7897ab57c3ba40f7d98465c3164a7fa7de82a8a01049d19f1fb55954334a8ed",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\assessment.json": "66d3782c439c755f8c9eaaad116c31c00d3af3c261591a2b877f52d1bb8e5f0b",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine_boundary_fit\\owner_closure.json": "521b9b67ced26f490522972f6c6689fa7b2f981b09ad729038753ab3762e56cc",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_residual_audit.json": "a9264e8ce8b3da18a66fa5e476dbd856a363c114235f31dff380228526b1451a",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\refine15_joint_fit\\README.md": "a744605caf2368fdd4344574a151f988e1bcdf983843507621d9fac157f6d391"
+    }
+  },
+  "interaction_transport_audit_20261019": {
+    "status": "completed_interaction_and_cell18_transport_audit_no_candidate_adopted",
+    "decision": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\interaction_response\\decision.json",
+    "candidate_adopted": false,
+    "counts": {
+      "new_completed_native_fzp_streams": 3,
+      "new_forecasts": 0,
+      "new_fits": 0,
+      "new_native": 0,
+      "ttt_reanalysis": 0,
+      "production_edits": 0
+    }
+  },
+  "cdf_cap_hypothesis_20261019": {
+    "status": "completed_unadopted_missing_recovery_response",
+    "decision": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\cdf_cap_candidate\\decision.json",
+    "new_forecasts": 2,
+    "candidate_adopted": false,
+    "prior_approval_block_resolved": true,
+    "cached_lane_residual_audit": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\outflow_followup_20261019\\cdf_cap_candidate\\residual_localization.json"
+  },
+  "approval_review_blocked_audit_20261019": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\approval_review_blocked_audit_20261019.json",
+  "analysis_resume_20261019": {
+    "status": "completed_bounded_probe_goal_incomplete",
+    "app_goal_status": "blocked",
+    "app_goal_note": "Actual get_goal remains BLOCKED from the earlier external review outage. User resumed work successfully; the outage is no longer blocking analysis. Goal is incomplete; this API cannot set status ACTIVE.",
+    "source_pin_checks": "PASS",
+    "native_runs_added": 0
+  },
+  "cellwise_recalibration_20261020": {
+    "status": "three_cellwise_conditional_fits_complete_not_adopted",
+    "created_utc": "2026-10-20T01:58:13.796917+00:00",
+    "user_direction": "Cell-specific calibration after resuming VSL analysis",
+    "existing_cell_specific_parameters": true,
+    "last_reference_fit": {
+      "physical_coefficients": 159,
+      "update_directions": 12,
+      "converged": false
+    },
+    "fits": 3,
+    "new_native": 0,
+    "new_autonomous_forecasts": 0,
+    "new_fzp_scans": 0,
+    "production_edits": 0,
+    "goal_complete": false,
+    "candidate_adopted": false,
+    "results": [
+      {
+        "cell": 16,
+        "baseline_rmse": 31.37376395225953,
+        "fitted_rmse": 10.958322569103373,
+        "bound_hits": [
+          "metanet_a_m",
+          "nu_ge"
+        ]
+      },
+      {
+        "cell": 17,
+        "baseline_rmse": 23.55575873327807,
+        "fitted_rmse": 16.71151589283339,
+        "bound_hits": [
+          "metanet_a_m",
+          "nu_ge"
+        ]
+      },
+      {
+        "cell": 18,
+        "baseline_rmse": 21.626095487649025,
+        "fitted_rmse": 15.620202206115694,
+        "bound_hits": [
+          "metanet_a_m"
+        ]
+      }
+    ],
+    "report": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\README.md",
+    "completion": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\completion.json",
+    "next": "Reuse stored broader no-VSL time windows to audit per-cell free/congested/recovery and downstream-branch coverage; freeze training/validation roles before coupled cellwise trajectory calibration. Keep geometry and currentFW5/U10. Do not widen this screen bounds, repeat these fits or promote their5s RMSE to450s or VSL gain. CDF independent forecast preparation deferred by user cellwise direction. No new native/fullSDMPC/push.",
+    "app_goal_status_last_observed": "blocked",
+    "user_resumed_analysis": true,
+    "evidence_pins": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\completion.json": "f57da3fc54fead4b4bdb744ddce817402240f7fd9d62badab21fa2bc6c860ad5",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\protocol.json": "451c7c7434b62fe1d5d5a01a5971eca29dd8b68a0d6b697b9936e8bc90a1cc69",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\parameter_inventory.json": "d2c712fc2ee1f0cdbf13652d5699318cd885405a57533dac3e8e16975205ba12",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\README.md": "dbbae5b382bc97fa7eeb8d486c22fe7f3f60b5357992ea890297679cf54f5bfb",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\cell16.json": "220259f542f649174843c6505013472967c2ca422331cf00ee393ab0a8c15fc0",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\cell17.json": "ce0df760edbc212bba038a25fb2da0a9e517377bcc3f5c8068e1af34a0834cd1",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_recalibration_20261020\\cell18.json": "7db0d99475710f8f731bdb10b6da2008cae30f7fadcc6d85100c3e40af16d275"
+    }
+  },
+  "analysis_resume_20261020": {
+    "user_requested": true,
+    "status": "offline_cellwise_work_resumed",
+    "app_goal_metadata_unchanged": true,
+    "goal_complete": false
+  },
+  "cellwise_coupled_20261020": {
+    "status": "completed_rejected_first_step",
+    "cells": [
+      16,
+      17,
+      18
+    ],
+    "parameter_count": 15,
+    "max_training_forecasts": 99,
+    "max_development_forecasts": 1,
+    "native": 0,
+    "production_edits": 0,
+    "owner": {
+      "pid": 41148,
+      "creation_utc": "2026-10-20T02:09:57.832652Z",
+      "exec_session": 40144,
+      "command": [
+        ".review-artifacts/vsl_multiblock_20261015/run_cellwise_coupled_20261020.py"
+      ],
+      "verified_live": false,
+      "new_native": 0,
+      "retry": 0
+    },
+    "protocol": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\protocol.json",
+    "goal_complete": false,
+    "previous_goal_turn_classification": "progress: three separate conditional fits and evidence-driven transition to coupled multi-regime calibration",
+    "forecasts": 51,
+    "updates": 1,
+    "assessment": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\assessment.json",
+    "step_audit": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\step_audit.json",
+    "owner_closure": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coupled_20261020\\owner_closure.json"
+  },
+  "cellwise_smallstep_20261020": {
+    "status": "completed_training_improved_vsl_not_repaired",
+    "protocol": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_smallstep_20261020\\protocol.json",
+    "runner": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\run_cellwise_smallstep_20261020.py",
+    "budget_training450": 3,
+    "budget_development90": 1,
+    "new_jacobian_probes": 0,
+    "native": 0,
+    "goal_complete": false,
+    "forecasts": 4,
+    "training_loss_reduction": 0.03532465623155989,
+    "assessment": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_smallstep_20261020\\assessment.json",
+    "owner_closure": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_smallstep_20261020\\owner_closure.json"
+  },
+  "app_goal_status_note": "Fresh get_goal reports blocked metadata; user-authorized analysis resumed. This is not a completion claim.",
+  "cellwise_independent_20261020": {
+    "status": "independent_checks_complete_candidate_not_adopted",
+    "preparation": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_independent_20261020\\preparation.json",
+    "native": 0,
+    "forecasts_budget": 8,
+    "fits": 0,
+    "forecasts": 8,
+    "assessment": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_independent_20261020\\assessment.json",
+    "readme": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_independent_20261020\\README.md",
+    "owner_closures": [
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_independent_20261020\\seed67_owner_closure.json",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_independent_20261020\\seed71_owner_closure.json"
+    ],
+    "candidate_adopted": false
+  },
+  "goal_complete": false,
+  "cellwise_coverage_20261020": {
+    "status": "completed_preserved_snapshot_inventory",
+    "artifact": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.review-artifacts\\vsl_multiblock_20261015\\cellwise_coverage_20261020\\coverage.json",
+    "directions": 2,
+    "cells_per_direction": 31,
+    "snapshot_times": 49,
+    "forecasts": 0,
+    "fits": 0,
+    "native": 0
+  }
+}
