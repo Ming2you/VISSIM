@@ -1,0 +1,332 @@
+#!/usr/bin/env python3
+# 상류 NumSim 커밋을 vendor/ 스냅샷으로 옮기고 무결성 앵커를 갱신하는 파이프라인 (v3 N1.5)
+"""Re-snapshot `vendor/NumSim-mine` from the upstream NumSim checkout.
+
+`verify_runtime_source.py` proves every vendored Python file against
+`UPSTREAM_TREE.json`. Nothing produced that anchor - the repository only had
+consumers - so any NumSim change broke the chain with no way to re-anchor it.
+That blocks v3 N2 onward, which is entirely NumSim work.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import shutil
+import subprocess
+from datetime import date
+from pathlib import Path
+
+
+ANCHOR_SCHEMA_VERSION = "numsim-upstream-tree-v1"
+OBJECT_FORMAT = "sha1"
+
+# 앵커 사실을 module-level 상수로 반복하는 파일과, 그 파일이 요구하는 상수 이름.
+#
+# 이 표가 불완전하면 사슬 세 단계(verify -> preflight -> approval)는 전부 PASS 인데
+# 다른 소비자가 조용히 거부한다. 그 형태로 세 번 당했다.
+#
+#   1차  verify_runtime_source 의 다섯 중 둘만 갱신     -> trust_anchor 3종 FAIL
+#   2차  build_preflight_manifest 를 통째로 놓침        -> runtime_source.expected_commit FAIL
+#   3차  validate_baseline_snapshot 의 다섯을 놓침      -> baseline 21+ FAIL
+#
+# scripts/tests/test_update_numsim_snapshot.AnchorConstantCoverageTests 가 scripts/ 를 훑어
+# 이 표에 없는 보유 파일을 잡는다. 새 소비자가 생기면 그 테스트가 먼저 깨진다.
+FULL_ANCHOR_CONSTANTS = (
+    "commit",
+    "root_tree",
+    "src_tree",
+    "python_file_count",
+    "semantic_sha256",
+)
+ANCHOR_CONSTANT_FILES: dict[str, tuple[str, ...]] = {
+    "verify_runtime_source.py": FULL_ANCHOR_CONSTANTS,
+    # baseline 검증기는 verify 와 **똑같은 다섯 상수**를 독립적으로 들고 있다.
+    # 이름만 EXPECTED_NUMSIM_COMMIT 로 다르다.
+    "validate_baseline_snapshot.py": FULL_ANCHOR_CONSTANTS,
+    "build_preflight_manifest.py": ("commit",),
+}
+
+# 같은 사실을 파일마다 다른 이름으로 부른다.
+_CONSTANT_NAMES = {
+    "commit": ("EXPECTED_SNAPSHOT_COMMIT", "EXPECTED_NUMSIM_COMMIT"),
+    "root_tree": ("EXPECTED_ROOT_TREE",),
+    "src_tree": ("EXPECTED_SRC_TREE",),
+    "python_file_count": ("EXPECTED_PYTHON_FILE_COUNT",),
+    "semantic_sha256": ("EXPECTED_ANCHOR_SEMANTIC_SHA256",),
+}
+
+
+class SnapshotError(RuntimeError):
+    """Raised when the upstream checkout or the anchor rewrite is not trustworthy."""
+
+
+def _git(repo: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise SnapshotError(
+            "git %s failed: %s" % (" ".join(args), (result.stderr or "").strip())
+        )
+    return (result.stdout or "").strip()
+
+
+def _normalise_eol(data: bytes) -> bytes:
+    # verify_runtime_source._normalise_eol 과 반드시 같아야 한다.
+    return data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
+def _git_blob_oid(data: bytes) -> str:
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+# 스냅샷이 옮겨야 하는 소스. `.py` 만 옮기면 config 가 영원히 낡는다 - 2026-08-12 에
+# 상류를 4현시로 옮기며 default.yaml 을 150/12/78 로 바꿨는데 재스냅샷 뒤에도 vendor 는
+# 120/8/92 였다. 247 키 중 셋이 어긋났고 그중 `cycle_length` 는 생산 config 가 안 덮어
+# **실 런이 vendor 의 120 을 썼다.** 모델이 150 을 쓴다고 믿는 동안 플랜트는 다른 주기를 돈다.
+SOURCE_GLOBS: tuple[str, ...] = ("*.py", "*.yaml", "*.yml")
+
+
+def _upstream_python_files(upstream: Path) -> list[Path]:
+    return sorted(
+        path
+        for path in (upstream / "src").rglob("*.py")
+        if "__pycache__" not in path.parts
+    )
+
+
+def _upstream_source_files(upstream: Path) -> list[Path]:
+    """앵커가 검증하는 소스 전부. 파이썬과 config 를 같은 규약으로 다룬다."""
+    out: list[Path] = []
+    for pattern in SOURCE_GLOBS:
+        out.extend(
+            path
+            for path in (upstream / "src").rglob(pattern)
+            if "__pycache__" not in path.parts
+        )
+    return sorted(set(out))
+
+
+def _upstream_non_python_files(upstream: Path) -> list[Path]:
+    return [p for p in _upstream_source_files(upstream) if p.suffix != ".py"]
+
+
+def assert_clean_upstream(upstream: Path) -> None:
+    """A dirty tree means the anchor commit would not describe the copied bytes."""
+    porcelain = _git(upstream, "status", "--porcelain", "--", "src")
+    dirty = [line for line in porcelain.splitlines() if line and not line.startswith("??")]
+    if dirty:
+        raise SnapshotError(
+            "upstream src/ has uncommitted tracked changes:\n  " + "\n  ".join(dirty)
+        )
+
+
+def sync_sources(upstream: Path, vendor: Path) -> tuple[int, int]:
+    """Copy src/**/*.py into the vendor tree and drop files upstream no longer has.
+
+    A leftover vendor file has no anchor entry, so verify_runtime_source rejects it.
+    """
+    wanted = {
+        path.relative_to(upstream).as_posix(): path
+        for path in _upstream_source_files(upstream)
+    }
+    for relative, source in wanted.items():
+        target = vendor / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        data = source.read_bytes()
+        # 줄바꿈만 다르고 내용이 같으면 건드리지 않는다. 앵커는 LF 정규화 기준이라 두 형태가
+        # 같은 blob OID 를 내지만, 파일을 다시 쓰면 git 이 dirty 로 보아
+        # verify_runtime_source 의 tracked_source_clean 이 FAIL 한다.
+        if target.is_file() and _normalise_eol(target.read_bytes()) == _normalise_eol(data):
+            continue
+        target.write_bytes(data)
+    removed = 0
+    swept = [
+        path
+        for pattern in SOURCE_GLOBS
+        for path in (vendor / "src").rglob(pattern)
+        if "__pycache__" not in path.parts
+    ]
+    for path in sorted(set(swept)):
+        if path.relative_to(vendor).as_posix() not in wanted:
+            path.unlink()
+            removed += 1
+    return len(wanted), removed
+
+
+def rewrite_snapshot_md(path: Path, anchor: dict, snapshot_date: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    rows = {
+        "Upstream repository": anchor["upstream_repository"],
+        "Upstream commit": anchor["commit"],
+        "Upstream root tree": anchor["root_tree"],
+        "Upstream `src` tree": anchor["src_tree"],
+        "Git object format": anchor["object_format"],
+        "Snapshot date": snapshot_date,
+    }
+    for label, value in rows.items():
+        pattern = re.compile(
+            r"^(\|\s*" + re.escape(label) + r"\s*\|\s*)(.*?)(\s*\|)\s*$", re.MULTILINE
+        )
+        text, count = pattern.subn(lambda m: m.group(1) + f"`{value}`" + m.group(3), text)
+        if count != 1:
+            raise SnapshotError(
+                f"SNAPSHOT.md row {label!r} matched {count} times, expected exactly 1"
+            )
+    anchor_row = re.compile(
+        r"^(\|\s*Immutable anchor\s*\|\s*`UPSTREAM_TREE\.json`\s*\(`"
+        + re.escape(ANCHOR_SCHEMA_VERSION)
+        + r"`,\s*)(\d+)(\s*Python blobs\)\s*\|)\s*$",
+        re.MULTILINE,
+    )
+    text, count = anchor_row.subn(
+        lambda m: m.group(1) + str(anchor["python_file_count"]) + m.group(3), text
+    )
+    if count != 1:
+        raise SnapshotError(
+            f"SNAPSHOT.md immutable-anchor row matched {count} times, expected exactly 1"
+        )
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def anchor_semantic_sha256(anchor: dict) -> str:
+    """Must match verify_runtime_source._semantic_json_sha256 exactly."""
+    encoded = json.dumps(
+        anchor, ensure_ascii=True, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def rewrite_anchor_constants(path: Path, facts: tuple[str, ...], anchor: dict) -> None:
+    """Rewrite whichever anchor constants this consumer happens to declare.
+
+    A consumer may name the same fact differently (`EXPECTED_SNAPSHOT_COMMIT` vs
+    `EXPECTED_NUMSIM_COMMIT`), so each fact carries its accepted names and we rewrite
+    the one that is actually present. A fact whose names are all absent is an error -
+    silently skipping it is exactly how stale constants survived three times.
+    """
+    values = {
+        "commit": '"%s"' % anchor["commit"],
+        "root_tree": '"%s"' % anchor["root_tree"],
+        "src_tree": '"%s"' % anchor["src_tree"],
+        "python_file_count": str(anchor["python_file_count"]),
+        "semantic_sha256": '"%s"' % anchor_semantic_sha256(anchor),
+    }
+    text = path.read_text(encoding="utf-8")
+    pairs: list[tuple[str, str]] = []
+    for fact in facts:
+        present = [
+            name
+            for name in _CONSTANT_NAMES[fact]
+            if re.search(r"^" + name + r"\s*=", text, re.MULTILINE)
+        ]
+        if len(present) != 1:
+            raise SnapshotError(
+                "%s declares %d names for anchor fact %r, expected exactly 1 of %s"
+                % (path.name, len(present), fact, list(_CONSTANT_NAMES[fact]))
+            )
+        pairs.append((present[0], values[fact]))
+    rewrite_constants(path, tuple(pairs))
+
+
+def rewrite_constants(path: Path, pairs: tuple[tuple[str, str], ...]) -> None:
+    """Rewrite module-level constants in place, requiring exactly one match each."""
+    text = path.read_text(encoding="utf-8")
+    for name, value in pairs:
+        pattern = re.compile(r"^(" + name + r"\s*=\s*)(.+)$", re.MULTILINE)
+        text, count = pattern.subn(lambda m: m.group(1) + value, text)
+        if count != 1:
+            raise SnapshotError(
+                f"{path.name} constant {name} matched {count} times, expected exactly 1"
+            )
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def build_anchor(upstream: Path, upstream_repository: str) -> dict:
+    files = _upstream_python_files(upstream)
+    if not files:
+        raise SnapshotError("upstream src/ contains no Python files")
+    blobs = {
+        path.relative_to(upstream).as_posix(): _git_blob_oid(
+            _normalise_eol(path.read_bytes())
+        )
+        for path in files
+    }
+    return {
+        "schema_version": ANCHOR_SCHEMA_VERSION,
+        "upstream_repository": upstream_repository,
+        "commit": _git(upstream, "rev-parse", "HEAD"),
+        "root_tree": _git(upstream, "rev-parse", "HEAD^{tree}"),
+        "src_tree": _git(upstream, "rev-parse", "HEAD:src"),
+        "object_format": OBJECT_FORMAT,
+        "python_file_count": len(blobs),
+        "python_blobs": dict(sorted(blobs.items())),
+        # 비파이썬 소스(config)를 따로 싣는다. `python_file_count`/`python_blobs` 의 의미를
+        # 바꾸면 그 값을 박아 둔 앵커 상수 11개가 전부 흔들리므로 새 열쇠를 쓴다.
+        "source_blobs": {
+            path.relative_to(upstream).as_posix(): _git_blob_oid(
+                _normalise_eol(path.read_bytes())
+            )
+            for path in sorted(_upstream_non_python_files(upstream))
+        },
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Re-snapshot vendor/NumSim-mine")
+    parser.add_argument("--workspace-root", required=True, type=Path)
+    parser.add_argument("--upstream", required=True, type=Path)
+    parser.add_argument("--snapshot-date", default=date.today().isoformat())
+    args = parser.parse_args(argv)
+
+    root = args.workspace_root.resolve(strict=True)
+    upstream = args.upstream.resolve(strict=True)
+    vendor = (root / "vendor" / "NumSim-mine").resolve(strict=True)
+    anchor_path = vendor / "UPSTREAM_TREE.json"
+
+    try:
+        previous = json.loads(anchor_path.read_text(encoding="utf-8"))
+        repository = str(previous.get("upstream_repository", "")).strip()
+        if not repository:
+            raise SnapshotError("existing UPSTREAM_TREE.json has no upstream_repository")
+        # 더러운 트리는 어떤 것도 건드리기 전에 거부한다.
+        assert_clean_upstream(upstream)
+        copied, removed = sync_sources(upstream, vendor)
+        anchor = build_anchor(upstream, repository)
+        anchor_path.write_text(
+            json.dumps(anchor, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        rewrite_snapshot_md(vendor / "SNAPSHOT.md", anchor, args.snapshot_date)
+        for name, facts in ANCHOR_CONSTANT_FILES.items():
+            rewrite_anchor_constants(root / "scripts" / name, facts, anchor)
+    except (SnapshotError, OSError, ValueError) as exc:
+        print(json.dumps({"status": "FAIL", "reason": str(exc)}, ensure_ascii=False))
+        return 1
+
+    print(
+        "status=PASS commit=%s files=%d copied=%d removed=%d previous_commit=%s"
+        % (
+            anchor["commit"],
+            anchor["python_file_count"],
+            copied,
+            removed,
+            previous.get("commit", ""),
+        )
+    )
+    print("next: verify_runtime_source.py -> build_preflight_manifest.py -> approve_physical_stock_topology.py")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

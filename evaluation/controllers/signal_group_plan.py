@@ -1,0 +1,616 @@
+# v3 N4-5 - 지시된 축 녹색을 SG 단위 녹색창으로 쪼개는 계획(모델 native share 와 같은 정의)
+"""Split a commanded axis green into per-signal-group green windows.
+
+## 왜 필요한가
+
+러너는 SG 상태를 이름 부분문자열로 정한다(`run_real_world_stackelberg_controller.vbs`
+`SignalStateForGroup`). 한 축의 모든 SG 가 축 녹색 **전체**를 받는다. 모델은 N4-3 이후
+그렇게 예측하지 않는다 — `native_phase_green` 이 축 녹색에 native 배분을 곱한다.
+
+    model:  movement m 의 녹색 = 축 녹색 x union_green(m 의 SG) / union_green(축의 SG)
+
+플랜트가 이 식을 재현하려면 축 녹색창을 SG 별로 같은 비율로 쪼개야 한다. 이 모듈이
+그 분할을 만든다.
+
+    plant:  SG g 의 녹색 = 축 녹색 x union_green(g) / union_green(축의 SG)
+
+## 어떻게 쪼개는가 — 축 녹색 시간의 단조 재매개화
+
+축의 native 녹색 합집합 U 를 시간축으로 삼는다. `cum(t) = |U ∩ [0,t)|` 로 두고
+native 시각 t 를 `cum(t)/|U|` 로 정규화한 뒤, 지시된 축 녹색창에 선형으로 편다.
+
+이 사상이 갖는 성질 셋이 이 설계의 근거다.
+
+1. **배분이 정확히 보존된다.** SG g 의 녹색 길이는 지시 축 녹색 x |g 의 녹색| / |U| 다.
+   모델의 share 와 같은 분수다(`ModelSymmetryTests` 가 고정한다).
+2. **동시녹색을 새로 만들지 않는다.** cum 은 단조라, native 에서 떨어져 있던 두 SG 는
+   편 뒤에도 떨어져 있다. native 에서 겹치던 쌍만 겹친 채로 남는다.
+3. **축 녹색 예산이 새지 않는다.** 축 SG 들의 realize 된 녹색 합집합이 지시된 축 녹색창을
+   빈틈없이 채운다.
+
+## N4-0 이후 - "축" 은 "현시" 가 됐다
+
+아래 설명의 "축"을 전부 **현시**로 읽어라. v3 은 현시가 둘(major/minor 축)이라 두 말이
+같았지만, 모델이 dual-ring 4현시로 옮기면서 한 축 안에 직진 현시와 좌회전 현시가 따로
+생겼다. 이 모듈의 분할 방식(native 녹색 합집합의 단조 재매개화)은 그대로이고, 그것이
+적용되는 단위가 축에서 현시로 내려갔을 뿐이다.
+
+주기 식만 바뀌었다 - clearance 를 상수 2회가 아니라 **녹색 있는 현시 수**만큼 문다
+(`plan_cycle_sec`). 현시가 둘인 계획에서는 v3 과 값이 같다.
+
+## 명시적 native 시계
+
+`native_clock_basis` 가 있는 계획만 실제 `.sig` 현시 순서·고정 공백·동시녹색을
+`native_phase_windows` 로 배치한다. 이 필드가 없는 기존 계획의 배치와 주기식은 같다.
+기준점은 native 원점과 `t + reference_offset_sec` 로 표현하고 SG 황색을 독립적으로 센다.
+
+## 무엇을 하지 않는가
+
+- 명시적 native 계획이 없으면 이 모듈은 **현시 안의 분배만** 바꾼다.
+- SG -> 모델 phase 귀속은 여기서 만들지 않는다. `outputs/movement_signal_group_map_v3.json`
+  의 `phase_signal_groups` 가 정본이고 여기서는 받아서 쓴다.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
+import copy
+import math
+from typing import Any, Iterable, Mapping, Sequence
+
+
+# 겹침 판정 허용오차[초]. 경계가 맞닿는 것은 겹침이 아니다.
+TOUCH_EPS_SEC = 1.0e-9
+
+# 상류 모델(`NumSim-mine/src/models/state.py:MODEL_PHASES`)과 같은 어휘여야 한다.
+# 상류는 N4-0 에서 dual-ring 4현시로 옮겼다(commit 3286f47).
+MODEL_PHASES = ("p1", "p2", "p3", "p4")
+
+
+class SignalGroupPlanError(RuntimeError):
+    """계획을 만들 수 없다. 조용한 폴백 대신 예외로 올린다."""
+
+
+@dataclass(frozen=True)
+class PlanWindow:
+    """한 SG 의 녹색창 하나. 시각은 플랜 주기 좌표계[0, cycle) 안이다."""
+
+    sg_no: str
+    window_index: int
+    start_sec: float
+    end_sec: float
+
+
+@dataclass(frozen=True)
+class NodePlan:
+    """한 SC 의 정적 계획. 지시 녹색과 무관한 부분만 담는다."""
+
+    node_id: str
+    native_cycle_sec: float
+    # phase -> ((sg_no, window_index, start_fraction, end_fraction), ...)
+    phase_segments: Mapping[str, tuple[tuple[str, int, float, float], ...]]
+    phase_signal_groups: Mapping[str, tuple[str, ...]]
+    axis_green_sec: Mapping[str, float]
+    window_counts: Mapping[str, int]
+    red_only_signal_groups: tuple[str, ...]
+    conflict_pairs: tuple[tuple[str, str], ...]
+    # Explicit opt-in only. Absent plans retain the historical serial layout.
+    native_clock_basis: Mapping[str, Any] | None = None
+
+
+def _sort_key(value: str) -> tuple[int, str]:
+    text = str(value)
+    return (int(text), text) if text.isdigit() else (2**31 - 1, text)
+
+
+def _green_windows(program, sg_no: str) -> tuple[tuple[float, float], ...]:
+    timeline = program.sg_timelines.get(str(sg_no))
+    if timeline is None:
+        return ()
+    return tuple(
+        (float(interval.start_sec), float(interval.end_sec))
+        for interval in timeline.intervals
+        if interval.state == "GREEN"
+    )
+
+
+def _merge(spans: Iterable[tuple[float, float]]) -> tuple[tuple[float, float], ...]:
+    merged: list[tuple[float, float]] = []
+    for start, end in sorted(spans):
+        if end <= start:
+            continue
+        if merged and start <= merged[-1][1] + TOUCH_EPS_SEC:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    return tuple(merged)
+
+
+def _cumulative(union: Sequence[tuple[float, float]], t: float) -> float:
+    """`|union ∩ [0, t)|`. t 가 union 밖이면 그 앞까지의 길이다."""
+    total = 0.0
+    for start, end in union:
+        if t <= start:
+            break
+        total += min(t, end) - start
+    return total
+
+
+def build_node_plan(
+    node_id: str,
+    program,
+    phase_signal_groups: Mapping[str, Sequence[str]],
+    signal_group_ids: Sequence[str],
+) -> NodePlan:
+    """한 SC 의 정적 계획을 만든다.
+
+    `program` 은 실제로 VISSIM 이 읽는 `.sig`(inpx `supplyFile2`)에서 파싱된 것이어야 한다.
+    파일명 번호로 고른 표를 쓰면 4/15 SC 에서 다른 프로그램을 기술한다
+    (`movement_signal_group_map_v3.json` 의 `timing_cross_check`).
+    """
+    cycle = float(program.cycle_length_sec)
+    if cycle <= 0.0:
+        raise SignalGroupPlanError(f"{node_id}: non-positive cycle {cycle}")
+
+    all_ids = tuple(str(value) for value in signal_group_ids)
+    phased: dict[str, tuple[str, ...]] = {}
+    for phase in MODEL_PHASES:
+        ids = tuple(str(value) for value in (phase_signal_groups.get(phase) or ()))
+        for sg_no in ids:
+            if sg_no not in program.sg_timelines:
+                raise SignalGroupPlanError(
+                    f"{node_id}: phase {phase} lists sg {sg_no} which the active program has no timeline for"
+                )
+            if sg_no not in all_ids:
+                raise SignalGroupPlanError(
+                    f"{node_id}: phase {phase} lists sg {sg_no} which the controller does not declare"
+                )
+        phased[phase] = ids
+
+    for first_index, first_phase in enumerate(MODEL_PHASES):
+        for second_phase in MODEL_PHASES[first_index + 1 :]:
+            overlap = set(phased[first_phase]) & set(phased[second_phase])
+            if overlap:
+                raise SignalGroupPlanError(
+                    f"{node_id}: signal groups {sorted(overlap, key=_sort_key)} belong to both "
+                    f"model phases {first_phase} and {second_phase}"
+                )
+
+    segments: dict[str, tuple[tuple[str, int, float, float], ...]] = {}
+    axis_green: dict[str, float] = {}
+    window_counts: dict[str, int] = {sg_no: 0 for sg_no in all_ids}
+    for phase in MODEL_PHASES:
+        ids = phased[phase]
+        if not ids:
+            segments[phase] = ()
+            axis_green[phase] = 0.0
+            continue
+        union = _merge(
+            span for sg_no in ids for span in _green_windows(program, sg_no)
+        )
+        total = sum(end - start for start, end in union)
+        if total <= 0.0:
+            # `.sig` 가 영구적색이라 선언한 SG 만 붙은 현시는 플랜트가 아예 안 돌리는
+            # 현시다(SC107·108·109 가 실측에서 3현시인 이유). 녹색 0 으로 싣는다.
+            # 선언이 없는데 녹색만 없으면 매핑이 틀린 것이므로 그대로 죽인다.
+            if all(
+                getattr(program.sg_timelines.get(sg_no), "permanent_red", False)
+                for sg_no in ids
+            ):
+                segments[phase] = ()
+                axis_green[phase] = 0.0
+                continue
+            raise SignalGroupPlanError(
+                f"{node_id}: model phase {phase} has signal groups {list(ids)} but no native green"
+            )
+        axis_green[phase] = total
+        rows: list[tuple[str, int, float, float]] = []
+        for sg_no in sorted(ids, key=_sort_key):
+            for index, (start, end) in enumerate(_green_windows(program, sg_no)):
+                low = _cumulative(union, start) / total
+                high = _cumulative(union, end) / total
+                if not (0.0 <= low < high <= 1.0 + TOUCH_EPS_SEC):
+                    raise SignalGroupPlanError(
+                        f"{node_id}: sg {sg_no} window {index} ({start},{end}) is not inside the "
+                        f"{phase} green union"
+                    )
+                rows.append((sg_no, index, low, min(high, 1.0)))
+                window_counts[sg_no] = window_counts.get(sg_no, 0) + 1
+        segments[phase] = tuple(rows)
+
+    phased_ids = set().union(*(set(phased[phase]) for phase in MODEL_PHASES))
+    red_only = tuple(sg_no for sg_no in all_ids if sg_no not in phased_ids)
+
+    conflicts: list[tuple[str, str]] = []
+    active = sorted(
+        (sg_no for sg_no in all_ids if window_counts.get(sg_no, 0) > 0), key=_sort_key
+    )
+    for index, first in enumerate(active):
+        first_windows = _green_windows(program, first)
+        for second in active[index + 1 :]:
+            second_windows = _green_windows(program, second)
+            overlaps = any(
+                min(a1, b1) - max(a0, b0) > TOUCH_EPS_SEC
+                for a0, a1 in first_windows
+                for b0, b1 in second_windows
+            )
+            if not overlaps:
+                conflicts.append((first, second))
+
+    return NodePlan(
+        node_id=str(node_id),
+        native_cycle_sec=cycle,
+        phase_segments=segments,
+        phase_signal_groups={phase: phased[phase] for phase in MODEL_PHASES},
+        axis_green_sec=axis_green,
+        window_counts=window_counts,
+        red_only_signal_groups=red_only,
+        conflict_pairs=tuple(conflicts),
+    )
+
+
+def live_phases(phase_greens: Mapping[str, float]) -> tuple[str, ...]:
+    """녹색을 실제로 받는 현시. 주기에 clearance 를 몇 번 무는지가 이 개수로 정해진다.
+
+    녹색 0 인 현시는 전이도 없다. 2현시 계획에서 p3/p4 가 0 이면 clearance 는 2회이고
+    v3 의 주기 식과 정확히 같은 값이 나온다.
+    """
+    return tuple(
+        phase for phase in MODEL_PHASES if float(phase_greens.get(phase, 0.0)) > 0.0
+    )
+
+
+def plan_cycle_sec(
+    phase_greens: Mapping[str, float], amber_sec: float, all_red_sec: float
+) -> float:
+    """러너의 주기 공식 그대로 - 녹색 합 + (녹색 있는 현시 수) x clearance.
+
+    v3 는 축이 둘이라 clearance 를 항상 두 번 물었다. 4현시가 되면 축 **안의** 경계도
+    전이가 되므로 계수가 현시 수를 따라간다. 2현시 데이터에서는 값이 v3 과 같다.
+    """
+    clearance = float(amber_sec) + float(all_red_sec)
+    used = live_phases(phase_greens)
+    return sum(float(phase_greens[phase]) for phase in used) + len(used) * clearance
+
+
+def native_phase_windows(
+    plan: NodePlan,
+    phase_greens: Mapping[str, float],
+    amber_sec: float,
+    all_red_sec: float,
+) -> dict[str, tuple[float, float]]:
+    """Lay out an explicit source clock, rejecting commands outside its manifold.
+
+    Serial clocks preserve their source order and fixed idle gaps. The supported
+    concurrent clock has independent p1 and p2 starts and p4 after p2 clearance;
+    its p1 length is independent of the fixed p2+p4 green sum.
+    """
+    basis = plan.native_clock_basis
+    if not isinstance(basis, Mapping) or basis.get("schema_version") != "native-clock-v1":
+        raise SignalGroupPlanError(f"{plan.node_id}: missing or unsupported native clock basis")
+    try:
+        cycle = float(basis["cycle_sec"])
+        amber, all_red = float(amber_sec), float(all_red_sec)
+        source_green = {p: float(basis["native_green_sec"][p]) for p in MODEL_PHASES}
+        greens = {p: float(phase_greens.get(p, 0.0)) for p in MODEL_PHASES}
+        order = tuple(basis["phase_order"])
+        values = [cycle, amber, all_red, *source_green.values(), *greens.values()]
+        if not all(math.isfinite(value) and value >= 0 for value in values) or cycle <= 0:
+            raise ValueError("non-finite, negative or zero-cycle clock value")
+        if abs(cycle - plan.native_cycle_sec) > TOUCH_EPS_SEC:
+            raise ValueError("clock cycle differs from source plan")
+        if abs(amber - float(basis["amber_sec"])) > TOUCH_EPS_SEC or abs(all_red - float(basis["all_red_sec"])) > TOUCH_EPS_SEC:
+            raise ValueError("clearance differs from source clock")
+        if any(abs(source_green[p] - float(plan.axis_green_sec.get(p, 0.0))) > TOUCH_EPS_SEC for p in MODEL_PHASES):
+            raise ValueError("basis native greens differ from source plan")
+        live = {p for p in MODEL_PHASES if source_green[p] > 0}
+        if len(order) != len(live) or set(order) != live:
+            raise ValueError("phase order does not contain each source live phase once")
+        if any((greens[p] > 0) != (p in live) for p in MODEL_PHASES):
+            raise ValueError("command changes the source live phase set")
+        clearance = amber + all_red
+        if basis["kind"] == "serial":
+            idle = {p: float(basis["idle_after_phase_sec"][p]) for p in order}
+            if not all(math.isfinite(v) and v >= 0 for v in idle.values()):
+                raise ValueError("invalid fixed idle gap")
+            result, cursor = {}, 0.0
+            for phase in order:
+                result[phase] = (cursor, cursor + greens[phase])
+                cursor += greens[phase] + clearance + idle[phase]
+            if abs(cursor - cycle) > TOUCH_EPS_SEC:
+                raise ValueError("green sum, clearances and fixed idle do not equal native cycle")
+        elif basis["kind"] == "concurrent_p1_p2":
+            if live != {"p1", "p2", "p4"} or order != ("p1", "p2", "p4"):
+                raise ValueError("unsupported concurrent phase topology")
+            if abs(greens["p2"] + greens["p4"] + 2 * clearance - cycle) > TOUCH_EPS_SEC:
+                raise ValueError("p2+p4 green sum does not preserve native cycle")
+            if greens["p1"] + amber > greens["p2"] + TOUCH_EPS_SEC:
+                raise ValueError("p1 amber must finish before p2 green ends")
+            result = {"p1": (0.0, greens["p1"]), "p2": (0.0, greens["p2"]),
+                      "p4": (greens["p2"] + clearance, cycle - clearance)}
+        else:
+            raise ValueError(f"unsupported native clock kind {basis['kind']!r}")
+    except (KeyError, TypeError, ValueError) as exc:
+        raise SignalGroupPlanError(f"{plan.node_id}: invalid native clock: {exc}") from exc
+    return result
+
+
+def node_cycle_sec(plan: NodePlan, phase_greens: Mapping[str, float], amber_sec: float, all_red_sec: float) -> float:
+    """Use an explicit native clock when present, otherwise the legacy formula."""
+    if plan.native_clock_basis is None:
+        return plan_cycle_sec(phase_greens, amber_sec, all_red_sec)
+    native_phase_windows(plan, phase_greens, amber_sec, all_red_sec)
+    return float(plan.native_clock_basis["cycle_sec"])
+
+
+def plan_state_at(plan: NodePlan, phase_greens: Mapping[str, float], sg_no: str,
+                  phase_sec: float, amber_sec: float, all_red_sec: float,
+                  phase_order: Sequence[str] = MODEL_PHASES) -> str:
+    """Return one SG's half-open state; another SG's green never suppresses amber."""
+    cycle = node_cycle_sec(plan, phase_greens, amber_sec, all_red_sec)
+    if not math.isfinite(phase_sec) or cycle <= 0:
+        raise SignalGroupPlanError(f"{plan.node_id}: invalid phase or cycle")
+    phase = float(phase_sec) % cycle
+    windows = tuple(w for w in plan_windows(plan, phase_greens, phase_order, amber_sec, all_red_sec)
+                    if str(w.sg_no) == str(sg_no))
+    if any(w.start_sec <= phase < w.end_sec for w in windows):
+        return "GREEN"
+    if any((phase - w.end_sec) % cycle < float(amber_sec) for w in windows):
+        return "AMBER"
+    return "RED"
+
+
+def build_native_clock_basis(plan: NodePlan, program, *, amber_sec: float,
+                             all_red_sec: float, controller_offset_sec: float = 0.0) -> dict[str, Any]:
+    """Derive the optional clock from the existing active ``parse_sig`` result.
+
+    This does not change a plan or activate native-compatible control. Only the
+    plan's owned phase SGs are verified; unmapped midblock SGs remain outside it.
+    Complete source GREEN/AMBER/RED intervals, including initial states, must
+    agree with the generated source command before the basis is returned.
+    """
+    source_plan = build_node_plan(plan.node_id, program, plan.phase_signal_groups, tuple(plan.window_counts))
+    if (source_plan.phase_segments != plan.phase_segments or
+            source_plan.axis_green_sec != plan.axis_green_sec or
+            abs(source_plan.native_cycle_sec - plan.native_cycle_sec) > TOUCH_EPS_SEC):
+        raise SignalGroupPlanError(f"{plan.node_id}: plan SG segments or green lengths differ from source")
+    phase_spans = {}
+    for phase in MODEL_PHASES:
+        spans = _merge(s for sg in plan.phase_signal_groups.get(phase, ()) for s in _green_windows(program, sg))
+        if spans:
+            if len(spans) != 1 or any((low, high) != (0.0, 1.0) for _, _, low, high in plan.phase_segments[phase]):
+                raise SignalGroupPlanError(f"{plan.node_id}: native clock requires one full owned SG phase window")
+            phase_spans[phase] = spans[0]
+    order = sorted(phase_spans, key=lambda p: (phase_spans[p][0], MODEL_PHASES.index(p)))
+    if not order or phase_spans[order[0]][0] != 0:
+        raise SignalGroupPlanError(f"{plan.node_id}: native phase origin must start at zero")
+    cycle, clearance = float(program.cycle_length_sec), float(amber_sec) + float(all_red_sec)
+    overlap = any(phase_spans[a][1] > phase_spans[b][0] + TOUCH_EPS_SEC
+                  for a, b in zip(order, order[1:]))
+    idle = {}
+    if not overlap:
+        for index, phase in enumerate(order):
+            next_start = phase_spans[order[index + 1]][0] if index + 1 < len(order) else cycle
+            gap = next_start - phase_spans[phase][1] - clearance
+            if gap < -TOUCH_EPS_SEC:
+                raise SignalGroupPlanError(f"{plan.node_id}: source clearance is shorter than requested")
+            idle[phase] = max(gap, 0.0)
+    offset = float(getattr(program, "program_offset_sec", 0.0)) + float(controller_offset_sec)
+    if not math.isfinite(offset):
+        raise SignalGroupPlanError(f"{plan.node_id}: non-finite native offset")
+    basis = {"schema_version": "native-clock-v1", "kind": "concurrent_p1_p2" if overlap else "serial",
+             "cycle_sec": cycle, "amber_sec": float(amber_sec), "all_red_sec": float(all_red_sec),
+             "phase_order": order, "idle_after_phase_sec": idle,
+             "native_green_sec": dict(source_plan.axis_green_sec),
+             "program_offset_sec": float(getattr(program, "program_offset_sec", 0.0)),
+             "controller_offset_sec": float(controller_offset_sec), "reference_offset_sec": (-offset) % cycle,
+             "source_path": str(getattr(program, "source_path", "")),
+             "active_prog_no": int(getattr(program, "active_prog_no", 0))}
+    native = replace(plan, native_clock_basis=basis)
+    if native_phase_windows(native, native.axis_green_sec, amber_sec, all_red_sec) != phase_spans:
+        raise SignalGroupPlanError(f"{plan.node_id}: source phase windows are not representable")
+    windows = plan_windows(native, native.axis_green_sec, MODEL_PHASES, amber_sec, all_red_sec)
+    if conflict_violations(windows, plan.conflict_pairs):
+        raise SignalGroupPlanError(f"{plan.node_id}: native clock creates a conflicting source SG pair")
+    owned = {sg for ids in plan.phase_signal_groups.values() for sg in ids}
+    for sg in owned:
+        timeline = program.sg_timelines[sg]
+        points = {0.0, cycle, *(float(i.start_sec) for i in timeline.intervals),
+                  *(float(i.end_sec) for i in timeline.intervals)}
+        # Include generated boundaries too, so shorter/longer amber cannot hide
+        # within a source interval whose midpoint happens to agree.
+        for window in windows:
+            if window.sg_no == sg:
+                points.update((window.start_sec, window.end_sec, (window.end_sec + amber_sec) % cycle))
+        bounds = sorted(points)
+        probes = sorted(set(bounds[:-1]) | {(a + b) / 2 for a, b in zip(bounds, bounds[1:])})
+        for phase in probes:
+            actual = plan_state_at(native, native.axis_green_sec, sg, phase, amber_sec, all_red_sec)
+            if actual != timeline.state_at_phase(phase):
+                raise SignalGroupPlanError(f"{plan.node_id}: SG {sg} native state differs at phase {phase}")
+    return basis
+
+
+def phase_layout_order(major_maps_to: str) -> tuple[str, ...]:
+    """녹색창을 주기 안에 놓는 순서.
+
+    major 축 현시가 맨 앞이다 - v3 의 `axis_window` 배치(major 를 [0, major) 에 두고
+    minor 를 그 뒤에 두는 것)와 2현시에서 **비트 동일**하게 만드는 조건이다.
+
+    나머지 셋의 상대 순서는 모델 phase 순서로 둔다. 목표 스펙의 현시 순서
+    (major 직진 -> major 좌 -> minor 직진 -> minor 좌)는 phase -> 이동류 귀속이 정해져야
+    쓸 수 있고, 그 귀속은 `.sig` 재작성(작업 1)이 막혀 아직 없다. 4현시 계획이 실제로
+    생기면 이 함수가 그 순서를 받아야 한다.
+    """
+    major_phase = str(major_maps_to).strip().lower()
+    if major_phase not in MODEL_PHASES:
+        raise SignalGroupPlanError(
+            f"major_maps_to must be one of {MODEL_PHASES}, got {major_maps_to!r}"
+        )
+    return (major_phase,) + tuple(
+        phase for phase in MODEL_PHASES if phase != major_phase
+    )
+
+
+def plan_windows(
+    plan: NodePlan,
+    phase_greens: Mapping[str, float],
+    phase_order: Sequence[str],
+    amber_sec: float,
+    all_red_sec: float,
+) -> tuple[PlanWindow, ...]:
+    """지시된 현시 녹색을 SG 녹색창으로 편다.
+
+    `phase_order` 는 주기 안의 배치 순서다. 녹색 0 인 현시는 자리를 차지하지 않는다.
+    """
+    order = tuple(str(phase).strip().lower() for phase in phase_order)
+    if sorted(order) != sorted(MODEL_PHASES):
+        raise SignalGroupPlanError(
+            f"{plan.node_id}: phase_order must be a permutation of {MODEL_PHASES}, got {order}"
+        )
+    if plan.native_clock_basis is not None:
+        layout = native_phase_windows(plan, phase_greens, amber_sec, all_red_sec)
+        rows = [PlanWindow(sg_no, index, start + low * (end - start), start + high * (end - start))
+                for phase, (start, end) in layout.items()
+                for sg_no, index, low, high in plan.phase_segments.get(phase, ())]
+        rows.sort(key=lambda row: (_sort_key(row.sg_no), row.window_index))
+        return tuple(rows)
+    clearance = float(amber_sec) + float(all_red_sec)
+    rows: list[PlanWindow] = []
+    cursor = 0.0
+    for phase in order:
+        span = float(phase_greens.get(phase, 0.0))
+        if span <= 0.0:
+            continue
+        for sg_no, index, low, high in plan.phase_segments.get(phase, ()):
+            rows.append(
+                PlanWindow(
+                    sg_no=sg_no,
+                    window_index=index,
+                    start_sec=cursor + low * span,
+                    end_sec=cursor + high * span,
+                )
+            )
+        cursor += span + clearance
+    rows.sort(key=lambda row: (_sort_key(row.sg_no), row.window_index))
+    return tuple(rows)
+
+
+def conflict_violations(
+    windows: Iterable[PlanWindow], conflict_pairs: Iterable[tuple[str, str]]
+) -> tuple[str, ...]:
+    """충돌 쌍이 동시에 녹색인 구간을 전부 사유 문자열로 돌려준다."""
+    by_group: dict[str, list[tuple[float, float]]] = {}
+    for window in windows:
+        by_group.setdefault(str(window.sg_no), []).append(
+            (float(window.start_sec), float(window.end_sec))
+        )
+    violations: list[str] = []
+    for first, second in conflict_pairs:
+        for a0, a1 in by_group.get(str(first), ()):
+            for b0, b1 in by_group.get(str(second), ()):
+                low = max(a0, b0)
+                high = min(a1, b1)
+                if high - low > TOUCH_EPS_SEC:
+                    violations.append(
+                        f"sg {first} and sg {second} are both green on [{low}, {high})"
+                    )
+    return tuple(violations)
+
+
+def node_plan_to_json(plan: NodePlan) -> dict[str, Any]:
+    result = {
+        "node_id": plan.node_id,
+        "native_cycle_sec": plan.native_cycle_sec,
+        "phase_signal_groups": {
+            phase: list(plan.phase_signal_groups.get(phase, ()))
+            for phase in MODEL_PHASES
+        },
+        "axis_green_sec": {phase: plan.axis_green_sec.get(phase, 0.0) for phase in MODEL_PHASES},
+        "phase_segments": {
+            phase: [
+                {
+                    "sg_no": sg_no,
+                    "window_index": index,
+                    "start_fraction": low,
+                    "end_fraction": high,
+                }
+                for sg_no, index, low, high in plan.phase_segments.get(phase, ())
+            ]
+            for phase in MODEL_PHASES
+        },
+        "window_counts": {key: int(value) for key, value in sorted(
+            plan.window_counts.items(), key=lambda item: _sort_key(item[0])
+        )},
+        "red_only_signal_groups": list(plan.red_only_signal_groups),
+        "conflict_pairs": [list(pair) for pair in plan.conflict_pairs],
+    }
+    if plan.native_clock_basis is not None:
+        result["native_clock_basis"] = copy.deepcopy(dict(plan.native_clock_basis))
+    return result
+
+
+def node_plan_from_json(payload: Mapping[str, Any]) -> NodePlan:
+    segments: dict[str, tuple[tuple[str, int, float, float], ...]] = {}
+    raw_segments = payload.get("phase_segments") or {}
+    for phase in MODEL_PHASES:
+        segments[phase] = tuple(
+            (
+                str(item["sg_no"]),
+                int(item["window_index"]),
+                float(item["start_fraction"]),
+                float(item["end_fraction"]),
+            )
+            for item in raw_segments.get(phase, ())
+        )
+    raw_phase_groups = payload.get("phase_signal_groups") or {}
+    raw_axis_green = payload.get("axis_green_sec") or {}
+    plan = NodePlan(
+        node_id=str(payload.get("node_id", "")),
+        native_cycle_sec=float(payload.get("native_cycle_sec", 0.0)),
+        phase_segments=segments,
+        phase_signal_groups={
+            phase: tuple(str(value) for value in raw_phase_groups.get(phase, ()))
+            for phase in MODEL_PHASES
+        },
+        axis_green_sec={
+            phase: float(raw_axis_green.get(phase, 0.0)) for phase in MODEL_PHASES
+        },
+        window_counts={
+            str(key): int(value)
+            for key, value in (payload.get("window_counts") or {}).items()
+        },
+        red_only_signal_groups=tuple(
+            str(value) for value in payload.get("red_only_signal_groups", ())
+        ),
+        conflict_pairs=tuple(
+            (str(pair[0]), str(pair[1])) for pair in payload.get("conflict_pairs", ())
+        ),
+        native_clock_basis=copy.deepcopy(payload.get("native_clock_basis")),
+    )
+    if plan.native_clock_basis is not None:
+        basis = plan.native_clock_basis
+        if not isinstance(basis, Mapping):
+            raise SignalGroupPlanError(f"{plan.node_id}: native clock basis must be an object")
+        native_phase_windows(plan, plan.axis_green_sec, basis.get("amber_sec"), basis.get("all_red_sec"))
+    return plan
+
+
+__all__ = [
+    "MODEL_PHASES",
+    "NodePlan",
+    "PlanWindow",
+    "SignalGroupPlanError",
+    "build_node_plan",
+    "build_native_clock_basis",
+    "conflict_violations",
+    "live_phases",
+    "node_plan_from_json",
+    "node_plan_to_json",
+    "native_phase_windows",
+    "node_cycle_sec",
+    "phase_layout_order",
+    "plan_cycle_sec",
+    "plan_state_at",
+    "plan_windows",
+]

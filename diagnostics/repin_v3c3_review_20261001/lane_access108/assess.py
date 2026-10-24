@@ -1,0 +1,81 @@
+"""Summarize completed108 forecasts and guard the declared continuation gate."""
+import ast
+import gzip
+import hashlib
+import json
+from pathlib import Path
+
+HERE=Path(__file__).resolve().parent
+
+
+def read(path):
+    return json.loads(path.read_text(encoding='utf-8'))
+
+
+def save(path,obj):
+    path.write_text(json.dumps(obj,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
+
+
+summary=read(HERE/'prediction/summary.json')
+assert summary['completed']==3
+rows={r['version']:r for r in summary['rows']}
+previous={r['version']:r for r in read(HERE.parent/'lane_receiving107/dynamic/summary.json')['rows']}
+fields=('mainline_ttt','ttt','ramp_ttt','off_ttt','end_n','exits')
+native={k:rows['aligned_release_vsl90']['actual'][k]-rows['aligned_release']['actual'][k] for k in fields}
+candidate={k:rows['aligned_release_vsl90']['predicted'][k]-rows['aligned_release']['predicted'][k] for k in fields}
+baseline={k:previous['lanes_release_vsl90']['predicted'][k]-previous['lanes_release']['predicted'][k] for k in fields}
+reduction=1-abs(candidate['mainline_ttt']-native['mainline_ttt'])/abs(baseline['mainline_ttt']-native['mainline_ttt'])
+ratios={arm:{k:rows['aligned_'+arm]['score'][k]['rmse']/previous['lanes_'+arm]['score'][k]['rmse']
+             for k in ('speed','density','cell_n','flow_vph')} for arm in ('release','release_vsl90')}
+gate=dict(default_off_exact=all(read(HERE/'prediction/disabled_parity.json').values()),
+          valid_states=all(not r['score']['invalid'] for r in rows.values()),
+          meaningful_response_sign=candidate['mainline_ttt']*native['mainline_ttt']>0,
+          error_reduction20percent=reduction>=.2,
+          state_rmse_worsening_below10percent=all(v<=1.1 for arm in ratios.values() for v in arm.values()))
+assert abs(native['mainline_ttt'])>=.5
+ports={};forecast_hashes={}
+for label in rows:
+    path=HERE/'prediction'/(label+'.json.gz')
+    forecast_hashes[label]=hashlib.sha256(path.read_bytes()).hexdigest()
+    with gzip.open(path,'rt',encoding='utf-8') as f:pred=json.load(f)
+    ledger=[p for p in pred['ports'] if p['connector']=='10483']
+    assert len(ledger)==450
+    assert all(abs((b['n_veh']-a['n_veh'])-(b['admitted_veh']-a['admitted_veh'])+
+                   (b['departed_veh']-a['departed_veh']))<1e-7 for a,b in zip(ledger,ledger[1:]))
+    accepted_from_cell20=sum(r['off_departures'] for r in pred['flows'] if r['cell']==20)
+    assert abs(accepted_from_cell20-ledger[-1]['admitted_veh'])<1e-7
+    ports[label]=dict(
+        off10483_arrivals=ledger[-1]['admitted_veh'],
+        off10483_departures=ledger[-1]['departed_veh'],
+        ledger_semantics='Cumulative since rollout start; use final total, not sum over snapshots.',
+        cell19_through=sum(r['downstream_crossings'] for r in pred['flows'] if r['cell']==19),
+        route_residual=pred['diagnostics']['roads'][0]['joint_lane_region']['route_marginal_max_error'],
+    )
+protocol=read(HERE/'protocol.json')
+for path,digest in protocol['protected_sha256'].items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest
+assert hashlib.sha256(Path(protocol['STOP']['path']).read_bytes()).hexdigest()==protocol['STOP']['sha256']
+functions={n.name:hashlib.sha256(ast.dump(n,include_attributes=False).encode()).hexdigest()
+           for n in ast.parse((HERE.parent/'entry10682/audit.py').read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
+for name,digest in protocol['old_helper_ast_sha256'].items():assert functions[name]==digest,name
+for pin in protocol['inputs'].values():
+    assert hashlib.sha256((HERE.parents[2]/pin['path']).read_bytes()).hexdigest()==pin['sha256']
+assessment=dict(status='complete_rejected',continuation_gate_pass=all(gate.values()),checks=gate,
+    assessment_repair='Initial port-only summary summed cumulative ledgers; preserved as invalid_cumulative_sum*. Final totals verified against cell20 accepted departures and all449 ledger differences. Forecasts, TTT, response gate unchanged; no rerun.',
+    scope='seed67 common2670.1 state450s. MainlineTTT=FW_E31cells; componentTTT adds four on/four off connectors. Not fullOmega.',
+    delta_vsl90_minus110=dict(actual=native,lane_baseline=baseline,aligned_candidate=candidate),
+    response_error_reduction_fraction=reduction,state_rmse_ratios=ratios,port_totals=ports,
+    forecast_sha256=forecast_hashes,elapsed_forecast_seconds=summary['elapsed_seconds'],
+    preservation=dict(old_helper_functions=len(protocol['old_helper_ast_sha256']),core_files=len(protocol['protected_sha256']),
+                      original_inputs=len(protocol['inputs']),STOP=True,hooks=read(HERE/'prediction/restoration.json')),
+    production_adopted=False,goal_qualified=False,fits=0,new_native=0,new_FZP=0,completed450_forecasts=3,
+    interpretation=[
+        'Destination-blind exchange scatters already aligned exit traffic, inconsistent with this recorded approach cohort.',
+        'Preventing that scattering lowers absolute inventory/flow errors relative to the rejected lane model but worsens the VSL response error.',
+        'Do not equate physical lane alignment correction with reproducing the VSL gain, and do not expand coefficient search after this failed gate.',
+        'Current-known65 vehicles have near-zero paired effect in the early interval; the later posthoc exiting cohorts differ in composition and cannot be compared as a matched causal sample.',
+        'No evidence here establishes that extra mandatory lane-change time is the dominant VSL benefit. Interactions with surrounding through traffic and queue wave dynamics remain unresolved.',
+    ])
+assert not assessment['continuation_gate_pass']
+save(HERE/'prediction_assessment.json',assessment)
+save(HERE/'prediction_status.json',dict(status='complete_rejected',completed=3,assessment='prediction_assessment.json'))
+print(json.dumps({k:assessment[k] for k in ('status','delta_vsl90_minus110','response_error_reduction_fraction','port_totals','checks')},indent=2))

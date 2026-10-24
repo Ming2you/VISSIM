@@ -1,0 +1,74 @@
+{
+  "schema": "shared-approach/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "physical_link": "69",
+  "storage": "shared_69",
+  "native_input": "1101",
+  "native_decision": "1134",
+  "gate_map": {
+    "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+    "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af"
+  },
+  "jam_source": {
+    "path": "outputs/urban_storage_capacity_core17legs4b_20260819.json",
+    "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+  },
+  "demand_profile": {
+    "path": "diagnostics/selected_control_demand/codex_selected_fw070_u030_beta0_joint_r03/profile.csv",
+    "sha256": "22470a90e4e00d863350a9d65be5d87e881fa01c7ec79b963001d3020aef4837"
+  },
+  "branches": {
+    "1": {
+      "connector": "10644",
+      "target_kind": "ramp",
+      "target": "R_F_W",
+      "physical_receiver_start": "10644"
+    },
+    "2": {
+      "connector": "10636",
+      "target_kind": "storage",
+      "target": "in_SC1005_W",
+      "physical_receiver_start": "10636"
+    },
+    "3": {
+      "connector": "10637",
+      "target_kind": "ramp",
+      "target": "R_F_E",
+      "physical_receiver_start": "10639"
+    },
+    "4": {
+      "connector": "10640",
+      "target_kind": "storage",
+      "target": "in_SC1004_W",
+      "physical_receiver_start": "10640"
+    }
+  },
+  "limitations": [
+    "Initial vehicle branch identities are unknown; partition uses native1134 relative flows12:1:3:0.25 for all vehicle types. This is a declared conditional static prior.",
+    "Each branch has its own FIFO travel cohorts; all branches share finite69 storage. Downstream blockage retains its branch vehicles; lateral lane-changing or complete FIFO blocking between branches is not simulated.",
+    "Initial remaining travel uses each recorded position/speed with the existing urban speed floor; new arrivals use the measured69 mean speed and the same floor.",
+    "Branch3 includes10637 and70 travel before the R_F_E queue. That short pre-receiver travel remains in the shared stock with69 capacity, a conservative spatial aggregation.",
+    "Urban target storage-to-stopline travel retains the existing urban delay model; this module does not retune those downstream corridors.",
+    "Native input1101 is stochastic in VISSIM. The prediction admits its declared mean subject to shared storage and tracks unadmitted demand separately; these are model arrivals, not future observed admission truth.",
+    "All branch transfers remain withinOmega; generation on69 addsinside stock without an external boundary crossing."
+  ],
+  "selected_demand_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/shared_approach_ver2.json",
+      "sha256": "a284c2197dd66d870f1b66e444a9264590d8f9aa4b74cbf99cdccc0802e4c5f4"
+    },
+    "selected_prepared": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\demand_sweep\\fw070_urban030\\prepared",
+      "sha256": "2855d08cf1c6cfffc57bed69f240030e228fc92263ef59562f128a5758601abd"
+    },
+    "selected_demand_sha256": "9a8d5d49fe512c2e579d0ecd6f1f2ce277173a658931c6a8e92f41de6f2e9f17",
+    "comparison_path": "diagnostics/selected_control_demand/codex_selected_fw070_u030_beta0_joint_r03/comparison.csv",
+    "rows": 204,
+    "absolute_tolerance_vph": 1e-10,
+    "max_abs_error_vph": 4.547473508864641e-13,
+    "scope": "Future native demand schedule only; original physical definitions and empirical calibration pins unchanged"
+  }
+}

@@ -1,0 +1,128 @@
+"""Replay saved model ramp boundaries exactly; native cohorts are audit only.
+
+No native future arrival/receiving series is fed into any model. The native
+arrival-age calculation below is an accounting diagnostic, not a rollout.
+"""
+import gzip
+import hashlib
+import json
+import math
+import sys
+from pathlib import Path
+
+from evaluation.controllers.physical_ramp_boundary import LaneResolvedRampBoundary
+
+L=Path(__file__).resolve().parent;I=L.parent.parent;U=I.parents[2]
+SUFFIX='ps' if '--physical-speed' in sys.argv[1:] else 'svc'
+OUT=L/('physical_speed/buffer_audit' if SUFFIX=='ps' else 'ramp10484_path_v2');OUT.mkdir(exist_ok=False)
+D=Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+RAMP='RM_C10484';pins={}
+def read(p):
+    raw=p.read_bytes();pins[str(p)]=hashlib.sha256(raw).hexdigest();return raw
+def load(p):
+    raw=read(p);return json.loads(gzip.decompress(raw) if p.suffix=='.gz' else raw)
+def close(a,b):
+    assert abs(a-b)<1e-8,(a,b)
+def post(s):return s['downstream_travelling_veh']+s['merge_ready_veh']
+def pre(s):return s['upstream_travelling_veh']+s['head_ready_veh']
+
+timing=load(L/'speed_binding/native_timing.json')
+results={}
+for at in (2250,3600):
+    metadata=load(L/f'speed_binding/forecast_{at}_audit.json')['actual'][RAMP]
+    kwargs={k:metadata[k] for k in ('connector_id','length_m','head_position_m','lanes','spacing_m',
+             'travel_speed_kmh','posthead_travel_speed_kmh','initial_cohorts','lane_arrival_shares')}
+    buffer=LaneResolvedRampBoundary(**kwargs,time_sec=at)
+    initial=buffer.snapshot()
+    native0=load(D/f'state_{at:06d}.json');native1=load(D/f'state_{at+150:06d}.json')
+    actual0=[r for r in native0['vehicle_records']['records'] if r['link_no']==10484]
+    actual1=[r for r in native1['vehicle_records']['records'] if r['link_no']==10484]
+    assert sorted(metadata['initial_cohorts'])==sorted([[r['position_m'],r['speed_kph'],r['lane_no']] for r in actual0])
+    h=metadata['head_position_m']
+    npre0=sum(r['position_m']<=h for r in actual0);npost0=len(actual0)-npre0
+    npre1=sum(r['position_m']<=h for r in actual1);npost1=len(actual1)-npre1
+    close(pre(initial),npre0);close(post(initial),npost0)
+    receipt=load(L/f'city_path/{at}_{SUFFIX}/receipt.json')
+    assert receipt['forecast_count']==1 and receipt['future_observation_inputs'] is False
+    for p,digest in receipt['pins'].items():assert hashlib.sha256(Path(p).read_bytes()).hexdigest()==digest
+    trace=load(L/f'city_path/{at}_{SUFFIX}/trace.json.gz')
+    transfers=trace['transfers'];resources=trace['resources']
+    arrivals={};head={};merge={};supply={};eligible={};stocks={}
+    for r in transfers:
+        if r['target']=='ramp:'+RAMP:
+            t=int(r['start_sec']);arrivals[t]=arrivals.get(t,0.)+r['vehicles']
+        if r['source']=='ramp:'+RAMP and r['target']=='merge_pending:'+RAMP:
+            t=int(r['start_sec']);merge[t]=merge.get(t,0.)+r['vehicles']
+    for r in resources:
+        t=int(r['start_sec'])
+        if r['resource']==RAMP+':0' and r['kind']=='physical_ramp_head_service':head[t]=r
+        if r['resource']!=RAMP:continue
+        if r['kind']=='physical_ramp_merge_physical_receiving':supply[t]=r['available_veh']
+        if r['kind']=='physical_ramp_merge_eligible':eligible[t]=r['available_veh']
+        if r['kind']=='physical_ramp_merge_stock':stocks[t]=r['available_veh']
+    history=[];by150=None
+    for t in range(at,at+450):
+        close(buffer.snapshot()['connector_veh'],stocks[t])
+        row=buffer.advance_local_interval(start_sec=t,duration_sec=1.,cycle_sec=10.,
+            receiving_budget_veh=supply[t],receiving_budget_by_lane_veh=[supply[t]],
+            service_veh=head[t]['available_veh']*10.,mode='GREEN',green_sec=10.,
+            request_arrivals_veh=0.,allow_partial_cycle=True)
+        close(row['head_service_veh'],head[t]['accepted_total_veh'])
+        # Zero transfers are omitted from the captured accounting ledger.
+        close(row['accepted_merge_veh'],merge.get(t,0.))
+        close(row['eligible_merge_veh'],eligible[t])
+        buffer.admit_current(arrivals.get(t,0.))
+        snapshot=buffer.snapshot()
+        close(snapshot['conservation_residual_veh'],0.)
+        history.append(dict(start_sec=t,end_sec=t+1,arrival=arrivals.get(t,0.),
+            head=row['head_service_veh'],merge=row['accepted_merge_veh'],
+            supply=supply[t],eligible=row['eligible_merge_veh'],**snapshot))
+        if t+1==at+150:by150=dict(snapshot)
+    endpoint=load(I/f'closedloop_recorded{at}_lever450_RM_C10484_city{at}_{SUFFIX}/held_actual.json')['ramps'][RAMP]
+    close(buffer.snapshot()['connector_veh'],endpoint['final_stock'])
+    with gzip.open(OUT/f'{at}_model_replay.json.gz','wt',encoding='utf-8') as f:json.dump(history,f)
+    model={k:sum(row[k] for row in history[:150]) for k in ('arrival','head','merge')}
+    model.update(prehead_final=pre(by150),posthead_final=post(by150),
+                 head_ready_final=by150['head_ready_veh'],upstream_travelling_final=by150['upstream_travelling_veh'])
+    obs=timing['states'][str(at)]
+    new_heads=[r for r in obs['arrival_cohort'] if r['head_sec'] is not None and r['head_sec']<at+150]
+    old_heads=[r for r in obs['initial_prehead'] if r['actual_delay_sec'] is not None and r['actual_delay_sec']<150]
+    nhead=sum(b['head'] for b in obs['bins']);narrival=sum(b['arrival'] for b in obs['bins'])
+    assert len(new_heads)+len(old_heads)==nhead
+    nmerge=len(actual0)+narrival-len(actual1)
+    assert npost0+nhead-npost1==nmerge
+    travel=h/(metadata['travel_speed_kmh']/3.6)
+    cutoff=at+150-travel
+    # Counterfactual age eligibility is arithmetic only, never a native-input model.
+    mature_native=sum(r['arrival_sec']<=cutoff for r in obs['arrival_cohort'])
+    mature_model=sum(v for t,v in arrivals.items() if at<=t<at+150 and t+1<=cutoff)
+    close(model['head'],npre0+mature_model-model['head_ready_final'])
+    decomposition=dict(initial_cohort_head_difference=npre0-len(old_heads),
+        predicted_vs_native_arrival_age_count=mature_model-mature_native,
+        native_age_eligible_minus_actual_new_heads=mature_native-len(new_heads),
+        minus_model_head_ready=-model['head_ready_final'])
+    close(sum(decomposition.values()),model['head']-nhead)
+    close(model['merge']-nmerge,model['head']-nhead-(model['posthead_final']-npost1))
+    results[at]=dict(native=dict(initial_prehead=npre0,initial_posthead=npost0,arrival=narrival,head=nhead,
+        merge_reconstructed=nmerge,final_prehead=npre1,final_posthead=npost1,
+        initial_prehead_served=len(old_heads),new_arrival_heads=len(new_heads)),model=model,
+        constant_travel_age_diagnostic=dict(model_travel_sec=travel,arrival_cutoff_sec=cutoff,
+            model_age_eligible_arrivals=mature_model,native_age_eligible_arrivals=mature_native,
+            head_error_decomposition=decomposition,
+            warning='Eligibility is a diagnostic at one constant travel time, not a causal intervention or a saturation identification.'),
+        head_error=model['head']-nhead,merge_error=model['merge']-nmerge,
+        posthead_final_error=model['posthead_final']-npost1,
+        same_model_replay_all450_seconds=True,
+        bins30=[dict(start=at+j,end=at+j+30,model={k:sum(x[k] for x in history[j:j+30])
+            for k in ('arrival','head','merge')},native=obs['bins'][j//30]) for j in range(0,150,30)])
+
+for p in ('evaluation/controllers/physical_ramp_boundary.py','evaluation/controllers/lane_ramp_runtime.py',
+          'evaluation/controllers/lane_plant_runtime.py', 'evaluation/controllers/vissim_stackelberg_adapter.py'):
+    read(U/p)
+report=dict(previous_goal_turn='progress',current_goal_turn='progress',status='completed_cached_replay_audit',
+    goal='ACTIVE/NOT_QUALIFIED',new_coupled_forecasts=0,model_trace_replays=2,new_native=0,fzp_scans=0,
+    coefficient_fits=0,live_polls=0,push=0,future_native_inputs_to_models=False,
+    states=results,source_pins=pins,
+    scope='Exact scalar buffer replay under its already-predicted450s arrival/receiving/service; no independent prediction/gain validation. Native merge is stock-balance reconstruction; no new merge detector.')
+(OUT/'verification.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({at:{k:v for k,v in r.items() if k!='bins30'} for at,r in results.items()},indent=2))

@@ -1,0 +1,2272 @@
+{
+  "sources": {
+    "network": {
+      "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+      "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+    },
+    "membership": {
+      "path": "diagnostics/control_area_membership.json",
+      "sha256": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d"
+    },
+    "config": {
+      "path": "diagnostics/area_candidate_configs/n7_area_beta0.json",
+      "sha256": "a1ba2ebcf3d9a11a65020efb68285775c4a43bd500022381afc1b1df315c94e4"
+    },
+    "state": {
+      "path": "evaluation/runs/codex_area_beta0_retry_s13_20260910/decisions_codex_area_beta0_retry_s13_20260910/state_001200.json",
+      "sha256": "67b727a83bfc0a553c3737ce82eb97b18fe0bdc14f4f4112dcccb29008adc4f9"
+    },
+    "previous": {
+      "path": "evaluation/runs/codex_area_beta0_retry_s13_20260910/decisions_codex_area_beta0_retry_s13_20260910/action_001050.json",
+      "sha256": "6c1ed6d7b871a6765e91f5009c68ce3a9c8f6dccaa627520cd19dffc8caa25e8"
+    },
+    "gate_map": {
+      "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_legs4b_20260819.csv",
+      "sha256": "cd078deeb3eee3cbddb3e17878144cbd93b059c020a017eb08f2d211b8b34264"
+    },
+    "support": {
+      "path": "diagnostics/physical_projection_support_635_proposal.json",
+      "sha256": "4d5901d69f386211236a6981695794eee38e9b26762b15e8da48dcfdd22d980e"
+    },
+    "canonical_contract": {
+      "path": "diagnostics/control_area_route_contract_physical_routes.json",
+      "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+    },
+    "occurrence": {
+      "path": "diagnostics/unresolved_positive_occurrence_audit.json",
+      "sha256": "0f248bbfcdb2b1829ec40f7f77e34e7d69e99ef7274edfb0c7b03315bdbefdce"
+    }
+  },
+  "geometry": {
+    "10379": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "10381": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "1220008203": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10367",
+          "from": {
+            "lane": "1210012001 1",
+            "pos": "12.073363"
+          },
+          "to": {
+            "lane": "1220008203 1",
+            "pos": "0.6338296113338614"
+          },
+          "lanes": 2
+        },
+        {
+          "connector": "10374",
+          "from": {
+            "lane": "1220011001 1",
+            "pos": "393.45753756107968"
+          },
+          "to": {
+            "lane": "1220008203 1",
+            "pos": "1.4142011098274037"
+          },
+          "lanes": 1
+        },
+        {
+          "connector": "10378",
+          "from": {
+            "lane": "1210008703 2",
+            "pos": "17.281909095790777"
+          },
+          "to": {
+            "lane": "1220008203 2",
+            "pos": "1.6709978882877214"
+          },
+          "lanes": 1
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10379",
+          "from": {
+            "lane": "1220008203 1",
+            "pos": "73.339518888287728"
+          },
+          "to": {
+            "lane": "1210008203 1",
+            "pos": "0.57780800000000709"
+          },
+          "lanes": 2
+        },
+        {
+          "connector": "10384",
+          "from": {
+            "lane": "1220008203 1",
+            "pos": "73.211810888287715"
+          },
+          "to": {
+            "lane": "237 1",
+            "pos": "0.819512"
+          },
+          "lanes": 1
+        }
+      ],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC1_E_to_N_SC101",
+          "weight": 0.22222222222222224,
+          "source": "user_confirmed_20260905"
+        },
+        {
+          "movement": "SC1_E_to_S_SC107",
+          "weight": 0.22222222222222224,
+          "source": "user_confirmed_20260905"
+        },
+        {
+          "movement": "SC1_E_to_W_SC105",
+          "weight": 0.5555555555555556,
+          "source": "user_confirmed_20260905"
+        }
+      ],
+      "transit_marker": null
+    },
+    "236": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10381",
+          "from": {
+            "lane": "236 1",
+            "pos": "44.572402"
+          },
+          "to": {
+            "lane": "1210008203 1",
+            "pos": "0.19434200000000709"
+          },
+          "lanes": 1
+        },
+        {
+          "connector": "10382",
+          "from": {
+            "lane": "236 1",
+            "pos": "44.42994"
+          },
+          "to": {
+            "lane": "1210008303 2",
+            "pos": "0.67755799999998578"
+          },
+          "lanes": 1
+        }
+      ],
+      "heads": [],
+      "inputs": [
+        {
+          "attributes": {
+            "anmFlag": "false",
+            "link": "236",
+            "name": "Dummy Link 8",
+            "no": "1091"
+          },
+          "volumes": [
+            {
+              "cont": "false",
+              "timeInt": "1 0",
+              "vehComp": "1",
+              "volType": "STOCHASTIC",
+              "volume": "112"
+            },
+            {
+              "cont": "false",
+              "timeInt": "1 900000",
+              "vehComp": "1",
+              "volType": "STOCHASTIC",
+              "volume": "160"
+            },
+            {
+              "cont": "false",
+              "timeInt": "1 1800000",
+              "vehComp": "1",
+              "volType": "STOCHASTIC",
+              "volume": "168"
+            },
+            {
+              "cont": "false",
+              "timeInt": "1 2700000",
+              "vehComp": "1",
+              "volType": "STOCHASTIC",
+              "volume": "144"
+            },
+            {
+              "cont": "false",
+              "timeInt": "1 3600000",
+              "vehComp": "1",
+              "volType": "STOCHASTIC",
+              "volume": "112"
+            },
+            {
+              "cont": "false",
+              "timeInt": "1 4500000",
+              "vehComp": "1",
+              "volType": "STOCHASTIC",
+              "volume": "80"
+            }
+          ]
+        }
+      ],
+      "origins": [
+        "SC11_to_SC1",
+        "SC1_to_SC11",
+        "in_SC11_W",
+        "in_SC1_E"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "1210008203": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10379",
+          "from": {
+            "lane": "1220008203 1",
+            "pos": "73.339518888287728"
+          },
+          "to": {
+            "lane": "1210008203 1",
+            "pos": "0.57780800000000709"
+          },
+          "lanes": 2
+        },
+        {
+          "connector": "10381",
+          "from": {
+            "lane": "236 1",
+            "pos": "44.572402"
+          },
+          "to": {
+            "lane": "1210008203 1",
+            "pos": "0.19434200000000709"
+          },
+          "lanes": 1
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10385",
+          "from": {
+            "lane": "1210008203 1",
+            "pos": "39.022096000000005"
+          },
+          "to": {
+            "lane": "1220008202 1",
+            "pos": "0.76693606380206225"
+          },
+          "lanes": 2
+        },
+        {
+          "connector": "10386",
+          "from": {
+            "lane": "1210008203 1",
+            "pos": "40.405989667143146"
+          },
+          "to": {
+            "lane": "243 1",
+            "pos": "0.458276"
+          },
+          "lanes": 1
+        },
+        {
+          "connector": "10387",
+          "from": {
+            "lane": "1210008203 2",
+            "pos": "41.088710683499812"
+          },
+          "to": {
+            "lane": "241 1",
+            "pos": "0"
+          },
+          "lanes": 1
+        }
+      ],
+      "heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008203 1",
+          "localNo": "0",
+          "name": "",
+          "no": "20601",
+          "pos": "37.721640000000008",
+          "sg": "2 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008203 2",
+          "localNo": "0",
+          "name": "",
+          "no": "20602",
+          "pos": "37.726228000000006",
+          "sg": "2 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "inputs": [],
+      "origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC1_E_to_N_SC101",
+          "weight": 0.22222222222222224,
+          "source": "user_confirmed_20260905"
+        },
+        {
+          "movement": "SC1_E_to_S_SC107",
+          "weight": 0.22222222222222224,
+          "source": "user_confirmed_20260905"
+        },
+        {
+          "movement": "SC1_E_to_W_SC105",
+          "weight": 0.5555555555555556,
+          "source": "user_confirmed_20260905"
+        }
+      ],
+      "transit_marker": null
+    },
+    "10610": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC1004",
+        "SC107_to_SC1005",
+        "SC1_to_SC107"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "385": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10610",
+          "from": {
+            "lane": "1220043200 1",
+            "pos": "12.842891411956785"
+          },
+          "to": {
+            "lane": "385 1",
+            "pos": "0.591261"
+          },
+          "lanes": 1
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10611",
+          "from": {
+            "lane": "385 1",
+            "pos": "10.829736"
+          },
+          "to": {
+            "lane": "1220000102 1",
+            "pos": "14.137201"
+          },
+          "lanes": 1
+        }
+      ],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC1004",
+        "SC107_to_SC1005"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC1004_E_SC1005_to_W",
+          "weight": 0.8399532710280376,
+          "approach": "E_SC1005",
+          "source": "offline_nc13_route_prior_without_phantom"
+        },
+        {
+          "movement": "SC1004_E_SC1005_to_N_SC1003",
+          "weight": 0.09345794392523366,
+          "approach": "E_SC1005",
+          "source": "offline_nc13_route_prior_without_phantom"
+        },
+        {
+          "movement": "SC1004_E_SC1005_to_S",
+          "weight": 0.06658878504672898,
+          "approach": "E_SC1005",
+          "source": "offline_nc13_route_prior_without_phantom"
+        }
+      ],
+      "transit_marker": null
+    },
+    "10611": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC1004",
+        "SC107_to_SC1005"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "1220000102": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10611",
+          "from": {
+            "lane": "385 1",
+            "pos": "10.829736"
+          },
+          "to": {
+            "lane": "1220000102 1",
+            "pos": "14.137201"
+          },
+          "lanes": 1
+        },
+        {
+          "connector": "10618",
+          "from": {
+            "lane": "382 1",
+            "pos": "39.777314"
+          },
+          "to": {
+            "lane": "1220000102 2",
+            "pos": "0.279318"
+          },
+          "lanes": 3
+        },
+        {
+          "connector": "10619",
+          "from": {
+            "lane": "183 1",
+            "pos": "69.555090803727779"
+          },
+          "to": {
+            "lane": "1220000102 1",
+            "pos": "0.35771"
+          },
+          "lanes": 4
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10500",
+          "from": {
+            "lane": "1220000102 1",
+            "pos": "323.53939852584114"
+          },
+          "to": {
+            "lane": "62 1",
+            "pos": "0.71368450320600885"
+          },
+          "lanes": 2
+        },
+        {
+          "connector": "10501",
+          "from": {
+            "lane": "1220000102 3",
+            "pos": "319.9856009285096"
+          },
+          "to": {
+            "lane": "52 3",
+            "pos": "2.4363372645669541"
+          },
+          "lanes": 2
+        }
+      ],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC107_to_SC1005"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC1005_E_SC107_to_N_SC105",
+          "weight": 0.5,
+          "source": "territory_approach_upstream",
+          "approach": "E_SC107"
+        },
+        {
+          "movement": "SC1005_E_SC107_to_W_SC1004",
+          "weight": 0.5,
+          "source": "territory_approach_upstream",
+          "approach": "E_SC107"
+        }
+      ],
+      "transit_marker": null
+    },
+    "10618": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC1004",
+        "SC107_to_SC1005",
+        "in_SC107_S"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "10619": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC1004",
+        "SC107_to_SC1005",
+        "SC108_to_SC107"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "382": {
+      "inside": false,
+      "incoming": [
+        {
+          "connector": "10609",
+          "from": {
+            "lane": "378 2",
+            "pos": "75.787227"
+          },
+          "to": {
+            "lane": "382 1",
+            "pos": "0.515218"
+          },
+          "lanes": 1
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10618",
+          "from": {
+            "lane": "382 1",
+            "pos": "39.777314"
+          },
+          "to": {
+            "lane": "1220000102 2",
+            "pos": "0.279318"
+          },
+          "lanes": 3
+        }
+      ],
+      "heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "382 3",
+          "localNo": "0",
+          "name": "",
+          "no": "1070301",
+          "pos": "31.053501",
+          "sg": "107 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "382 2",
+          "localNo": "0",
+          "name": "",
+          "no": "1070302",
+          "pos": "30.876374",
+          "sg": "107 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "382 1",
+          "localNo": "0",
+          "name": "",
+          "no": "1070303",
+          "pos": "30.620934",
+          "sg": "107 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "inputs": [],
+      "origins": [
+        "in_SC107_S"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC107_S_to_W_SC1004",
+          "weight": 2.0,
+          "source": "pinned_physical_route_after_branch",
+          "approach": "S"
+        },
+        {
+          "movement": "SC107_S_to_W_SC1005",
+          "weight": 2.0,
+          "source": "pinned_physical_route_after_branch",
+          "approach": "S"
+        }
+      ],
+      "transit_marker": null
+    },
+    "183": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10287",
+          "from": {
+            "lane": "182 1",
+            "pos": "483.972341"
+          },
+          "to": {
+            "lane": "183 1",
+            "pos": "0.014406"
+          },
+          "lanes": 4
+        },
+        {
+          "connector": "10288",
+          "from": {
+            "lane": "182 4",
+            "pos": "484.31696"
+          },
+          "to": {
+            "lane": "183 5",
+            "pos": "0.604412"
+          },
+          "lanes": 1
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10600",
+          "from": {
+            "lane": "183 1",
+            "pos": "53.237756"
+          },
+          "to": {
+            "lane": "374 1",
+            "pos": "0.31622814721476739"
+          },
+          "lanes": 1
+        },
+        {
+          "connector": "10619",
+          "from": {
+            "lane": "183 1",
+            "pos": "69.555090803727779"
+          },
+          "to": {
+            "lane": "1220000102 1",
+            "pos": "0.35771"
+          },
+          "lanes": 4
+        },
+        {
+          "connector": "10620",
+          "from": {
+            "lane": "183 5",
+            "pos": "68.51772065073547"
+          },
+          "to": {
+            "lane": "1 1",
+            "pos": "0.293806"
+          },
+          "lanes": 2
+        }
+      ],
+      "heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "183 5",
+          "localNo": "0",
+          "name": "",
+          "no": "1070101",
+          "pos": "63.758505",
+          "sg": "107 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "183 6",
+          "localNo": "0",
+          "name": "",
+          "no": "1070102",
+          "pos": "63.86691",
+          "sg": "107 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "183 1",
+          "localNo": "0",
+          "name": "",
+          "no": "1070601",
+          "pos": "63.98146",
+          "sg": "107 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "183 2",
+          "localNo": "0",
+          "name": "",
+          "no": "1070602",
+          "pos": "63.942838",
+          "sg": "107 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "183 3",
+          "localNo": "0",
+          "name": "",
+          "no": "1070603",
+          "pos": "64.071871",
+          "sg": "107 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "183 4",
+          "localNo": "0",
+          "name": "",
+          "no": "1070604",
+          "pos": "64.137704",
+          "sg": "107 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "inputs": [],
+      "origins": [
+        "SC108_to_SC107"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC107_E_SC108_to_N_SC1",
+          "weight": 1.0,
+          "source": "territory_approach_stopline",
+          "approach": "E_SC108"
+        },
+        {
+          "movement": "SC107_E_SC108_to_S",
+          "weight": 1.0,
+          "source": "territory_approach_stopline",
+          "approach": "E_SC108"
+        },
+        {
+          "movement": "SC107_E_SC108_to_W_SC1004",
+          "weight": 1.0,
+          "source": "territory_approach_stopline",
+          "approach": "E_SC108"
+        },
+        {
+          "movement": "SC107_E_SC108_to_W_SC1005",
+          "weight": 1.0,
+          "source": "territory_approach_stopline",
+          "approach": "E_SC108"
+        }
+      ],
+      "transit_marker": null
+    },
+    "10500": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC107_to_SC1005"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "62": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10500",
+          "from": {
+            "lane": "1220000102 1",
+            "pos": "323.53939852584114"
+          },
+          "to": {
+            "lane": "62 1",
+            "pos": "0.71368450320600885"
+          },
+          "lanes": 2
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10603",
+          "from": {
+            "lane": "62 1",
+            "pos": "391.83413472426645"
+          },
+          "to": {
+            "lane": "404 1",
+            "pos": "0.83850943732316896"
+          },
+          "lanes": 1
+        },
+        {
+          "connector": "10612",
+          "from": {
+            "lane": "62 1",
+            "pos": "397.37066874580381"
+          },
+          "to": {
+            "lane": "58 1",
+            "pos": "6.2204667195293668"
+          },
+          "lanes": 2
+        }
+      ],
+      "heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "62 1",
+          "localNo": "0",
+          "name": "",
+          "no": "90030864",
+          "pos": "396.10399924763152",
+          "sg": "1005 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "62 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030865",
+          "pos": "395.78635839776587",
+          "sg": "1005 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "inputs": [],
+      "origins": [
+        "SC107_to_SC1005"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC1005_E_SC107_to_N_SC105",
+          "weight": 1.0,
+          "source": "territory_approach_stopline",
+          "approach": "E_SC107"
+        },
+        {
+          "movement": "SC1005_E_SC107_to_W_SC1004",
+          "weight": 2.0,
+          "source": "territory_approach_stopline",
+          "approach": "E_SC107"
+        }
+      ],
+      "transit_marker": null
+    },
+    "10603": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC105",
+        "SC107_to_SC1005"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "404": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10603",
+          "from": {
+            "lane": "62 1",
+            "pos": "391.83413472426645"
+          },
+          "to": {
+            "lane": "404 1",
+            "pos": "0.83850943732316896"
+          },
+          "lanes": 1
+        },
+        {
+          "connector": "10623",
+          "from": {
+            "lane": "57 1",
+            "pos": "416.99459929210286"
+          },
+          "to": {
+            "lane": "404 3",
+            "pos": "2.0269320468952112"
+          },
+          "lanes": 2
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10650",
+          "from": {
+            "lane": "404 1",
+            "pos": "265.394424"
+          },
+          "to": {
+            "lane": "407 1",
+            "pos": "0.719985"
+          },
+          "lanes": 3
+        }
+      ],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC105"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC105_S_SC1005_to_E_SC1",
+          "weight": 0.33333333333333337,
+          "source": "territory_approach_upstream",
+          "approach": "S_SC1005"
+        },
+        {
+          "movement": "SC105_S_SC1005_to_N_SC1002",
+          "weight": 0.5000000000000001,
+          "source": "territory_approach_upstream",
+          "approach": "S_SC1005"
+        },
+        {
+          "movement": "SC105_S_SC1005_to_W_SC1003",
+          "weight": 0.16666666666666669,
+          "source": "territory_approach_upstream",
+          "approach": "S_SC1005"
+        }
+      ],
+      "transit_marker": null
+    },
+    "10501": {
+      "inside": true,
+      "incoming": [],
+      "outgoing": [],
+      "heads": [],
+      "inputs": [],
+      "origins": [
+        "SC107_to_SC1004"
+      ],
+      "projected_movements": null,
+      "transit_marker": null
+    },
+    "52": {
+      "inside": true,
+      "incoming": [
+        {
+          "connector": "10498",
+          "from": {
+            "lane": "58 1",
+            "pos": "402.51641793613817"
+          },
+          "to": {
+            "lane": "52 1",
+            "pos": "2.1212565720107746"
+          },
+          "lanes": 2
+        },
+        {
+          "connector": "10501",
+          "from": {
+            "lane": "1220000102 3",
+            "pos": "319.9856009285096"
+          },
+          "to": {
+            "lane": "52 3",
+            "pos": "2.4363372645669541"
+          },
+          "lanes": 2
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10628",
+          "from": {
+            "lane": "52 1",
+            "pos": "401.33676178311822"
+          },
+          "to": {
+            "lane": "47 1",
+            "pos": "2.2778092145023083"
+          },
+          "lanes": 2
+        },
+        {
+          "connector": "10629",
+          "from": {
+            "lane": "52 1",
+            "pos": "465.53097272222749"
+          },
+          "to": {
+            "lane": "68 1",
+            "pos": "2.0669514701978264"
+          },
+          "lanes": 3
+        },
+        {
+          "connector": "10630",
+          "from": {
+            "lane": "52 4",
+            "pos": "465.64373246716275"
+          },
+          "to": {
+            "lane": "67 4",
+            "pos": "2.7366433531306873"
+          },
+          "lanes": 1
+        }
+      ],
+      "heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "52 1",
+          "localNo": "0",
+          "name": "",
+          "no": "90030884",
+          "pos": "463.38614254772256",
+          "sg": "1004 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "52 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030885",
+          "pos": "463.31085444965009",
+          "sg": "1004 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "52 3",
+          "localNo": "0",
+          "name": "",
+          "no": "90030886",
+          "pos": "463.43271083205224",
+          "sg": "1004 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "52 4",
+          "localNo": "0",
+          "name": "",
+          "no": "90030887",
+          "pos": "463.6025958298228",
+          "sg": "1004 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "inputs": [],
+      "origins": [
+        "SC1005_to_SC1004"
+      ],
+      "projected_movements": [
+        {
+          "movement": "SC1004_E_SC1005_to_W",
+          "weight": 3.3598130841121496,
+          "approach": "E_SC1005",
+          "source": "offline_nc13_route_prior_without_phantom"
+        },
+        {
+          "movement": "SC1004_E_SC1005_to_N_SC1003",
+          "weight": 0.37383177570093457,
+          "approach": "E_SC1005",
+          "source": "offline_nc13_route_prior_without_phantom"
+        },
+        {
+          "movement": "SC1004_E_SC1005_to_S",
+          "weight": 0.26635514018691586,
+          "approach": "E_SC1005",
+          "source": "offline_nc13_route_prior_without_phantom"
+        }
+      ],
+      "transit_marker": null
+    }
+  },
+  "native_routes": [
+    {
+      "id": "12:1",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "1210008203",
+        "name": "구룡초교_WB",
+        "no": "12",
+        "pos": "9.4175603900368667",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "1220006803",
+        "destPos": "5.0941595928840915",
+        "formula": "",
+        "name": "좌",
+        "no": "1",
+        "relFlow": "2 0:324"
+      },
+      "path": [
+        "1210008203",
+        "10385",
+        "1220008202",
+        "10403",
+        "254",
+        "10402",
+        "1210008202",
+        "10396",
+        "1220008201",
+        "10566",
+        "1220006803"
+      ],
+      "membership": {
+        "1210008203": true,
+        "10385": true,
+        "1220008202": true,
+        "10403": true,
+        "254": true,
+        "10402": true,
+        "1210008202": true,
+        "10396": true,
+        "1220008201": true,
+        "10566": true,
+        "1220006803": true
+      }
+    },
+    {
+      "id": "12:2",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "1210008203",
+        "name": "구룡초교_WB",
+        "no": "12",
+        "pos": "9.4175603900368667",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "1220007004",
+        "destPos": "5.7994021330317871",
+        "formula": "",
+        "name": "직",
+        "no": "2",
+        "relFlow": "2 0:265"
+      },
+      "path": [
+        "1210008203",
+        "10385",
+        "1220008202",
+        "10403",
+        "254",
+        "10402",
+        "1210008202",
+        "10396",
+        "1220008201",
+        "10564",
+        "1220007004"
+      ],
+      "membership": {
+        "1210008203": true,
+        "10385": true,
+        "1220008202": true,
+        "10403": true,
+        "254": true,
+        "10402": true,
+        "1210008202": true,
+        "10396": true,
+        "1220008201": true,
+        "10564": true,
+        "1220007004": true
+      }
+    },
+    {
+      "id": "12:3",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "1210008203",
+        "name": "구룡초교_WB",
+        "no": "12",
+        "pos": "9.4175603900368667",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "1220008501",
+        "destPos": "20.551050324680499",
+        "formula": "",
+        "name": "우",
+        "no": "3",
+        "relFlow": "2 0:223"
+      },
+      "path": [
+        "1210008203",
+        "10385",
+        "1220008202",
+        "10403",
+        "254",
+        "10402",
+        "1210008202",
+        "10396",
+        "1220008201",
+        "10029",
+        "1220008501"
+      ],
+      "membership": {
+        "1210008203": true,
+        "10385": true,
+        "1220008202": true,
+        "10403": true,
+        "254": true,
+        "10402": true,
+        "1210008202": true,
+        "10396": true,
+        "1220008201": true,
+        "10029": true,
+        "1220008501": true
+      }
+    },
+    {
+      "id": "1063:3",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "1220006803",
+        "name": "구룡터널_SB",
+        "no": "1063",
+        "pos": "16.205595008702627",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "1220000102",
+        "destPos": "17.474026034580394",
+        "formula": "",
+        "name": "우",
+        "no": "3",
+        "relFlow": "2 0:106"
+      },
+      "path": [
+        "1220006803",
+        "10596",
+        "367",
+        "10592",
+        "1220043200",
+        "10610",
+        "385",
+        "10611",
+        "1220000102"
+      ],
+      "membership": {
+        "1220006803": true,
+        "10596": true,
+        "367": true,
+        "10592": true,
+        "1220043200": true,
+        "10610": true,
+        "385": true,
+        "10611": true,
+        "1220000102": true
+      }
+    },
+    {
+      "id": "1104:1",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "1220008203",
+        "name": "",
+        "no": "1104",
+        "pos": "11.155248073665025",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "10379",
+        "destPos": "16.990593484840353",
+        "formula": "",
+        "name": "",
+        "no": "1",
+        "relFlow": ""
+      },
+      "path": [
+        "1220008203",
+        "10379"
+      ],
+      "membership": {
+        "1220008203": true,
+        "10379": true
+      }
+    },
+    {
+      "id": "1105:1",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "236",
+        "name": "",
+        "no": "1105",
+        "pos": "11.014692201888527",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "10381",
+        "destPos": "6.7380420896952664",
+        "formula": "",
+        "name": "",
+        "no": "1",
+        "relFlow": ""
+      },
+      "path": [
+        "236",
+        "10381"
+      ],
+      "membership": {
+        "236": true,
+        "10381": true
+      }
+    },
+    {
+      "id": "1123:1",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "52",
+        "name": "",
+        "no": "1123",
+        "pos": "11.07016755143615",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "47",
+        "destPos": "5.3456364016281466",
+        "formula": "",
+        "name": "",
+        "no": "1",
+        "relFlow": ""
+      },
+      "path": [
+        "52",
+        "10628",
+        "47"
+      ],
+      "membership": {
+        "52": true,
+        "10628": true,
+        "47": true
+      }
+    },
+    {
+      "id": "1123:2",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "52",
+        "name": "",
+        "no": "1123",
+        "pos": "11.07016755143615",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "68",
+        "destPos": "4.9506564983648245",
+        "formula": "",
+        "name": "",
+        "no": "2",
+        "relFlow": "2 0:10"
+      },
+      "path": [
+        "52",
+        "10629",
+        "68"
+      ],
+      "membership": {
+        "52": true,
+        "10629": true,
+        "68": true
+      }
+    },
+    {
+      "id": "1123:3",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "52",
+        "name": "",
+        "no": "1123",
+        "pos": "11.07016755143615",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "67",
+        "destPos": "32.620083732731757",
+        "formula": "",
+        "name": "",
+        "no": "3",
+        "relFlow": ""
+      },
+      "path": [
+        "52",
+        "10630",
+        "67"
+      ],
+      "membership": {
+        "52": true,
+        "10630": false,
+        "67": false
+      }
+    },
+    {
+      "id": "1128:1",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "1220000102",
+        "name": "",
+        "no": "1128",
+        "pos": "20.576829873567828",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "404",
+        "destPos": "21.603806553621194",
+        "formula": "",
+        "name": "",
+        "no": "1",
+        "relFlow": ""
+      },
+      "path": [
+        "1220000102",
+        "10500",
+        "62",
+        "10603",
+        "404"
+      ],
+      "membership": {
+        "1220000102": true,
+        "10500": true,
+        "62": true,
+        "10603": true,
+        "404": true
+      }
+    },
+    {
+      "id": "1128:2",
+      "decision": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "1220000102",
+        "name": "",
+        "no": "1128",
+        "pos": "20.576829873567828",
+        "routeChoiceMeth": "STATIC"
+      },
+      "route": {
+        "destLink": "10501",
+        "destPos": "546.41898252754379",
+        "formula": "",
+        "name": "",
+        "no": "2",
+        "relFlow": ""
+      },
+      "path": [
+        "1220000102",
+        "10501"
+      ],
+      "membership": {
+        "1220000102": true,
+        "10501": true
+      }
+    }
+  ],
+  "upstream_10379": {
+    "10367": {
+      "support_target": "SC11_to_SC1",
+      "support_evidence": {
+        "to_link": "1220008203",
+        "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC12_to_SC11",
+          "in_SC1_E"
+        ],
+        "downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "canonical_movements": [
+          "SC11_E_SC12_to_W_SC1"
+        ],
+        "native_route_ids": [
+          "22:2"
+        ],
+        "physical_triplet": [
+          "1210012001",
+          "10367",
+          "1220008203"
+        ],
+        "source_head_precedes_connector": true,
+        "review_path": "diagnostics/unresolved_projection_support_review.json",
+        "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+        "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+        "zero_vehicle_support_reviewed": true
+      },
+      "active_canonical_turns": [
+        {
+          "movement": "SC11_E_SC12_to_W_SC1",
+          "turn": {
+            "from_link": "1210012001",
+            "connector": "10367",
+            "to_link": "1220008203",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·E_SC12"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": false,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC1",
+              "in_SC1_E"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008203"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "current_spec": {
+            "intersection": "SC11",
+            "approach": "E_SC12",
+            "exit": "W_SC1",
+            "beta": 0.7692307692307692,
+            "signal": "SC11",
+            "turn": "through",
+            "phase": "SC11_p3",
+            "origin": "SC12_to_SC11",
+            "destination": "SC11_to_SC1",
+            "receiving_link": "SC11_to_SC1",
+            "kind": "internal",
+            "merged_from": [
+              "SC11_E_SC12_to_W",
+              "SC11_E_SC12_to_W_SC1"
+            ]
+          }
+        }
+      ]
+    },
+    "10374": {
+      "support_target": "SC11_to_SC1",
+      "support_evidence": {
+        "to_link": "1220008203",
+        "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC5_to_SC11",
+          "in_SC1_E"
+        ],
+        "downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "canonical_movements": [
+          "SC11_N_SC5_to_W_SC1"
+        ],
+        "native_route_ids": [
+          "23:3"
+        ],
+        "physical_triplet": [
+          "1220011001",
+          "10374",
+          "1220008203"
+        ],
+        "source_head_precedes_connector": true,
+        "review_path": "diagnostics/unresolved_projection_support_review.json",
+        "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+        "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+        "zero_vehicle_support_reviewed": true
+      },
+      "active_canonical_turns": [
+        {
+          "movement": "SC11_N_SC5_to_W_SC1",
+          "turn": {
+            "from_link": "1220011001",
+            "connector": "10374",
+            "to_link": "1220008203",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·N_SC5"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": false,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC1",
+              "in_SC1_E"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008203"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "current_spec": {
+            "intersection": "SC11",
+            "approach": "N_SC5",
+            "exit": "W_SC1",
+            "beta": 0.5007,
+            "signal": "SC11",
+            "turn": "right",
+            "phase": "SC11_p1",
+            "origin": "SC5_to_SC11",
+            "destination": "SC11_to_SC1",
+            "receiving_link": "SC11_to_SC1",
+            "kind": "internal",
+            "merged_from": [
+              "SC11_N_SC5_to_W",
+              "SC11_N_SC5_to_W_SC1"
+            ]
+          }
+        }
+      ]
+    },
+    "10378": {
+      "support_target": "SC11_to_SC1",
+      "support_evidence": {
+        "to_link": "1220008203",
+        "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC7_to_SC11",
+          "in_SC1_E"
+        ],
+        "downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "canonical_movements": [
+          "SC11_S_SC7_to_W_SC1"
+        ],
+        "native_route_ids": [
+          "24:1"
+        ],
+        "physical_triplet": [
+          "1210008703",
+          "10378",
+          "1220008203"
+        ],
+        "source_head_precedes_connector": true,
+        "review_path": "diagnostics/unresolved_projection_support_review.json",
+        "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+        "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+        "zero_vehicle_support_reviewed": true
+      },
+      "active_canonical_turns": [
+        {
+          "movement": "SC11_S_SC7_to_W_SC1",
+          "turn": {
+            "from_link": "1210008703",
+            "connector": "10378",
+            "to_link": "1220008203",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·S_SC7"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": false,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC1",
+              "in_SC1_E"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008203"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "current_spec": {
+            "intersection": "SC11",
+            "approach": "S_SC7",
+            "exit": "W_SC1",
+            "beta": 0.1257125712571257,
+            "signal": "SC11",
+            "turn": "left",
+            "phase": "SC11_p1",
+            "origin": "SC7_to_SC11",
+            "destination": "SC11_to_SC1",
+            "receiving_link": "SC11_to_SC1",
+            "kind": "internal",
+            "merged_from": [
+              "SC11_S_SC7_to_W",
+              "SC11_S_SC7_to_W_SC1"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "input_1091_gate_map": [
+    {
+      "no": "1091",
+      "gate": "",
+      "status": "internal",
+      "leg": "",
+      "leg_source": "",
+      "model_node": "SC11",
+      "link": "236",
+      "entry_class": "dummy",
+      "role": "urban_input",
+      "first_volume_vph": "112.0000",
+      "peak_volume_vph": "168.0000",
+      "name": "Dummy Link 8"
+    }
+  ],
+  "input_1091_live_gate_value": null,
+  "input_1091_forecast_note": "Anchored gate dictionary omits in_SC1_E; base forecast initializes absent gates to0. Internal aggregate is reported but not distributed by this path.",
+  "active_movements": {
+    "SC1_E_SC11_to_W_SC105": {
+      "intersection": "SC1",
+      "approach": "E_SC11",
+      "exit": "W_SC105",
+      "beta": 0.4409510054438395,
+      "signal": "SC1",
+      "turn": "through",
+      "phase": "SC1_p3",
+      "origin": "SC11_to_SC1",
+      "destination": "SC1_to_SC105",
+      "receiving_link": "SC1_to_SC105",
+      "kind": "internal",
+      "merged_from": [
+        "SC1_E_SC11_to_W",
+        "SC1_E_SC11_to_W_SC105"
+      ]
+    },
+    "SC1_E_SC11_to_N_SC101": {
+      "intersection": "SC1",
+      "approach": "E_SC11",
+      "exit": "N_SC101",
+      "beta": 0.24841684257304744,
+      "signal": "SC1",
+      "turn": "right",
+      "phase": "SC1_p3",
+      "origin": "SC11_to_SC1",
+      "destination": "SC1_to_SC101",
+      "receiving_link": "SC1_to_SC101",
+      "kind": "internal",
+      "merged_from": [
+        "SC1_E_SC11_to_N",
+        "SC1_E_SC11_to_N_SC101"
+      ]
+    },
+    "SC1_E_SC11_to_S_SC107": {
+      "intersection": "SC1",
+      "approach": "E_SC11",
+      "exit": "S_SC107",
+      "beta": 0.31063215198311295,
+      "signal": "SC1",
+      "turn": "left",
+      "phase": "SC1_p3",
+      "origin": "SC11_to_SC1",
+      "destination": "SC1_to_SC107",
+      "receiving_link": "SC1_to_SC107",
+      "kind": "internal",
+      "merged_from": [
+        "SC1_E_SC11_to_S",
+        "SC1_E_SC11_to_S_SC107"
+      ]
+    },
+    "SC1_E_to_W_SC105": {
+      "intersection": "SC1",
+      "approach": "E",
+      "exit": "W_SC105",
+      "beta": 0.5555555555555556,
+      "signal": "SC1",
+      "turn": "through",
+      "phase": "SC1_p3",
+      "origin": "in_SC1_E",
+      "destination": "SC1_to_SC105",
+      "receiving_link": "SC1_to_SC105",
+      "kind": "boundary_in",
+      "merged_from": [
+        "SC1_E_to_W",
+        "SC1_E_to_W_SC105"
+      ]
+    },
+    "SC1_E_to_N_SC101": {
+      "intersection": "SC1",
+      "approach": "E",
+      "exit": "N_SC101",
+      "beta": 0.22222222222222224,
+      "signal": "SC1",
+      "turn": "right",
+      "phase": "SC1_p3",
+      "origin": "in_SC1_E",
+      "destination": "SC1_to_SC101",
+      "receiving_link": "SC1_to_SC101",
+      "kind": "boundary_in",
+      "merged_from": [
+        "SC1_E_to_N",
+        "SC1_E_to_N_SC101"
+      ]
+    },
+    "SC1_E_to_S_SC107": {
+      "intersection": "SC1",
+      "approach": "E",
+      "exit": "S_SC107",
+      "beta": 0.22222222222222224,
+      "signal": "SC1",
+      "turn": "left",
+      "phase": "SC1_p4",
+      "origin": "in_SC1_E",
+      "destination": "SC1_to_SC107",
+      "receiving_link": "SC1_to_SC107",
+      "kind": "boundary_in",
+      "merged_from": [
+        "SC1_E_to_S",
+        "SC1_E_to_S_SC107"
+      ]
+    },
+    "SC107_E_SC108_to_W_SC1004": {
+      "intersection": "SC107",
+      "approach": "E_SC108",
+      "exit": "W_SC1004",
+      "beta": 0.25,
+      "signal": "SC107",
+      "turn": "through",
+      "phase": "SC107_p3",
+      "origin": "SC108_to_SC107",
+      "destination": "SC107_to_SC1004",
+      "receiving_link": "SC107_to_SC1004",
+      "kind": "internal"
+    },
+    "SC107_E_SC108_to_W_SC1005": {
+      "intersection": "SC107",
+      "approach": "E_SC108",
+      "exit": "W_SC1005",
+      "beta": 0.5774,
+      "signal": "SC107",
+      "turn": "through",
+      "phase": "SC107_p3",
+      "origin": "SC108_to_SC107",
+      "destination": "SC107_to_SC1005",
+      "receiving_link": "SC107_to_SC1005",
+      "kind": "internal"
+    },
+    "SC107_N_SC1_to_W_SC1004": {
+      "intersection": "SC107",
+      "approach": "N_SC1",
+      "exit": "W_SC1004",
+      "beta": 0.1667,
+      "signal": "SC107",
+      "turn": "right",
+      "phase": "SC107_p2",
+      "origin": "SC1_to_SC107",
+      "destination": "SC107_to_SC1004",
+      "receiving_link": "SC107_to_SC1004",
+      "kind": "internal"
+    },
+    "SC107_N_SC1_to_W_SC1005": {
+      "intersection": "SC107",
+      "approach": "N_SC1",
+      "exit": "W_SC1005",
+      "beta": 0.0394,
+      "signal": "SC107",
+      "turn": "right",
+      "phase": "SC107_p2",
+      "origin": "SC1_to_SC107",
+      "destination": "SC107_to_SC1005",
+      "receiving_link": "SC107_to_SC1005",
+      "kind": "internal"
+    },
+    "SC107_S_to_W_SC1004": {
+      "intersection": "SC107",
+      "approach": "S",
+      "exit": "W_SC1004",
+      "beta": 0.29002079002079,
+      "signal": "SC107",
+      "turn": "left",
+      "phase": "SC107_p2",
+      "origin": "in_SC107_S",
+      "destination": "SC107_to_SC1004",
+      "receiving_link": "SC107_to_SC1004",
+      "kind": "boundary_in"
+    },
+    "SC107_S_to_W_SC1005": {
+      "intersection": "SC107",
+      "approach": "S",
+      "exit": "W_SC1005",
+      "beta": 0.29002079002079,
+      "signal": "SC107",
+      "turn": "left",
+      "phase": "SC107_p2",
+      "origin": "in_SC107_S",
+      "destination": "SC107_to_SC1005",
+      "receiving_link": "SC107_to_SC1005",
+      "kind": "boundary_in"
+    },
+    "SC1004_E_SC107_to_W": {
+      "intersection": "SC1004",
+      "approach": "E_SC107",
+      "exit": "W",
+      "beta": 0.841296928327645,
+      "signal": "SC1004",
+      "turn": "through",
+      "phase": "SC1004_p3",
+      "origin": "SC107_to_SC1004",
+      "destination": "out_SC1004_W",
+      "receiving_link": "SC1004_W_out",
+      "kind": "boundary_out"
+    },
+    "SC1004_E_SC107_to_N_SC1003": {
+      "intersection": "SC1004",
+      "approach": "E_SC107",
+      "exit": "N_SC1003",
+      "beta": 0.06655290102389079,
+      "signal": "SC1004",
+      "turn": "right",
+      "phase": "SC1004_p3",
+      "origin": "SC107_to_SC1004",
+      "destination": "SC1004_to_SC1003",
+      "receiving_link": "SC1004_to_SC1003",
+      "kind": "internal"
+    },
+    "SC1004_E_SC107_to_S": {
+      "intersection": "SC1004",
+      "approach": "E_SC107",
+      "exit": "S",
+      "beta": 0.09215017064846416,
+      "signal": "SC1004",
+      "turn": "left",
+      "phase": "SC1004_p4",
+      "origin": "SC107_to_SC1004",
+      "destination": "out_SC1004_S",
+      "receiving_link": "SC1004_S_out",
+      "kind": "boundary_out"
+    },
+    "SC1005_E_SC107_to_W_SC1004": {
+      "intersection": "SC1005",
+      "approach": "E_SC107",
+      "exit": "W_SC1004",
+      "beta": 0.625,
+      "signal": "SC1005",
+      "turn": "through",
+      "phase": "SC1005_p3",
+      "origin": "SC107_to_SC1005",
+      "destination": "SC1005_to_SC1004",
+      "receiving_link": "SC1005_to_SC1004",
+      "kind": "internal",
+      "merged_from": [
+        "SC1005_E_SC107_to_W",
+        "SC1005_E_SC107_to_W_SC1004"
+      ]
+    },
+    "SC1005_E_SC107_to_N_SC105": {
+      "intersection": "SC1005",
+      "approach": "E_SC107",
+      "exit": "N_SC105",
+      "beta": 0.375,
+      "signal": "SC1005",
+      "turn": "right",
+      "phase": "SC1005_p3",
+      "origin": "SC107_to_SC1005",
+      "destination": "SC1005_to_SC105",
+      "receiving_link": "SC1005_to_SC105",
+      "kind": "internal"
+    }
+  },
+  "initial_support_proposals": {
+    "10379": {
+      "status": "unique_premerge_source_lineage",
+      "target": "SC11_to_SC1",
+      "path": [
+        "1220008203",
+        "10379",
+        "1210008203"
+      ],
+      "proof": "Source has no input/head and all three actual incoming connectors have the same reviewed canonical receiver. Native1104:1 selects10379. Do not reassign the mixed downstream road.",
+      "validator_extension": "Check exact source incoming set against pinned canonical accepted receivers/support rows, no source input, real connector endpoint and native route."
+    },
+    "10381": {
+      "status": "unique_physical_input_but_model_origin_needs_explicit_contract",
+      "proposed_target": "in_SC1_E",
+      "path": [
+        "236",
+        "10381",
+        "1210008203"
+      ],
+      "proof": "Source236 has no incoming connectors and only nativeinput1091; native1105:1 selects10381. Its downstream is the SC1 E approach.",
+      "remaining_gap": "Gate map calls1091 internal and leaves gate empty. The live anchored forecast omits it. Existing boundary_in origin in_SC1_E is an available receiver, but no source-to-origin mapping contract authorizes calling it the current assigned gate.",
+      "initial_area_events": {
+        "entered": 0,
+        "ttd": 0
+      }
+    },
+    "10610": {
+      "status": "future_choice_1128",
+      "single_target_prohibited": true
+    },
+    "10611": {
+      "status": "future_choice_1128",
+      "single_target_prohibited": true
+    }
+  },
+  "1128_reuse_design": {
+    "shared_prefix": [
+      "10610",
+      "385",
+      "10611",
+      "10618",
+      "10619",
+      "1220000102"
+    ],
+    "decision_position_m": 20.576829873567828,
+    "10611_entry_position_m": 14.137201,
+    "branches": {
+      "1": {
+        "path": [
+          "1220000102",
+          "10500",
+          "62",
+          "10603",
+          "404"
+        ],
+        "native_weight_default": 1,
+        "needs_local_stage": "Physical transit via62 then accepted10603 before the local signal head; existing SC107_to_SC1005 has an extra through-to-SC1004 movement incompatible with this selected route.",
+        "arrival_target_candidate": "SC1005_to_SC105",
+        "initial_and_branch_area_crossings": 0
+      },
+      "2": {
+        "path": [
+          "1220000102",
+          "10501",
+          "52"
+        ],
+        "native_weight_default": 1,
+        "existing_receiver": "SC107_to_SC1004",
+        "initial_and_branch_area_crossings": 0
+      }
+    },
+    "why_no_single_existing_stock": "SC107_to_SC1005 and SC107_to_SC1004 predict different downstream queues, travel, and service. Assigning their shared predecision physical road to either commits a route early.",
+    "minimal_generalization": "Parameterize one finite-prefix engine by corridor id, branch->target/stage, number of native choices, explicit queue vs unsignalled transit exit, service group and physical partition. Keep candidate-private cohorts per id; no separate adapter or duplicated urban body.",
+    "routing_policy": "Use prior only for future eligible prechoice vehicles. Already past decision without actual route identity must fail or explicit diagnostic hold. Blank native weights mean declared defaults, not empirical50/50 truth.",
+    "scope_caveat": "Other same-road entrants10618/10619 must be included with real path/accepted source mapping. Both branches remain inside Omega through404 or52; TTD is only later accepted crossing out of635."
+  },
+  "production_data_changed": false
+}

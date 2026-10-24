@@ -1,0 +1,109 @@
+{
+  "schema": "aggregate-source-route-support303/v1",
+  "receiver": "SC1_to_SC101",
+  "movements": {
+    "straight": "SC101_S_SC1_to_N_SC2005",
+    "right": "SC101_S_SC1_to_E_SC5",
+    "left": "SC101_S_SC1_to_W_SC1002"
+  },
+  "base_beta": {
+    "straight": 0.7227889115564623,
+    "right": 0.04392175687027482,
+    "left": 0.23328933157326293
+  },
+  "sources": {
+    "1099": {
+      "input": "1086",
+      "entry_lane": 4,
+      "counts": {
+        "straight": 56,
+        "right": 0,
+        "left": 9,
+        "unresolved": 4
+      },
+      "n": 69,
+      "category_shares": {
+        "straight": 0.8115942028985508,
+        "right": 0.0,
+        "left": 0.13043478260869565,
+        "unresolved": 0.057971014492753624
+      },
+      "effective_route_shares_if_prior_used": {
+        "straight": 0.8534950093655921,
+        "right": 0.0025461888040739025,
+        "left": 0.14395880183033408
+      },
+      "identified_bounds": {
+        "straight": {
+          "lower": 0.8115942028985508,
+          "upper": 0.8695652173913043
+        },
+        "right": {
+          "lower": 0.0,
+          "upper": 0.057971014492753624
+        },
+        "left": {
+          "lower": 0.13043478260869565,
+          "upper": 0.18840579710144928
+        }
+      }
+    },
+    "1100": {
+      "input": "1087",
+      "entry_lane": 1,
+      "counts": {
+        "straight": 14,
+        "right": 31,
+        "left": 1,
+        "unresolved": 22
+      },
+      "n": 68,
+      "category_shares": {
+        "straight": 0.20588235294117646,
+        "right": 0.45588235294117646,
+        "left": 0.014705882352941176,
+        "unresolved": 0.3235294117647059
+      },
+      "effective_route_shares_if_prior_used": {
+        "straight": 0.43972582432709073,
+        "right": 0.4700923331050889,
+        "left": 0.09018184256782037
+      },
+      "identified_bounds": {
+        "straight": {
+          "lower": 0.20588235294117646,
+          "upper": 0.5294117647058824
+        },
+        "right": {
+          "lower": 0.45588235294117646,
+          "upper": 0.7794117647058824
+        },
+        "left": {
+          "lower": 0.014705882352941176,
+          "upper": 0.3382352941176471
+        }
+      }
+    }
+  },
+  "fit_window": [
+    900,
+    2100
+  ],
+  "route_followup_end": 2395.1,
+  "validation_start": 2400,
+  "unresolved_policy": "Keep explicit unresolved mass and distribute it using existing receiving-node beta at arrival; not an observed route or an identified probability.",
+  "assumptions": [
+    "Source-specific observed proportions transfer from the past period to the new accepted flow.",
+    "Unobserved route outcomes may be non-random; baseline-beta allocation is a modelling prior.",
+    "Source entry lane supports route distinction but no individual lane-change outcome is predicted."
+  ],
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\sc101_route_tags303\\plan.json": "cd6ae1c98164c7775205d43d2c68888a8db461128d9729fad35502222ee6b84a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\sc101_route_tags303\\support.py": "fb6ce460c79ef3206d457ec50b7cba68403c9d7d2d2a35707418a2ee76f1b507",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\sc15_source301\\calibration.json": "71531023bad5a90eed01c7c0f0e9cbf8f30e9f60849ff059f52c4c068692ee7a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\sc15_source301\\completion.json": "01cc4427f5ce98e8d2d9891126bc7bfbbd9eeb3b2bc16517d6cd99e2ad832949",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\sc101_peeloff302\\completion.json": "23b6b9a96e0b6617ee7bf4b64855b75b669012f9dd3b8521dcb1b24580ab881a",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\aggregate270\\citysplit287\\forecast2400\\initial.pickle": "dbbb207dd2e6ef234c901c6acd7812b928df88e131ed4042236ec52a485b3bad",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\sd31-upstream-20260926\\diagnostics\\repin_v3c3_review_20261001\\upstream_worklog\\02_urban_b2\\diag_c3_r2\\U7.md": "d85ab6ab837cab8ab54892882be2f8b576b9aee5bb5e52c1ef44e442f92a23d0"
+  }
+}

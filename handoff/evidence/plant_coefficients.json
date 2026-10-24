@@ -1,0 +1,650 @@
+{
+  "evidence_class": "[읽음]",
+  "manifest_name": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/candidate_manifest.json",
+  "manifest_sha256": "8ae93aa35e209c7d5016d5d8f5233b352245d6486aab443a72ea716bdca7ebea",
+  "source_pins": {
+    "network": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+      "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+    },
+    "geometry": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/geometry.json",
+      "sha256": "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2"
+    },
+    "refined_partition": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/segment_resolution_20260921/geometry_200_branch_guard.json",
+      "sha256": "9769b3a4462f5d9c619709ffea7d6b14fc1faeecade0ff4cf73d9e9023906bea"
+    },
+    "reference_config": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/cellwise_calibration/expanded_joint/eval_036/reference_config.json",
+      "sha256": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4"
+    },
+    "parameters": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/parameters.json",
+      "sha256": "bd7439894b1fcd165f53d51e7896865673efa52b82296d057cd7271bcdb1dad5"
+    },
+    "port_profile": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/port_profile.json",
+      "sha256": "44d0645bcae40d523b1099611a942311cc17a7b15124028ecad42046f140f777"
+    },
+    "reference_protocol": {
+      "path": "diagnostics/repin_v3c3_review_20261001/retained10638/local_protocol.json",
+      "sha256": "a41386433da3b8f6341b1d5319396336cd874336a384d23f1e8cb5fe7fda73e5"
+    },
+    "runner_config": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/lane_native_b110.vbs",
+      "sha256": "b74e05b2a1dc910d39989894a30c373c791a7f0dc7f3c52620763995b58a9956"
+    },
+    "sig_manifest": {
+      "path": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/sig_manifest.json",
+      "sha256": "f3b660ce2ab996b3face29829bfa145a360d813be33251c505682c3569f19417"
+    }
+  },
+  "reference_name": "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/cellwise_calibration/expanded_joint/eval_036/reference_config.json",
+  "reference_sha256": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+  "freeway": {
+    "segment_lanes": "mapping",
+    "_note": "2026-09-08 D-lit. segment_lanes=매핑(FW_E 4x13+3x8 / FW_W 3x7+4x14), segment_params=42셀 v_free 실측 + 급 형상, lane_drop_phi=3.0 (FW_E 12번 셀에만 발화). delta_merge=0.30 는 network 절에 있다.",
+    "segment_params": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/segment_params.json",
+    "lane_drop_phi": 3.0,
+    "vsl_sequence_kbest": true,
+    "_note_kbest": "VSL 시퀀스 후보를 k-best 지연 생성으로 뽑는다. false 면 vendor 원본이 세그먼트 데카르트 곱을 전량 전개해 21셀에서 10^8 -> MemoryError 다 (2026-09-08 실측). 순서는 동치 — scripts/test_vsl_kbest_offline_20260908.py.",
+    "vsl_zone_heads": {
+      "FW_E": [
+        0,
+        5,
+        10,
+        15
+      ],
+      "FW_W": [
+        0,
+        5,
+        10,
+        15
+      ]
+    },
+    "vsl_zone_free": [
+      0,
+      1,
+      2
+    ],
+    "_note_zones": "VSL 은 방향당 표지판 8개(셀 0·2·5·7·10·13·15·18, 간격 ~1347 m)에만 실제로 써진다 — 매핑 segments[].dsds 와 VBS RW_EXPECTED_VSL_ACTION_KEYS(66행)가 같은 자리를 가리킨다. 셀 21개에 각각 거는 건 플랜트가 실현하지 못하는 자유도다. 그래서 표지판 2개 간격(~2.57 km)으로 구역을 묶고 셀은 자기 구역 머리 값을 물려받는다. 구역 3[15-20]은 둘째 IC 하류라 vsl_max 로 고정한다(회복). 2026-09-08 사용자 결정.",
+    "local_lane_context": true,
+    "conservative_offramp_drain": true,
+    "local_landing_state": true,
+    "physical_vehicle_counts": true,
+    "offramp_route_inventory": "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_route_inventory_v1.json",
+    "physical_integration_step_sec": 1,
+    "component_boundary": {
+      "source": "admitted_interface",
+      "terminal": "open_exit"
+    },
+    "physical_ramp_capacity_vph": {
+      "RM_C10480": 1800.0,
+      "RM_C10482": 3600.0,
+      "RM_C10646": 1800.0,
+      "RM_C10644": 1800.0,
+      "RM_C10639": 1800.0,
+      "RM_C10681": 3600.0,
+      "RM_C10490": 1800.0,
+      "RM_C10484": 1800.0
+    },
+    "physical_offramp_interval_service": true,
+    "physical_ramp_receiving_nodes": {
+      "RM_C10639": {
+        "critical_gap_sec": 2.5,
+        "followup_sec": 1.5,
+        "lane_arrival_history_sec": 150
+      },
+      "RM_C10681": {
+        "critical_gap_sec": 3.5,
+        "followup_sec": 1.5,
+        "lane_arrival_history_sec": 150
+      },
+      "RM_C10490": {
+        "critical_gap_sec": 1.5,
+        "followup_sec": 1.5,
+        "lane_arrival_history_sec": 150
+      },
+      "RM_C10484": {
+        "critical_gap_sec": 2,
+        "followup_sec": 1.5,
+        "lane_arrival_history_sec": 150
+      }
+    },
+    "state_response": {
+      "FW_E": {
+        "cell_overrides": {
+          "9": {
+            "anticipation": {
+              "downstream_ge_local": 18.96437247747929,
+              "downstream_lt_local": 18.375
+            },
+            "relaxation": {
+              "acceleration_sec": 9.74350555960837,
+              "deceleration_sec": 9.74350555960837
+            }
+          },
+          "10": {
+            "anticipation": {
+              "downstream_ge_local": 13.561608115959032,
+              "downstream_lt_local": 18.375
+            },
+            "delta_merge": 3.5303754160321255,
+            "relaxation": {
+              "acceleration_sec": 11.123586832623378,
+              "deceleration_sec": 11.123586832623378
+            }
+          },
+          "11": {
+            "anticipation": {
+              "downstream_ge_local": 15.518806334716341,
+              "downstream_lt_local": 21.5504639156248
+            },
+            "relaxation": {
+              "acceleration_sec": 10.901494170663907,
+              "deceleration_sec": 10.901494170663907
+            }
+          },
+          "12": {
+            "anticipation": {
+              "downstream_ge_local": 18.375,
+              "downstream_lt_local": 23.026230603605043
+            },
+            "delta_merge": 5.0894678108751865,
+            "relaxation": {
+              "acceleration_sec": 11.304210786425056,
+              "deceleration_sec": 11.304210786425056
+            }
+          },
+          "13": {
+            "anticipation": {
+              "downstream_ge_local": 18.70629865932481,
+              "downstream_lt_local": 14.337572408411932
+            },
+            "relaxation": {
+              "acceleration_sec": 15.935097773966024,
+              "deceleration_sec": 15.935097773966024
+            }
+          },
+          "14": {
+            "anticipation": {
+              "downstream_ge_local": 15.848964620306466,
+              "downstream_lt_local": 17.026700379185826
+            },
+            "relaxation": {
+              "acceleration_sec": 13.336187652909366,
+              "deceleration_sec": 13.336187652909366
+            }
+          },
+          "18": {
+            "anticipation": {
+              "downstream_ge_local": 17.769280401396696,
+              "downstream_lt_local": 18.39123545434044
+            },
+            "relaxation": {
+              "acceleration_sec": 12.240453497722328,
+              "deceleration_sec": 12.240453497722328
+            }
+          },
+          "19": {
+            "anticipation": {
+              "downstream_ge_local": 14.661266386992528,
+              "downstream_lt_local": 14.418402143987175
+            },
+            "relaxation": {
+              "acceleration_sec": 11.165296657232778,
+              "deceleration_sec": 11.165296657232778
+            }
+          },
+          "20": {
+            "anticipation": {
+              "downstream_ge_local": 21.73510322521211,
+              "downstream_lt_local": 20.65549915375419
+            },
+            "relaxation": {
+              "acceleration_sec": 10.002382820916424,
+              "deceleration_sec": 10.002382820916424
+            }
+          },
+          "21": {
+            "anticipation": {
+              "downstream_ge_local": 16.292800866777043,
+              "downstream_lt_local": 23.420244272577897
+            },
+            "delta_merge": 4.211540911042258,
+            "relaxation": {
+              "acceleration_sec": 9.026688406340106,
+              "deceleration_sec": 9.026688406340106
+            }
+          },
+          "22": {
+            "anticipation": {
+              "downstream_ge_local": 20.130921987631222,
+              "downstream_lt_local": 22.40571616250896
+            },
+            "relaxation": {
+              "acceleration_sec": 9.532108427999407,
+              "deceleration_sec": 9.532108427999407
+            }
+          },
+          "23": {
+            "anticipation": {
+              "downstream_ge_local": 18.375,
+              "downstream_lt_local": 4.644838002682434
+            },
+            "delta_merge": 2.2111304349320715,
+            "relaxation": {
+              "acceleration_sec": 13.739469134103416,
+              "deceleration_sec": 13.739469134103416
+            }
+          },
+          "24": {
+            "anticipation": {
+              "downstream_ge_local": 18.375,
+              "downstream_lt_local": 15.716147192783822
+            },
+            "relaxation": {
+              "acceleration_sec": 15.627428679221985,
+              "deceleration_sec": 15.627428679221985
+            }
+          },
+          "25": {
+            "anticipation": {
+              "downstream_ge_local": 16.29826832197862,
+              "downstream_lt_local": 23.652703955864677
+            },
+            "relaxation": {
+              "acceleration_sec": 14.416449495256892,
+              "deceleration_sec": 14.416449495256892
+            }
+          },
+          "0": {
+            "relaxation": {
+              "acceleration_sec": 9.294624877032469,
+              "deceleration_sec": 9.294624877032469
+            },
+            "anticipation": {
+              "downstream_ge_local": 44.663506181265916,
+              "downstream_lt_local": 33.6600191982213
+            }
+          },
+          "1": {
+            "relaxation": {
+              "acceleration_sec": 14.24784922617236,
+              "deceleration_sec": 14.24784922617236
+            },
+            "anticipation": {
+              "downstream_ge_local": 44.41424518904005,
+              "downstream_lt_local": 30.329169850198696
+            }
+          },
+          "2": {
+            "relaxation": {
+              "acceleration_sec": 14.254657101476495,
+              "deceleration_sec": 14.254657101476495
+            },
+            "anticipation": {
+              "downstream_ge_local": 37.40914799030361,
+              "downstream_lt_local": 30.135866531434743
+            }
+          },
+          "3": {
+            "relaxation": {
+              "acceleration_sec": 9.415273784460197,
+              "deceleration_sec": 9.415273784460197
+            },
+            "anticipation": {
+              "downstream_ge_local": 39.393037702203635,
+              "downstream_lt_local": 37.54371441013012
+            }
+          },
+          "4": {
+            "relaxation": {
+              "acceleration_sec": 11.703016977698692,
+              "deceleration_sec": 11.703016977698692
+            },
+            "anticipation": {
+              "downstream_ge_local": 34.241306101338424,
+              "downstream_lt_local": 37.42975548264686
+            }
+          },
+          "5": {
+            "relaxation": {
+              "acceleration_sec": 13.47390602586643,
+              "deceleration_sec": 13.47390602586643
+            },
+            "anticipation": {
+              "downstream_ge_local": 36.07000890705614,
+              "downstream_lt_local": 37.38680365051044
+            }
+          },
+          "6": {
+            "relaxation": {
+              "acceleration_sec": 11.302990852419779,
+              "deceleration_sec": 11.302990852419779
+            },
+            "anticipation": {
+              "downstream_ge_local": 44.57016674204598,
+              "downstream_lt_local": 36.74931367848734
+            }
+          },
+          "7": {
+            "relaxation": {
+              "acceleration_sec": 10.344282146332832,
+              "deceleration_sec": 10.344282146332832
+            },
+            "anticipation": {
+              "downstream_ge_local": 35.558053655858366,
+              "downstream_lt_local": 37.38244920944257
+            }
+          },
+          "8": {
+            "relaxation": {
+              "acceleration_sec": 11.185422471459093,
+              "deceleration_sec": 11.185422471459093
+            },
+            "anticipation": {
+              "downstream_ge_local": 37.62711095669523,
+              "downstream_lt_local": 45.117801049894084
+            }
+          },
+          "15": {
+            "relaxation": {
+              "acceleration_sec": 13.323924529220516,
+              "deceleration_sec": 13.323924529220516
+            },
+            "anticipation": {
+              "downstream_ge_local": 45.40241642965459,
+              "downstream_lt_local": 32.1326386013365
+            }
+          },
+          "16": {
+            "relaxation": {
+              "acceleration_sec": 9.493561095433822,
+              "deceleration_sec": 9.493561095433822
+            },
+            "anticipation": {
+              "downstream_ge_local": 39.63548306677848,
+              "downstream_lt_local": 39.31580940905085
+            }
+          },
+          "17": {
+            "relaxation": {
+              "acceleration_sec": 14.82235127157874,
+              "deceleration_sec": 14.82235127157874
+            },
+            "anticipation": {
+              "downstream_ge_local": 40.74078345971432,
+              "downstream_lt_local": 36.0650564119074
+            }
+          },
+          "26": {
+            "relaxation": {
+              "acceleration_sec": 8.07441721192124,
+              "deceleration_sec": 8.07441721192124
+            },
+            "anticipation": {
+              "downstream_ge_local": 36.75,
+              "downstream_lt_local": 43.77824266951354
+            }
+          },
+          "27": {
+            "relaxation": {
+              "acceleration_sec": 9.496789128850384,
+              "deceleration_sec": 9.496789128850384
+            },
+            "anticipation": {
+              "downstream_ge_local": 44.151320175752055,
+              "downstream_lt_local": 34.13533923184041
+            }
+          },
+          "28": {
+            "relaxation": {
+              "acceleration_sec": 13.142042626691023,
+              "deceleration_sec": 13.142042626691023
+            },
+            "anticipation": {
+              "downstream_ge_local": 39.381375762923085,
+              "downstream_lt_local": 43.70901756785953
+            }
+          },
+          "29": {
+            "relaxation": {
+              "acceleration_sec": 10.918227229848943,
+              "deceleration_sec": 10.918227229848943
+            },
+            "anticipation": {
+              "downstream_ge_local": 39.855828459977886,
+              "downstream_lt_local": 45.1296917096747
+            }
+          },
+          "30": {
+            "relaxation": {
+              "acceleration_sec": 13.039319011338062,
+              "deceleration_sec": 13.039319011338062
+            },
+            "anticipation": {
+              "downstream_ge_local": 37.41259731864962,
+              "downstream_lt_local": 36.75
+            }
+          }
+        }
+      }
+    },
+    "component_vsl_transport": {
+      "FW_E": {
+        "sign_cells": [
+          0,
+          3,
+          5,
+          8,
+          14,
+          16,
+          26,
+          28
+        ],
+        "initial_command": 110,
+        "ramp_command": 110
+      }
+    },
+    "vsl_fd_response": {
+      "FW_E": {
+        "law": "carlson",
+        "A": 0.5,
+        "E": 2.0,
+        "alpha": 0.0
+      }
+    },
+    "physical_ramp_travel_speeds": {
+      "RM_C10639": {
+        "upstream_kmh": 40.36,
+        "posthead_kmh": 47.59
+      },
+      "RM_C10490": {
+        "upstream_kmh": 41.4,
+        "posthead_kmh": 57.67
+      },
+      "RM_C10484": {
+        "upstream_kmh": 41.96,
+        "posthead_kmh": 67.97
+      }
+    },
+    "physical_ramp_head_service_veh_per_cycle": {
+      "RM_C10639": {
+        "2": 1.0,
+        "3": 1.5,
+        "4": 2.0,
+        "5": 2.5,
+        "6": 3.0,
+        "7": 3.5,
+        "8": 4.0,
+        "9": 4.2,
+        "10": 4.2
+      },
+      "RM_C10681": {
+        "2": 2.0,
+        "3": 3.0,
+        "4": 4.0,
+        "5": 5.0,
+        "6": 6.0,
+        "7": 7.0,
+        "8": 8.0,
+        "9": 8.4,
+        "10": 8.4
+      },
+      "RM_C10490": {
+        "2": 1.0,
+        "3": 1.5,
+        "4": 2.0,
+        "5": 2.5,
+        "6": 3.0,
+        "7": 3.5,
+        "8": 4.0,
+        "9": 4.2,
+        "10": 4.2
+      },
+      "RM_C10484": {
+        "2": 1.0,
+        "3": 1.5,
+        "4": 2.0,
+        "5": 2.5,
+        "6": 3.0,
+        "7": 3.5,
+        "8": 4.0,
+        "9": 4.2,
+        "10": 4.2
+      }
+    },
+    "physical_cell_fd": {
+      "FW_E": {
+        "10": {
+          "rho_crit": 32.95456239685578,
+          "metanet_a_m": 2.1338543680836213
+        },
+        "12": {
+          "rho_crit": 14.967445702388991,
+          "metanet_a_m": 2.368686151897844
+        },
+        "21": {
+          "rho_crit": 28.149209606048856,
+          "metanet_a_m": 1.4196713197049213
+        },
+        "0": {
+          "rho_crit": 25.502991434297883,
+          "metanet_a_m": 2.0407331159624986
+        },
+        "1": {
+          "rho_crit": 22.0114177410436,
+          "metanet_a_m": 1.759763123593333
+        },
+        "2": {
+          "rho_crit": 21.945870272036814,
+          "metanet_a_m": 1.6530428443288148
+        },
+        "3": {
+          "rho_crit": 18.00982966468774,
+          "metanet_a_m": 2.0393055696007014
+        },
+        "4": {
+          "rho_crit": 18.67600924360132,
+          "metanet_a_m": 1.9185732995184839
+        },
+        "5": {
+          "rho_crit": 21.999776196628474,
+          "metanet_a_m": 1.5731884926987472
+        },
+        "6": {
+          "rho_crit": 23.154500903517206,
+          "metanet_a_m": 1.6617841319134656
+        },
+        "7": {
+          "rho_crit": 23.357784466490155,
+          "metanet_a_m": 1.869766862258531
+        },
+        "8": {
+          "rho_crit": 29.487941419335634,
+          "metanet_a_m": 2.0412675741401816
+        },
+        "9": {
+          "rho_crit": 21.76760217920312,
+          "metanet_a_m": 1.6738236185709794
+        },
+        "11": {
+          "rho_crit": 32.07697191031183,
+          "metanet_a_m": 1.6635697352390466
+        },
+        "13": {
+          "rho_crit": 24.103980601554696,
+          "metanet_a_m": 1.7222143251469164
+        },
+        "14": {
+          "rho_crit": 21.45491301483764,
+          "metanet_a_m": 1.6110249309231839
+        },
+        "15": {
+          "rho_crit": 22.592519014303367,
+          "metanet_a_m": 1.6389238667240507
+        },
+        "16": {
+          "rho_crit": 20.714585067184725,
+          "metanet_a_m": 2.046760300788147
+        },
+        "17": {
+          "rho_crit": 25.426873006748664,
+          "metanet_a_m": 2.3877417816643565
+        },
+        "18": {
+          "rho_crit": 27.26858916265053,
+          "metanet_a_m": 2.504186319000639
+        },
+        "19": {
+          "rho_crit": 33.56729983572712,
+          "metanet_a_m": 1.5564401385964883
+        },
+        "20": {
+          "rho_crit": 33.053645524597975,
+          "metanet_a_m": 1.5652091953179679
+        },
+        "22": {
+          "rho_crit": 27.456533940697003,
+          "metanet_a_m": 2.2159151307752407
+        },
+        "23": {
+          "rho_crit": 29.21793803157931,
+          "metanet_a_m": 2.20081761008557
+        },
+        "24": {
+          "rho_crit": 22.199359874535315,
+          "metanet_a_m": 1.4343988477824117
+        },
+        "25": {
+          "rho_crit": 34.14801321204055,
+          "metanet_a_m": 1.3249810356550333
+        },
+        "26": {
+          "rho_crit": 32.12911364130065,
+          "metanet_a_m": 1.95174560294437
+        },
+        "27": {
+          "rho_crit": 38.20301745719477,
+          "metanet_a_m": 1.9939218436137973
+        },
+        "28": {
+          "rho_crit": 30.06071958649613,
+          "metanet_a_m": 1.933167288409398
+        },
+        "29": {
+          "rho_crit": 37.336921477213,
+          "metanet_a_m": 1.763240695777375
+        },
+        "30": {
+          "rho_crit": 30.259108529010422,
+          "metanet_a_m": 1.926664725134266
+        }
+      }
+    },
+    "physical_component_residence": true
+  },
+  "qualification": "Frozen cellwise expanded_joint tested with current coupled routing; NOT gain qualified or production adopted."
+}

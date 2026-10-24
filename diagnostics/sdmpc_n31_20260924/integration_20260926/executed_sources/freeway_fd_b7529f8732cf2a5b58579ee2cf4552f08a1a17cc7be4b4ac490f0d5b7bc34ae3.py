@@ -1,0 +1,555 @@
+"""Consistent cell FD hooks, installed by the canonical adapter after segment hooks.
+
+This module changes no calibration. A segment VSL remains a float, carrying an
+immutable FD snapshot to its consumers. This avoids reading the adapter's shared
+last-segment context, which can belong to another candidate or another cell.
+"""
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+from typing import Mapping
+
+# Derivative-carrying scalars exist only in the isolated SDMPC tangent process
+# (sdmpc_tangent_runtime). Everywhere else every quantity here is a plain float
+# and the code below takes the branch model's exact float path.
+from evaluation.controllers.sdmpc_dual import Dual as _TangentScalar, primal as _primal
+
+
+def literature_vsl_parameters(spec, v_free, critical, shape, command, maximum):
+    """Carlson/Frejo FD laws, Eqs 11/13 in Frejo et al. (2019).
+
+    These are desired-speed FD parameters, not extra sending capacity or a
+    command reward. The caller retains the original law when VSL is absent.
+    Carlson uses displayed/nominal speed, not a fitted speed ratio. Frejo adds
+    compliance and uses the nominal command (rather than v_free) for its cap.
+    """
+    if (not isinstance(spec, Mapping) or set(spec) != {'law', 'A', 'E', 'alpha'}
+            or spec['law'] not in ('carlson', 'frejo')):
+        raise ValueError('Explicit Carlson/Frejo FD parameters required')
+    values = [spec[k] for k in ('A', 'E', 'alpha')]
+    if (any(isinstance(x, bool) or not isinstance(x, (int, float))
+            or not math.isfinite(x) for x in values)
+            or spec['A'] < 0 or spec['E'] <= 0 or spec['alpha'] < 0
+            or (spec['law'] == 'carlson' and spec['alpha'] != 0)):
+        raise ValueError('Invalid literature VSL coefficients')
+    if (any(not math.isfinite(x) or x <= 0 for x in
+            (v_free, critical, shape, command, maximum)) or command > maximum):
+        raise ValueError('Invalid VSL FD state/command')
+    b = command / maximum
+    if spec['law'] == 'carlson':
+        speed = v_free * b
+    else:
+        b = min(b * (1. + spec['alpha']), 1.)
+        speed = min(maximum * b, v_free)
+    return (speed, critical * (1. + spec['A'] * (1. - b)),
+            shape * (spec['E'] - (spec['E'] - 1.) * b))
+
+
+def configure_literature_vsl(cfg, tuning):
+    """Opt-in FD response shared by conserved METANET and lane-group paths.
+
+    Coefficients must be calibrated. This is not an additive capacity bonus.
+    Keep competing two-branch/Hadi/Wang laws mutually exclusive.
+    """
+    section = (tuning.get('freeway', {}) or {}).get('vsl_fd_response')
+    if section is None:
+        if hasattr(cfg.network, 'freeway_vsl_fd_response'):
+            del cfg.network.freeway_vsl_fd_response
+        return {}
+    if (not isinstance(section, Mapping) or not section
+            or set(section)-set(cfg.network.freeway_links)):
+        raise ValueError('VSL FD response requires explicit freeway directions')
+    if (getattr(cfg.network, 'vsl_fd_two_branch', False)
+            or (tuning.get('freeway', {}) or {}).get('component_literature')):
+        raise ValueError('Do not stack competing VSL FD laws')
+    parsed = {}
+    for road, spec in section.items():
+        literature_vsl_parameters(spec, 100., 30., 2., 90., 110.)
+        parsed[road] = dict(spec)
+    cfg.network.freeway_vsl_fd_response = parsed
+    return {'freeway_literature_vsl_enabled': 1.0}
+
+
+def _carries_tangent(*values):
+    """True only for SDMPC tangent-process scalars; plain numbers never."""
+    return any(isinstance(value, _TangentScalar) for value in values)
+
+
+def _power(base, exponent):
+    """base**exponent, whose value is always the plain float base**exponent.
+
+    For a tangent scalar the first-order terms enter through zero-valued
+    differences (x - primal(x)), so the value cannot change. The Carlson shape
+    depends on the command, and neither AD backend defines float**tangent. At
+    base 0 (an empty cell) both partials vanish because the shape exceeds 1.
+    """
+    if not _carries_tangent(base, exponent):
+        return base ** exponent
+    x, a = _primal(base), _primal(exponent)
+    value = x ** a
+    if x == 0.:
+        return value
+    return value + a * x ** (a - 1.) * (base - x) + value * math.log(x) * (exponent - a)
+
+
+def _literature_speed(spec, cfg, road, cell, rho, command):
+    net = cfg.network
+    rows = (getattr(net, 'freeway_segment_params', {}) or {}).get(road, ())
+    row = rows[cell] if cell < len(rows) else {}
+    vf, critical, shape = literature_vsl_parameters(spec,
+        row.get('v_free', net.v_free), row.get('rho_crit', net.rho_crit),
+        row.get('metanet_a_m', net.metanet_a_m), float(command),
+        max(cfg.freeway_follower.vsl_set))
+    if critical >= row.get('rho_max', net.rho_max):
+        raise ValueError('VSL-induced FD critical density exceeds physical jam density')
+    return vf * math.exp(-_power(max(0., rho)/critical, shape)/shape)
+
+
+def literature_desired_speed(spec, cfg, road, cell, rho, target, command, active):
+    """Pure call-local target; absent/inactive reproduces the original exactly.
+
+    Inactive means the maximum command (110), where the law equals the nominal
+    FD (b = 1). Its value stays the original target. Only when the command is a
+    tangent-process scalar does it also carry the law's command sensitivity at
+    that anchor. The law is undefined above the maximum, so this is the left
+    derivative, the direction the SDMPC box allows from 110. It is added as
+    law(rho0, c) - law(rho0, primal(c)): value exactly 0, no density term twice.
+    """
+    if spec is None:
+        return target
+    if not active:
+        if not _carries_tangent(command):
+            return target
+        density = _primal(rho)
+        return target + (_literature_speed(spec, cfg, road, cell, density, command)
+                         - _literature_speed(spec, cfg, road, cell, density, _primal(command)))
+    return _literature_speed(spec, cfg, road, cell, rho, command)
+
+
+def applied_cohort_commands(spec, road, head_of_cell, applied_vsl, maximum):
+    """Per physical cell, the command its vehicles last saw: the initial cohort tags.
+
+    A vehicle is retagged only when it enters a sign cell (VSLExposure.advance),
+    so a cell's vehicles carry the command displayed at its governing sign, the
+    nearest sign cell at or upstream of it. That display is the last APPLIED
+    action's command, read as the plant reads a command (the zone-head key of
+    the sign's parent zone, then the link key, then the maximum) but without
+    the plant's segment_vsl hook and its per-cell context side effects.
+    Cells upstream of every sign keep the entry command. `applied_vsl` None
+    (no applied action yet, the first decision) tags every cell with the entry
+    command, the branch model's behaviour. On-ramp inflow keeps ramp_command.
+    Well-mixed approximation: a cell's stock is not split by entry point or by
+    the time it passed its sign.
+    """
+    entry = float(spec['initial_command'])
+    if applied_vsl is None:
+        return [entry] * len(head_of_cell)
+    signs = set(spec['sign_cells'])
+    commands, governing = [], None
+    for cell in range(len(head_of_cell)):
+        if cell in signs:
+            governing = cell
+        if governing is None:
+            commands.append(entry)
+            continue
+        head = int(head_of_cell[governing])
+        value = applied_vsl.get(f'{road}__seg{head}', applied_vsl.get(road, maximum))
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or not 0 < value <= maximum):
+            raise ValueError(f'Invalid applied VSL command for {road} sign cell {governing}: {value!r}')
+        commands.append(float(value))
+    return commands
+
+
+class VSLExposure:
+    """Passive desired-speed cohorts, advected by the existing accepted flows.
+
+    A sign retags incoming mainline vehicles only. Ramp vehicles keep their
+    specified entry distribution until a downstream sign. Well-mixed cell
+    approximation; no extra flow/capacity is generated by this state.
+
+    Cohorts are keyed by the plain command value, as in the branch model. The
+    SDMPC tangent process seeds commands as unhashable scalars, so each cohort
+    also keeps a zero-valued command sensitivity in `tangents` (plain 0.0
+    everywhere else). Merging same-valued cohorts averages it by mass, which is
+    first-order exact because merged cohorts share every later proportional
+    share. Values and keys never depend on it, so the scalar and tangent
+    trajectories have identical states.
+
+    `initial_commands` (one plain command per cell, see applied_cohort_commands)
+    tags each cell's initial stock with the command its vehicles last saw.
+    None tags every vehicle with spec['initial_command'] (the branch model).
+    """
+    def __init__(self, stocks, spec, maximum, initial_commands=None):
+        if (set(spec) != {'sign_cells', 'initial_command', 'ramp_command'}
+                or spec['sign_cells'] != sorted(set(spec['sign_cells']))
+                or any(type(i) is not int or not 0<=i<len(stocks) for i in spec['sign_cells'])):
+            raise ValueError('Explicit physical sign cells and initial/ramp commands required')
+        for key in ('initial_command','ramp_command'):
+            value=spec[key]
+            if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or not 0<value<=maximum:
+                raise ValueError('Invalid VSL cohort entry command')
+        self.signs=frozenset(spec['sign_cells']);self.spec=dict(spec)
+        if initial_commands is None:
+            commands=[float(spec['initial_command'])]*len(stocks)
+        else:
+            commands=list(initial_commands)
+            if len(commands)!=len(stocks):
+                raise ValueError('Initial VSL cohort commands must cover every cell')
+            for value in commands:
+                if (isinstance(value,bool) or not isinstance(value,(int,float))
+                        or not math.isfinite(value) or not 0<value<=maximum):
+                    raise ValueError('Invalid initial VSL cohort command')
+            commands=[float(value) for value in commands]
+        self.cohorts=[{command:float(n)} for command,n in zip(commands,stocks)]
+        self.tangents=[{command:0.} for command in commands]
+        self.max_residual=0.
+
+    def target(self, cfg, road, cell, rho, legacy, displayed):
+        row=(getattr(cfg.network,'freeway_segment_params',{}) or {})[road][cell]
+        maximum=max(cfg.freeway_follower.vsl_set);cohort=self.cohorts[cell];stock=sum(cohort.values())
+        if stock<=1e-12:return legacy
+        shown=_primal(displayed)
+        uniform=all(abs(command-shown)<1e-12 for command,n in cohort.items() if n>1e-12)
+        if uniform and not _carries_tangent(rho,legacy,displayed,*cohort.values(),*self.tangents[cell].values()):
+            return legacy
+        net=cfg.network;vf=row.get('v_free',net.v_free);critical=row.get('rho_crit',net.rho_crit);shape=row.get('metanet_a_m',net.metanet_a_m)
+        nominal=vf*math.exp(-_power(max(0.,rho)/critical,shape)/shape)
+        spec=(getattr(net,'freeway_vsl_fd_response',{}) or {}).get(road)
+        total=0.
+        for command,n in cohort.items():
+            value=command+self.tangents[cell][command]
+            active=command<maximum-.5
+            default=min(nominal,(1.+net.alpha_vsl)*value) if active else nominal
+            total+=n*literature_desired_speed(spec,cfg,road,cell,rho,default,value,active)
+        mixed=total/stock
+        if uniform:
+            # The branch value (legacy) with the cohort mixture's derivative:
+            # only vehicles tagged under a command respond to that command.
+            delta=mixed-legacy
+            return legacy+(delta-_primal(delta))
+        return mixed
+
+    @staticmethod
+    def _add(dest, carried, cmd, amount, tangent):
+        old=dest.get(cmd,0.);old_tangent=carried.get(cmd,0.)
+        dest[cmd]=old+amount
+        if _carries_tangent(tangent,old_tangent):
+            total=dest[cmd]
+            carried[cmd]=(old*old_tangent+amount*tangent)/total if _primal(total)>0. else old_tangent
+        else:
+            carried[cmd]=old_tangent
+
+    def advance(self, old_n, new_n, internal, total_out, entry, ramps, commands):
+        """All flow inputs are accepted vehicle amounts for this time step."""
+        count=len(self.cohorts)
+        if not (len(old_n)==len(new_n)==len(total_out)==len(ramps)==len(commands)==count and len(internal)==count-1):
+            raise ValueError('VSL cohort flow/stock dimensions differ')
+        shares=[];next_rows=[];next_tangents=[]
+        for i,row in enumerate(self.cohorts):
+            if (abs(_primal(sum(row.values()))-_primal(old_n[i]))>1e-7
+                    or _primal(total_out[i])>_primal(old_n[i])+1e-7):
+                raise ArithmeticError('VSL cohort stock/flux conservation failed')
+            shares.append({cmd:n/old_n[i] for cmd,n in row.items()} if old_n[i]>0. else {})
+        for i,row in enumerate(self.cohorts):
+            dest={cmd:max(0.,n-total_out[i]*shares[i].get(cmd,0.)) for cmd,n in row.items()}
+            carried=dict(self.tangents[i])
+            amount=entry if i==0 else internal[i-1]
+            if i in self.signs:
+                shown=_primal(commands[i]);incoming={shown:(1.,commands[i]-shown)}
+            elif i==0:
+                incoming={float(self.spec['initial_command']):(1.,0.)}
+            else:
+                incoming={cmd:(fraction,self.tangents[i-1][cmd]) for cmd,fraction in shares[i-1].items()}
+            for cmd,(fraction,tangent) in incoming.items():
+                self._add(dest,carried,cmd,amount*fraction,tangent)
+            self._add(dest,carried,float(self.spec['ramp_command']),ramps[i],0.)
+            residual=abs(_primal(sum(dest.values()))-_primal(new_n[i]));self.max_residual=max(self.max_residual,residual)
+            if residual>1e-7:raise ArithmeticError('Passive VSL cohorts do not sum to physical stock')
+            kept={cmd:n for cmd,n in dest.items() if n>1e-14}
+            next_rows.append(kept);next_tangents.append({cmd:carried[cmd] for cmd in kept})
+        self.cohorts=next_rows;self.tangents=next_tangents
+
+
+def configure_state_response(cfg, tuning) -> dict[str, float]:
+    """Explicit directional METANET response regimes; absent is an exact no-op.
+
+    This changes relaxation/anticipation/merge speed loss, not demand, conservation, capacity,
+    merge flow, or the objective. Values travel with cfg into spawned workers.
+    An enabled experiment is not evidence that these regimes improve prediction.
+    """
+    section = (tuning.get('freeway', {}) or {}).get('state_response')
+    if section is None:
+        if hasattr(cfg.network, 'freeway_state_response'):
+            del cfg.network.freeway_state_response
+        return {'freeway_state_response_enabled': 0.0}
+    if not isinstance(section, Mapping) or not section:
+        raise ValueError('state_response requires an explicit nonempty direction map')
+    allowed = {'relaxation', 'anticipation', 'congested_nu_multiplier', 'recovery_relaxation', 'delta_merge'}
+    values = {}
+    def parse(row):
+        if not isinstance(row, Mapping) or not row or set(row)-allowed:
+            raise ValueError('Invalid state_response fields')
+        result = {}
+        for key, value in row.items():
+            if key in ('congested_nu_multiplier', 'delta_merge'):
+                members = {'factor': value}
+            else:
+                expected = ({'acceleration_sec', 'deceleration_sec'} if key == 'relaxation'
+                            else {'acceleration_sec'} if key == 'recovery_relaxation'
+                            else {'downstream_ge_local', 'downstream_lt_local'})
+                valid = isinstance(value, Mapping) and (set(value)==expected or
+                    (key=='recovery_relaxation' and set(value)==expected|{'speed_ceiling_kmh'}))
+                if not valid:
+                    raise ValueError('State response requires both branches: ' + key)
+                members = value
+            parsed = {}
+            for name, number in members.items():
+                if isinstance(number, bool) or not isinstance(number, (int, float)) or not math.isfinite(number):
+                    raise ValueError('State response values must be finite numeric values')
+                lower = cfg.simulation.T_f_h * 3600 if key in ('relaxation','recovery_relaxation') and name!='speed_ceiling_kmh' else 0.0
+                if number < lower or (key not in ('anticipation', 'delta_merge') and number <= 0):
+                    raise ValueError('Invalid state response value: ' + name)
+                parsed[name] = float(number)
+            result[key] = parsed['factor'] if key in ('congested_nu_multiplier', 'delta_merge') else parsed
+        return result
+    for road, row in section.items():
+        if road not in cfg.network.freeway_links or not isinstance(row, Mapping) or not row or set(row)-allowed-{'cell_overrides'}:
+            raise ValueError('Invalid state_response direction or fields: ' + str(road))
+        common = {key:value for key,value in row.items() if key != 'cell_overrides'}
+        values[road] = parse(common) if common else {}
+        if 'cell_overrides' in row:
+            overrides = row['cell_overrides']
+            segments = (getattr(cfg.network, 'freeway_segment_params', {}) or {}).get(str(road), ())
+            if not isinstance(overrides, Mapping) or not overrides or not segments:
+                raise ValueError('Cell response overrides require explicit segment geometry')
+            resolved = {}
+            for index, local in overrides.items():
+                if not isinstance(index,str) or not index.isascii() or not index.isdecimal() or str(int(index)) != index or int(index) >= len(segments):
+                    raise ValueError('Invalid response cell index: ' + str(index))
+                resolved[index] = {**values[road], **parse(local)}
+            values[road]['cell_overrides'] = resolved
+    cfg.network.freeway_state_response = values
+    return {'freeway_state_response_enabled': 1.0, 'freeway_state_response_directions': float(len(values))}
+
+
+def cell_state_response(net, road, index):
+    """Select an explicitly calibrated cell response; other cells keep the common law."""
+    spec = (getattr(net, 'freeway_state_response', {}) or {}).get(str(road), {})
+    return spec.get('cell_overrides', {}).get(str(index), spec)
+
+
+def state_response_coefficients(spec, speed, desired, rho, downstream, critical, tau_h, nu):
+    """Evaluate regimes from this model step, never future observations.
+
+    Equality uses the acceleration and downstream-ge branches; at rho==critical
+    there is no congested multiplier. No correction is added to vehicle flows.
+    """
+    if not spec:
+        return tau_h, nu
+    if 'relaxation' in spec:
+        branch = 'acceleration_sec' if desired >= speed else 'deceleration_sec'
+        tau_h = spec['relaxation'][branch] / 3600.0
+    if 'anticipation' in spec:
+        branch = 'downstream_ge_local' if downstream >= rho else 'downstream_lt_local'
+        nu = spec['anticipation'][branch]
+    if 'congested_nu_multiplier' in spec and rho > critical:
+        nu *= spec['congested_nu_multiplier']
+    recovery = spec.get('recovery_relaxation')
+    if (recovery is not None and desired > speed
+            and downstream <= rho and downstream < critical
+            and ('speed_ceiling_kmh' not in recovery or speed < recovery['speed_ceiling_kmh'])):
+        # A causal opening downstream, not a time/control-specific bonus.
+        # METANET pressure also contains 1/tau: preserve nu/tau so this
+        # optional local change affects relaxation alone. It does not assert
+        # that the vehicle group has previously been congested.
+        recovery_h = recovery['acceleration_sec'] / 3600.0
+        if recovery_h != tau_h:
+            nu *= recovery_h / tau_h
+            tau_h = recovery_h
+    return tau_h, nu
+
+
+@dataclass(frozen=True)
+class FDParameters:
+    v_free: float
+    rho_crit: float
+    rho_jam: float
+
+    def validate(self) -> None:
+        if not all(math.isfinite(v) for v in (self.v_free, self.rho_crit, self.rho_jam)):
+            raise ValueError("two-branch FD parameters must be finite")
+        if self.v_free <= 0.0 or not 0.0 < self.rho_crit < self.rho_jam:
+            raise ValueError("two-branch FD requires v_free > 0 and 0 < rho_crit_two_branch < rho_max")
+
+    def free_speed(self, cap: float, active: bool) -> float:
+        if not active:
+            return self.v_free
+        if not math.isfinite(float(cap)) or float(cap) <= 0.0:
+            raise ValueError("active VSL must be finite and positive")
+        return min(self.v_free, float(cap))
+
+    def critical(self, cap: float, active: bool) -> float:
+        speed = self.free_speed(cap, active)
+        wave = self.v_free * self.rho_crit / (self.rho_jam - self.rho_crit)
+        return wave * self.rho_jam / (speed + wave)
+
+    def desired_speed(self, rho: float, cap: float, active: bool) -> float:
+        speed = self.free_speed(cap, active)
+        if float(rho) <= self.critical(cap, active):
+            return speed
+        wave = self.v_free * self.rho_crit / (self.rho_jam - self.rho_crit)
+        return max(0.0, wave * (self.rho_jam - float(rho)) / float(rho))
+
+
+class SegmentVSL(float):
+    """Numeric VSL with call-local FD data; never stored in shared mutable context."""
+
+    def __new__(cls, value, fd, active, nu_free, nu_cong):
+        result = super().__new__(cls, value)
+        result.fd = fd
+        result.active = active
+        result.nu_free = nu_free
+        result.nu_cong = nu_cong
+        return result
+
+    def __reduce__(self):
+        return (type(self), (float(self), self.fd, self.active, self.nu_free, self.nu_cong))
+
+
+def cell_parameters(net, link=None, index=None) -> FDParameters:
+    table = getattr(net, "freeway_segment_params", {}) or {}
+    rows = table.get(str(link), ()) if isinstance(table, Mapping) else ()
+    row = rows[index] if isinstance(rows, (tuple, list)) and index is not None and 0 <= index < len(rows) else {}
+    row = row if isinstance(row, Mapping) else {}
+    by_direction = (getattr(net, "rho_crit_two_branch_by_direction", {}) or {}
+                    if getattr(net, "vsl_fd_two_branch", False) else {})
+    result = FDParameters(
+        float(row.get("v_free", net.v_free)),
+        float(by_direction.get(str(link), getattr(net, "rho_crit_two_branch", 0.0))),
+        float(row.get("rho_max", net.rho_max)),
+    )
+    result.validate()
+    return result
+
+
+def _segment_value(value, cfg, link, index):
+    net = cfg.network
+    rows = (getattr(net, "freeway_segment_params", {}) or {}).get(str(link), ())
+    row = rows[index] if 0 <= index < len(rows) else {}
+    active = float(value) < max(cfg.freeway_follower.vsl_set) - 0.5
+    return SegmentVSL(
+        float(value), cell_parameters(net, link, index), active,
+        float(row.get("metanet_nu_km2_h", net.metanet_nu_km2_h)),
+        float(row.get("metanet_nu_cong_km2_h", net.metanet_nu_cong_km2_h)),
+    )
+
+
+def install_freeway_fd_runtime(a, w, cfg, tuning=None) -> dict[str, float]:
+    """Install after adapter segment/zones hooks, in parent and price workers.
+
+    `a` is the canonical adapter module; `w` is src.controllers.wu_faithful_follower.
+    The existing two-branch installer loads values into cfg.network first.
+    Disabled configurations perform no mutations, even after another cfg enabled
+    these process-wide wrappers. Every wrapper checks its own call's config/flag.
+    """
+    if not getattr(cfg.network, "vsl_fd_two_branch", False):
+        return {"freeway_fd_consistent_enabled": 0.0}
+    section = ((tuning or {}).get("freeway") or {}).get("two_branch") or {}
+    if section.get("enabled") and "rho_crit_two_branch" not in section:
+        raise ValueError("enabled two-branch FD requires explicit rho_crit_two_branch")
+    cell_parameters(cfg.network)
+    for link, rows in (getattr(cfg.network, "freeway_segment_params", {}) or {}).items():
+        for index in range(len(rows)):
+            cell_parameters(cfg.network, link, index)
+
+    from src.models import metanet as mn, state as st
+
+    if getattr(mn.effective_rho_crit, "_rw_consistent_two_branch", False):
+        return {"freeway_fd_consistent_enabled": 1.0, "freeway_fd_consistent_installed": 0.0}
+
+    old_sv = st.segment_vsl
+    old_desired = mn.effective_desired_speed_kmh
+    old_critical = mn.effective_rho_crit
+    old_nu = mn.select_anticipation_nu
+    old_release = w.WuFaithfulFollower._local_ramp_release
+
+    def segment_vsl(control, link, index, cfg_):
+        value = old_sv(control, link, index, cfg_)
+        if not getattr(cfg_.network, "vsl_fd_two_branch", False):
+            return value
+        return _segment_value(value, cfg_, link, index)
+
+    def effective_desired_speed_kmh(rho, v_free, rho_crit, vsl, alpha_vsl=0.0,
+                                    vsl_active=True, a=1.867, two_branch=False,
+                                    rho_jam=0.0, rho_crit_tb=0.0):
+        if not two_branch:
+            return old_desired(rho, v_free, rho_crit, vsl, alpha_vsl, vsl_active,
+                               a, two_branch, rho_jam, rho_crit_tb)
+        fd = vsl.fd if isinstance(vsl, SegmentVSL) else FDParameters(
+            float(v_free), float(rho_crit_tb), float(rho_jam))
+        fd.validate()
+        return fd.desired_speed(rho, float(vsl), vsl_active)
+
+    def effective_rho_crit(net, vsl):
+        if not getattr(net, "vsl_fd_two_branch", False):
+            return old_critical(net, vsl)
+        if isinstance(vsl, SegmentVSL):
+            return vsl.fd.critical(vsl, vsl.active)
+        # Scalar diagnostics/buffer consumers have no cell identity or VSL set.
+        # A cap above global free speed is naturally nonbinding after clamping.
+        fd = cell_parameters(net)
+        return fd.critical(net.v_free if vsl is None else vsl, vsl is not None)
+
+    def select_anticipation_nu(rho, net, vsl=None):
+        if not getattr(net, "vsl_fd_two_branch", False):
+            return old_nu(rho, net, vsl)
+        if isinstance(vsl, SegmentVSL):
+            nu_free, nu_cong = vsl.nu_free, vsl.nu_cong
+        else:
+            nu_free, nu_cong = net.metanet_nu_km2_h, net.metanet_nu_cong_km2_h
+        if a._FW_SEG_CTX.get('armed'):
+            a._FW_SEG_CTX['response_rho_crit'] = effective_rho_crit(net, vsl)
+        if getattr(net, "capacity_drop_anticipation", False) and rho > effective_rho_crit(net, vsl):
+            return float(nu_cong)
+        return float(nu_free)
+
+    def local_ramp_release(self, link, rhos, ramp_queue, candidate_control, demand):
+        net = self.cfg.network
+        if not getattr(net, "vsl_fd_two_branch", False):
+            return old_release(self, link, rhos, ramp_queue, candidate_control, demand)
+        model = self._local_freeway_models[link]
+        dt_h = self.cfg.simulation.T_f_h
+        q_cap = net.freeway_capacity_veh_h * getattr(demand, "incident_capacity_factor", 1.0)
+        release = {}
+        for ramp in model.owned_ramps:
+            index = model.ramp_merge_idx[ramp]
+            rho = rhos[index] if index < len(rhos) else net.rho_crit
+            value = segment_vsl(candidate_control, link, index, self.cfg)
+            critical = effective_rho_crit(net, value)
+            receiving = min(1.0, max(0.0, (net.rho_max - rho) / max(net.rho_max - critical, 1.0e-9)))
+            cap = net.ramp_capacity_veh_h[ramp]
+            requested = min(cap, max(0.0, candidate_control.ramp_metering.get(ramp, cap)))
+            available = max(0.0, ramp_queue.get(ramp, 0.0) / max(dt_h, 1.0e-9))
+            release[ramp] = min(available, cap, q_cap * receiving, requested)
+        return release
+
+    for name, old, new in (
+        ("segment_vsl", old_sv, segment_vsl),
+        ("effective_desired_speed_kmh", old_desired, effective_desired_speed_kmh),
+        ("effective_rho_crit", old_critical, effective_rho_crit),
+        ("select_anticipation_nu", old_nu, select_anticipation_nu),
+    ):
+        # Preserve existing adapter markers so its repeated installer does not
+        # wrap these hooks again and overwrite the FD hooks on the next decision.
+        new.__dict__.update(getattr(old, "__dict__", {}))
+        if name == "segment_vsl" and getattr(cfg.network, "freeway_vsl_zone_head_of_cell", None):
+            # The legacy segment wrapper masks the inner zone wrapper's marker.
+            # A repeated zone install would remap cell9 to head5 *before* this
+            # wrapper sees the cell, attaching head5's FD to cell9.
+            new._rw_vsl_zone = True
+        new._rw_consistent_two_branch = True
+        a._fw_rebind(name, old, new)
+    w.WuFaithfulFollower._local_ramp_release = local_ramp_release
+    return {"freeway_fd_consistent_enabled": 1.0, "freeway_fd_consistent_installed": 1.0}

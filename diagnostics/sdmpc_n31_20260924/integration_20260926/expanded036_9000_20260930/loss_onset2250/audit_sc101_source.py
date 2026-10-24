@@ -1,0 +1,1053 @@
+"""Two-road queue attribution, using pinned geometry and completed records only."""
+import collections
+import gzip
+import hashlib
+import json
+from pathlib import Path
+import sys
+import xml.etree.ElementTree as ET
+
+L = Path(__file__).resolve().parent
+U = L.parents[4]
+OUT = L/'source_sc101'
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load(path):
+    raw = path.read_bytes()
+    return json.loads(gzip.decompress(raw) if path.suffix == '.gz' else raw)
+
+
+def write(name, value):
+    path = OUT/name
+    assert not path.exists(), path
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+
+
+def prepare():
+    assert (U/'evaluation').is_dir(), U
+    authority_path = L/'city_path/2250_init_hp_sc101/initial.json'
+    authority = load(authority_path)['network']
+    lane_path = L/'city_path/head_lane_support.json'
+    lane = load(lane_path)
+    network = U/lane['network']['path']
+    assert digest(network) == lane['network']['sha256']
+    tree = ET.parse(network)
+    links = {x.get('no'):x for x in tree.findall('./links/link')}
+    old_authority = load(U/lane['authority']['path'])['network']
+    for name, row in lane['movements'].items():
+        assert authority['urban_movements'][name] == old_authority['urban_movements'][name]
+        assert authority['control_area_routes']['movement:'+name] == old_authority['control_area_routes']['movement:'+name]
+    lane['authority'] = dict(path=str(authority_path.relative_to(U)), sha256=digest(authority_path))
+    selected = {n:s for n,s in authority['urban_movements'].items()
+                if n.startswith(('SC101_E_SC5_', 'SC101_S_SC1_'))}
+    assert len(selected) == 6
+    for name, spec in selected.items():
+        turns = [t for t in authority['control_area_routes']['movement:'+name]['physical_turns']
+                 if t.get('source_evidence',{}).get('canonical_approach_leg')]
+        assert len(turns) == 1
+        t = turns[0]
+        assert t['from_link'] in ('1220014201','1220011503')
+        connector = links[t['connector']]
+        start = connector.find('fromLinkEndPt')
+        end = connector.find('toLinkEndPt')
+        assert start.get('lane').split()[0] == t['from_link']
+        assert end.get('lane').split()[0] == t['to_link']
+        first = int(start.get('lane').split()[1])
+        lane['movements'][name] = dict(
+            expected_spec={k:spec[k] for k in ('signal','phase','origin','receiving_link','kind')},
+            from_link=t['from_link'], connector=t['connector'], to_link=t['to_link'],
+            lanes=list(range(first, first+len(connector.findall('./lanes/lane')))))
+    lane['scope'] = ('Existing29/329 plus SC101 east/south queue lane support. Shared through/right '
+                     'lane retains existing relative weights; no individual destination inference or fitted rates.')
+    write('head_lane_support.json', lane)
+    base_path = L/'physical_speed/candidate_config.json'
+    config = load(base_path)
+    config['urban']['queue']['head_lane_contract'] = str((OUT/'head_lane_support.json').relative_to(U))
+    write('candidate_config.json', config)
+    protected = list((U/'evaluation/controllers').glob('*.py')) + [network, base_path, lane_path,
+        U/'evaluation/parameters.json', U/'vendor/NumSim-mine/src/models/urban_queue_model.py']
+    stop = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/STOP')
+    if stop.exists(): protected.append(stop)
+    write('protocol.json', dict(previous_goal_turn='no_progress: status clarification only',
+        states=[2250,3600], forecast_budget=2, candidate_count=1, coefficient_fits=0,
+        source_pins={str(p):digest(p) for p in protected},
+        physical_change='Only existing queue attribution contract extends to two physical approach links',
+        tests='Queue mass/geometry, unchanged services and commands; native2250 fixed450 and3600 first150.',
+        interpretation='Better queue attribution does not itself prove control benefit or qualify adoption.',
+        native_runs=0, live_polling=0, future_prediction_inputs=False))
+    print(json.dumps({'prepared':str(OUT),'selected':list(selected)}), flush=True)
+
+
+def report(service=False):
+    protocol = load(OUT/'protocol.json')
+    for p,h in protocol['source_pins'].items():
+        if service and Path(p)==U/'evaluation/controllers/head_service_resources.py':
+            assert digest(Path(p))==load(OUT/'service_protocol.json')['new_core']
+            assert digest(OUT/'head_service_resources.before.py.txt')==h
+            continue
+        assert digest(Path(p)) == h, p
+    movements = {
+        'SC101_east_through':('SC101_E_SC5_to_W_SC1002',(960090,960091,960092,960093)),
+        'SC101_south_left':('SC101_S_SC1_to_W_SC1002',(960084,960085)),
+        'road329_through':('SC1002_E_SC101_to_W_SC1001',(960172,960173)),
+        'road29_through':('SC1001_E_SC1002_to_W_RAMP',(960158,960159)),
+        'road40_left':('SC1001_S_SC1003_to_W_RAMP',(960164,)),
+        'ramp10484_arrival':(None,(960271,))}
+    original = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+    fixed = Path('D:/VISSIM_runs/20261001_onset2250_s29/held_actual/decisions_sdmpc31_g_2250_held_actual_s29')
+    pins = {}
+    def read(p):
+        pins[str(p)] = digest(p)
+        return load(p)
+    cases = {}
+    for at,end,directory in ((2250,2700,fixed),(3600,3750,original)):
+        old_stem=f'{at}_ps_all8_sc101_sc101queue' if service else f'{at}_ps'
+        new_stem=f'{at}_ps_all8_sc101_sc101service' if service else f'{at}_ps_all8_sc101_sc101queue'
+        base = L/'city_path'/old_stem
+        candidate = L/'city_path'/new_stem
+        old,new = read(base/'trace.json.gz'),read(candidate/'trace.json.gz')
+        receipt = read(candidate/'receipt.json')
+        assert receipt['forecast_count'] == 1 and receipt['future_observation_inputs'] is False
+        old_result = read(L.parent.parent/f'closedloop_recorded{at}_lever450_RM_C10484_city{old_stem}/held_actual.json')
+        new_result = read(L.parent.parent/f'closedloop_recorded{at}_lever450_RM_C10484_city{new_stem}/held_actual.json')
+        assert old_result['commands'] == new_result['commands']
+        old_init,new_init = read(base/'initial.json'),read(candidate/'initial.json')
+        assert old_init['forecast_boundary'] == new_init['forecast_boundary']
+        old_service,new_service=read(base/'service_projection.json'),read(candidate/'service_projection.json')
+        if not service:
+            assert old_service==new_service
+        else:
+            changed={k for k,v in old_service['movement_capacity'].items() if v!=new_service['movement_capacity'][k]}
+            assert changed=={'SC101_S_SC1_to_W_SC1002'},changed
+            assert old_init['state']==new_init['state']
+        before,after = read(base/'projection.json'),read(candidate/'projection.json')
+        assignments = [d['diagnostics']['physical_stock_assignment_by_link'] for d in (before,after)]
+        assert assignments[0].keys() == assignments[1].keys()
+        for link in assignments[0]:
+            assert abs(sum(assignments[0][link].values())-sum(assignments[1][link].values())) < 1e-8
+            if service or link not in ('1220014201','1220011503'):
+                assert assignments[0][link] == assignments[1][link], link
+        native = {t:read(directory/f'state_{t:06d}.json') for t in range(at,end+1,150)}
+        events = []
+        for t in range(at+150,end+1,150):
+            meta = native[t]['obs150']['mer']; p = directory/meta['chunk']
+            assert digest(p) == meta['chunk_sha256']; pins[str(p)] = digest(p)
+            events.extend(r for line in p.read_text(encoding='utf-8').splitlines()
+                          if (r:=json.loads(line))[2] is not None and at <= r[2] < end)
+        def forecast_count(trace,name,a,b):
+            return sum(x['vehicles'] for x in trace['transfers'] if a <= x['start_sec'] < b and (
+                x['target']=='ramp:RM_C10484' if name is None else
+                x['source']=='movement:'+name and x['target'].startswith('storage:')))
+        flows = {}
+        for key,(name,ids) in movements.items():
+            ev = [x for x in events if x[1] in ids]
+            assert len(ev) == len({x[4] for x in ev}), key
+            flows[key] = dict(actual=len(ev),baseline=forecast_count(old,name,at,end),
+                              candidate=forecast_count(new,name,at,end),
+                bins=[dict(start=t,actual=sum(t<=x[2]<t+150 for x in ev),
+                           baseline=forecast_count(old,name,t,t+150),
+                           candidate=forecast_count(new,name,t,t+150)) for t in range(at,end,150)])
+        starts = read(candidate/'ramp_initial.json')
+        mass = {}
+        for r,n0 in starts['queue'].items():
+            last = new['ramp_snapshots'][-1]; buf = last['buffers'][r]
+            a = sum(x['vehicles'] for x in new['transfers'] if x['target']=='ramp:'+r)
+            m = sum(x['vehicles'] for x in new['transfers'] if x['source']=='ramp:'+r and x['target']=='merge_pending:'+r)
+            residual = n0+a-m-last['queue'][r]
+            assert abs(residual)<1e-8 and abs(buf['cumulative_admitted_veh']-a)<1e-8
+            assert abs(buf['cumulative_merge_veh']-m)<1e-8
+            mass[r] = residual
+        n0 = sum(v['link_no']==10484 for v in native[at]['vehicle_records']['records'])
+        n1 = sum(v['link_no']==10484 for v in native[end]['vehicle_records']['records'])
+        tiny = [sum(v['link_no']==10484 and v['position_m']<1 for v in native[t]['vehicle_records']['records']) for t in (at,end)]
+        assert tiny == [0,0], tiny
+        merge = n0+flows['ramp10484_arrival']['actual']-n1
+        for label,trace in [('baseline',old),('candidate',new)]:
+            model_merge = sum(x['vehicles'] for x in trace['transfers'] if at<=x['start_sec']<end
+                              and x['source']=='ramp:RM_C10484' and x['target']=='merge_pending:RM_C10484')
+            flows.setdefault('ramp10484_merge',{'actual_balance_reconstructed':merge})[label] = model_merge
+        cases[at] = dict(start=at,end=end,flows=flows,
+            initial_projection={link:{'baseline':assignments[0][link],'candidate':assignments[1][link]}
+                                for link in ('1220014201','1220011503')},
+            ttt450=dict(baseline=old['ttt'],candidate=new['ttt'],meaning='Same-command model difference, NOT control gain'),
+            ramp_mass_residual450=mass,compute_sec=new_result['wall_sec'],
+            left_service_rate=dict(baseline=old_service['movement_capacity']['SC101_S_SC1_to_W_SC1002'],
+                                   candidate=new_service['movement_capacity']['SC101_S_SC1_to_W_SC1002']))
+    for p,h in pins.items(): assert digest(Path(p))==h,p
+    binding = read(L/'city_path/2250_init_hp_sc101_binding/head_binding.json')
+    unit = [r for r in binding if r['estimates'].get("('1220011503', 'p2')")==1.]
+    assert unit and all(r['after'].get('SC101_S_SC1_to_W_SC1002')==1. for r in unit)
+    greens=[]
+    for at in range(1800,2251,150):
+        d=read(original/f'obs150/derived_{at:06d}.json')['head_window']
+        heads=[r for r in d['heads'] if r['link']=='1220011503' and r['sg']=='3']
+        assert len(heads)==2
+        greens.append(dict(end=at,heads=heads))
+    threshold=load(L/'physical_speed/candidate_config.json')['urban']['capacity']['head_observation']['min_green_sec']
+    assert threshold==30 and all(h['green_sec']<threshold for w in greens for h in w['heads'])
+    write('assessment_service.json' if service else 'assessment.json',dict(status='complete',cases=cases,pins=pins,
+        service_diagnosis=dict(movement_membership_present=True,min_green_sec=threshold,
+            past_windows=greens,reason='25-29s greens fail30s per-window exposure; previous service remains413.061veh/h',
+            scoped_past_pool_applied=service),
+        protected_source_checks_pass=True,queue_mass_preserved=True,only_two_roads_projection_changed=not service,
+        initial_projection_unchanged=service,commands_unchanged=True,services_unchanged=not service,
+        forecasts=2,initialization_only=0 if service else 2,fit_evaluations=0,
+        native_runs=0,adopted=False,goal='ACTIVE/NOT_QUALIFIED',
+        limits=['2250 full450 uses completed fixed-command native;3600 onlyfirst150 matches executed commands.',
+                'RM/VSL rankings and independent-seed validation not newly tested.',
+                'Shared through/right lane1 retains uncertainty; do not infer every stopped vehicle destination.',
+                'Do not fit METANET to hide the urban source shortfall.']))
+    print(json.dumps({t:c['flows'] for t,c in cases.items()}),flush=True)
+
+
+def prepare_service():
+    assert load(OUT/'assessment.json')['status']=='complete'
+    cfg=load(OUT/'candidate_config.json')
+    source=U/cfg['urban']['capacity']['head_resource_contract']
+    doc=load(source)
+    assert doc['schema']=='physical-head-resource-join/v7'
+    lane=load(OUT/'head_lane_support.json')
+    tree=ET.parse(U/doc['network']['path'])
+    name='SC101_S_SC1_to_W_SC1002'
+    heads=[]
+    for h in tree.findall('./signalHeads/signalHead'):
+        road,ln=h.get('lane').split();sc,sg=h.get('sg').split()
+        if road=='1220011503' and sg=='3':
+            heads.append(dict(head_id=h.get('no'),link=road,lane=int(ln),position_m=float(h.get('pos')),sc=sc,sg=sg))
+    assert {h['lane'] for h in heads}=={4,5}
+    doc['schema']='physical-head-resource-join/v8'
+    doc['resources']['10539']=dict(group='1220011503|p2',heads=heads,mode='regular_unique',
+        members={name:lane['movements'][name]['expected_spec']},receiver='SC101_to_SC1002',
+        target_link='1220012402',green_exposure_windows=4,
+        proof=dict(path=str((OUT/'head_lane_support.json').relative_to(U)),sha256=digest(OUT/'head_lane_support.json')))
+    doc['scope']='Existing v7 plus proven SC101 south left10539; existing4 past green-window pool, no fitted discharge parameter.'
+    write('head_resources.json',doc)
+    cfg['urban']['capacity']['head_resource_contract']=str((OUT/'head_resources.json').relative_to(U))
+    write('candidate_service_config.json',cfg)
+    write('service_protocol.json',dict(forecast_budget=2,states=[2250,3600],candidate_count=1,
+        base='queue-only candidate from completed two forecasts',
+        change='Existing historical green exposure pooling4 only for verified10539 resource; min_green30/min_crossings5 unchanged',
+        fits=0,new_native=0,future_prediction_inputs=False,adopted=False,
+        old_core=digest(OUT/'head_service_resources.before.py.txt'),new_core=digest(U/'evaluation/controllers/head_service_resources.py'),
+        accepted_if='Improved measured source/arrival chain without changing other parameters; independent response validation still required.'))
+
+
+def report_independent(readiness=False, residual=False):
+    I=L.parent.parent
+    baseline=I/'closedloop_recorded2700_lever450_trace10484_ps_ind47_20261001'
+    candidate=I/'closedloop_recorded2700_lever450_trace10484_sc101service_ind47'
+    previous=load(L/'physical_speed/independent47/verification.json')
+    if readiness:
+        baseline=candidate
+        candidate=I/'closedloop_recorded2700_lever450_trace10484_upstreamready_ind47'
+        previous=load(OUT/'independent47.json')
+    if residual:
+        baseline=I/'closedloop_recorded2700_lever450_trace10484_upstreamready_ind47'
+        candidate=I/'closedloop_recorded2700_lever450_trace10484_residualclass_ind47'
+        previous=load(OUT/'readiness_candidate/independent47.json')
+    native=load(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json')
+    assert native['paired_prefix_exact'] and native['counterfactual_valid']
+    receipt=load(candidate/'fixed_replay_receipt.json')
+    assert receipt['observation_cutoff_sec']==2700 and receipt['future_states_used'] is False
+    for p,h in receipt['files'].items():assert digest(Path(p))==h,p
+    if residual:
+        protocol=load(OUT/'residual_timing/independent47_protocol.json')
+        for p,h in protocol['source_pins'].items(): assert digest(Path(p))==h,p
+    elif readiness:
+        protocol=load(OUT/'readiness_candidate/independent_protocol.json')
+        assert digest(OUT/'readiness_candidate/candidate_config.json')==protocol['candidate_sha256']
+    else:
+        protocol=load(OUT/'independent47_protocol.json')
+        for p,h in protocol['prototype_sources'].items():assert digest(Path(p))==h,p
+    summary=load(candidate/'summary.json')
+    assert set(summary['results'])=={'held_actual','release_actual'}
+    assert summary['native_started'] is False and summary['optimizer_iterations']==0
+    assert summary['future_observation_inputs'] is False
+    models={};pins={}
+    for label,folder in [('before',baseline),('after',candidate)]:
+        arms={}
+        for arm in ['held_actual','release_actual']:
+            p=folder/f'{arm}.json';pins[str(p)]=digest(p);r=load(p);arms[arm]=r
+            assert r['validation']['all_actuator_and_step_constraints_checked']
+            assert max(abs(x['residual']) for x in r['ramps'].values())<1e-8
+            assert abs(sum(r['cost_by_stock'].values())-r['ttt_omega_veh_h'])<1e-8
+            if label=='after':
+                old=load(baseline/f'{arm}.json')
+                assert old['commands']==r['commands']
+                assert old['physical_cell_states'][0]==r['physical_cell_states'][0]
+                t0=load(baseline/f'{arm}_RM_C10484_trace.json.gz')
+                t1=load(candidate/f'{arm}_RM_C10484_trace.json.gz')
+                for k in ['initial_stock','initial_buffer','head_service_by_green']:assert t0[k]==t1[k],k
+        h,r=arms['held_actual'],arms['release_actual']
+        assert h['physical_cell_states'][0]==r['physical_cell_states'][0]
+        delta={k:r['cost_by_stock'].get(k,0)-h['cost_by_stock'].get(k,0)
+               for k in h['cost_by_stock'].keys()|r['cost_by_stock'].keys()}
+        parts={road:delta.get('freeway:'+road,0) for road in ['FW_E','FW_W']}
+        parts['ramps']=sum(v for k,v in delta.items() if k.startswith('ramp:'))
+        parts['other_Omega']=sum(delta.values())-sum(parts.values())
+        models[label]=dict(delta_omega=r['ttt_omega_veh_h']-h['ttt_omega_veh_h'],
+            delta_outside=r['tracked_outside_residence_veh_h']-h['tracked_outside_residence_veh_h'],
+            delta_by_group=parts,ramps={a:arms[a]['ramps'] for a in arms},
+            compute_sec=sum(x['wall_sec'] for x in arms.values()))
+    assert abs(models['before']['delta_omega']-previous['models']['after']['delta_omega'])<1e-8
+    result=dict(status='complete',goal='ACTIVE/NOT_QUALIFIED',adopted=False,
+        native_delta_omega=previous['native_delta_omega'],native_delta_by_group=previous['native_delta_by_group'],
+        native_delta_outside=previous['native_delta_outside'],
+        native_ramps=previous['native_ramps'] if readiness or residual else {a:r['ramps'] for a,r in previous['native'].items()},
+        models=models,pins=pins,forecast_count=2,fit=0,new_native=0,future_prediction_inputs=False,
+        commands_and_initial_freeway_ramp_states_match=True,all8_mass_pass=True,
+        sign_preserved=models['after']['delta_omega']*previous['native_delta_omega']>0,
+        scope='Release minus hold, same native initial history and fixed city/VSL. FullOmega costs, outside diagnostic. No SDMPC selection, AD, or new VSL response check.')
+    write('residual_timing/independent47.json' if residual else 'readiness_candidate/independent47.json' if readiness else 'independent47.json',result)
+    if readiness or residual:
+        print(json.dumps(dict(native=result['native_delta_omega'],before=models['before']['delta_omega'],
+                              after=models['after']['delta_omega'],sign_preserved=result['sign_preserved'])),flush=True)
+    else:
+        print(json.dumps({k:v for k,v in result.items() if k in ['native_delta_omega','native_delta_by_group','models','sign_preserved']}),flush=True)
+
+
+def diagnose_arrival():
+    """Retrospective cohort audit; future passages never enter a prediction."""
+    pins = {}
+    def read(path):
+        pins[str(path)] = digest(path)
+        return load(path)
+
+    base = L/'city_path/3600_ps_all8_sc101_sc101service'
+    init, trace = read(base/'initial.json'), read(base/'trace.json.gz')
+    projection = read(base/'projection.json')['diagnostics']['physical_stock_assignment_by_link']
+    movement = 'SC101_S_SC1_to_W_SC1002'
+    source = 'movement:'+movement
+    native_dir = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc/decisions_sdmpc31_sdmpc9000_s29')
+    start, end = [read(native_dir/f'state_{t:06d}.json') for t in (3600,3750)]
+    by_id = {r['veh_no']:r for r in start['vehicle_records']['records']}
+    signal = end['obs150']['signal_log']
+    assert signal['complete'] and signal['start']['101-3']['state']=='RED'
+    changes = [r for r in signal['events'] if r[1:3]==['101','3']]
+    assert [r[4] for r in changes]==['GREEN','AMBER','RED'], changes
+    green, amber = changes[0][0], changes[1][0]
+    meta = end['obs150']['mer']
+    mer = native_dir/meta['chunk']
+    pins[str(mer)] = digest(mer)
+    assert pins[str(mer)] == meta['chunk_sha256']
+    events = [r for line in mer.read_text(encoding='utf-8').splitlines()
+              if (r:=json.loads(line))[2] is not None and 3600<=r[2]<3750]
+    left = sorted((r for r in events if r[1] in (960084,960085)),key=lambda r:r[2])
+    assert len(left)==len({r[4] for r in left})==11
+    cohorts = [dict(vehicle_id=r[4],dcp=r[1],passage_sec=r[2],initial=by_id[r[4]]) for r in left]
+    origins = collections.Counter(r['initial']['link_no'] for r in cohorts)
+    assert origins=={1220011503:8,1210008501:3}, origins
+    through = [dict(vehicle_id=r[4],dcp=r[1],passage_sec=r[2],initial=by_id[r[4]])
+               for r in events if r[1] in (960096,960097,960098)
+               and r[4] in by_id and by_id[r[4]]['link_no']==1220011503
+               and by_id[r[4]]['lane_no']==4 and not by_id[r[4]]['stopped']]
+    assert len(through)==len({r['vehicle_id'] for r in through})==8
+    support = read(OUT/'head_lane_support.json')
+    network = U/support['network']['path']
+    pins[str(network)] = digest(network)
+    assert pins[str(network)]==support['network']['sha256']
+    tree = ET.parse(network)
+    links = {x.get('no'):x for x in tree.findall('./links/link')}
+    heads = [dict(h.attrib) for h in tree.findall('.//signalHead')
+             if h.get('lane','').split()[0] in ('1210008501','1220011503')]
+    assert {h['sg'].split()[0] for h in heads if h['lane'].startswith('1210008501 ')}=={'15'}
+    path = ['1210008501','10550','1220008502','10544','1220011503']
+    for i in (1,3):
+        c = links[path[i]]
+        assert c.find('fromLinkEndPt').get('lane').split()[0]==path[i-1]
+        assert c.find('toLinkEndPt').get('lane').split()[0]==path[i+1]
+    branches = [dict(connector=c.get('no'),to_link=c.find('toLinkEndPt').get('lane').split()[0])
+                for c in links.values() if c.find('fromLinkEndPt') is not None
+                and c.find('fromLinkEndPt').get('lane').split()[0]=='1210008501']
+    assert len({r['to_link'] for r in branches})>1
+    # A lower bound along the inspected route, omitting positive connector lengths.
+    road85 = float(links['10544'].find('fromLinkEndPt').get('pos'))-float(links['10550'].find('toLinkEndPt').get('pos'))
+    road115 = min(float(h['pos']) for h in heads if h['sg']=='101 3')-float(links['10544'].find('toLinkEndPt').get('pos'))
+    for row in cohorts:
+        if row['initial']['link_no']==1210008501:
+            row['remaining_distance_lower_bound_m'] = (float(links['10550'].find('fromLinkEndPt').get('pos'))
+                -row['initial']['position_m']+road85+road115)
+            assert row['remaining_distance_lower_bound_m']>570
+    assigned = {k:v[source] for k,v in projection.items() if source in v}
+    assert assigned=={'1220011503':5.,'1210008501':3.}
+    arrivals = [r for r in trace['transfers'] if r['target']==source and r['start_sec']<3750]
+    departures = [r for r in trace['transfers'] if r['source']==source and r['start_sec']<3750]
+    q0 = init['state']['queue'][movement]
+    q1 = trace['states'][0]['queue'][movement]
+    sent = sum(r['vehicles'] for r in departures)
+    residual = q0+sum(r['vehicles'] for r in arrivals)-sent-q1
+    assert abs(residual)<1e-9
+    early = [r for r in arrivals if r['start_sec']<green]
+    assert len(early)==1 and early[0]['start_sec']==3615
+    receiving = [r for r in trace['resources'] if r['kind']=='regular_receiving'
+                 and r['resource']=='storage:SC101_to_SC1002' and green<=r['start_sec']<=amber]
+    assert receiving and all(r['available_veh']>r['accepted_total_veh']+100 for r in receiving)
+    rate = init['network']['movement_capacity_by_movement_veh_h'][movement]/3600.
+    stock = q0+early[0]['vehicles']
+    assert abs(rate-1)<1e-9 and abs(stock-sent)<1e-9
+    sensitivity = {str(lost):min(stock,rate*max(0,amber-green-lost)) for lost in (0,2,5)}
+    assert all(abs(x-sent)<1e-9 for x in sensitivity.values())
+    # Quantifies the source geometry in a second saved state, without a forecast.
+    other = read(L/'city_path/2250_ps_all8_sc101_sc101service/projection.json')
+    other_assignment = other['diagnostics']['physical_stock_assignment_by_link'].get('1210008501',{})
+    core = U/'evaluation/controllers/vissim_stackelberg_adapter.py'
+    pins[str(core)] = digest(core)
+    for p,h in pins.items(): assert digest(Path(p))==h,p
+    result = dict(status='complete',scope='3600-3750 SC101 SG3 fixed-command retrospective diagnosis',
+        goal='ACTIVE/NOT_QUALIFIED',future_prediction_inputs=False,forecasts=0,new_native_runs=0,
+        signal_changes=changes,green_sec=amber-green,first_passage_after_write_sec=left[0][2]-green,
+        actual_left_cohorts=cohorts,actual_initial_lane4_moving_later_through=through,
+        model=dict(initial_queue=q0,queue_by_physical_source=assigned,arrivals=arrivals,
+                   departures=departures,total_departure=sent,end_queue=q1,mass_residual=residual,
+                   initial_arrival_buffer=init['state']['arrival_buffer']['SC1_to_SC101'],
+                   minimum_receiving_free_veh=min(r['available_veh'] for r in receiving),
+                   arrival_left_fraction=init['network']['urban_movements'][movement]['beta']),
+        geometry=dict(heads=heads,inspected_route=path,upstream_branches=branches,
+                      actual_SC15_state_recorded='15' in signal['scs'],
+                      source_projection2250=other_assignment),
+        startup_only_capacity_sensitivity=sensitivity,
+        loss_sec_needed_to_cap_departure_at11=amber-green-11/rate,
+        conclusion='Source readiness, residual arrival timing and destination attribution precede service-rate fitting.',
+        limits=['Future MER labels identify cohorts retrospectively only; not available causal vehicle destinations.',
+                'Signal15 is branched and has its own signal: cannot authorize deterministic transit projection.',
+                'Nonbinding receiving is a model result; actual downstream blocking is not ruled out.',
+                '2/5s startup sensitivity is arithmetic, not a coupled autonomous forecast or calibrated loss.',
+                'One state does not establish a global startup delay or a policy gain.'],pins=pins)
+    write('arrival_readiness3600.json',result)
+    print(json.dumps(dict(actual=len(left),model=sent,initial_sources=assigned,
+                         startup_only=sensitivity,source2250=other_assignment)),flush=True)
+
+
+def diagnose_native_clock():
+    """Check the unmodelled intermediate native signal in completed LDP only."""
+    from plant.src.vissim_strict.signal_program import parse_sig
+    previous = load(OUT/'arrival_readiness3600.json')
+    assert previous['status']=='complete'
+    for path,h in previous['pins'].items(): assert digest(Path(path))==h,path
+    support = load(OUT/'head_lane_support.json')
+    network = U/support['network']['path']
+    controller = next(c for c in ET.parse(network).findall('./signalControllers/signalController') if c.get('no')=='15')
+    assert controller.get('type')=='FIXEDTIME' and controller.get('active')=='true'
+    sig = network.parent/controller.get('supplyFile2').removeprefix('#data#')
+    root = Path('D:/VISSIM_runs/20260930_expanded036_s29_9000_r2/sdmpc')
+    provenance = root/'run_provenance_sdmpc31_sdmpc9000_s29.json'
+    manifest = load(provenance)
+    source = next(s for s in manifest['signal_programs'] if Path(s['path']).name==sig.name)
+    assert digest(sig)==source['sha256']==digest(Path(source['path']))
+    program = parse_sig(sig,int(controller.get('progNo')))
+    ldp = root/'vissim_eval/sdmpc31_sdmpc9000_s29_15_001.ldp'
+    symbols = {'.':'RED','I':'GREEN','/':'AMBER'}
+    timeline = {}
+    for line in ldp.read_text(encoding='cp949',errors='replace').splitlines():
+        if len(line)!=20: continue
+        try: t=float(line[:7]); float(line[7:12])
+        except ValueError: continue
+        assert t not in timeline
+        timeline[t] = {g:symbols[line[11+int(g)]] for g in ('3','8')}
+    assert set(timeline)==set(range(1,9001)), (min(timeline),max(timeline),len(timeline))
+    mismatch = [dict(time=t,sg=g,actual=state,predicted=program.state_at(t,g,
+                      controller_offset_sec=float(controller.get('offset'))))
+                for t,states in timeline.items() for g,state in states.items()
+                if state!=program.state_at(t,g,controller_offset_sec=float(controller.get('offset')))]
+    assert not mismatch,mismatch[:5]
+    green_windows = {}
+    for g in ('3','8'):
+        ranges=[]
+        for t in range(3600,3750):
+            if timeline[t][g]!='GREEN': continue
+            if ranges and ranges[-1][1]==t:ranges[-1][1]=t+1
+            else:ranges.append([t,t+1])
+        green_windows[g]=ranges
+    pins={str(p):digest(p) for p in [network,sig,Path(source['path']),provenance,ldp,OUT/'arrival_readiness3600.json']}
+    write('arrival_native_clock15.json',dict(status='pass',controller='15',program_no=int(controller.get('progNo')),
+        cycle_sec=program.cycle_length_sec,program_offset_sec=program.program_offset_sec,
+        controller_offset_sec=float(controller.get('offset')),native_samples=18000,mismatches=0,
+        green_windows3600_3750=green_windows,pins=pins,forecasts=0,new_native_runs=0,
+        limits=['Native timing validated; service rate, upstream turn destinations and queue propagation are not calibrated.',
+                'A fixed native clock must remain exogenous to SDMPC; this is not an added control lever.',
+                'Completed LDP was read once; no current native process was polled or modified.']))
+    print(json.dumps(dict(samples=18000,mismatches=0,green_windows=green_windows)),flush=True)
+
+
+def report_readiness(residual=False):
+    out = OUT/('residual_timing' if residual else 'readiness_candidate')
+    protocol = load(out/'protocol.json')
+    allowed_paths = ['evaluation/controllers/vissim_stackelberg_adapter.py'] if residual else protocol['allowed_core_changes']
+    allowed = {str((U/p).resolve()) for p in allowed_paths}
+    for p,h in protocol['source_pins'].items():
+        if str((U/p).resolve()) not in allowed: assert digest(U/p)==h,p
+    references = load(OUT/'assessment_service.json')['cases']
+    pins={}
+    def read(p):
+        pins[str(p)]=digest(p)
+        return load(p)
+    names={'SC101_east_through':'SC101_E_SC5_to_W_SC1002',
+           'SC101_south_left':'SC101_S_SC1_to_W_SC1002',
+           'road329_through':'SC1002_E_SC101_to_W_SC1001',
+           'road29_through':'SC1001_E_SC1002_to_W_RAMP',
+           'road40_left':'SC1001_S_SC1003_to_W_RAMP'}
+    cases={}
+    for at,end in ((2250,2700),(3600,3750)):
+        stems=[f'{at}_ps_all8_sc101_sc101service',f'{at}_ps_all8_sc101_upstreamready']
+        if residual: stems=[f'{at}_ps_all8_sc101_upstreamready',f'{at}_ps_all8_sc101_residualclass']
+        folders=[L/'city_path'/s for s in stems]
+        traces=[read(f/'trace.json.gz') for f in folders]
+        initials=[read(f/'initial.json') for f in folders]
+        assignments=[read(f/'projection.json')['diagnostics']['physical_stock_assignment_by_link'] for f in folders]
+        receipts=[read(f/'receipt.json') for f in folders]
+        results=[read(L.parent.parent/f'closedloop_recorded{at}_lever450_RM_C10484_city{s}/held_actual.json') for s in stems]
+        assert results[0]['commands']==results[1]['commands']
+        assert initials[0]['forecast_boundary']==initials[1]['forecast_boundary']
+        buffer_changes={}
+        if residual:
+            for key in initials[0]:
+                if key!='state': assert initials[0][key]==initials[1][key],key
+            for key in initials[0]['state']:
+                if key not in ('arrival_buffer','release_buffer'):
+                    assert initials[0]['state'][key]==initials[1]['state'][key],key
+            for kind in ('arrival_buffer','release_buffer'):
+                before,after=(init['state'][kind] for init in initials)
+                assert before.keys()==after.keys(),kind
+                for origin in before:
+                    assert abs(sum(before[origin].values())-sum(after[origin].values()))<1e-8,(kind,origin)
+                    if before[origin]!=after[origin]:
+                        buffer_changes.setdefault(origin,{})[kind]={'before':before[origin],'after':after[origin]}
+        assert read(folders[0]/'service_projection.json')==read(folders[1]/'service_projection.json')
+        assert all(r['future_observation_inputs'] is False and r['forecast_count']==1 for r in receipts)
+        assert assignments[0].keys()==assignments[1].keys()
+        for link in assignments[0]:
+            assert abs(sum(assignments[0][link].values())-sum(assignments[1][link].values()))<1e-8
+            if residual or link!='1210008501':assert assignments[0][link]==assignments[1][link],link
+        flows={}
+        for label,trace in zip(('before','after'),traces):
+            for name,movement in names.items():
+                count=sum(r['vehicles'] for r in trace['transfers'] if at<=r['start_sec']<end
+                          and r['source']=='movement:'+movement and r['target'].startswith('storage:'))
+                flows.setdefault(name,{'actual':references[str(at)]['flows'][name]['actual']})[label]=count
+            flows.setdefault('ramp10484_arrival',{'actual':references[str(at)]['flows']['ramp10484_arrival']['actual']})[label]=sum(
+                r['vehicles'] for r in trace['transfers'] if at<=r['start_sec']<end and r['target']=='ramp:RM_C10484')
+            flows.setdefault('ramp10484_merge',{'actual':references[str(at)]['flows']['ramp10484_merge']['actual_balance_reconstructed']})[label]=sum(
+                r['vehicles'] for r in trace['transfers'] if at<=r['start_sec']<end and r['source']=='ramp:RM_C10484' and r['target']=='merge_pending:RM_C10484')
+        mass={}
+        for ramp,n0 in read(folders[1]/'ramp_initial.json')['queue'].items():
+            trace=traces[1]; a=sum(r['vehicles'] for r in trace['transfers'] if r['target']=='ramp:'+ramp)
+            m=sum(r['vehicles'] for r in trace['transfers'] if r['source']=='ramp:'+ramp and r['target']=='merge_pending:'+ramp)
+            residual=n0+a-m-trace['ramp_snapshots'][-1]['queue'][ramp]
+            assert abs(residual)<1e-8
+            mass[ramp]=residual
+        if at==2250 and not residual:assert traces[0]==traces[1] and initials[0]==initials[1]
+        cases[str(at)]=dict(start=at,end=end,flows=flows,initial_upstream_source=dict(before=assignments[0]['1210008501'],after=assignments[1]['1210008501']),
+            initial_origin={label:{key:init['state'][key]['SC1_to_SC101'] for key in ('storage','arrival_buffer','release_buffer')}
+                            for label,init in zip(('before','after'),initials)},
+            cost450_same_command={label:t['ttt'] for label,t in zip(('before','after'),traces)},
+            ramp_mass_residual450=mass,compute_sec=results[1]['wall_sec'],exact_prediction_parity=traces[0]==traces[1])
+        if residual: cases[str(at)]['buffer_changes']=buffer_changes
+    for p,h in pins.items():assert digest(Path(p))==h,p
+    result=dict(status='complete',goal='ACTIVE/NOT_QUALIFIED',adopted=False,cases=cases,pins=pins,
+        forecasts=2,fit_evaluations=0,new_native_runs=0,future_observation_inputs=False,
+        limits=['Correction changes readiness only; native intermediate clock/branched travel are not yet part of this aggregate arrival buffer.',
+                'No new control comparison, SDMPC choice or independent-seed validation in these same-command forecasts.',
+                '3600 actual command comparison is restricted to the first150 seconds.'])
+    path=out/'assessment.json';assert not path.exists();path.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps({k:v['flows'] for k,v in cases.items()}),flush=True)
+
+
+def report_residual_selection():
+    I=L.parent.parent;out=OUT/'residual_timing'
+    pins={}
+    def read(path):
+        pins[str(path)]=digest(path);return load(path)
+    protocol=read(out/'selection_protocol.json')
+    for path,h in protocol['source_pins'].items(): assert digest(Path(path))==h,path
+    selected=I/'closedloop_recorded2700_select_res47v2'
+    checked=I/'closedloop_recorded2700_select_check_res47v2_resv3'
+    receipt=read(selected/'summary.json')
+    for path,h in receipt['files'].items(): assert digest(Path(path))==h,path
+    joint=read(selected/'unused_action.joint.json')
+    result=read(checked/'summary.json')
+    quantities=read(out/'execution_quantities.json')
+    previous=read(I/'closedloop_recorded2700_lever450_trace10484_residualclass_ind47/held_actual.json')
+    selection=joint['selection'];h,r=(result['results'][k] for k in ('held_actual','selected'))
+    assert joint['completed'] and selection['feasible']
+    assert result['native_started'] is False and result['future_observation_inputs'] is False
+    assert len(quantities)==2 and [q['case'] for q in quantities]==['held_actual','selected']
+    for k in ('ttt_omega_veh_h','cost_by_stock','ramps','commands','control_area'):
+        assert h[k]==previous[k],k
+    assert selection['control_sequence']['all_actuator_and_step_constraints_checked']
+    assert r['validation']['written_command_binding_passed'] and r['validation']['prewrite_binding_passed']
+    assert r['validation']['scored_action_token']==selection['control_sequence']['plan_action_token']
+    for row,item in zip(quantities,(h,r)):
+        assert abs(row['ttt']-item['ttt_omega_veh_h'])<1e-8
+        assert row['resource']['feasible']
+        for name in ('np','nuf'):
+            assert row['resource'][name]['target']==selection['final_constraints'][name]['target']
+        assert max(abs(x['residual']) for x in item['ramps'].values())<1e-8
+        assert abs(sum(item['cost_by_stock'].values())-item['ttt_omega_veh_h'])<1e-8
+    delta={k:r['cost_by_stock'].get(k,0)-h['cost_by_stock'].get(k,0)
+           for k in h['cost_by_stock'].keys()|r['cost_by_stock'].keys()}
+    groups={road:delta.get('freeway:'+road,0) for road in ('FW_E','FW_W')}
+    groups['eight_ramps']=sum(v for k,v in delta.items() if k.startswith('ramp:'))
+    groups['other_Omega']=sum(delta.values())-sum(groups.values())
+    changes=[]
+    for a,b in zip(h['commands'],r['commands']):
+        changes.append({key:{k:{'held':v,'selected':b[key][k]} for k,v in a[key].items() if v!=b[key][k]}
+                        for key in ('meters','vsl','green_times','offsets')})
+    surrogate=selection['selected_objective']-selection['held_objective']
+    execution=r['ttt_omega_veh_h']-h['ttt_omega_veh_h']
+    outside=r['tracked_outside_residence_veh_h']-h['tracked_outside_residence_veh_h']
+    output=dict(status='selection_and_execution_check_complete',goal='ACTIVE/NOT_QUALIFIED',adopted=False,
+        optimizer_decisions=1,controller_wall_sec=receipt['controller_wall_sec'],
+        solver=dict(status=selection['selection_status'],converged=selection['converged'],candidates=selection['candidates'],
+                    scalar_rollouts=joint['physical_response_cache']['scalar_rollouts'],
+                    tangent_rollouts=joint['physical_response_cache']['tangent_rollouts'],
+                    independent_AD_witness=selection['independent_ad_witness_performed']),
+        execution_forecasts=2,execution_compute_sec=h['wall_sec']+r['wall_sec'],
+        surrogate_delta_omega=surrogate,execution_delta_omega=execution,
+        execution_delta_outside=outside,execution_delta_combined=execution+outside,
+        delta_cost_by_group=groups,command_changes=changes,quantities=quantities,
+        exact_held_reproduction=True,all8_mass_pass=True,source_pins=pins,
+        future_prediction_inputs=False,new_native=0,fit=0,
+        limitations=['Selected city and one meter change together. This is not a causal RM/VSL mainline gain claim.',
+                     'Most Omega gain is offset by tracked outside waiting; objective remains Omega only.',
+                     'No convergence certificate, independent derivative witness, new native application or9000 qualification.'])
+    for path,h in pins.items(): assert digest(Path(path))==h,path
+    write('residual_timing/selection_verification.json',output)
+    print(json.dumps({k:output[k] for k in ('surrogate_delta_omega','execution_delta_omega','execution_delta_outside',
+                                         'execution_delta_combined','delta_cost_by_group')},ensure_ascii=False),flush=True)
+
+
+def diagnose_residual_recovery():
+    """Completed native decision frames are truth only, never forecast inputs."""
+    import csv
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.lane_plant_runtime import bin_frame
+    I=L.parent.parent
+    out=OUT/'residual_timing'
+    pins={}
+    def read(p):
+        pins[str(p)]=digest(p)
+        return load(p)
+    manifest=read(I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_manifest.json')
+    geoms={}
+    for key in ('geometry','refined_partition'):
+        row=manifest['sources'][key];p=U/row['path']
+        assert digest(p)==row['sha256'],p
+        geoms[key]=read(p)
+    geometry=geoms['geometry']
+    assert geometry['refined_partition']==manifest['sources']['refined_partition']
+    assert geometry['cells']==geoms['refined_partition']['cells']
+    assert geometry['bounds']==geoms['refined_partition']['bounds']
+    road='FW_E'
+    cells=[c for c in geometry['cells'] if c['road']==road]
+    assert len(cells)==31
+    native_root=Path('D:/VISSIM_runs/20260928_rm_observation2700_s47_v3')
+    models=I/'closedloop_recorded2700_lever450_trace10484_residualclass_ind47'
+    rows=[];native_checks={}
+    for arm,model_arm in [('hold','held_actual'),('release','release_actual')]:
+        model=read(models/(model_arm+'.json'))
+        directory=native_root/arm/f'decisions_sdmpc31_g_2700_{arm}_s47'
+        for state in model['physical_cell_states']:
+            sec=int(state['time_sec']);raw=read(directory/f'state_{sec:06d}.json')
+            obs=raw[oc.RAW_STATE_KEY];ref=obs['frames']['current']
+            path=oc.resolve(obs,ref['path'])
+            frame=oc.load_frame(path,ref['sha256'],sec)
+            pins[str(path)]=digest(path)
+            observed_cells,bins,dropped=bin_frame(geometry,frame['vehicles'],road,drop_before_start=True)
+            assert observed_cells==cells and not dropped
+            for i,(c,vehicles) in enumerate(zip(cells,bins)):
+                actual_n=len(vehicles)
+                model_n=state['density'][road][i]*state['effective_lanes'][road][i]*c['length_km']
+                speed=sum(v[4] for v in vehicles)/actual_n if actual_n else None
+                if sec==2700:
+                    assert abs(actual_n-model_n)<1e-8,(arm,i,actual_n,model_n)
+                    if actual_n: assert abs(speed-state['speed_kmh'][road][i])<1e-6,(arm,i)
+                rows.append(dict(arm=arm,sec=sec,cell=i,actual_count=actual_n,model_count=model_n,
+                                 actual_speed_kmh=speed,model_speed_kmh=state['speed_kmh'][road][i]))
+        analysis=I/'native_rm_observation2700_writerfix_v3/analysis'/arm
+        path=analysis/'area_timeseries.csv';pins[str(path)]=digest(path)
+        with path.open(encoding='utf-8-sig',newline='') as stream: series=list(csv.DictReader(stream))
+        unresolved=sum(int(r['unresolved_inside_disappearances']) for r in series if float(r['sim_sec'])>2700)
+        errors=read(analysis/'native_errors.json')
+        removals=[{k:r[k] for k in ('kind','time_sec','vehicle_id','link')} for r in errors['unique_events']
+                  if r['kind']=='lane_change_removal' and 2700<r['time_sec']<=3150]
+        native_checks[arm]=dict(unresolved_inside_disappearances_after2700=unresolved,removals_after2700=removals)
+    comparisons=[]
+    indexed={(r['arm'],r['sec'],r['cell']):r for r in rows}
+    for sec in (2850,3000,3150):
+        for i in range(31):
+            h,r=(indexed[(arm,sec,i)] for arm in ('hold','release'))
+            comparisons.append(dict(sec=sec,cell=i,
+                actual_delta_count=r['actual_count']-h['actual_count'],
+                model_delta_count=r['model_count']-h['model_count'],
+                actual_delta_speed=None if h['actual_speed_kmh'] is None or r['actual_speed_kmh'] is None else r['actual_speed_kmh']-h['actual_speed_kmh'],
+                model_delta_speed=r['model_speed_kmh']-h['model_speed_kmh']))
+    for p,h in pins.items(): assert digest(Path(p))==h,p
+    write('residual_timing/independent47_recovery.json',dict(status='complete',initial31_cell_native_model_match=True,
+        native_checks=native_checks,rows=rows,release_minus_hold=comparisons,pins=pins,
+        future_prediction_inputs=False,retrospective_truth_only=True,forecasts=0,new_native=0,
+        limitation='Native150s endpoint samples do not establish exact recovery onset or continuous propagation speed. No new calibration.'))
+    print(json.dumps(dict(native_checks=native_checks,local=[r for r in comparisons if 21<=r['cell']<=25]),ensure_ascii=False),flush=True)
+
+
+def report_residual_native():
+    """Audit the completed selected replay using cached costs and native frames."""
+    import csv
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.lane_plant_runtime import bin_frame
+    I=L.parent.parent
+    case=I/'closedloop_recorded2700_native_selected_res47v2'
+    out=case/'analysis'
+    target=out/'response_decomposition.json'
+    assert not target.exists(),target
+    pins={}
+    def read(path):
+        pins[str(path)]=digest(path)
+        return load(path)
+    protocol=read(case/'protocol.json')
+    summary=read(out/'summary.json')
+    assert summary['counterfactual_valid'] and summary['common_start_vehicle_records_exact']
+    assert summary['paired_prefix_exact'] and summary['start_sec']==2700 and summary['end_sec']==3150
+    assert all(v['native_execution_passed'] for v in summary['arms'].values())
+    assert read(case/'status.json')['stage']=='requested_native_arms_complete_unanalyzed'
+    baseline=Path(protocol['reuse_native_baseline']['summary'])
+    assert digest(baseline)==protocol['reuse_native_baseline']['sha256']
+    prediction_path=Path(protocol['prediction_source'])
+    assert digest(prediction_path)==protocol['prediction_sha256']
+    prediction=read(prediction_path)['results']
+    manifest=read(I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_manifest.json')
+    ref=manifest['sources']['geometry'];gp=U/ref['path']
+    assert digest(gp)==ref['sha256']
+    geometry=read(gp)
+    chains={str(x['link']):road for road,chain in geometry['chains'].items() for x in chain}
+    ramps={r.removeprefix('RM_C') for r in prediction['held_actual']['ramps']}
+    assert len(ramps)==8 and not set(chains)&ramps
+    costs={};metrics={};snapshots={};series={};removals={}
+    for arm in ('hold','selected'):
+        folder=baseline.parent/arm if arm=='hold' else out/arm
+        metrics[arm]=read(folder/'area_metrics.json')
+        groups=dict(FW_E=0.,FW_W=0.,eight_ramps=0.,other_Omega=0.,outside_Omega=0.)
+        for link,row in metrics[arm]['physical_link_residence'].items():
+            group=(chains[link] if link in chains else 'eight_ramps' if link in ramps else
+                   'other_Omega' if row['inside'] else 'outside_Omega')
+            if group!='outside_Omega': assert row['inside'],(arm,link,group)
+            groups[group]+=row['ttt_veh_h']
+        assert abs(sum(v for k,v in groups.items() if k!='outside_Omega')-metrics[arm]['ttt_veh_h'])<1e-7
+        costs[arm]=groups
+        path=folder/'area_timeseries.csv';pins[str(path)]=digest(path)
+        with path.open(encoding='utf-8-sig',newline='') as stream:
+            series[arm]=[r for r in csv.DictReader(stream) if float(r['sim_sec'])>=2700]
+        errors=read(folder/'native_errors.json')
+        removals[arm]=[{k:r[k] for k in ('time_sec','vehicle_id','link')} for r in errors['unique_events']
+                       if r['kind']=='lane_change_removal' and 2700<r['time_sec']<=3150]
+        run=Path(protocol['reuse_native_baseline']['run']) if arm=='hold' else Path('D:/VISSIM_runs/20261001_residual_selected_s47')/arm
+        assert not (run.parent/'STOP').exists()
+        decisions=run/f'decisions_sdmpc31_g_2700_{arm}_s47'
+        rows=[]
+        for sec in (2700,2850,3000,3150):
+            raw=read(decisions/f'state_{sec:06d}.json');obs=raw[oc.RAW_STATE_KEY]
+            ref=obs['frames']['current'];path=oc.resolve(obs,ref['path'])
+            frame=oc.load_frame(path,ref['sha256'],sec);pins[str(path)]=digest(path)
+            for road in ('FW_E','FW_W'):
+                cells,bins,dropped=bin_frame(geometry,frame['vehicles'],road,drop_before_start=True)
+                assert len(cells)==31 and not dropped
+                for cell,vehicles in enumerate(bins):
+                    rows.append(dict(sec=sec,road=road,cell=cell,count=len(vehicles),
+                        speed_kmh=sum(v[4] for v in vehicles)/len(vehicles) if vehicles else None))
+        snapshots[arm]=rows
+    assert snapshots['hold'][:62]==snapshots['selected'][:62]
+    actual={k:costs['selected'][k]-costs['hold'][k] for k in costs['hold']}
+    assert abs(sum(v for k,v in actual.items() if k!='outside_Omega')-summary['delta_TTT_veh_h'])<1e-7
+    a,b=(prediction[k] for k in ('held_actual','selected'))
+    stock_delta={k:b['cost_by_stock'].get(k,0)-a['cost_by_stock'].get(k,0)
+                 for k in a['cost_by_stock'].keys()|b['cost_by_stock'].keys()}
+    model={road:stock_delta['freeway:'+road] for road in ('FW_E','FW_W')}
+    model['eight_ramps']=sum(v for k,v in stock_delta.items() if k.startswith('ramp:'))
+    model['other_Omega']=sum(stock_delta.values())-sum(model.values())
+    model['outside_Omega']=b['tracked_outside_residence_veh_h']-a['tracked_outside_residence_veh_h']
+    link_delta=[]
+    for link in metrics['hold']['physical_link_residence'].keys()|metrics['selected']['physical_link_residence'].keys():
+        h=metrics['hold']['physical_link_residence'].get(link,{});s=metrics['selected']['physical_link_residence'].get(link,{})
+        link_delta.append(dict(link=link,inside=(h or s)['inside'],delta=s.get('ttt_veh_h',0)-h.get('ttt_veh_h',0)))
+    native_end={k:summary['arms']['selected'][k]-summary['arms']['hold'][k] for k in
+        ('Omega_TTD_events','Omega_end_vehicles','native_removals','unresolved_Omega_disappearances','uninserted_at_end')}
+    result=dict(status='complete',goal='ACTIVE/NOT_QUALIFIED',native_runs_completed=1,new_forecasts=0,new_fzp_scans=0,
+        actual_delta_veh_h=actual,model_delta_veh_h=model,
+        model_minus_actual_delta_veh_h={k:model[k]-actual[k] for k in actual},
+        native_end_deltas=native_end,removals_after2700=removals,
+        actual_snapshots=snapshots,actual_area_series=series,
+        largest_physical_link_deltas=sorted(link_delta,key=lambda r:abs(r['delta']),reverse=True)[:30],
+        largest_model_stock_deltas=sorted(stock_delta.items(),key=lambda r:abs(r[1]),reverse=True)[:20],
+        model_origin_Omega_cost={arm:{k:v for k,v in row['cost_by_stock'].items() if k.startswith('origin:')} for arm,row in prediction.items()},
+        pins=pins,limitations=[
+            'Physical link cost deltas cancel the identical prefix; model costs cover450s. FZP samples every5s with4.9s held tail.',
+            'Native150s endpoint snapshots do not measure exact recovery onset; no future observations feed model forecasts.',
+            'Model outside cost excludes native uninserted delay; use the comparison summary for that separate diagnostic.',
+            'City and one meter change jointly. This comparison does not qualify isolated VSL or RM efficacy.',
+            'Unresolved disappearances and lane-change removals remain exclusions from TTD, not verified normal exits.'])
+    for p,h in pins.items():assert digest(Path(p))==h,p
+    target.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps({k:result[k] for k in ('actual_delta_veh_h','model_delta_veh_h','native_end_deltas','largest_physical_link_deltas')},ensure_ascii=False),flush=True)
+
+
+def diagnose_residual_native_boundaries():
+    """Localize native mainline/off-ramp response; no new forecasts or FZP scan."""
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.obs150_observation import check_rule_crosscheck
+    I=L.parent.parent;case=I/'closedloop_recorded2700_native_selected_res47v2';out=case/'analysis'
+    target=out/'boundary_response.json';assert not target.exists(),target
+    pins={}
+    def read(p):
+        pins[str(p)]=digest(p);return load(p)
+    protocol=read(case/'protocol.json');comparison=read(out/'summary.json')
+    assert comparison['counterfactual_valid']
+    ramps=read(out/'ramp_response_audit.json')
+    manifest=read(I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_manifest.json')
+    ref=manifest['sources']['geometry'];gp=U/ref['path'];assert digest(gp)==ref['sha256']
+    geometry=read(gp);off={str(x['connector']):x for x in geometry['boundaries'] if x['kind']=='offramp'}
+    on={str(x['connector']):x for x in geometry['boundaries'] if x['kind']=='ramp'}
+    assert len(off)==len(on)==8
+    chains={road:{int(x['link']) for x in chain} for road,chain in geometry['chains'].items()}
+    def count(raw,links):
+        assert raw['vehicle_records']['complete']
+        return sum(int(v['link_no']) in links for v in raw['vehicle_records']['records'])
+    results={}
+    for arm in ('hold','selected'):
+        run=Path(protocol['reuse_native_baseline']['run']) if arm=='hold' else Path('D:/VISSIM_runs/20261001_residual_selected_s47')/arm
+        assert not (run.parent/'STOP').exists()
+        directory=run/f'decisions_sdmpc31_g_2700_{arm}_s47'
+        previous=read(directory/'state_002700.json');windows=[]
+        for wi,sec in enumerate((2850,3000,3150)):
+            raw=read(directory/f'state_{sec:06d}.json');obs=raw[oc.RAW_STATE_KEY]
+            detectors,_=oc.read_detector_csv(obs['detector_config']['path'],obs['detector_config']['sha256'])
+            oc.validate_raw(obs,detectors,expected_simres=oc.EXPECTED_SIMRES);check_rule_crosscheck(obs,detectors)
+            bundle=oc.load_bundle(raw)
+            boundary=oc.evaluate_boundaries(obs,detectors,bundle.frame_end,bundle.frame_start,bundle.err_rows)
+            removed=oc.window_removals(bundle.err_rows,sec-150,sec)
+            offs={};roads={}
+            for link,row in off.items():
+                n0=count(previous,{int(link)});n1=count(raw,{int(link)})
+                enter=boundary['off_entry:'+link].cross
+                lost=sum(int(v['link'])==int(link) for v in removed)
+                leave=n0+enter-n1-lost
+                assert leave>=0,(arm,link,sec)
+                offs[link]=dict(road=row['road'],initial=n0,entry=enter,drain=leave,final=n1,removals=lost)
+            for road,links in chains.items():
+                n0=count(previous,links);n1=count(raw,links)
+                source=boundary['source:'+road].cross;terminal=boundary['chain_end:'+road].cross
+                merge=sum(ramps['arms'][arm]['RM_C'+link]['actual']['windows'][wi]['merge']
+                          for link,row in on.items() if row['road']==road)
+                exited=sum(v['entry'] for v in offs.values() if v['road']==road)
+                lost=sum(int(v['link']) in links for v in removed)
+                roads[road]=dict(initial=n0,source=source,merge=merge,off_entry=exited,terminal=terminal,
+                    final=n1,removals=lost,closure_residual=n1-(n0+source+merge-exited-terminal-lost))
+            windows.append(dict(start_sec=sec-150,end_sec=sec,offramps=offs,mainline=roads))
+            previous=raw
+        results[arm]=windows
+    deltas=[]
+    for a,b in zip(results['hold'],results['selected']):
+        row=dict(start_sec=a['start_sec'],end_sec=a['end_sec'])
+        for part in ('offramps','mainline'):
+            row[part]={key:{k:b[part][key][k]-v for k,v in val.items() if isinstance(v,(int,float))}
+                       for key,val in a[part].items()}
+        deltas.append(row)
+    prediction=read(Path(protocol['prediction_source']))['results']
+    model_flows={arm:{k:v for k,v in val['control_area']['flow_counts'].items()
+                     if k.startswith(('freeway:','merge_pending:','origin:'))} for arm,val in prediction.items()}
+    for p,h in pins.items():assert digest(Path(p))==h,p
+    result=dict(status='complete',native=results,selected_minus_hold=deltas,model_flows=model_flows,pins=pins,
+        scope='Completed native2700..3150 integer150s windows; all8offramps and both physicalmainlines.',
+        new_forecasts=0,fzp_scans=0,fit=0,
+        limitations=['Off-ramp drain is inferred by entry-stock-removal conservation, not a direct downstream detector for every ramp.',
+                     'These balances localize changes but do not identify the causal effect of one lever in a joint-city/RM experiment.'])
+    target.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(deltas,ensure_ascii=False),flush=True)
+
+
+def report_residual_intervals(source_conditioned=False):
+    """Compare fixed forecasts against completed native windows; label future inputs."""
+    I=L.parent.parent;out=OUT/'residual_timing'/('source_conditioned/execution' if source_conditioned else 'native_response_trace')
+    target=out/'comparison.json';assert not target.exists(),target
+    pins={}
+    def read(p):
+        pins[str(p)]=digest(p);return load(p)
+    verify=read(out/'verification.json');assert verify['exact_reference_parity']==(not source_conditioned)
+    assert verify['forecasts']==2 and verify['future_observation_inputs']==source_conditioned
+    protocol=read(out/'protocol.json')
+    for p,h in protocol['source_pins'].items():assert digest(Path(p))==h,p
+    model=read(out/'execution_intervals.json')
+    autonomous=read(OUT/'residual_timing/native_response_trace/comparison.json') if source_conditioned else None
+    conditional_results=read(Path(verify['result']))['results'] if source_conditioned else None
+    root=I/'closedloop_recorded2700_native_selected_res47v2/analysis'
+    native=read(root/'boundary_response.json');physical=read(root/'response_decomposition.json')
+    summary=read(root/'summary.json');assert summary['counterfactual_valid']
+    series={a:{float(r['sim_sec']):r for r in physical['actual_area_series'][a]} for a in ('hold','selected')}
+    def measured_delta(t):
+        return float(series['selected'][t]['ttt_veh_h_cumulative'])-float(series['hold'][t]['ttt_veh_h_cumulative'])
+    times=(2700.1,2850.1,3000.1,3150.)
+    rows=[]
+    for i,(h,s) in enumerate(zip(model['held_actual'],model['selected'])):
+        assert h['end_sec']==s['end_sec']==2850+150*i
+        row=dict(start_sec=h['start_sec'],end_sec=h['end_sec'],native_cost_start_sec=times[i],native_cost_end_sec=times[i+1],
+            delta_model_Omega=s['ttt_omega_veh_h']-h['ttt_omega_veh_h'],
+            delta_actual_Omega=measured_delta(times[i+1])-measured_delta(times[i]),mainline={},offramps={})
+        for case,arm,w in (('held_actual','hold',h),('selected','selected',s)):
+            roads={}
+            for road in ('FW_E','FW_W'):
+                key='freeway:'+road;f=w['transfers']
+                source=sum(t['vehicles'] for t in f if t['source']=='origin:'+road and t['target']==key)
+                merge=sum(t['vehicles'] for t in f if (t['source'] or '').startswith('merge_pending:') and t['target']==key)
+                off=sum(t['vehicles'] for t in f if t['source']==key and (t['target'] or '').startswith('storage:'))
+                terminal=sum(t['vehicles'] for t in f if t['source']==key and t['target']=='external:terminal:'+road)
+                initial=sum(w['physical_cell_states'][0]['vehicle_count'][road]);final=sum(w['physical_cell_states'][1]['vehicle_count'][road])
+                assert abs(final-initial-source-merge+off+terminal)<1e-7
+                cells=[]
+                for r in physical['actual_snapshots'][arm]:
+                    if r['sec']==w['end_sec'] and r['road']==road:
+                        j=r['cell'];cells.append(dict(cell=j,actual_n=r['count'],actual_speed=r['speed_kmh'],
+                            model_n=w['physical_cell_states'][1]['vehicle_count'][road][j],
+                            model_speed=w['physical_cell_states'][1]['speed_kmh'][road][j]))
+                roads[road]=dict(model=dict(initial=initial,final=final,source=source,merge=merge,off_entry=off,
+                    terminal=terminal,ttt_veh_h=w['cost_by_stock'][key]),actual=native['native'][arm][i]['mainline'][road],cells=cells)
+            row['mainline'][arm]=roads
+            row['offramps'][arm]={str(v['connector']):dict(model=v,actual=native['native'][arm][i]['offramps'][str(v['connector'])])
+                                     for v in w['offramps'].values()}
+        row['delta_FW_E']={kind:{k:row['mainline']['selected']['FW_E'][kind][k]-row['mainline']['hold']['FW_E'][kind][k]
+            for k in ('source','merge','off_entry','terminal','final')} for kind in ('model','actual')}
+        if source_conditioned:
+            row['future_observation_inputs']=True
+            row['autonomous_prediction']=False
+            row['autonomous_delta_Omega']=autonomous['rows'][i]['delta_model_Omega']
+            row['autonomous_delta_FW_E']=autonomous['rows'][i]['delta_FW_E']['model']
+            for case,arm in (('held_actual','hold'),('selected','selected')):
+                expected=conditional_results[case]['diagnostic_future_source']['rates_veh_h'][i]/24.
+                row['mainline'][arm]['FW_E']['conditional_input_veh']=expected
+                # Verify admissions; never overwrite a queue or flow to force the observation.
+                admitted=row['mainline'][arm]['FW_E']['model']['source']
+                row['mainline'][arm]['FW_E']['source_admission_minus_input_veh']=admitted-expected
+        rows.append(row)
+    expected_delta=(conditional_results['selected']['ttt_omega_veh_h']-conditional_results['held_actual']['ttt_omega_veh_h']
+                    if source_conditioned else summary['predicted_delta_omega_veh_h'])
+    assert abs(sum(r['delta_model_Omega'] for r in rows)-expected_delta)<1e-8
+    assert abs(sum(r['delta_actual_Omega'] for r in rows)-summary['delta_TTT_veh_h'])<1e-8
+    for p,h in pins.items():assert digest(Path(p))==h,p
+    result=dict(status='complete',goal='ACTIVE/NOT_QUALIFIED',same_autonomous_forecasts_exact=not source_conditioned,rows=rows,pins=pins,
+        future_observation_inputs=source_conditioned,autonomous_prediction=not source_conditioned,
+        optimizer_allowed=False,calibration_allowed=False,
+        actual_source_difference_is_not_attributed=True,new_model_fits=0,new_native_runs=0,
+        limitations=['Native cost boundaries have0.1s recording phase and4.9s held tail; model windows are integer150s.',
+                     'Matching one endpoint stock may hide opposing flow errors; inspect the separate sources,merges,exits.',
+                     'Source-count variation was observed under the same configured demand. Generation,admission and stochastic coupling have not been separated.',
+                     'This fixed450s command replay is not the result of reoptimizing at2850 and3000.',
+                     ('Observed accepted FW_E source counts are future inputs for conditional diagnosis only; not autonomous gain validation.'
+                      if source_conditioned else 'No measured future boundary was used in these two forecasts.')])
+    target.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps([{k:r[k] for k in ('end_sec','delta_model_Omega','delta_actual_Omega','delta_FW_E')} for r in rows]),flush=True)
+
+
+def diagnose_residual_cells():
+    """Localize the saved response with cell conservation and native detectors."""
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.lane_plant_runtime import bin_frame
+    I=L.parent.parent;root=I/'closedloop_recorded2700_native_selected_res47v2'
+    out=OUT/'residual_timing/cell_discharge';target=out/'comparison.json'
+    assert not target.exists()
+    pins={}
+    def read(p):
+        pins[str(p)]=digest(p);return load(p)
+    protocol=read(root/'protocol.json');summary=read(root/'analysis/summary.json')
+    assert summary['counterfactual_valid'] and summary['common_start_vehicle_records_exact']
+    geo=read(I/'selected/port_gain/geometry.json')
+    assert digest(I/'selected/port_gain/geometry.json')==read(
+        I/'baseline_reproduction_20260929/cellwise_calibration/coupled_expanded_joint/candidate_manifest.json')['sources']['geometry']['sha256']
+    boundary=read(root/'analysis/boundary_response.json')
+    physical=read(root/'analysis/response_decomposition.json')
+    ramp=read(root/'analysis/ramp_response_audit.json')
+    model=read(OUT/'residual_timing/native_response_trace/execution_intervals.json')
+    past=read(OUT/'residual_timing/native_response_trace/comparison.json')
+    ports=[b for b in geo['boundaries'] if b.get('road')=='FW_E']
+    rows=[];lane_rows=[];stopped_cases=[];checks=[]
+    for arm,case in (('hold','held_actual'),('selected','selected')):
+        run=(Path(protocol['reuse_native_baseline']['run']) if arm=='hold'
+             else Path('D:/VISSIM_runs/20261001_residual_selected_s47/selected'))
+        directory=run/f'decisions_sdmpc31_g_2700_{arm}_s47'
+        for wi,w in enumerate(boundary['native'][arm]):
+            start,end=w['start_sec'],w['end_sec'];mw=model[case][wi]
+            assert w['mainline']['FW_E']['removals']==0
+            state=read(directory/f'state_{end:06d}.json');obs=state[oc.RAW_STATE_KEY]
+            detectors,_=oc.read_detector_csv(obs['detector_config']['path'],obs['detector_config']['sha256'])
+            bundle=oc.load_bundle(state)
+            measured=oc.evaluate_boundaries(obs,detectors,bundle.frame_end,bundle.frame_start,bundle.err_rows)
+            frame_path=oc.resolve(obs,obs['frames']['current']['path']);pins[str(frame_path)]=digest(frame_path)
+            _,bins,dropped=bin_frame(geo,bundle.frame_end['vehicles'],'FW_E',drop_before_start=True)
+            assert not dropped and len(bins)==31
+            actual={sec:[v['count'] for v in physical['actual_snapshots'][arm]
+                         if v['road']=='FW_E' and v['sec']==sec] for sec in (start,end)}
+            assert actual[end]==list(map(len,bins))
+            n0={'actual':actual[start],'model':mw['physical_cell_states'][0]['vehicle_count']['FW_E']}
+            n1={'actual':actual[end],'model':mw['physical_cell_states'][1]['vehicle_count']['FW_E']}
+            flowing={kind:past['rows'][wi]['mainline'][arm]['FW_E'][kind]['source'] for kind in n0}
+            for j in range(31):
+                item=dict(arm=arm,start_sec=start,end_sec=end,cell=j)
+                for kind in ('actual','model'):
+                    merges=[p for p in ports if p['kind']=='ramp' and p['to_cell']==j]
+                    exits=[p for p in ports if p['kind']=='offramp' and p['from_cell']==j]
+                    merge=sum((ramp['arms'][arm][p['id']]['actual']['windows'][wi]['merge']
+                        if kind=='actual' else mw['ramps'][p['id']]['merge']) for p in merges)
+                    off=sum((w['offramps'][str(p['connector'])]['entry'] if kind=='actual'
+                        else mw['offramps'][str(p['connector'])]['arrival']) for p in exits)
+                    qin=flowing[kind];qout=qin+merge-off+n0[kind][j]-n1[kind][j]
+                    assert qout>=-1e-7
+                    item[kind]=dict(initial=n0[kind][j],final=n1[kind][j],mainline_in=qin,
+                        merge=merge,off_entry=off,mainline_out=qout)
+                    flowing[kind]=qout
+                if j in (18,20):
+                    name='through:'+('10481' if j==18 else '10483')
+                    count=measured[name].cross
+                    assert abs(item['actual']['mainline_out']-count)<1e-8,(arm,end,j,count,item)
+                    checks.append(dict(arm=arm,end_sec=end,cell=j,boundary=name,count=count,
+                                       independently_matches_conservation=True))
+                rows.append(item)
+                if 18<=j<=25:
+                    for lane in sorted({int(v[2]) for v in bins[j]}):
+                        vs=[v for v in bins[j] if int(v[2])==lane]
+                        lane_rows.append(dict(arm=arm,end_sec=end,cell=j,lane=lane,count=len(vs),
+                            speed_kmh=sum(v[4] for v in vs)/len(vs),stopped_lt5=sum(v[4]<5 for v in vs),
+                            slow_lt20=sum(v[4]<20 for v in vs)))
+            for kind in flowing:
+                assert abs(flowing[kind]-past['rows'][wi]['mainline'][arm]['FW_E'][kind]['terminal'])<1e-7
+            stopped=[v for v in bins[20] if v[4]<5]
+            stopped_cases.append(dict(arm=arm,end_sec=end,cell20_stopped=stopped,
+                port10483=[v for v in bundle.frame_end['vehicles'] if int(v[1])==10483],
+                receiving124_stopped=sum(int(v[1])==124 and v[4]<5 for v in bundle.frame_end['vehicles'])))
+    for p,h in pins.items():assert digest(Path(p))==h,p
+    result=dict(status='complete',goal='ACTIVE/NOT_QUALIFIED',cells=rows,lane_snapshots=lane_rows,
+        stopped_context=stopped_cases,detector_crosschecks=checks,pins=pins,
+        new_forecasts=0,new_native=0,new_fzp_scans=0,fit=0,future_inputs_to_forecast=False,
+        limitations=['Cell flows are integrated150s conservation reconstructions; only cells18/20 are independently detector checked.',
+                     'Snapshot lane speeds do not identify the time of wave onset or a single lever cause.',
+                     'Selected city signals and one meter changed jointly; no isolated VSL/RM causal effect is claimed.'])
+    target.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(cells=len(rows),lane_snapshots=len(lane_rows),detector_checks=len(checks),
+        comparison=str(target))),flush=True)
+
+
+if __name__ == '__main__':
+    actions={'prepare':prepare,'report':report,'prepare-service':prepare_service,
+             'report-service':lambda:report(True),'report-independent':report_independent,
+             'diagnose-arrival':diagnose_arrival,'diagnose-native-clock':diagnose_native_clock,
+             'report-readiness':report_readiness,'report-readiness-independent':lambda:report_independent(True),
+             'report-residual':lambda:report_readiness(True),
+             'report-residual-independent':lambda:report_independent(residual=True),
+             'diagnose-residual-recovery':diagnose_residual_recovery,
+             'report-residual-selection':report_residual_selection,
+             'report-residual-native':report_residual_native,
+             'diagnose-residual-native-boundaries':diagnose_residual_native_boundaries,
+             'report-residual-intervals':report_residual_intervals,
+             'report-source-conditioned':lambda:report_residual_intervals(True),
+             'diagnose-residual-cells':diagnose_residual_cells}
+    assert len(sys.argv)==2 and sys.argv[1] in actions
+    actions[sys.argv[1]]()

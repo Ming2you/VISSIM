@@ -1,0 +1,958 @@
+{
+  "schema_version": "native-clock-source-contract-v1",
+  "activation": "inactive; source-only validation, no COM or native run",
+  "network": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\baseline.inpx",
+  "network_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+  "plan": "outputs\\signal_group_actuation_plan_mainline_20260825.json",
+  "plan_file_sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e",
+  "implementation": "evaluation/controllers/signal_group_plan.py",
+  "implementation_sha256": "41abeaa724aa45ffffdae33619520c429c57edfcb96bba7ce226cf928b00bab2",
+  "state_semantics": "GREEN first; own-SG AMBER after its GREEN; other SG GREEN does not suppress AMBER; half-open source intervals",
+  "verification_scope": "owned phase_signal_groups including permanent red; unmapped midblock excluded",
+  "controllers": {
+    "1": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1_n4dr150.sig",
+      "program_file_sha256": "ed5d12575bf2e4f96dc5856f1347417fb101302a0da1aebd061dcc71d28b4d57",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 54.0,
+          "p2": 21.0,
+          "p3": 32.0,
+          "p4": 31.0
+        },
+        "program_offset_sec": 131.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 19.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "GREEN",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "GREEN",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "5": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed7_n4dr150.sig",
+      "program_file_sha256": "754c6b95c2bfd1e498936a244134f87a00e38ddeea90578b39358c24d298a297",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 43.0,
+          "p2": 23.0,
+          "p3": 47.0,
+          "p4": 25.0
+        },
+        "program_offset_sec": 36.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 114.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed7_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "RED",
+        "4": "GREEN",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "GREEN"
+      }
+    },
+    "6": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9_n4dr150.sig",
+      "program_file_sha256": "daa795be3c99fcaf97eda4d0a81ef959e8d3a94d7db26240c66e4880fd8df7bd",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 43.0,
+          "p2": 21.0,
+          "p3": 52.0,
+          "p4": 22.0
+        },
+        "program_offset_sec": 137.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 13.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "GREEN",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "GREEN",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "7": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed14.sig",
+      "program_file_sha256": "3202fb02156a92f31d8fbb821bb1d669561f319d99fb677008b8ce8b531ce02d",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "concurrent_p1_p2",
+        "cycle_sec": 120.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p1",
+          "p2",
+          "p4"
+        ],
+        "idle_after_phase_sec": {},
+        "native_green_sec": {
+          "p1": 67.0,
+          "p2": 90.0,
+          "p3": 0.0,
+          "p4": 24.0
+        },
+        "program_offset_sec": 1.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 119.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed14.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 1920,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "AMBER",
+        "2": "RED",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "11": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed3_n4dr150.sig",
+      "program_file_sha256": "de309a138507870d0b0a7f8a5c01f655cab3fc412302dba80447c340a40a2588",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 36.0,
+          "p2": 35.0,
+          "p3": 34.0,
+          "p4": 33.0
+        },
+        "program_offset_sec": 95.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 55.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed3_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "GREEN",
+        "2": "RED",
+        "3": "RED",
+        "4": "RED",
+        "5": "GREEN",
+        "6": "RED",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "12": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed5_n4dr150.sig",
+      "program_file_sha256": "21c3954438eeaaa5155aa511b6a8921bbb3db51f640e40ca7d8a7084b8b206de",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 50.0,
+          "p2": 24.0,
+          "p3": 32.0,
+          "p4": 32.0
+        },
+        "program_offset_sec": 5.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 145.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed5_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "GREEN",
+        "4": "RED",
+        "5": "RED",
+        "6": "RED",
+        "7": "GREEN",
+        "8": "RED"
+      }
+    },
+    "16": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed18.sig",
+      "program_file_sha256": "bb6e2d7d55ee7fc0b19b49591234f5a047e9b8ccee603a9bc3c25a71fdc70ad5",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p2",
+          "p1"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 34.0,
+          "p2": 0.0,
+          "p1": 0.0
+        },
+        "native_green_sec": {
+          "p1": 63.0,
+          "p2": 17.0,
+          "p3": 27.0,
+          "p4": 0.0
+        },
+        "program_offset_sec": 149.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 1.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed18.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "GREEN",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "GREEN",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "101": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed101_n4dr150.sig",
+      "program_file_sha256": "7bdca789b2749823f06cc271e70ab3a5b2def1b9174f3072427bf0aaf57aaf35",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 48.0,
+          "p2": 27.0,
+          "p3": 39.0,
+          "p4": 24.0
+        },
+        "program_offset_sec": 125.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 25.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed101_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "GREEN",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "GREEN",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "105": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed105_n4dr150.sig",
+      "program_file_sha256": "f56a4b415ef20908aaf33b22c6d6336ae4940b1749141147a716982465e9a2e6",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 48.0,
+          "p2": 21.0,
+          "p3": 35.0,
+          "p4": 34.0
+        },
+        "program_offset_sec": 35.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 115.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed105_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "RED",
+        "4": "GREEN",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "GREEN"
+      }
+    },
+    "107": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed107_n4dr150.sig",
+      "program_file_sha256": "1407ecfb547117ab3ec6e9657d3e65afaa09419ca22c9ce5ccaf271a7a245e20",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 0.0,
+          "p2": 25.0,
+          "p3": 78.0,
+          "p4": 38.0
+        },
+        "program_offset_sec": 138.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 12.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed107_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "GREEN",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "GREEN",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "108": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed108_n4dr150.sig",
+      "program_file_sha256": "bc33304cf6913a96b5d417658a99c7050d1cf860b9ccd4b26d9bc4700e72afcb",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0
+        },
+        "native_green_sec": {
+          "p1": 31.0,
+          "p2": 0.0,
+          "p3": 88.0,
+          "p4": 22.0
+        },
+        "program_offset_sec": 112.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 38.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed108_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "GREEN",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "GREEN",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "109": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed109_n4dr150.sig",
+      "program_file_sha256": "1b63cc3309c8e7f9f1be6585a6ca88d01ec9966ae1e25abad9080200d9825010",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 0.0,
+          "p2": 20.0,
+          "p3": 90.0,
+          "p4": 31.0
+        },
+        "program_offset_sec": 111.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 39.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed109_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "GREEN",
+        "3": "RED",
+        "4": "RED",
+        "5": "RED",
+        "6": "GREEN",
+        "7": "RED",
+        "8": "RED"
+      }
+    },
+    "1001": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1001_n4dr150.sig",
+      "program_file_sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 46.0,
+          "p2": 23.0,
+          "p3": 45.0,
+          "p4": 24.0
+        },
+        "program_offset_sec": 75.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 75.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1001_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "RED",
+        "4": "GREEN",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "GREEN"
+      }
+    },
+    "1002": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1002_n4dr150.sig",
+      "program_file_sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 46.0,
+          "p2": 23.0,
+          "p3": 45.0,
+          "p4": 24.0
+        },
+        "program_offset_sec": 75.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 75.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1002_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "RED",
+        "4": "GREEN",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "GREEN"
+      }
+    },
+    "1003": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1003_n4dr150.sig",
+      "program_file_sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 46.0,
+          "p2": 23.0,
+          "p3": 45.0,
+          "p4": 24.0
+        },
+        "program_offset_sec": 75.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 75.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1003_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "RED",
+        "4": "GREEN",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "GREEN"
+      }
+    },
+    "1004": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1004_n4dr150.sig",
+      "program_file_sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 46.0,
+          "p2": 23.0,
+          "p3": 45.0,
+          "p4": 24.0
+        },
+        "program_offset_sec": 75.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 75.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1004_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "RED",
+        "4": "GREEN",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "GREEN"
+      }
+    },
+    "1005": {
+      "program": "diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1005_n4dr150.sig",
+      "program_file_sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+      "owned_signal_groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "native_clock_basis": {
+        "schema_version": "native-clock-v1",
+        "kind": "serial",
+        "cycle_sec": 150.0,
+        "amber_sec": 3.0,
+        "all_red_sec": 0.0,
+        "phase_order": [
+          "p3",
+          "p4",
+          "p1",
+          "p2"
+        ],
+        "idle_after_phase_sec": {
+          "p3": 0.0,
+          "p4": 0.0,
+          "p1": 0.0,
+          "p2": 0.0
+        },
+        "native_green_sec": {
+          "p1": 46.0,
+          "p2": 23.0,
+          "p3": 45.0,
+          "p4": 24.0
+        },
+        "program_offset_sec": 75.0,
+        "controller_offset_sec": 0.0,
+        "reference_offset_sec": 75.0,
+        "source_path": "C:\\Users\\TRLAB\\Documents\\ChatGPT\\VISSIM\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1005_n4dr150.sig",
+        "active_prog_no": 1
+      },
+      "state_checks_0p5s": 2400,
+      "state_mismatches": 0,
+      "initial_state_at_t0": {
+        "1": "RED",
+        "2": "RED",
+        "3": "RED",
+        "4": "GREEN",
+        "5": "RED",
+        "6": "RED",
+        "7": "RED",
+        "8": "GREEN"
+      }
+    }
+  },
+  "total_state_checks_0p5s": 40320,
+  "local_path_derivation": {
+    "source_path": "reports/20260911_decision_runtime/native_clock_basis_source_v1.json",
+    "source_sha256": "3ea5325922bd1a5f11288c95b195022a48c84a73b8bec7721561c7457ed4ddb7",
+    "scope": "Only native_clock_basis.source_path changed; original SIG bytes and all timing values preserved; no native execution"
+  }
+}

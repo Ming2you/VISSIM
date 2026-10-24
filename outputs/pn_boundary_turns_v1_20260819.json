@@ -1,0 +1,6879 @@
+{
+ "schema": "pn_boundary_turns/v1",
+ "generated": "2026-08-19",
+ "generator": "scripts/derive_pn_boundary_turns.py",
+ "regeneration_policy": "이 파일은 위 생성기로만 다시 만든다. 규칙(경계면 우선 · 하류 걷기 · 버퍼 제외 · relFlow 기본 1 · FORCE_PERI)은 사용자가 전수 검토해 확정했다. 되돌리지 마라.",
+ "definition": {
+  "leg_zone": "내부 = 반대편이 통제 SC(또는 내부 leg 와 축을 공유하는 게이트) · 경계면 = 반대편이 비통제/게이트/램프 · 외부 = 비통제 player",
+  "table": {
+   "내부->내부": "internal",
+   "내부->외부": "outflow",
+   "경계면->내부": "inflow",
+   "경계면->외부": "external",
+   "외부->내부": "inflow",
+   "외부->외부": "outside_pn"
+  },
+  "exit_leg": "진출 leg 는 '그 leg 로 나가면 어디로 가느냐' 로 읽는다. 경계면 leg 로 나가면 곧 외부다.",
+  "destination": "도착 링크가 내부 leg 소유면 내부. 무소유면 하류로 걸어 처음 만나는 소유자를 쓴다.",
+  "controllable": "출발 정지선에 그 SC 의 signal head 가 있어야 조일 수 있다."
+ },
+ "sources": {
+  "inpx": "modi_eval_userfix_20260814d.inpx",
+  "config": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+  "territory": "urban_player_territory_v1_20260819.json"
+ },
+ "counts": {
+  "internal": 123,
+  "inflow": 35,
+  "outflow": 34,
+  "external": 10,
+  "outside_pn": 104
+ },
+ "control_surface": {
+  "note": "리더가 실제로 조일 수 있는 경계 횡단.",
+  "counts": {
+   "outflow": 34,
+   "inflow": 32,
+   "external": 8
+  },
+  "connectors": [
+   "10428",
+   "10421",
+   "10422",
+   "10423",
+   "10418",
+   "10425",
+   "10142",
+   "10200",
+   "10201",
+   "10202",
+   "10203",
+   "10204",
+   "10205",
+   "10207",
+   "10197",
+   "10198",
+   "10238",
+   "10239",
+   "10240",
+   "10237",
+   "10246",
+   "10241",
+   "10250",
+   "10253",
+   "10254",
+   "10257",
+   "10258",
+   "10259",
+   "10510",
+   "10536",
+   "10537",
+   "10538",
+   "10533",
+   "10620",
+   "10616",
+   "10618",
+   "10297",
+   "10298",
+   "10295",
+   "10301",
+   "10302",
+   "10303",
+   "10283",
+   "10285",
+   "10274",
+   "10282",
+   "10119",
+   "10122",
+   "10121",
+   "10124",
+   "10697",
+   "10371",
+   "10698",
+   "10118",
+   "10368",
+   "10482",
+   "10490",
+   "10695",
+   "10692",
+   "10683",
+   "10684",
+   "10687",
+   "10689",
+   "10694",
+   "10629",
+   "10630",
+   "10625",
+   "10626",
+   "10631",
+   "10632",
+   "10633",
+   "10634",
+   "10635",
+   "10642"
+  ]
+ },
+ "constant_load": {
+  "note": "게이트로 못 막고 N_P 에 그냥 쌓이는 몫. N_P* 여유에 상수로 반영한다.",
+  "uncontrollable_inflow_veh_h": 1529.0,
+  "interior_injection_veh_h": 2390.64,
+  "total_veh_h": 3919.64,
+  "uncontrollable_inflow": [
+   {
+    "connector": "10595",
+    "from_link": "1220042300",
+    "to_link": "100",
+    "legs": [
+     "SC1·S"
+    ],
+    "flow_veh_h": 1336.0
+   },
+   {
+    "connector": "10413",
+    "from_link": "257",
+    "to_link": "1220011003",
+    "legs": [
+     "SC11·N_SC5"
+    ],
+    "flow_veh_h": null
+   },
+   {
+    "connector": "10636",
+    "from_link": "69",
+    "to_link": "75",
+    "legs": [
+     "SC1005·W"
+    ],
+    "flow_veh_h": 193.0
+   }
+  ],
+  "interior_injection": [
+   {
+    "link": "21",
+    "input": "1083",
+    "name": "Dummy link 1",
+    "vol": 420.0,
+    "legs": [
+     "SC109·W_SC108"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "138",
+    "input": "1085",
+    "name": "Dummy Link 6",
+    "vol": 420.0,
+    "legs": [
+     "SC6·S",
+     "SC6·S_SC12"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "343",
+    "input": "1086",
+    "name": "Dummy link 3",
+    "vol": 294.0,
+    "legs": [
+     "SC1·N",
+     "SC1·N_SC101",
+     "SC101·S_SC1"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "341",
+    "input": "1087",
+    "name": "Dummy link 4",
+    "vol": 294.0,
+    "legs": [
+     "SC1·N_SC101",
+     "SC101·S",
+     "SC101·S_SC1"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "164",
+    "input": "1095",
+    "name": "Dummy Linl 11",
+    "vol": 252.0,
+    "legs": [
+     "SC16·S",
+     "SC16·S_SC109"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "236",
+    "input": "1091",
+    "name": "Dummy Link 8",
+    "vol": 168.0,
+    "legs": [
+     "SC1·E",
+     "SC1·E_SC11",
+     "SC11·W",
+     "SC11·W_SC1"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "256",
+    "input": "1097",
+    "name": "Dummy Link 12",
+    "vol": 168.0,
+    "legs": [
+     "SC5·S"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "364",
+    "input": "114",
+    "name": "우리은행포이_NB",
+    "vol": 164.64,
+    "legs": [
+     "SC1·W",
+     "SC1·W_SC105",
+     "SC105·E",
+     "SC105·E_SC1"
+    ],
+    "dummy": false
+   },
+   {
+    "link": "201",
+    "input": "1096",
+    "name": "Dummy Link 5",
+    "vol": 84.0,
+    "legs": [
+     "SC16·W",
+     "SC16·W_SC7",
+     "SC7·E",
+     "SC7·E_SC16"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "217",
+    "input": "1092",
+    "name": "Dummy Link 9",
+    "vol": 63.0,
+    "legs": [
+     "SC11·E",
+     "SC11·E_SC12",
+     "SC12·W",
+     "SC12·W_SC11"
+    ],
+    "dummy": true
+   },
+   {
+    "link": "225",
+    "input": "1093",
+    "name": "Dummy Link 10",
+    "vol": 63.0,
+    "legs": [
+     "SC11·E",
+     "SC11·E_SC12",
+     "SC12·W",
+     "SC12·W_SC11"
+    ],
+    "dummy": true
+   }
+  ]
+ },
+ "uncontrollable_crossings": {
+  "note": "경계는 넘지만 출발 정지선에 신호두가 없어 조일 수 없는 횡단. external 은 보호망 밖으로만 지나가 N_P 에 쌓이지 않으므로 상수 부하에서 뺐다.",
+  "connectors": [
+   {
+    "class": "inflow",
+    "connector": "10595",
+    "from_link": "1220042300",
+    "to_link": "100",
+    "legs": [
+     "SC1·S"
+    ],
+    "flow_veh_h": 1336.0
+   },
+   {
+    "class": "external",
+    "connector": "10230",
+    "from_link": "1220013100",
+    "to_link": "1220015700",
+    "legs": [
+     "SC12·E",
+     "SC106·W"
+    ],
+    "flow_veh_h": 51.0
+   },
+   {
+    "class": "external",
+    "connector": "10639",
+    "from_link": "70",
+    "to_link": "2",
+    "legs": [
+     "SC1004·W_RAMP"
+    ],
+    "flow_veh_h": null
+   },
+   {
+    "class": "inflow",
+    "connector": "10413",
+    "from_link": "257",
+    "to_link": "1220011003",
+    "legs": [
+     "SC11·N_SC5"
+    ],
+    "flow_veh_h": null
+   },
+   {
+    "class": "inflow",
+    "connector": "10636",
+    "from_link": "69",
+    "to_link": "75",
+    "legs": [
+     "SC1005·W"
+    ],
+    "flow_veh_h": 193.0
+   }
+  ]
+ },
+ "buffer_internal_excluded": {
+  "note": "양끝이 모두 경계 버퍼인 커넥터. 정지선 앞 회랑 안의 이동이라 보호망을 넘지 않는다. 세면 같은 차량을 두 번 센다.",
+  "connectors": [
+   {
+    "sc": "SC12",
+    "leg": "E",
+    "conn": "10229",
+    "from": "1220013100",
+    "to": "1220013600"
+   },
+   {
+    "sc": "SC108",
+    "leg": "W",
+    "conn": "10604",
+    "from": "379",
+    "to": "378"
+   },
+   {
+    "sc": "SC108",
+    "leg": "W",
+    "conn": "10605",
+    "from": "379",
+    "to": "378"
+   },
+   {
+    "sc": "SC1004",
+    "leg": "W_RAMP",
+    "conn": "10641",
+    "from": "70",
+    "to": "71"
+   },
+   {
+    "sc": "SC1004",
+    "leg": "W_RAMP",
+    "conn": "10700",
+    "from": "70",
+    "to": "71"
+   },
+   {
+    "sc": "SC106",
+    "leg": "W",
+    "conn": "10229",
+    "from": "1220013100",
+    "to": "1220013600"
+   }
+  ]
+ },
+ "leg_zone": {
+  "SC1|E": {
+   "zone": "내부",
+   "why": "E축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC1|E_SC11": {
+   "zone": "내부",
+   "why": "반대편 SC11 통제"
+  },
+  "SC1|N": {
+   "zone": "내부",
+   "why": "N축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC1|N_SC101": {
+   "zone": "내부",
+   "why": "반대편 SC101 통제"
+  },
+  "SC1|S": {
+   "zone": "경계면",
+   "why": "망 진입점 — 1220042300 구룡터널_NB 1336 veh/h 주입 (사용자 확정)"
+  },
+  "SC1|S_SC107": {
+   "zone": "내부",
+   "why": "반대편 SC107 통제"
+  },
+  "SC1|W": {
+   "zone": "내부",
+   "why": "W축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC1|W_SC105": {
+   "zone": "내부",
+   "why": "반대편 SC105 통제"
+  },
+  "SC1001|E_SC1002": {
+   "zone": "내부",
+   "why": "반대편 SC1002 통제"
+  },
+  "SC1001|N_SC2002": {
+   "zone": "경계면",
+   "why": "반대편 SC2002 비통제"
+  },
+  "SC1001|S_SC1003": {
+   "zone": "내부",
+   "why": "반대편 SC1003 통제"
+  },
+  "SC1001|W": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC1001|W_RAMP": {
+   "zone": "경계면",
+   "why": "램프"
+  },
+  "SC1002|E_SC101": {
+   "zone": "내부",
+   "why": "반대편 SC101 통제"
+  },
+  "SC1002|N_SC2004": {
+   "zone": "경계면",
+   "why": "반대편 SC2004 비통제"
+  },
+  "SC1002|S_SC105": {
+   "zone": "내부",
+   "why": "반대편 SC105 통제"
+  },
+  "SC1002|W_SC1001": {
+   "zone": "내부",
+   "why": "반대편 SC1001 통제"
+  },
+  "SC1003|E_SC105": {
+   "zone": "내부",
+   "why": "반대편 SC105 통제"
+  },
+  "SC1003|N_SC1001": {
+   "zone": "내부",
+   "why": "반대편 SC1001 통제"
+  },
+  "SC1003|S_SC1004": {
+   "zone": "내부",
+   "why": "반대편 SC1004 통제"
+  },
+  "SC1004|E_SC1005": {
+   "zone": "내부",
+   "why": "반대편 SC1005 통제"
+  },
+  "SC1004|E_SC107": {
+   "zone": "내부",
+   "why": "반대편 SC107 통제"
+  },
+  "SC1004|N_SC1003": {
+   "zone": "내부",
+   "why": "반대편 SC1003 통제"
+  },
+  "SC1004|S": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC1004|W": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC1004|W_RAMP": {
+   "zone": "경계면",
+   "why": "램프"
+  },
+  "SC1005|E_SC107": {
+   "zone": "내부",
+   "why": "반대편 SC107 통제"
+  },
+  "SC1005|N_SC105": {
+   "zone": "내부",
+   "why": "반대편 SC105 통제"
+  },
+  "SC1005|W": {
+   "zone": "내부",
+   "why": "W축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC1005|W_SC1004": {
+   "zone": "내부",
+   "why": "반대편 SC1004 통제"
+  },
+  "SC101|E_SC5": {
+   "zone": "내부",
+   "why": "반대편 SC5 통제"
+  },
+  "SC101|N_SC2005": {
+   "zone": "경계면",
+   "why": "반대편 SC2005 비통제"
+  },
+  "SC101|S": {
+   "zone": "내부",
+   "why": "S축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC101|S_SC1": {
+   "zone": "내부",
+   "why": "반대편 SC1 통제"
+  },
+  "SC101|W_SC1002": {
+   "zone": "내부",
+   "why": "반대편 SC1002 통제"
+  },
+  "SC102|E_SC103": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC102|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC102|S_SC5": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC102|W_SC2005": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC103|E": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC103|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC103|S_SC6": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC103|W_SC102": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC104|E": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC104|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC104|S_SC106": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC104|W_SC6": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC105|E": {
+   "zone": "내부",
+   "why": "E축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC105|E_SC1": {
+   "zone": "내부",
+   "why": "반대편 SC1 통제"
+  },
+  "SC105|N_SC1002": {
+   "zone": "내부",
+   "why": "반대편 SC1002 통제"
+  },
+  "SC105|S_SC1005": {
+   "zone": "내부",
+   "why": "반대편 SC1005 통제"
+  },
+  "SC105|W_SC1003": {
+   "zone": "내부",
+   "why": "반대편 SC1003 통제"
+  },
+  "SC106|E": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC106|N_SC104": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC106|S": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC106|W": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC106|W_SC12": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC107|E_SC108": {
+   "zone": "내부",
+   "why": "반대편 SC108 통제"
+  },
+  "SC107|N_SC1": {
+   "zone": "내부",
+   "why": "반대편 SC1 통제"
+  },
+  "SC107|S": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC107|W_SC1004": {
+   "zone": "내부",
+   "why": "반대편 SC1004 통제"
+  },
+  "SC107|W_SC1005": {
+   "zone": "내부",
+   "why": "반대편 SC1005 통제"
+  },
+  "SC108|E_SC109": {
+   "zone": "내부",
+   "why": "반대편 SC109 통제"
+  },
+  "SC108|N_SC7": {
+   "zone": "내부",
+   "why": "반대편 SC7 통제"
+  },
+  "SC108|S": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC108|W": {
+   "zone": "내부",
+   "why": "W축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC108|W_SC107": {
+   "zone": "내부",
+   "why": "반대편 SC107 통제"
+  },
+  "SC109|E": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC109|N_SC16": {
+   "zone": "내부",
+   "why": "반대편 SC16 통제"
+  },
+  "SC109|W_SC108": {
+   "zone": "내부",
+   "why": "반대편 SC108 통제"
+  },
+  "SC11|E": {
+   "zone": "내부",
+   "why": "E축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC11|E_SC12": {
+   "zone": "내부",
+   "why": "반대편 SC12 통제"
+  },
+  "SC11|N_SC5": {
+   "zone": "내부",
+   "why": "반대편 SC5 통제"
+  },
+  "SC11|S_SC7": {
+   "zone": "내부",
+   "why": "반대편 SC7 통제"
+  },
+  "SC11|W": {
+   "zone": "내부",
+   "why": "W축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC11|W_SC1": {
+   "zone": "내부",
+   "why": "반대편 SC1 통제"
+  },
+  "SC12|E": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC12|E_SC106": {
+   "zone": "경계면",
+   "why": "반대편 SC106 비통제"
+  },
+  "SC12|N_SC6": {
+   "zone": "내부",
+   "why": "반대편 SC6 통제"
+  },
+  "SC12|S_SC16": {
+   "zone": "내부",
+   "why": "반대편 SC16 통제"
+  },
+  "SC12|W": {
+   "zone": "내부",
+   "why": "W축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC12|W_SC11": {
+   "zone": "내부",
+   "why": "반대편 SC11 통제"
+  },
+  "SC16|E": {
+   "zone": "경계면",
+   "why": "게이트 (망 진입)"
+  },
+  "SC16|N_SC12": {
+   "zone": "내부",
+   "why": "반대편 SC12 통제"
+  },
+  "SC16|S": {
+   "zone": "내부",
+   "why": "S축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC16|S_SC109": {
+   "zone": "내부",
+   "why": "반대편 SC109 통제"
+  },
+  "SC16|W": {
+   "zone": "내부",
+   "why": "W축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC16|W_SC7": {
+   "zone": "내부",
+   "why": "반대편 SC7 통제"
+  },
+  "SC2001|E_SC2002": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2001|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2001|S": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2001|W": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2002|E_SC2003": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2002|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2002|S_SC1001": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2002|W_SC2001": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2003|E_SC2004": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2003|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2003|W_SC2002": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2004|E_SC2005": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2004|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2004|S_SC1002": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2004|W_SC2003": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2005|E_SC102": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2005|N": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2005|S_SC101": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC2005|W_SC2004": {
+   "zone": "외부",
+   "why": "비통제 player"
+  },
+  "SC5|E_SC6": {
+   "zone": "내부",
+   "why": "반대편 SC6 통제"
+  },
+  "SC5|N_SC102": {
+   "zone": "경계면",
+   "why": "반대편 SC102 비통제"
+  },
+  "SC5|S": {
+   "zone": "내부",
+   "why": "S축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC5|S_SC11": {
+   "zone": "내부",
+   "why": "반대편 SC11 통제"
+  },
+  "SC5|W_SC101": {
+   "zone": "내부",
+   "why": "반대편 SC101 통제"
+  },
+  "SC6|E_SC104": {
+   "zone": "경계면",
+   "why": "반대편 SC104 비통제"
+  },
+  "SC6|N_SC103": {
+   "zone": "경계면",
+   "why": "반대편 SC103 비통제"
+  },
+  "SC6|S": {
+   "zone": "내부",
+   "why": "S축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC6|S_SC12": {
+   "zone": "내부",
+   "why": "반대편 SC12 통제"
+  },
+  "SC6|W_SC5": {
+   "zone": "내부",
+   "why": "반대편 SC5 통제"
+  },
+  "SC7|E": {
+   "zone": "내부",
+   "why": "E축 내부 leg 와 합쳐진 게이트"
+  },
+  "SC7|E_SC16": {
+   "zone": "내부",
+   "why": "반대편 SC16 통제"
+  },
+  "SC7|N_SC11": {
+   "zone": "내부",
+   "why": "반대편 SC11 통제"
+  },
+  "SC7|S_SC108": {
+   "zone": "내부",
+   "why": "반대편 SC108 통제"
+  }
+ },
+ "turns": [
+  {
+   "class": "external",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·N_SC2002"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "37",
+   "connector": "10121",
+   "to_link": "31",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "external",
+   "sc": "SC6",
+   "legs": [
+    "SC6·E_SC104"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "1220021201",
+   "connector": "10142",
+   "to_link": "96",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "external",
+   "sc": "SC6",
+   "legs": [
+    "SC6·N_SC103"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "1220021801",
+   "connector": "10203",
+   "to_link": "1220021301",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "external",
+   "sc": "SC12",
+   "legs": [
+    "SC12·E",
+    "SC106·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "1220013100",
+   "connector": "10230",
+   "to_link": "1220015700",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 81.0,
+   "flow_veh_h": 51.0
+  },
+  {
+   "class": "external",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·W_RAMP",
+    "SC1001·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "32",
+   "connector": "10482",
+   "to_link": "26",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "external",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·W_RAMP",
+    "SC1001·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "32",
+   "connector": "10490",
+   "to_link": "2",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "external",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "66",
+   "connector": "10633",
+   "to_link": "68",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 510.0
+  },
+  {
+   "class": "external",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·W_RAMP"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "70",
+   "connector": "10639",
+   "to_link": "2",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "external",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "71",
+   "connector": "10642",
+   "to_link": "67",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "external",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·W_RAMP",
+    "SC1001·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "외부",
+   "from_link": "32",
+   "connector": "10695",
+   "to_link": "38",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·W_RAMP",
+    "SC1001·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "32",
+   "connector": "10118",
+   "to_link": "30",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·N_SC2002"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "37",
+   "connector": "10124",
+   "to_link": "39",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·E_SC104"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220021201",
+   "connector": "10200",
+   "to_link": "1220018404",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·E_SC104"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220021201",
+   "connector": "10201",
+   "to_link": "1220018202",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·N_SC103"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220021801",
+   "connector": "10202",
+   "to_link": "1220018202",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·N_SC103"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220021801",
+   "connector": "10204",
+   "to_link": "1220018404",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC12",
+   "legs": [
+    "SC12·E_SC106"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220013600",
+   "connector": "10238",
+   "to_link": "1220012003",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC12",
+   "legs": [
+    "SC12·E_SC106"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220013600",
+   "connector": "10239",
+   "to_link": "1220015100",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC12",
+   "legs": [
+    "SC12·E_SC106"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220013600",
+   "connector": "10240",
+   "to_link": "1220012600",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC16",
+   "legs": [
+    "SC16·E"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220011200",
+   "connector": "10257",
+   "to_link": "1220009600",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 132.0,
+   "flow_veh_h": 39.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC16",
+   "legs": [
+    "SC16·E"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220011200",
+   "connector": "10258",
+   "to_link": "1220012700",
+   "heading": "N",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 132.0,
+   "flow_veh_h": 50.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC16",
+   "legs": [
+    "SC16·E"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220011200",
+   "connector": "10259",
+   "to_link": "1220009403",
+   "heading": "S",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 132.0,
+   "flow_veh_h": 44.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC109",
+   "legs": [
+    "SC109·E"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220000704",
+   "connector": "10274",
+   "to_link": "172",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 1346.0,
+   "flow_veh_h": 50.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC109",
+   "legs": [
+    "SC109·E"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220000704",
+   "connector": "10282",
+   "to_link": "1220000502",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 1346.0,
+   "flow_veh_h": 1295.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC108",
+   "legs": [
+    "SC108·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220044500",
+   "connector": "10301",
+   "to_link": "1220000300",
+   "heading": "W",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 895.0,
+   "flow_veh_h": 47.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC108",
+   "legs": [
+    "SC108·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220044500",
+   "connector": "10302",
+   "to_link": "1220007501",
+   "heading": "N",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 895.0,
+   "flow_veh_h": 844.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC108",
+   "legs": [
+    "SC108·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220044500",
+   "connector": "10303",
+   "to_link": "1220000600",
+   "heading": "E",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 895.0,
+   "flow_veh_h": 4.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·W_RAMP",
+    "SC1001·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "32",
+   "connector": "10368",
+   "to_link": "39",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC11",
+   "legs": [
+    "SC11·N_SC5"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "내부",
+   "from_link": "257",
+   "connector": "10413",
+   "to_link": "1220011003",
+   "heading": "S",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC5",
+   "legs": [
+    "SC5·N_SC102"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220019201",
+   "connector": "10421",
+   "to_link": "1220014000",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC5",
+   "legs": [
+    "SC5·N_SC102"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220019201",
+   "connector": "10422",
+   "to_link": "1220018501",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC5",
+   "legs": [
+    "SC5·N_SC102"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220019201",
+   "connector": "10423",
+   "to_link": "1220014203",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC101",
+   "legs": [
+    "SC101·N_SC2005"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220016001",
+   "connector": "10536",
+   "to_link": "1220011403",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC101",
+   "legs": [
+    "SC101·N_SC2005"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220016001",
+   "connector": "10537",
+   "to_link": "1210014303",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1",
+   "legs": [
+    "SC1·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "1220042300",
+   "connector": "10595",
+   "to_link": "100",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 1336.0,
+   "flow_veh_h": 1336.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC107",
+   "legs": [
+    "SC107·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "382",
+   "connector": "10618",
+   "to_link": "1220000102",
+   "heading": "W",
+   "signal_groups": [
+    3
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "66",
+   "connector": "10631",
+   "to_link": "47",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 170.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·S"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "66",
+   "connector": "10632",
+   "to_link": "56",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 170.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "71",
+   "connector": "10634",
+   "to_link": "56",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·W"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "71",
+   "connector": "10635",
+   "to_link": "47",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·W"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "내부",
+   "from_link": "69",
+   "connector": "10636",
+   "to_link": "75",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": 193.0
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·N_SC2004"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "72",
+   "connector": "10683",
+   "to_link": "420",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·N_SC2004"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "72",
+   "connector": "10684",
+   "to_link": "29",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·N_SC2004"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "72",
+   "connector": "10687",
+   "to_link": "328",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "inflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·N_SC2002"
+   ],
+   "leg_zone": "경계면",
+   "dest_zone": "내부",
+   "from_link": "37",
+   "connector": "10697",
+   "to_link": "30",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC107",
+   "legs": [
+    "SC107·W_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220000201",
+   "connector": "10023",
+   "to_link": "1220000402",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·S_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220006903",
+   "connector": "10025",
+   "to_link": "1220008501",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·E_SC11",
+    "SC1·E"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220008201",
+   "connector": "10029",
+   "to_link": "1220008501",
+   "heading": "N",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC5",
+   "legs": [
+    "SC5·E_SC6"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220018401",
+   "connector": "10032",
+   "to_link": "1220014203",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC107",
+   "legs": [
+    "SC107·N_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220043200",
+   "connector": "10103",
+   "to_link": "1220000402",
+   "heading": "E",
+   "signal_groups": [
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·W_SC1",
+    "SC11·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008303",
+   "connector": "10104",
+   "to_link": "17",
+   "heading": "E",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210012001",
+   "connector": "10107",
+   "to_link": "18",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·S_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008703",
+   "connector": "10108",
+   "to_link": "19",
+   "heading": "N",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC6",
+   "legs": [
+    "SC6·W_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220018504",
+   "connector": "10199",
+   "to_link": "1220018202",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC6",
+   "legs": [
+    "SC6·S_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210018302",
+   "connector": "10206",
+   "to_link": "1220018404",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC6",
+   "legs": [
+    "SC6·S"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "138",
+   "connector": "10215",
+   "to_link": "1220018301",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 420.0,
+   "flow_veh_h": 420.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC12",
+   "legs": [
+    "SC12·N_SC6"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220015000",
+   "connector": "10235",
+   "to_link": "1220012600",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC12",
+   "legs": [
+    "SC12·N_SC6"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220015000",
+   "connector": "10236",
+   "to_link": "1220012003",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC12",
+   "legs": [
+    "SC12·W_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220012103",
+   "connector": "10242",
+   "to_link": "1220015100",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC12",
+   "legs": [
+    "SC12·W_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220012103",
+   "connector": "10243",
+   "to_link": "1220012600",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC12",
+   "legs": [
+    "SC12·S_SC16"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210012700",
+   "connector": "10244",
+   "to_link": "1220015100",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC12",
+   "legs": [
+    "SC12·S_SC16"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210012700",
+   "connector": "10245",
+   "to_link": "1220012003",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC16",
+   "legs": [
+    "SC16·N_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210012600",
+   "connector": "10248",
+   "to_link": "1220009403",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC16",
+   "legs": [
+    "SC16·S_SC109"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210009503",
+   "connector": "10249",
+   "to_link": "1220012700",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC16",
+   "legs": [
+    "SC16·S_SC109"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210009503",
+   "connector": "10251",
+   "to_link": "1220009600",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC16",
+   "legs": [
+    "SC16·N_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210012600",
+   "connector": "10252",
+   "to_link": "1220009600",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC16",
+   "legs": [
+    "SC16·W_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210009700",
+   "connector": "10255",
+   "to_link": "1220009403",
+   "heading": "S",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC16",
+   "legs": [
+    "SC16·W_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210009700",
+   "connector": "10256",
+   "to_link": "1220012700",
+   "heading": "N",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC16",
+   "legs": [
+    "SC16·S"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "164",
+   "connector": "10269",
+   "to_link": "1220009503",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 252.0,
+   "flow_veh_h": 252.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC109",
+   "legs": [
+    "SC109·W_SC108"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "173",
+   "connector": "10286",
+   "to_link": "1220009502",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC108",
+   "legs": [
+    "SC108·E_SC109"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "176",
+   "connector": "10292",
+   "to_link": "1220000300",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC108",
+   "legs": [
+    "SC108·W_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "178",
+   "connector": "10293",
+   "to_link": "1220000600",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC108",
+   "legs": [
+    "SC108·W_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "178",
+   "connector": "10294",
+   "to_link": "1220007501",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC108",
+   "legs": [
+    "SC108·E_SC109"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "176",
+   "connector": "10296",
+   "to_link": "1220007501",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC108",
+   "legs": [
+    "SC108·N_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007401",
+   "connector": "10299",
+   "to_link": "1220000300",
+   "heading": "W",
+   "signal_groups": [
+    4
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC108",
+   "legs": [
+    "SC108·N_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007401",
+   "connector": "10300",
+   "to_link": "1220000600",
+   "heading": "E",
+   "signal_groups": [
+    4
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·E",
+    "SC16·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "201",
+   "connector": "10318",
+   "to_link": "1210009700",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 84.0,
+   "flow_veh_h": 0.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·E",
+    "SC16·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "201",
+   "connector": "10319",
+   "to_link": "199",
+   "heading": "W",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 84.0,
+   "flow_veh_h": 84.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·E",
+    "SC16·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "197",
+   "connector": "10324",
+   "to_link": "1210009600",
+   "heading": "W",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·E",
+    "SC16·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "197",
+   "connector": "10325",
+   "to_link": "196",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·N_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220008601",
+   "connector": "10328",
+   "to_link": "1220007402",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·N_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220008601",
+   "connector": "10330",
+   "to_link": "1220009700",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·S_SC108"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007502",
+   "connector": "10331",
+   "to_link": "1220009700",
+   "heading": "E",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·E_SC16"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210009600",
+   "connector": "10332",
+   "to_link": "1220008701",
+   "heading": "N",
+   "signal_groups": [
+    1
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·E_SC16"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210009600",
+   "connector": "10333",
+   "to_link": "1220007402",
+   "heading": "S",
+   "signal_groups": [
+    1
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC7",
+   "legs": [
+    "SC7·S_SC108"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220008701",
+   "connector": "10334",
+   "to_link": "1220008702",
+   "heading": "N",
+   "signal_groups": [
+    16
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E",
+    "SC12·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "217",
+   "connector": "10349",
+   "to_link": "1220012002",
+   "heading": "W",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 63.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E",
+    "SC12·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "217",
+   "connector": "10350",
+   "to_link": "1210012103",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 63.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E",
+    "SC12·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "224",
+   "connector": "10355",
+   "to_link": "223",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E",
+    "SC12·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "224",
+   "connector": "10356",
+   "to_link": "222",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E",
+    "SC12·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "225",
+   "connector": "10359",
+   "to_link": "1220012001",
+   "heading": "W",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 63.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E",
+    "SC12·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "225",
+   "connector": "10360",
+   "to_link": "1220012102",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 63.0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210012001",
+   "connector": "10366",
+   "to_link": "1220011101",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·E_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210012001",
+   "connector": "10367",
+   "to_link": "1220008203",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·W_SC1",
+    "SC11·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008303",
+   "connector": "10370",
+   "to_link": "1220012101",
+   "heading": "N",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·W_SC1",
+    "SC11·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008303",
+   "connector": "10372",
+   "to_link": "1220011101",
+   "heading": "N",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·N_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220011001",
+   "connector": "10373",
+   "to_link": "1220008603",
+   "heading": "S",
+   "signal_groups": [
+    4
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·N_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220011001",
+   "connector": "10374",
+   "to_link": "1220008203",
+   "heading": "S",
+   "signal_groups": [
+    4
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·N_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220011001",
+   "connector": "10375",
+   "to_link": "1220012101",
+   "heading": "N",
+   "signal_groups": [
+    4
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·S_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008703",
+   "connector": "10376",
+   "to_link": "1220011101",
+   "heading": "N",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·S_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "40",
+   "connector": "10377",
+   "to_link": "30",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC11",
+   "legs": [
+    "SC11·S_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008703",
+   "connector": "10378",
+   "to_link": "1220008203",
+   "heading": "S",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC5",
+   "legs": [
+    "SC5·S"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "256",
+   "connector": "10415",
+   "to_link": "1220014100",
+   "heading": "N",
+   "signal_groups": [
+    24
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 168.0,
+   "flow_veh_h": 168.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC5",
+   "legs": [
+    "SC5·S_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220014100",
+   "connector": "10419",
+   "to_link": "1220014203",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC5",
+   "legs": [
+    "SC5·S_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220014100",
+   "connector": "10420",
+   "to_link": "1220018501",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC5",
+   "legs": [
+    "SC5·W_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220014303",
+   "connector": "10424",
+   "to_link": "1220018501",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC5",
+   "legs": [
+    "SC5·W_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220014303",
+   "connector": "10426",
+   "to_link": "1220014000",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC5",
+   "legs": [
+    "SC5·E_SC6"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220018401",
+   "connector": "10429",
+   "to_link": "1220014000",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1003",
+   "legs": [
+    "SC1003·E_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "425",
+   "connector": "10492",
+   "to_link": "40",
+   "heading": "N",
+   "signal_groups": [
+    1
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1003",
+   "legs": [
+    "SC1003·S_SC1004"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "47",
+   "connector": "10493",
+   "to_link": "40",
+   "heading": "N",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1003",
+   "legs": [
+    "SC1003·S_SC1004"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "47",
+   "connector": "10494",
+   "to_link": "426",
+   "heading": "E",
+   "signal_groups": [
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1003",
+   "legs": [
+    "SC1003·N_SC1001"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "39",
+   "connector": "10495",
+   "to_link": "46",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1003",
+   "legs": [
+    "SC1003·N_SC1001"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "39",
+   "connector": "10496",
+   "to_link": "426",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1003",
+   "legs": [
+    "SC1003·E_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "425",
+   "connector": "10497",
+   "to_link": "46",
+   "heading": "S",
+   "signal_groups": [
+    1
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·W_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220012502",
+   "connector": "10527",
+   "to_link": "332",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·S_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220011503",
+   "connector": "10528",
+   "to_link": "336",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·W_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220012502",
+   "connector": "10532",
+   "to_link": "1210014303",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·E_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220014201",
+   "connector": "10534",
+   "to_link": "1220012402",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·E_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220014201",
+   "connector": "10535",
+   "to_link": "1220011403",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·S_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220011503",
+   "connector": "10539",
+   "to_link": "1220012402",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·N"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "343",
+   "connector": "10553",
+   "to_link": "1220008502",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 294.0,
+   "flow_veh_h": 168.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·N"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "343",
+   "connector": "10554",
+   "to_link": "1220008401",
+   "heading": "S",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 294.0,
+   "flow_veh_h": 126.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·S"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "341",
+   "connector": "10555",
+   "to_link": "1220008401",
+   "heading": "S",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 294.0,
+   "flow_veh_h": 126.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC101",
+   "legs": [
+    "SC101·S"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "341",
+   "connector": "10556",
+   "to_link": "1220008502",
+   "heading": "N",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 294.0,
+   "flow_veh_h": 168.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·W_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007104",
+   "connector": "10561",
+   "to_link": "1220008301",
+   "heading": "E",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·W_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007104",
+   "connector": "10562",
+   "to_link": "1220008501",
+   "heading": "N",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·W_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007104",
+   "connector": "10563",
+   "to_link": "1220006803",
+   "heading": "S",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·E_SC11",
+    "SC1·E"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220008201",
+   "connector": "10564",
+   "to_link": "1220007004",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·N_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "403",
+   "connector": "10565",
+   "to_link": "58",
+   "heading": "W",
+   "signal_groups": [
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·E_SC11",
+    "SC1·E"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220008201",
+   "connector": "10566",
+   "to_link": "1220006803",
+   "heading": "S",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·N_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008401",
+   "connector": "10567",
+   "to_link": "1220006803",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·N_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008401",
+   "connector": "10568",
+   "to_link": "1220008301",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·N_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1210008401",
+   "connector": "10569",
+   "to_link": "1220007004",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·N_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "403",
+   "connector": "10570",
+   "to_link": "61",
+   "heading": "E",
+   "signal_groups": [
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·S_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220006903",
+   "connector": "10571",
+   "to_link": "1220007004",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·S_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220006903",
+   "connector": "10572",
+   "to_link": "1220008301",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·W",
+    "SC105·E"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "364",
+   "connector": "10584",
+   "to_link": "1220007001",
+   "heading": "W",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 165.0,
+   "flow_veh_h": 71.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC1",
+   "legs": [
+    "SC1·W",
+    "SC105·E"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "364",
+   "connector": "10585",
+   "to_link": "359",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 165.0,
+   "flow_veh_h": 93.0
+  },
+  {
+   "class": "internal",
+   "sc": "SC107",
+   "legs": [
+    "SC107·E_SC108"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "183",
+   "connector": "10600",
+   "to_link": "374",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·E_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "62",
+   "connector": "10603",
+   "to_link": "404",
+   "heading": "N",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC107",
+   "legs": [
+    "SC107·N_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220043200",
+   "connector": "10610",
+   "to_link": "385",
+   "heading": "S",
+   "signal_groups": [
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·E_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "62",
+   "connector": "10612",
+   "to_link": "58",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC107",
+   "legs": [
+    "SC107·E_SC108"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "183",
+   "connector": "10619",
+   "to_link": "1220000102",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC107",
+   "legs": [
+    "SC107·W_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220000201",
+   "connector": "10622",
+   "to_link": "1220043300",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·W_SC1004"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "57",
+   "connector": "10623",
+   "to_link": "404",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·W_SC1004"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "57",
+   "connector": "10624",
+   "to_link": "61",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·N_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "46",
+   "connector": "10627",
+   "to_link": "56",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·E_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "52",
+   "connector": "10628",
+   "to_link": "47",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·N_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007200",
+   "connector": "10661",
+   "to_link": "1220006403",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·N_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007200",
+   "connector": "10662",
+   "to_link": "1220007101",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·N_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007200",
+   "connector": "10663",
+   "to_link": "417",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·S_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220006503",
+   "connector": "10664",
+   "to_link": "1220007300",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·S_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220006503",
+   "connector": "10665",
+   "to_link": "1220007101",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·S_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220006503",
+   "connector": "10666",
+   "to_link": "417",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·E_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007001",
+   "connector": "10667",
+   "to_link": "417",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·E_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007001",
+   "connector": "10668",
+   "to_link": "1220007300",
+   "heading": "N",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·E_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "1220007001",
+   "connector": "10669",
+   "to_link": "1220006403",
+   "heading": "S",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·W_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "416",
+   "connector": "10670",
+   "to_link": "1220007101",
+   "heading": "E",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·W_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "416",
+   "connector": "10671",
+   "to_link": "1220006403",
+   "heading": "S",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC105",
+   "legs": [
+    "SC105·W_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "416",
+   "connector": "10672",
+   "to_link": "1220007300",
+   "heading": "N",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·W_SC1001"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "30",
+   "connector": "10685",
+   "to_link": "328",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·W_SC1001"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "30",
+   "connector": "10686",
+   "to_link": "420",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·S_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "427",
+   "connector": "10688",
+   "to_link": "328",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·S_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "427",
+   "connector": "10690",
+   "to_link": "29",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·E_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "329",
+   "connector": "10691",
+   "to_link": "29",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·E_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "329",
+   "connector": "10693",
+   "to_link": "420",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·E_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "29",
+   "connector": "10696",
+   "to_link": "39",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "internal",
+   "sc": "SC1005",
+   "legs": [
+    "SC1005·W"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "내부",
+   "from_link": "75",
+   "connector": "10701",
+   "to_link": "56",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·E_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "29",
+   "connector": "10119",
+   "to_link": "31",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·E_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "29",
+   "connector": "10122",
+   "to_link": "38",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·W_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220018504",
+   "connector": "10197",
+   "to_link": "1220021301",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·W_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220018504",
+   "connector": "10198",
+   "to_link": "1220021902",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·S_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1210018302",
+   "connector": "10205",
+   "to_link": "1220021902",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC6",
+   "legs": [
+    "SC6·S_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1210018302",
+   "connector": "10207",
+   "to_link": "1220021301",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC12",
+   "legs": [
+    "SC12·N_SC6"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220015000",
+   "connector": "10237",
+   "to_link": "1220013700",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC12",
+   "legs": [
+    "SC12·W_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220012103",
+   "connector": "10241",
+   "to_link": "1220013700",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC12",
+   "legs": [
+    "SC12·S_SC16"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1210012700",
+   "connector": "10246",
+   "to_link": "1220013700",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC16",
+   "legs": [
+    "SC16·N_SC12"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1210012600",
+   "connector": "10250",
+   "to_link": "1220011300",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC16",
+   "legs": [
+    "SC16·S_SC109"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1210009503",
+   "connector": "10253",
+   "to_link": "1220011300",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC16",
+   "legs": [
+    "SC16·W_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1210009700",
+   "connector": "10254",
+   "to_link": "1220011300",
+   "heading": "E",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC109",
+   "legs": [
+    "SC109·N_SC16"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1210009402",
+   "connector": "10283",
+   "to_link": "1220000803",
+   "heading": "E",
+   "signal_groups": [
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC109",
+   "legs": [
+    "SC109·W_SC108"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "173",
+   "connector": "10285",
+   "to_link": "1220000803",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC108",
+   "legs": [
+    "SC108·W_SC107"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "178",
+   "connector": "10295",
+   "to_link": "1220044400",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC108",
+   "legs": [
+    "SC108·E_SC109"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "176",
+   "connector": "10297",
+   "to_link": "1220044400",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC108",
+   "legs": [
+    "SC108·N_SC7"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220007401",
+   "connector": "10298",
+   "to_link": "1220044400",
+   "heading": "S",
+   "signal_groups": [
+    4
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·S_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "40",
+   "connector": "10371",
+   "to_link": "38",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC5",
+   "legs": [
+    "SC5·S_SC11"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220014100",
+   "connector": "10418",
+   "to_link": "1220019301",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC5",
+   "legs": [
+    "SC5·W_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220014303",
+   "connector": "10425",
+   "to_link": "1220019301",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC5",
+   "legs": [
+    "SC5·E_SC6"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220018401",
+   "connector": "10428",
+   "to_link": "1220019301",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC101",
+   "legs": [
+    "SC101·E_SC5"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220014201",
+   "connector": "10510",
+   "to_link": "319",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC101",
+   "legs": [
+    "SC101·W_SC1002"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220012502",
+   "connector": "10533",
+   "to_link": "1220016101",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC101",
+   "legs": [
+    "SC101·S_SC1"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220011503",
+   "connector": "10538",
+   "to_link": "1220016101",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC107",
+   "legs": [
+    "SC107·W_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "1220000201",
+   "connector": "10616",
+   "to_link": "381",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC107",
+   "legs": [
+    "SC107·E_SC108"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "183",
+   "connector": "10620",
+   "to_link": "1",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·N_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "46",
+   "connector": "10625",
+   "to_link": "68",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·N_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "46",
+   "connector": "10626",
+   "to_link": "67",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·E_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "52",
+   "connector": "10629",
+   "to_link": "68",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·E_SC1005"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "52",
+   "connector": "10630",
+   "to_link": "67",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·S_SC105"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "427",
+   "connector": "10689",
+   "to_link": "73",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·E_SC101"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "329",
+   "connector": "10692",
+   "to_link": "73",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1002",
+   "legs": [
+    "SC1002·W_SC1001"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "30",
+   "connector": "10694",
+   "to_link": "73",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outflow",
+   "sc": "SC1001",
+   "legs": [
+    "SC1001·S_SC1003"
+   ],
+   "leg_zone": "내부",
+   "dest_zone": "외부",
+   "from_link": "40",
+   "connector": "10698",
+   "to_link": "31",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220017202",
+   "connector": "10037",
+   "to_link": "27",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·N_SC104"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220001501",
+   "connector": "10051",
+   "to_link": "1220001100",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·N_SC104"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220001501",
+   "connector": "10052",
+   "to_link": "1220015600",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·N_SC104"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220001501",
+   "connector": "10053",
+   "to_link": "1220017300",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·S"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220001200",
+   "connector": "10054",
+   "to_link": "1220001602",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·S"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220001200",
+   "connector": "10055",
+   "to_link": "1220015600",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·S"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220001200",
+   "connector": "10056",
+   "to_link": "1220017300",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220017202",
+   "connector": "10057",
+   "to_link": "1220015600",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220017202",
+   "connector": "10058",
+   "to_link": "1220001100",
+   "heading": "S",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·W_SC12"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210015700",
+   "connector": "10059",
+   "to_link": "1220017300",
+   "heading": "E",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·W_SC12"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210015700",
+   "connector": "10060",
+   "to_link": "1220001602",
+   "heading": "N",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC106",
+   "legs": [
+    "SC106·W_SC12"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210015700",
+   "connector": "10061",
+   "to_link": "1220001100",
+   "heading": "S",
+   "signal_groups": [
+    2
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·W_SC2005"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220020904",
+   "connector": "10063",
+   "to_link": "1210019201",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·S_SC5"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220019303",
+   "connector": "10064",
+   "to_link": "1220023201",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·S_SC5"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220019303",
+   "connector": "10065",
+   "to_link": "1220020804",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220002202",
+   "connector": "10088",
+   "to_link": "63",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·S_SC5"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220019303",
+   "connector": "10089",
+   "to_link": "1220022601",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220061200",
+   "connector": "10091",
+   "to_link": "64",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·E_SC103"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220022501",
+   "connector": "10093",
+   "to_link": "1210019201",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220023101",
+   "connector": "10094",
+   "to_link": "1210019201",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·S_SC6"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210021904",
+   "connector": "10095",
+   "to_link": "1220024901",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·S_SC6"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210021904",
+   "connector": "10096",
+   "to_link": "1220024301",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·S_SC6"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210021904",
+   "connector": "10097",
+   "to_link": "1220022504",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·W_SC102"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220022604",
+   "connector": "10098",
+   "to_link": "1220021803",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220002202",
+   "connector": "10099",
+   "to_link": "1220061100",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220024801",
+   "connector": "10100",
+   "to_link": "1220021803",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220024201",
+   "connector": "10101",
+   "to_link": "1220021803",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·W_SC6"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210021304",
+   "connector": "10102",
+   "to_link": "1220061100",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·W_SC6"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210021304",
+   "connector": "10120",
+   "to_link": "1220002302",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·W_SC6"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1210021304",
+   "connector": "10123",
+   "to_link": "1220001900",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220061200",
+   "connector": "10125",
+   "to_link": "1220021204",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220061200",
+   "connector": "10126",
+   "to_link": "1220001900",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220002202",
+   "connector": "10128",
+   "to_link": "1220001900",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·S_SC106"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220002001",
+   "connector": "10167",
+   "to_link": "1220002302",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220024801",
+   "connector": "10168",
+   "to_link": "1220022504",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220024801",
+   "connector": "10169",
+   "to_link": "1220024301",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·S_SC106"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220002001",
+   "connector": "10170",
+   "to_link": "1220021204",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC104",
+   "legs": [
+    "SC104·S_SC106"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220002001",
+   "connector": "10171",
+   "to_link": "65",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·W_SC102"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220022604",
+   "connector": "10173",
+   "to_link": "1220024301",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·W_SC102"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220022604",
+   "connector": "10174",
+   "to_link": "1220024901",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220024201",
+   "connector": "10176",
+   "to_link": "1220022504",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC103",
+   "legs": [
+    "SC103·E"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220024201",
+   "connector": "10177",
+   "to_link": "1220024901",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·W_SC2005"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220020904",
+   "connector": "10457",
+   "to_link": "1220022601",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·W_SC2005"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220020904",
+   "connector": "10458",
+   "to_link": "1220023201",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·E_SC103"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220022501",
+   "connector": "10460",
+   "to_link": "1220020804",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·E_SC103"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220022501",
+   "connector": "10462",
+   "to_link": "1220023201",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220023101",
+   "connector": "10467",
+   "to_link": "1220022601",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC102",
+   "legs": [
+    "SC102·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "1220023101",
+   "connector": "10468",
+   "to_link": "1220020804",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·W_RAMP"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "69",
+   "connector": "10637",
+   "to_link": "70",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": 193.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC1004",
+   "legs": [
+    "SC1004·W"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "69",
+   "connector": "10640",
+   "to_link": "71",
+   "heading": "E",
+   "signal_groups": [],
+   "controllable": false,
+   "entry_volume_veh_h": 1400.0,
+   "flow_veh_h": 48.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·S"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "79",
+   "connector": "10717",
+   "to_link": "81",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·S"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "79",
+   "connector": "10718",
+   "to_link": "82",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·S"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "79",
+   "connector": "10719",
+   "to_link": "77",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·E_SC2002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "84",
+   "connector": "10720",
+   "to_link": "77",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "80",
+   "connector": "10721",
+   "to_link": "78",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 283.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·W"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "76",
+   "connector": "10722",
+   "to_link": "82",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 283.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·W"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "76",
+   "connector": "10723",
+   "to_link": "78",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 283.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·W"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "76",
+   "connector": "10724",
+   "to_link": "81",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 283.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·E_SC2002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "84",
+   "connector": "10725",
+   "to_link": "81",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·E_SC2002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "84",
+   "connector": "10726",
+   "to_link": "78",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "80",
+   "connector": "10727",
+   "to_link": "77",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 283.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2001",
+   "legs": [
+    "SC2001·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "80",
+   "connector": "10728",
+   "to_link": "82",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 283.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·W_SC2001"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "83",
+   "connector": "10729",
+   "to_link": "86",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·S_SC1001"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "38",
+   "connector": "10730",
+   "to_link": "89",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "90",
+   "connector": "10731",
+   "to_link": "37",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 252.0,
+   "flow_veh_h": 84.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·E_SC2003"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "88",
+   "connector": "10732",
+   "to_link": "85",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·E_SC2003"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "88",
+   "connector": "10733",
+   "to_link": "37",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·E_SC2003"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "88",
+   "connector": "10734",
+   "to_link": "89",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "90",
+   "connector": "10735",
+   "to_link": "85",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 252.0,
+   "flow_veh_h": 84.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "90",
+   "connector": "10736",
+   "to_link": "86",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 252.0,
+   "flow_veh_h": 84.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·W_SC2001"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "83",
+   "connector": "10737",
+   "to_link": "37",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·W_SC2001"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "83",
+   "connector": "10738",
+   "to_link": "89",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·S_SC1001"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "38",
+   "connector": "10739",
+   "to_link": "86",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2003",
+   "legs": [
+    "SC2003·W_SC2002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "87",
+   "connector": "10740",
+   "to_link": "103",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2003",
+   "legs": [
+    "SC2003·E_SC2004"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "102",
+   "connector": "10741",
+   "to_link": "93",
+   "heading": "W",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2003",
+   "legs": [
+    "SC2003·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "99",
+   "connector": "10742",
+   "to_link": "93",
+   "heading": "W",
+   "signal_groups": [
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 425.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2003",
+   "legs": [
+    "SC2003·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "99",
+   "connector": "10743",
+   "to_link": "103",
+   "heading": "E",
+   "signal_groups": [
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 849.0,
+   "flow_veh_h": 425.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2003",
+   "legs": [
+    "SC2003·W_SC2002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "87",
+   "connector": "10744",
+   "to_link": "95",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2003",
+   "legs": [
+    "SC2003·E_SC2004"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "102",
+   "connector": "10745",
+   "to_link": "95",
+   "heading": "N",
+   "signal_groups": [
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·W_SC2003"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "104",
+   "connector": "10746",
+   "to_link": "107",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·W_SC2003"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "104",
+   "connector": "10747",
+   "to_link": "72",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·W_SC2003"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "104",
+   "connector": "10748",
+   "to_link": "109",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·S_SC1002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "73",
+   "connector": "10749",
+   "to_link": "109",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·S_SC1002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "73",
+   "connector": "10750",
+   "to_link": "101",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·S_SC1002"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "73",
+   "connector": "10751",
+   "to_link": "107",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·E_SC2005"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "108",
+   "connector": "10752",
+   "to_link": "101",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·E_SC2005"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "108",
+   "connector": "10753",
+   "to_link": "72",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·E_SC2005"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "108",
+   "connector": "10754",
+   "to_link": "109",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "112",
+   "connector": "10755",
+   "to_link": "72",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 84.0,
+   "flow_veh_h": 28.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "112",
+   "connector": "10756",
+   "to_link": "107",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 84.0,
+   "flow_veh_h": 28.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2004",
+   "legs": [
+    "SC2004·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "112",
+   "connector": "10757",
+   "to_link": "101",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 84.0,
+   "flow_veh_h": 28.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·S_SC101"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "310",
+   "connector": "10758",
+   "to_link": "115",
+   "heading": "N",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·S_SC101"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "310",
+   "connector": "10759",
+   "to_link": "297",
+   "heading": "E",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·S_SC101"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "310",
+   "connector": "10760",
+   "to_link": "108",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·E_SC102"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "298",
+   "connector": "10761",
+   "to_link": "108",
+   "heading": "W",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·E_SC102"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "298",
+   "connector": "10762",
+   "to_link": "115",
+   "heading": "N",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·E_SC102"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "298",
+   "connector": "10763",
+   "to_link": "308",
+   "heading": "S",
+   "signal_groups": [
+    1,
+    6
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "117",
+   "connector": "10764",
+   "to_link": "308",
+   "heading": "S",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 879.0,
+   "flow_veh_h": 293.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "117",
+   "connector": "10765",
+   "to_link": "297",
+   "heading": "E",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 879.0,
+   "flow_veh_h": 293.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·N"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "117",
+   "connector": "10766",
+   "to_link": "108",
+   "heading": "W",
+   "signal_groups": [
+    4,
+    7
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 879.0,
+   "flow_veh_h": 293.0
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·W_SC2004"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "107",
+   "connector": "10767",
+   "to_link": "297",
+   "heading": "E",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·W_SC2004"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "107",
+   "connector": "10768",
+   "to_link": "308",
+   "heading": "S",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2005",
+   "legs": [
+    "SC2005·W_SC2004"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "107",
+   "connector": "10769",
+   "to_link": "115",
+   "heading": "N",
+   "signal_groups": [
+    2,
+    5
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  },
+  {
+   "class": "outside_pn",
+   "sc": "SC2002",
+   "legs": [
+    "SC2002·S_SC1001"
+   ],
+   "leg_zone": "외부",
+   "dest_zone": "외부",
+   "from_link": "38",
+   "connector": "10770",
+   "to_link": "85",
+   "heading": "W",
+   "signal_groups": [
+    3,
+    8
+   ],
+   "controllable": true,
+   "entry_volume_veh_h": 0,
+   "flow_veh_h": null
+  }
+ ]
+}

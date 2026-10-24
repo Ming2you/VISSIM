@@ -1,0 +1,38 @@
+{
+  "schema": "offramp-route-inventory/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "mapping": {
+    "path": "evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json",
+    "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+  },
+  "groups": {
+    "OR_D_E": {
+      "decision": "1131",
+      "decision_link": "2",
+      "direct_connector": "10483",
+      "signal_connector": "10481"
+    },
+    "OR_D_W": {
+      "decision": "1132",
+      "decision_link": "26",
+      "direct_connector": "10479",
+      "signal_connector": "10491"
+    },
+    "OR_F_E": {
+      "decision": "1130",
+      "decision_link": "74",
+      "direct_connector": "10682",
+      "signal_connector": "10643"
+    },
+    "OR_F_W": {
+      "decision": "1133",
+      "decision_link": "120",
+      "direct_connector": "10645",
+      "signal_connector": "10638"
+    }
+  },
+  "semantics": "Existing four signal and four direct stocks; physical connector source cells; observed route retained and only future eligible constant static decisions expanded once as expected mass; no native passage fitting."
+}

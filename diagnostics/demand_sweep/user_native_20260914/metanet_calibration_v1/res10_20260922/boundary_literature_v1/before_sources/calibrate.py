@@ -1,0 +1,249 @@
+"""Seed13-only bounded fitting of existing parameters using450s open rollouts.
+
+No optimizer supplies traffic physics. Every candidate uses canonical_harness.
+The parent boundary factory owns information cutoffs and replay labeling.
+"""
+from __future__ import annotations
+import argparse
+import json
+import math
+from pathlib import Path
+import sys
+import time
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
+sys.path[:0] = [str(ROOT/'.review-deps'),str(ROOT/'diagnostics/rule_baseline_20260914/.plot-deps')]
+from canonical_harness import load_base_model, PARAMETER_BOUNDS, OPTIONAL_PARAMETER_BOUNDS, BASELINE_PARAMETERS, sha256
+
+NORMALIZATION = {'density_veh_km_lane':10.0, 'speed_kmh':20.0, 'flow_veh_h':1000.0}
+FAILURE_SCORE = 1e12  # Hard transition exceptions must not outrank audited invalid rollouts.
+
+
+def score_windows(model, windows, data, road, parameters):
+    from scoring import score_rollout
+    scores = []
+    for window in windows:
+        try:
+            rollout = model.rollout(window['initial_cells'], window['boundary_steps'],
+                parameters, window['initial_origin_queue'], roads=(road,),
+                port_dynamics=window.get('port_dynamics'))
+            scores.append(score_rollout(data, window['meta']['cutoff_s'], rollout, road))
+        except (ArithmeticError,ValueError,OverflowError) as exc:
+            scores.append({'objective':FAILURE_SCORE,'invalid':True,'road':road,
+                'cutoff_s':window['meta']['cutoff_s'],'failure':type(exc).__name__+': '+str(exc)})
+    return {'objective': math.fsum(row['objective'] for row in scores)/len(scores),
+            'window_scores': scores}
+
+
+def optimize_direction(model, windows, data, road, output, max_evaluations=100, initial_parameters=None, fit_keys=None):
+    initial_parameters = dict(BASELINE_PARAMETERS if initial_parameters is None else initial_parameters)
+    keys = tuple(PARAMETER_BOUNDS if fit_keys is None else fit_keys)
+    all_bounds = {**PARAMETER_BOUNDS, **OPTIONAL_PARAMETER_BOUNDS}
+    if not keys or set(keys)-all_bounds.keys() or set(keys)-initial_parameters.keys():
+        raise ValueError('Fit keys must have explicit initial values and supported bounds')
+    bounds = [all_bounds[k] for k in keys]
+    def encode(params):
+        return tuple((params[k]-lo)/(hi-lo) for k,(lo,hi) in zip(keys,bounds))
+    def decode(x):
+        return {**initial_parameters, **{k:lo+u*(hi-lo) for k,u,(lo,hi) in zip(keys,x,bounds)}}
+    cache,records = {},[]
+    started = time.monotonic()
+    def evaluate(x, phase):
+        x = tuple(min(1,max(0,v)) for v in x)
+        if x in cache:
+            return cache[x]
+        params = dict(initial_parameters) if phase == 'baseline' else decode(x)
+        try:
+            result = score_windows(model,windows,data,road,{'by_direction':{road:params}})
+        except (ArithmeticError,ValueError,OverflowError) as exc:
+            result = {'objective':FAILURE_SCORE,'failure':type(exc).__name__+': '+str(exc)}
+        record = {'evaluation':len(records)+1,'road':road,'phase':phase,'parameters':params,
+                  'elapsed_seconds':time.monotonic()-started,**result}
+        records.append(record)
+        with output.open('a',encoding='utf-8') as stream:
+            compact = {k:v for k,v in record.items() if k != 'window_scores'}
+            compact['window_scores'] = [{k:r[k] for k in ('cutoff_s','objective','invalid','failure',
+                'density','speed','flow_vph','diagnostics') if k in r} for r in result.get('window_scores',[])]
+            stream.write(json.dumps(compact,allow_nan=False)+'\n')
+        if len(records) == 1 or len(records)%10 == 0:
+            print(json.dumps({'road':road,'evaluations':len(records),'objective':result['objective'],
+                              'elapsed_seconds':round(record['elapsed_seconds'],1)}),flush=True)
+        cache[x] = (result['objective'],x,result)
+        return cache[x]
+    baseline = evaluate(encode(initial_parameters),'baseline')
+    best = baseline
+    # Bounded deterministic pattern search starts from the actual baseline.
+    # Allocate work to every scale; the evaluation cap is not a convergence or
+    # global-optimality claim, and the complete search trace is retained.
+    for delta in (.2,.1,.05):
+        stage_limit = min(max_evaluations,len(records)+max(12,(max_evaluations-1)//3))
+        improved = True
+        while improved and len(records) < stage_limit:
+            improved = False
+            for index in range(len(keys)):
+                anchor = best[1]
+                candidates = []
+                for sign in (-1,1):
+                    if len(records) >= stage_limit:
+                        break
+                    point = list(anchor)
+                    point[index] += sign*delta
+                    candidates.append(evaluate(point,'pattern_'+str(delta)))
+                candidate = min(candidates,key=lambda v:v[0]) if candidates else best
+                if candidate[0] < best[0]-1e-10:
+                    best = candidate
+                    improved = True
+    return {'parameters':decode(best[1]),'baseline_training':baseline[2],
+            'calibrated_training':best[2],'evaluations':len(records),
+            'elapsed_seconds':time.monotonic()-started,'optimizer':'baseline-start bounded coordinate pattern search (.2,.1,.05 normalized steps)'}
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--observations',type=Path)
+    parser.add_argument('--out',type=Path,required=True)
+    parser.add_argument('--protocol',type=Path,help='Explicit new completed-run calibration protocol; legacy seed13 protocol is unchanged')
+    parser.add_argument('--max-evaluations',type=int,default=100)
+    parser.add_argument('--initial-parameters',type=Path)
+    parser.add_argument('--fit-keys',nargs='+')
+    parser.add_argument('--port-profile',type=Path)
+    args = parser.parse_args()
+    if args.protocol:
+        run_declared_protocol(args)
+        return
+    if args.observations is None: parser.error('--observations or --protocol required')
+    if 'seed13' not in str(args.observations).lower():
+        raise ValueError('Fitter accepts seed13 observations only')
+    if args.out.exists():
+        raise FileExistsError('Preserve previous fit artifacts; choose a new output directory')
+    from boundary_factory import ObservationData,build_window
+    protocol = json.loads((HERE/'PROTOCOL.json').read_text(encoding='utf-8-sig'))
+    manifest = json.loads((args.observations/'manifest.json').read_text(encoding='utf-8-sig'))
+    if manifest['seed'] != 13 or manifest['network']['sha256'] != protocol['training_network_sha256']:
+        raise ValueError('Training data must be the predeclared seed13 network')
+    data = ObservationData(args.observations)
+    geometry = json.loads((args.observations/'geometry.json').read_text(encoding='utf-8-sig'))
+    model = load_base_model(geometry)
+    initial = json.loads(args.initial_parameters.read_text(encoding='utf-8'))['parameters']['by_direction'] if args.initial_parameters else {}
+    port_profile = json.loads(args.port_profile.read_text(encoding='utf-8')) if args.port_profile else None
+    source_names = ('canonical_harness.py','calibrate.py','boundary_factory.py','extract_observations.py','scoring.py','PROTOCOL.json')
+    input_names = ('geometry.json','cells_30s.csv','flows_30s.csv','boundaries_30s.csv')
+    if port_profile:
+        input_names += ('ports_30s.csv','port_cohorts_30s.json')
+    source_hashes = {name:sha256(HERE/name) for name in source_names}
+    input_hashes = {name:sha256(args.observations/name) for name in input_names}
+    training = [build_window(data,t,'conditioned_diagnostic',port_profile) for t in protocol['training_cutoffs_sec']]
+    validation = [build_window(data,t,'conditioned_diagnostic',port_profile) for t in protocol['seed13_validation_cutoffs_sec']]
+    args.out.mkdir(parents=True)
+    results = {}
+    for road in ('FW_E','FW_W'):
+        results[road] = optimize_direction(model,training,data,road,args.out/'search.jsonl',args.max_evaluations,
+                                          initial_parameters=initial.get(road),fit_keys=args.fit_keys)
+    parameters = {'by_direction':{road:row['parameters'] for road,row in results.items()}}
+    for road in results:
+        results[road]['baseline_temporal_validation'] = score_windows(model,validation,data,road,{'by_direction':initial} if initial else None)
+        results[road]['calibrated_temporal_validation'] = score_windows(model,validation,data,road,parameters)
+    # Imports are cached. A changed on-disk module cannot be labeled as the
+    # version used by this fit; fail rather than freezing an ambiguous result.
+    if source_hashes != {name:sha256(HERE/name) for name in source_names}:
+        raise RuntimeError('Fitting/protocol sources changed during optimization')
+    if input_hashes != {name:sha256(args.observations/name) for name in input_names}:
+        raise RuntimeError('Training observations changed during optimization')
+    if any(sha256(ROOT/path) != digest for path,digest in model.provenance['model_files'].items()):
+        raise RuntimeError('Canonical model dependency changed during optimization')
+    document = {'schema':'canonical-metanet-seed13-calibration/v1','training_seed':13,
+        'fit_mode':'conditioned_diagnostic','parameters':parameters,'results':results,
+        'normalization':NORMALIZATION,'objective':'mean across windows of shared scoring.py density/speed/physical total-outflow normalized MSE sum; full450s all30s endpoints',
+        'bounds':PARAMETER_BOUNDS,'training_cutoffs_sec':protocol['training_cutoffs_sec'],
+        'temporal_validation_cutoffs_sec':protocol['seed13_validation_cutoffs_sec'],
+        'validation_role':'reported only; no parameter/model/optimizer selection from validation errors',
+        'model_provenance':model.provenance,
+        'port_profile':str(args.port_profile) if args.port_profile else None,
+        'port_profile_sha256':sha256(args.port_profile) if args.port_profile else None,
+        'initial_parameters_source':str(args.initial_parameters) if args.initial_parameters else None,
+        'fit_keys':args.fit_keys,
+        'input_sha256':input_hashes,'code_sha256':source_hashes}
+    (args.out/'parameters.json').write_text(json.dumps(document,indent=2,ensure_ascii=False,allow_nan=False)+'\n',encoding='utf-8')
+    compact = {road:{'parameters':row['parameters'],'evaluations':row['evaluations'],
+        **{key:row[key]['objective'] for key in ('baseline_training','calibrated_training',
+            'baseline_temporal_validation','calibrated_temporal_validation')}} for road,row in results.items()}
+    print(json.dumps({'parameters':str(args.out/'parameters.json'),'sha256':sha256(args.out/'parameters.json'),
+                      'results':compact},ensure_ascii=False),flush=True)
+
+
+def run_declared_protocol(args):
+    """Re-use the same model, boundaries, scores and optimizer on pinned new runs."""
+    import gzip
+    from boundary_factory import ObservationData, build_window
+    from scoring import score_rollout, persistence_score
+    load=lambda p:json.loads(Path(p).read_text(encoding='utf-8-sig'))
+    def save(p,v): Path(p).write_text(json.dumps(v,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+    spec=load(args.protocol)
+    if spec['schema']!='metanet-completed-demand-holdout/v1': raise ValueError('Unknown protocol')
+    if args.out.exists(): raise FileExistsError('Preserve previous calibration attempts')
+    args.out.mkdir(parents=True)
+    save(args.out/'protocol.json',spec)
+    sources=[HERE/n for n in ('calibrate.py','canonical_harness.py','boundary_factory.py','scoring.py','extract_observations.py')]
+    sources += [ROOT/'evaluation/controllers'/n for n in ('vissim_stackelberg_adapter.py','freeway_fd.py','freeway_geometry.py')]
+    pins={str(p.relative_to(ROOT)):sha256(p) for p in sources}
+    train=spec['training'];data=ObservationData(ROOT/train['observations'])
+    manifest=load(data.folder/'manifest.json')
+    if manifest['seed']!=spec['seed'] or manifest['network']['sha256']!=train['network_sha256']:
+        raise ValueError('Training source differs from frozen protocol')
+    config=ROOT/spec['config']; model=load_base_model(data.geometry,config)
+    if sha256(config)!=spec['config_sha256']: raise ValueError('Model config changed')
+    baseline_config=ROOT/spec.get('baseline_config',spec['config'])
+    if sha256(baseline_config)!=spec.get('baseline_config_sha256',spec['config_sha256']): raise ValueError('Baseline config changed')
+    step=spec['integration_step_sec']
+    if model.base.simulation.T_f_sec!=step: raise ValueError('Model step differs')
+    initial={r:dict(BASELINE_PARAMETERS) for r in model.roads}
+    windows=[build_window(data,t,spec['fit_mode'],model_step_sec=step) for t in train['cutoffs_s']]
+    configs={}
+    for path in (config,baseline_config):
+        document=load(path)
+        refs=[path,ROOT/document['freeway']['segment_params']]
+        configs.update({str(p.relative_to(ROOT)):sha256(p) for p in refs})
+    save(args.out/'input_pins.json',{'code':pins,'configs':configs,'protocol':sha256(args.protocol),'training':{p.name:sha256(p) for p in data.folder.iterdir() if p.suffix in ('.json','.csv')}})
+    fitted={}
+    for road in model.roads:
+        fitted[road]=optimize_direction(model,windows,data,road,args.out/'search.jsonl',
+            args.max_evaluations,initial_parameters=initial[road],fit_keys=spec['fit_keys'])
+    parameters={'by_direction':{r:v['parameters'] for r,v in fitted.items()}}
+    save(args.out/'parameters.json',{'parameters':parameters,'training':fitted,'production_adopted':False})
+    frozen=sha256(args.out/'parameters.json')
+    save(args.out/'freeze.json',{'parameters_sha256':frozen,'before_validation':True,'code_pins':pins})
+    scores=[]
+    # No parameter changes after this point. Every declared window is retained,
+    # including failures; previous visual inspection precludes a blind-test claim.
+    for case in [train]+spec['validation']:
+        sample=ObservationData(ROOT/case['observations']);m=load(sample.folder/'manifest.json')
+        if m['seed']!=spec['seed'] or m['network']['sha256']!=case['network_sha256']: raise ValueError('Validation source differs')
+        case_model=load_base_model(sample.geometry,config)
+        baseline_model=load_base_model(sample.geometry,baseline_config)
+        for mode in spec['evaluation_modes']:
+            for t in case['cutoffs_s']:
+                window=build_window(sample,t,mode,model_step_sec=step)
+                for road in model.roads:
+                    for label,override in [('baseline',{'by_direction':initial}),('calibrated',parameters)]:
+                        row={'case':case['id'],'mode':mode,'model':label,'road':road,'cutoff_s':t}
+                        try:
+                            active_model=baseline_model if label=='baseline' else case_model
+                            rollout=active_model.rollout(window['initial_cells'],window['boundary_steps'],override,window['initial_origin_queue'],roads=(road,))
+                            row.update(score_rollout(sample,t,rollout,road))
+                            path=args.out/f'{case["id"]}_{mode}_{road}_{t}_{label}.json.gz'
+                            with gzip.open(path,'wt',encoding='utf-8',compresslevel=1) as stream:json.dump(rollout,stream,allow_nan=False)
+                        except (ValueError,ArithmeticError,OverflowError) as exc:
+                            row.update(invalid=True,objective=FAILURE_SCORE,failure=repr(exc))
+                        row['persistence']=persistence_score(sample,t,road)
+                        scores.append(row)
+                print(json.dumps({'validated':case['id'],'mode':mode,'cutoff_s':t}),flush=True)
+    if sha256(args.out/'parameters.json')!=frozen or any(sha256(ROOT/p)!=h for p,h in {**pins,**configs}.items()):
+        raise ValueError('Frozen parameters or source changed during validation')
+    save(args.out/'validation.json',{'scores':scores,'same_seed_demand_holdout':True,'control_gain_validated':False,'production_adopted':False})
+    save(args.out/'completion.json',{'complete':True,'invalid_windows':sum(r['invalid'] for r in scores),'windows':len(scores),'parameters_sha256':frozen})
+    print(json.dumps({'complete':str(args.out),'invalid_windows':sum(r['invalid'] for r in scores)}),flush=True)
+
+
+if __name__ == '__main__':
+    main()

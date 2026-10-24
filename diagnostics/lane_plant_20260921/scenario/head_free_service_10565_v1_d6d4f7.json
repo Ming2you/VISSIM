@@ -1,0 +1,67 @@
+{
+  "schema": "head-free-connector-service/v1",
+  "network": {
+    "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+    "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+  },
+  "movement_join": {
+    "path": "diagnostics/control_area_movement_join_physical_routes.json",
+    "sha256": "ec494715a1c5e9a0bee70e09c1909eb9c54484bcccfc0caf0d35d6d70cd0e563"
+  },
+  "resources": {
+    "10565": {
+      "source_link": "403",
+      "source_lanes": [
+        1
+      ],
+      "source_position_m": 276.66217899117606,
+      "target_link": "58",
+      "movement": "SC1005_N_SC105_to_W_SC1004",
+      "merged_from": [
+        "SC1005_N_SC105_to_W",
+        "SC1005_N_SC105_to_W_SC1004"
+      ],
+      "expected_movement": {
+        "kind": "internal",
+        "origin": "SC105_to_SC1005",
+        "signal": "SC1005",
+        "phase": "SC1005_p1",
+        "receiving_link": "SC1005_to_SC1004",
+        "unsignalized": true
+      },
+      "native_route": {
+        "decision": "1127",
+        "route": "2",
+        "path": [
+          "1220006403",
+          "10655",
+          "412",
+          "10651",
+          "410",
+          "10654",
+          "408",
+          "10647",
+          "409",
+          "10649",
+          "403",
+          "10565",
+          "58"
+        ]
+      }
+    }
+  },
+  "counter": "signal_observation_window.bypass_link_exits; direct source-lane-to-connector transitions only",
+  "rate_policy": "max(existing service, prior verified observed-only floor, min(two contiguous confirmed_count / full_elapsed_seconds rates)); reuse existing minimum exposure/count thresholds",
+  "limits": "Observed demand-served lower bound only. Unknown road events are unassigned and never added to the count. Whole-road queue stock does not identify saturation of lane1. No measured rate is stored in this contract.",
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/head_free_service_10565_v1.json",
+      "sha256": "034e72ed23b94f35f6b3778e7169fa30ed408afd43914a8d4a491f642514a677"
+    },
+    "runtime_network": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+      "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+    },
+    "accuracy_validation": "pending"
+  }
+}

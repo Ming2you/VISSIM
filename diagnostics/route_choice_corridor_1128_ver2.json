@@ -1,0 +1,53 @@
+{
+  "schema": "route-choice-corridor/v1",
+  "network": {"path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx", "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"},
+  "membership_path": "diagnostics/control_area_membership.json",
+  "jam_source": {"path": "outputs/urban_storage_capacity_core17legs4b_20260819.json", "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"},
+  "decision": "1128",
+  "decision_link": "1220000102",
+  "decision_position_m": 20.576829873567828,
+  "prefix_storage": "SC107_W_choice",
+  "prefix_links": ["10610", "385", "10611", "10618", "10619", "1220000102"],
+  "local_storage": "SC107_to_SC1005",
+  "local_links": ["10500", "62"],
+  "bypass_storage": "SC107_to_SC1004",
+  "bypass_connector": "10501",
+  "local_connector": "10500",
+  "post_stopline_projection": {"10603": "SC1005_to_SC105", "10501": "SC107_to_SC1004"},
+  "native_paths": {
+    "1": ["1220000102", "10500", "62", "10603", "404"],
+    "2": ["1220000102", "10501"]
+  },
+  "branch_specs": {
+    "1": {"mode": "local_free", "destination": "SC107_to_SC1005", "service_group": "1128_local", "initial_target": "SC107_to_SC1005", "final_target": "SC1005_to_SC105", "exit_connector": "10603", "physical_target_link": "404", "canonical_movement": "SC1005_E_SC107_to_N_SC105", "signal_controlled": false},
+    "2": {"mode": "free_storage", "destination": "SC107_to_SC1004", "service_group": "1128_bypass", "initial_target": "SC107_to_SC1004", "physical_target_link": "52"}
+  },
+  "local_free_paths": {
+    "1": {"path": ["10500", "62", "10603", "404"], "connector": "10603", "source_link": "62", "branch_position_m": 391.83413472426645, "physical_target_link": "404", "target": "SC1005_to_SC105", "canonical_movement": "SC1005_E_SC107_to_N_SC105", "signal_controlled": false, "native_route_id": "1128:1"}
+  },
+  "local_movements": {},
+  "local_queue_heads": {},
+  "incoming_turns": {
+    "N_SC1": {"keep": "SC107_N_SC1_to_W_SC1005", "remove": "SC107_N_SC1_to_W_SC1004", "connector": "10610", "source_link": "1220043200", "path": ["1220043200", "10610", "385", "10611", "1220000102"], "signal_controlled": false},
+    "S": {"keep": "SC107_S_to_W_SC1005", "remove": "SC107_S_to_W_SC1004", "connector": "10618", "source_link": "382", "path": ["382", "10618", "1220000102"], "signal_controlled": true},
+    "E_SC108": {"keep": "SC107_E_SC108_to_W_SC1005", "remove": "SC107_E_SC108_to_W_SC1004", "connector": "10619", "source_link": "183", "path": ["183", "10619", "1220000102"], "signal_controlled": true}
+  },
+  "geometry_evidence": {
+    "source_N": {"native_route_id": "1063:3", "path": ["1220006803", "10596", "367", "10592", "1220043200", "10610", "385", "10611", "1220000102"], "route_end_pos_m": 17.474026034580394, "decision_1128_ahead": true, "source_lane": 1, "source_SC107_head_lanes": [2, 3], "prefix_enter_position_m": 14.137201},
+    "source_S": {"source_inside": false, "connector_inside": true, "prefix_enter_position_m": 0.279318, "signal_group": "107 3", "heads": ["1070301", "1070302", "1070303"]},
+    "source_E": {"source_inside": true, "connector_inside": true, "prefix_enter_position_m": 0.35771, "signal_group": "107 6", "heads": ["1070601", "1070602", "1070603", "1070604"]},
+    "local_free": {"branch_lanes": 1, "entry_62_pos_m": 0.71368450320600885, "head_positions_m": [395.78635839776587, 396.10399924763152], "branch_precedes_heads": true, "destination_inside": true},
+    "bypass": {"physical_target": "52", "target_pos_m": 2.4363372645669541, "other_incoming_connector": "10498", "do_not_reassign_shared_target_road": true},
+    "independent_native_inputs_on_managed_links": [],
+    "native1128_weight_source": "Both relFlow attributes blank: native default1 each, conditional on decision eligibility. No observed posterior.",
+    "authority_report": "diagnostics/movement_signal_authority_audit.json",
+    "source_review": "diagnostics/positive_unresolved_connector_review.json"
+  },
+  "model_limitations": [
+    "Finite prefix and local stock use existing canonical capacity scale and explicit physical geometry; no additional copy of shared road capacity.",
+    "The three origins share one future1128 decision, but source accepted service remains specific to its physical connector and source-side area crossing.",
+    "Already past decision without compatible observed route identity cannot be redrawn from the conditional native prior.",
+    "1128:1 remains inside Omega through404 and bypasses the local62 signal head; its accepted10603 transfer is not TTD.",
+    "Initial10501 has unique bypass receiver, while shared downstream52 retains the existing model projection and its documented cohort-mixing approximation."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "head-queue-lane-support/v1",
+  "network": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "authority": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_init_hp_sc101\\initial.json",
+    "sha256": "64cd87060dc2690a4b43976f8762b7d429b16c840768627ddb8885ccb5d89811"
+  },
+  "movements": {
+    "SC1003_S_SC1004_to_N_SC1001": {
+      "expected_spec": {
+        "kind": "internal",
+        "signal": "SC1003",
+        "phase": "SC1003_p1",
+        "origin": "SC1004_to_SC1003",
+        "receiving_link": "SC1003_to_SC1001"
+      },
+      "from_link": "47",
+      "connector": "10493",
+      "to_link": "40",
+      "lanes": [
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  "scope": "Existing29/329 plus SC101 east/south queue lane support. Shared through/right lane retains existing relative weights; no individual destination inference or fitted rates. Added40: native SG3/lane4 left and SG8/lanes2,3 through; existing right lane1 remains unknown-head fallback. No stock increase.",
+  "upstream_stoplines": {
+    "1210008501": {
+      "storage": "SC1_to_SC101",
+      "downstream_approach": "1220011503",
+      "signal_groups": [
+        "15 3",
+        "15 8"
+      ]
+    }
+  }
+}

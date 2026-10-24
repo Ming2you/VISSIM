@@ -1,0 +1,258 @@
+{
+  "schema": "head-queue-lane-support/v1",
+  "network": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "authority": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\expanded036_9000_20260930\\loss_onset2250\\city_path\\2250_init_hp_sc101\\initial.json",
+    "sha256": "64cd87060dc2690a4b43976f8762b7d429b16c840768627ddb8885ccb5d89811"
+  },
+  "movements": {
+    "SC1001_E_SC1002_to_W_RAMP": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p3",
+        "origin": "SC1002_to_SC1001",
+        "receiving_link": "SC1001_W_out",
+        "kind": "boundary_out"
+      },
+      "from_link": "29",
+      "connector": "10119",
+      "to_link": "31",
+      "lanes": [
+        2,
+        3
+      ]
+    },
+    "SC1001_E_SC1002_to_N_SC2002": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p3",
+        "origin": "SC1002_to_SC1001",
+        "receiving_link": "SC1001_to_SC2002",
+        "kind": "internal"
+      },
+      "from_link": "29",
+      "connector": "10122",
+      "to_link": "38",
+      "lanes": [
+        1
+      ]
+    },
+    "SC1001_E_SC1002_to_S_SC1003": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p4",
+        "origin": "SC1002_to_SC1001",
+        "receiving_link": "SC1001_to_SC1003",
+        "kind": "internal"
+      },
+      "from_link": "29",
+      "connector": "10696",
+      "to_link": "39",
+      "lanes": [
+        4
+      ]
+    },
+    "SC1002_E_SC101_to_W_SC1001": {
+      "expected_spec": {
+        "signal": "SC1002",
+        "phase": "SC1002_p3",
+        "origin": "SC101_to_SC1002",
+        "receiving_link": "SC1002_to_SC1001",
+        "kind": "internal"
+      },
+      "from_link": "329",
+      "connector": "10691",
+      "to_link": "29",
+      "lanes": [
+        2,
+        3
+      ]
+    },
+    "SC1002_E_SC101_to_N_SC2004": {
+      "expected_spec": {
+        "signal": "SC1002",
+        "phase": "SC1002_p3",
+        "origin": "SC101_to_SC1002",
+        "receiving_link": "SC1002_to_SC2004",
+        "kind": "internal"
+      },
+      "from_link": "329",
+      "connector": "10692",
+      "to_link": "73",
+      "lanes": [
+        1
+      ]
+    },
+    "SC1002_E_SC101_to_S_SC105": {
+      "expected_spec": {
+        "signal": "SC1002",
+        "phase": "SC1002_p4",
+        "origin": "SC101_to_SC1002",
+        "receiving_link": "SC1002_to_SC105",
+        "kind": "internal"
+      },
+      "from_link": "329",
+      "connector": "10693",
+      "to_link": "420",
+      "lanes": [
+        4
+      ]
+    },
+    "SC101_E_SC5_to_W_SC1002": {
+      "expected_spec": {
+        "signal": "SC101",
+        "phase": "SC101_p3",
+        "origin": "SC5_to_SC101",
+        "receiving_link": "SC101_to_SC1002",
+        "kind": "internal"
+      },
+      "from_link": "1220014201",
+      "connector": "10534",
+      "to_link": "1220012402",
+      "lanes": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "SC101_E_SC5_to_N_SC2005": {
+      "expected_spec": {
+        "signal": "SC101",
+        "phase": "SC101_p3",
+        "origin": "SC5_to_SC101",
+        "receiving_link": "SC101_to_SC2005",
+        "kind": "internal"
+      },
+      "from_link": "1220014201",
+      "connector": "10510",
+      "to_link": "319",
+      "lanes": [
+        1
+      ]
+    },
+    "SC101_E_SC5_to_S_SC1": {
+      "expected_spec": {
+        "signal": "SC101",
+        "phase": "SC101_p4",
+        "origin": "SC5_to_SC101",
+        "receiving_link": "SC101_to_SC1",
+        "kind": "internal"
+      },
+      "from_link": "1220014201",
+      "connector": "10535",
+      "to_link": "1220011403",
+      "lanes": [
+        5
+      ]
+    },
+    "SC101_S_SC1_to_N_SC2005": {
+      "expected_spec": {
+        "signal": "SC101",
+        "phase": "SC101_p1",
+        "origin": "SC1_to_SC101",
+        "receiving_link": "SC101_to_SC2005",
+        "kind": "internal"
+      },
+      "from_link": "1220011503",
+      "connector": "10538",
+      "to_link": "1220016101",
+      "lanes": [
+        1,
+        2,
+        3
+      ]
+    },
+    "SC101_S_SC1_to_E_SC5": {
+      "expected_spec": {
+        "signal": "SC101",
+        "phase": "SC101_p1",
+        "origin": "SC1_to_SC101",
+        "receiving_link": "SC101_to_SC5",
+        "kind": "internal"
+      },
+      "from_link": "1220011503",
+      "connector": "10528",
+      "to_link": "336",
+      "lanes": [
+        1
+      ]
+    },
+    "SC101_S_SC1_to_W_SC1002": {
+      "expected_spec": {
+        "signal": "SC101",
+        "phase": "SC101_p2",
+        "origin": "SC1_to_SC101",
+        "receiving_link": "SC101_to_SC1002",
+        "kind": "internal"
+      },
+      "from_link": "1220011503",
+      "connector": "10539",
+      "to_link": "1220012402",
+      "lanes": [
+        4,
+        5
+      ]
+    },
+    "SC1001_S_SC1003_to_N_SC2002": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p1",
+        "origin": "SC1003_to_SC1001",
+        "receiving_link": "SC1001_to_SC2002",
+        "kind": "internal"
+      },
+      "from_link": "40",
+      "connector": "10371",
+      "to_link": "38",
+      "lanes": [
+        2,
+        3
+      ]
+    },
+    "SC1001_S_SC1003_to_E_SC1002": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p1",
+        "origin": "SC1003_to_SC1001",
+        "receiving_link": "SC1001_to_SC1002",
+        "kind": "internal"
+      },
+      "from_link": "40",
+      "connector": "10377",
+      "to_link": "30",
+      "lanes": [
+        1
+      ]
+    },
+    "SC1001_S_SC1003_to_W_RAMP": {
+      "expected_spec": {
+        "signal": "SC1001",
+        "phase": "SC1001_p2",
+        "origin": "SC1003_to_SC1001",
+        "receiving_link": "SC1001_W_out",
+        "kind": "boundary_out"
+      },
+      "from_link": "40",
+      "connector": "10698",
+      "to_link": "31",
+      "lanes": [
+        4
+      ]
+    }
+  },
+  "scope": "Existing29/329 plus SC101 east/south queue lane support. Shared through/right lane retains existing relative weights; no individual destination inference or fitted rates. Added40: native SG3/lane4 left and SG8/lanes2,3 through; existing right lane1 remains unknown-head fallback. No stock increase.",
+  "upstream_stoplines": {
+    "1210008501": {
+      "storage": "SC1_to_SC101",
+      "downstream_approach": "1220011503",
+      "signal_groups": [
+        "15 3",
+        "15 8"
+      ]
+    }
+  }
+}

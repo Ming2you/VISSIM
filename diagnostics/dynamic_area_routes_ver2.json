@@ -1,0 +1,232 @@
+{
+  "schema": "physical-movement-routes/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "by_movement": {
+    "SC1004_N_SC1003_to_E_SC107": {
+      "path": [
+        "46",
+        "10627",
+        "56",
+        "10621"
+      ],
+      "native_routes": [
+        "1125:3",
+        "1129:1"
+      ],
+      "expected_spec": {
+        "signal": "SC1004",
+        "origin": "SC1003_to_SC1004",
+        "approach": "N_SC1003",
+        "turn": "left",
+        "receiving_link": "SC1004_to_SC107",
+        "kind": "internal"
+      },
+      "rationale": "The actual SC1004 east exit continues along native bypass 10621 to the distinct SC107 receiver.",
+      "timing_assumption": "Accepted model service aggregates this physical path travel; native identities prove membership, not individual vehicle routing or travel time."
+    },
+    "SC1004_W_to_E_SC107": {
+      "path": [
+        "71",
+        "10634",
+        "56",
+        "10621"
+      ],
+      "native_routes": [
+        "1138:2",
+        "1129:1"
+      ],
+      "expected_spec": {
+        "signal": "SC1004",
+        "origin": "in_SC1004_W",
+        "approach": "W",
+        "turn": "through",
+        "receiving_link": "SC1004_to_SC107",
+        "kind": "boundary_in"
+      },
+      "rationale": "The actual SC1004 east exit continues along native bypass 10621 to the distinct SC107 receiver.",
+      "timing_assumption": "Accepted model service aggregates this physical path travel; native identities prove membership, not individual vehicle routing or travel time."
+    },
+    "SC1004_offE_to_E_SC107": {
+      "path": [
+        "10643",
+        "126",
+        "10641",
+        "71",
+        "10634",
+        "56",
+        "10621"
+      ],
+      "native_routes": [
+        "1126:2",
+        "1129:1"
+      ],
+      "expected_spec": {
+        "signal": "SC1004",
+        "origin": "OR_F_E",
+        "approach": "offE",
+        "turn": "through",
+        "receiving_link": "SC1004_to_SC107",
+        "kind": "off_ramp"
+      },
+      "rationale": "The actual SC1004 east exit continues along native bypass 10621 to the distinct SC107 receiver.",
+      "timing_assumption": "Accepted model service aggregates this physical path travel; native identities prove membership, not individual vehicle routing or travel time."
+    },
+    "SC1004_offW_to_E_SC107": {
+      "path": [
+        "10638",
+        "70",
+        "10776",
+        "126",
+        "10641",
+        "71",
+        "10634",
+        "56",
+        "10621"
+      ],
+      "native_routes": [
+        "1133:2",
+        "1140:2",
+        "1129:1"
+      ],
+      "expected_spec": {
+        "signal": "SC1004",
+        "origin": "OR_F_W",
+        "approach": "offW",
+        "turn": "through",
+        "receiving_link": "SC1004_to_SC107",
+        "kind": "off_ramp"
+      },
+      "rationale": "The actual SC1004 east exit continues along native bypass 10621 to the distinct SC107 receiver.",
+      "timing_assumption": "Accepted model service aggregates this physical path travel; native identities prove membership, not individual vehicle routing or travel time."
+    }
+  },
+  "topology_repairs": [
+    {
+      "remove_movement": "SC107_W_SC1004_to_W_SC1005",
+      "expected_removed_spec": {
+        "signal": "SC107",
+        "origin": "SC1004_to_SC107",
+        "approach": "W_SC1004",
+        "turn": "u_turn",
+        "receiving_link": "SC107_to_SC1005",
+        "kind": "internal"
+      },
+      "physical_stopline": "1220000201",
+      "expected_outgoing_connectors": [
+        "10622",
+        "10023",
+        "10616"
+      ],
+      "keep_movements": {
+        "SC107_W_SC1004_to_E_SC108": "1061:2",
+        "SC107_W_SC1004_to_N_SC1": "1061:1",
+        "SC107_W_SC1004_to_S": "1061:3"
+      },
+      "physical_projection_links": [],
+      "prior_limitations": "Frozen offline NC seed13 source-specific completed-cohort prior. Five-second sampling and censoring limits are recorded in calibration. Seed14 holdout validation is required. Reproject original physical records; do not move an existing model queue."
+    },
+    {
+      "remove_movement": "SC107_W_SC1005_to_W_SC1004",
+      "expected_removed_spec": {
+        "signal": "SC107",
+        "origin": "SC1005_to_SC107",
+        "approach": "W_SC1005",
+        "turn": "u_turn",
+        "receiving_link": "SC107_to_SC1004",
+        "kind": "internal"
+      },
+      "physical_stopline": "1220000201",
+      "expected_outgoing_connectors": [
+        "10622",
+        "10023",
+        "10616"
+      ],
+      "keep_movements": {
+        "SC107_W_SC1005_to_E_SC108": "1061:2",
+        "SC107_W_SC1005_to_N_SC1": "1061:1",
+        "SC107_W_SC1005_to_S": "1061:3"
+      },
+      "physical_projection_links": [
+        "61",
+        "387",
+        "1220000201"
+      ],
+      "prior_limitations": "Frozen offline NC seed13 source-specific completed-cohort prior. Five-second sampling and censoring limits are recorded in calibration. Seed14 holdout validation is required. Reproject original physical records; do not move an existing model queue."
+    },
+    {
+      "remove_movement": "SC1004_E_SC1005_to_E_SC107",
+      "expected_removed_spec": {
+        "signal": "SC1004",
+        "origin": "SC1005_to_SC1004",
+        "approach": "E_SC1005",
+        "turn": "u_turn",
+        "receiving_link": "SC1004_to_SC107",
+        "kind": "internal"
+      },
+      "physical_stopline": "52",
+      "expected_outgoing_connectors": [
+        "10628",
+        "10629",
+        "10630"
+      ],
+      "keep_movements": {
+        "SC1004_E_SC1005_to_W": "1123:2",
+        "SC1004_E_SC1005_to_N_SC1003": "1123:1",
+        "SC1004_E_SC1005_to_S": "1123:3"
+      },
+      "physical_projection_links": [
+        "52",
+        "58",
+        "385"
+      ],
+      "prior_limitations": "Frozen offline NC seed13 source-specific completed-cohort prior. Five-second sampling and censoring limits are recorded in calibration. Seed14 holdout validation is required. Reproject original physical records; do not move an existing model queue."
+    },
+    {
+      "remove_movement": "SC1004_E_SC107_to_E_SC1005",
+      "expected_removed_spec": {
+        "signal": "SC1004",
+        "origin": "SC107_to_SC1004",
+        "approach": "E_SC107",
+        "turn": "u_turn",
+        "receiving_link": "SC1004_to_SC1005",
+        "kind": "internal"
+      },
+      "physical_stopline": "52",
+      "expected_outgoing_connectors": [
+        "10628",
+        "10629",
+        "10630"
+      ],
+      "keep_movements": {
+        "SC1004_E_SC107_to_W": "1123:2",
+        "SC1004_E_SC107_to_N_SC1003": "1123:1",
+        "SC1004_E_SC107_to_S": "1123:3"
+      },
+      "physical_projection_links": [],
+      "prior_limitations": "Frozen offline NC seed13 source-specific completed-cohort prior. Five-second sampling and censoring limits are recorded in calibration. Seed14 holdout validation is required. Reproject original physical records; do not move an existing model queue."
+    }
+  ],
+  "calibration": {
+    "path": "diagnostics\\dynamic_area_nc13_calibration.json",
+    "sha256": "726e11f06cbd5f5019753f1bd7f6384d730abebc621de7304db60f1ff06c5878"
+  },
+  "origin_repairs": [
+    {
+      "physical_link": "379",
+      "expected_origins": [
+        "SC107_to_SC108",
+        "in_SC107_S",
+        "in_SC108_W"
+      ],
+      "target_origin": "in_SC107_S",
+      "native_routes": [
+        "1064:1",
+        "1064:3"
+      ],
+      "rationale": "Input379 reaches SC107 south approach378; no SC108 stopline is reached first."
+    }
+  ]
+}

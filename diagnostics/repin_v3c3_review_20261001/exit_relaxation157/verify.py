@@ -1,0 +1,133 @@
+"""Verify completed finite-response hypothesis; no replays or new selection."""
+import csv
+import sys
+from pathlib import Path
+from diagnostics.repin_v3c3_review_20261001.junction_calibration125 import run as h
+from diagnostics.repin_v3c3_review_20261001.jin_macro111 import run as common
+
+HERE=Path(__file__).resolve().parent
+MERGE_RESTORE='--restore164' in sys.argv
+JOINT_PRESSURE='--joint163' in sys.argv or MERGE_RESTORE
+EXIT_PRESSURE='--exit161' in sys.argv or JOINT_PRESSURE
+COUPLED='--coupled158' in sys.argv or EXIT_PRESSURE
+if COUPLED:HERE=HERE.parent/'coupled_recovery158'
+if EXIT_PRESSURE:HERE=HERE.parent/'exit_pressure161'
+if JOINT_PRESSURE:HERE=HERE.parent/'joint_pressure163'
+if MERGE_RESTORE:HERE=HERE.parent/'merge_restore164'
+
+
+def main():
+    assert not (HERE/'assessment.json').exists()
+    pins={}
+    def read(p):pins[str(p)]=h.sha(p);return h.read(p)
+    status=read(HERE/'forecast/status.json')
+    assert status['status'].startswith('complete') and status['forecasts']==9
+    assert all(read(HERE/'forecast/parity.json').values())
+    preservation=read(HERE/'forecast/preservation.json')
+    assert all(preservation[k] for k in ('core','inputs','STOP','hooks_restored'))
+    preflight=read(HERE/'preflight.json');assert preflight['status']=='pass'
+    assert preflight['helper_sha256']==h.sha(h.__file__)==h.sha(HERE/'executed_helper.py.txt')
+    sources=read(HERE/'forecast/executed_function_sources.json')
+    original=read(h.R/'spatial_context148/forecast/executed_function_sources.json')
+    assert sources==h.exit_relaxation157_source(original)
+    assert all(sources[k]==v for k,v in original.items() if k!='RouteLaneRegion')
+    compare=read(HERE/'forecast/training_assessment.json')
+    if COUPLED:
+        protocol=read(HERE/'forecast/protocol.json')
+        expected=h.R/('exit_pressure161/candidate' if EXIT_PRESSURE else 'coupled_recovery153/candidate')
+        if JOINT_PRESSURE:expected=h.R/'joint_pressure163/candidate'
+        if MERGE_RESTORE:expected=h.R/'merge_restore164/candidate'
+        assert protocol['manifest']==str(expected/'manifest.json')
+        manifest=read(Path(protocol['manifest']))
+        config=manifest['sources']['reference_config']
+        assert h.sha(h.ROOT/config['path'])==config['sha256']
+        assert read(h.ROOT/config['path'])==read(expected/'reference_config.json')
+        if EXIT_PRESSURE:
+            candidate=read(expected/'reference_config.json')
+            parent=read(h.R/'coupled_recovery153/candidate/reference_config.json')
+            fitting=read(h.R/'exit_pressure161/proposal.json')
+            cell='20'
+            if JOINT_PRESSURE:
+                parent=read(h.R/'exit_pressure161/candidate/reference_config.json')
+                fitting=read(h.R/'joint_pressure163/proposal.json')['difference']
+                cell='22'
+            if MERGE_RESTORE:
+                parent=read(h.R/'joint_pressure163/candidate/reference_config.json')
+                fitting=read(h.R/'merge_restore164/proposal.json')['difference']
+                branch=candidate['freeway']['state_response']['FW_E']['cell_overrides']['21']
+                assert branch['delta_merge']==fitting['after']
+                branch['delta_merge']=fitting['before']
+            else:
+                branch=candidate['freeway']['state_response']['FW_E']['cell_overrides'][cell]['anticipation']
+                assert branch['downstream_ge_local']==fitting['after']
+                branch['downstream_ge_local']=fitting['before']
+            assert candidate==parent
+    rows=read(HERE/'forecast/training/rows.json')
+    assert len(rows)==8
+    max_mass=max_route=max_ramp=0.;parts=0;traces=[];windows=[]
+    records={r['arm']:r for r in common.records(False)}
+    for row in rows:
+        key=row['case']+'_'+row['arm']
+        pred=read(HERE/'forecast/training'/(key+'.json.gz'))
+        trace=read(HERE/'forecast/training'/(key+'_exit_feedback.json.gz'))
+        assert len(trace)==450
+        diag=pred['diagnostics']['roads'][0]
+        assert diag['negative_density_count']==0
+        max_mass=max(max_mass,diag['continuity_residual_max_veh'])
+        max_route=max(max_route,diag['joint_lane_region']['route_marginal_max_error'])
+        max_ramp=max(max_ramp,max(abs(r['conservation_residual_veh']) for r in pred['ramps']))
+        parts+=row['spatial144']['samples']
+        assert row['spatial144']['max_class_partition_error']<1e-8
+        lane={round(r['time_s'],6):r for r in diag['joint_lane_region']['rows'] if r['cell']==20 and r['lane']==1}
+        for t in trace:
+            cap=t['mobility_cap'];expected=t['target_before'] if cap is None else min(t['target_before'],max(5.,cap))
+            assert abs(expected-t['target_after'])<1e-8
+            assert abs(t['final_speed']-lane[round(t['time_s'],6)]['v_kmh'])<1e-8
+            assert t['sent']<=t['request']+1e-8 and t['final_speed']>=5.-1e-8
+        traces.append(dict(case=row['case'],arm=row['arm'],active=sum(t['mobility_cap'] is not None for t in trace),
+            target_reduced=sum(t['target_after']<t['target_before']-1e-9 for t in trace),
+            final_above_mobility_cap=sum(t['mobility_cap'] is not None and t['final_speed']>max(5.,t['mobility_cap'])+1e-9 for t in trace)))
+        if row['case']!='s67_late' or row['arm'] not in ('release','release_vsl90'):continue
+        baseline=read(h.R/'spatial_context148/forecast/training'/(key+'.json.gz'))
+        path=Path(records[row['arm']]['truth'])/'flows_30s.csv';pins[str(path)]=h.sha(path)
+        truth=list(csv.DictReader(path.open(encoding='utf-8-sig')))
+        for lo,hi in ((2670.1,2700.1),(2670.1,2820.1),(2820.1,2970.1),(2970.1,3120.1)):
+            z=[r for r in truth if r['road']=='FW_E' and r['cell']=='20' and lo+1e-6<float(r['window_end_s'])<=hi+1e-6]
+            item=dict(arm=row['arm'],lo=lo,hi=hi,actual_off20=sum(float(r['off_departures']) for r in z))
+            for label,data in [('baseline',baseline),('candidate',pred)]:
+                z=[r for r in data['flows'] if r['cell']==20 and lo+1e-6<r['window_end_s']<=hi+1e-6]
+                ll=[r for r in data['diagnostics']['roads'][0]['joint_lane_region']['rows'] if r['cell']==20 and r['lane']==1 and lo+1e-6<r['time_s']<=hi+1e-6]
+                item[label]=dict(off20=sum(r['off_departures'] for r in z),end_n=ll[-1]['n_veh'],end_v=ll[-1]['v_kmh'],
+                    floor_seconds=sum(r['v_kmh']<=5.+1e-9 for r in ll))
+            windows.append(item)
+    assert parts==21600 and max(max_mass,max_route,max_ramp)<1e-7
+    protocol=read(HERE/'forecast/protocol.json')
+    for p,digest in {**pins,**protocol['protected_sha256'],**preservation['input_sha256']}.items():assert h.sha(p)==digest,p
+    assert h.sha(protocol['STOP']['path'])==protocol['STOP']['sha256']
+    result=dict(status='complete_rejected' if not all(compare['checks'].values()) else 'complete_component_pass_pending_qualification',
+        scores={k:{v:compare[k][v] for v in ('absolute','local','response')} for k in ('baseline','candidate')},
+        checks=compare['checks'],pairs=compare['candidate']['pairs'],traces=traces,windows=windows,
+        max_mass=max_mass,max_route=max_route,max_ramp=max_ramp,half_checks=parts,feedback_checks=3600,
+        production_adopted=False,goal_complete=False,forecasts=9,new_fits=0,native=0,FZP=0,push=0)
+    if COUPLED:
+        result['separate_references']={k:read(h.R/path/'forecast/training_assessment.json')['candidate'] for k,path in [('coefficients153','coupled_recovery153'),('physics157','exit_relaxation157')]}
+        result['coefficient_scope']='Exact153 frozen configuration, three differences from132; no158 fitting. Inherited prior/total fitting score is not a new158 calibration objective.'
+    if EXIT_PRESSURE:
+        result['separate_references']['parent158']=read(h.R/'coupled_recovery158/forecast/training_assessment.json')['candidate']
+        result['coefficient_scope']='One20ge coefficient fitted on160 local110 probes,all others exact153,physics exact157. Inherited prior/total score is not the161 scalar calibration objective.'
+        result['new_fits']=1
+    if JOINT_PRESSURE:
+        result['separate_references']['parent161']=read(h.R/'exit_pressure161/forecast/training_assessment.json')['candidate']
+        result['coefficient_scope']='Exact161 parent plus frozen137 cell22ge,physics exact157. No163 fit. Inherited prior/total score is not a new calibration objective.'
+        result['new_fits']=0
+    if MERGE_RESTORE:
+        result['separate_references']['parent163']=read(h.R/'joint_pressure163/forecast/training_assessment.json')['candidate']
+        result['coefficient_scope']='Exact163 parent except restore132 actual-merge delta21;physics exact157. No164 fit, no change to actuator or physical flux. Inherited prior/total is not a new fitting objective.'
+    h.save(HERE/'assessment.json',result);h.save(HERE/'verification_pins.json',pins)
+    print(result['status'],result['scores'],result['checks'])
+    for p in result['pairs']:
+        if p['case']=='s67_late' and (p['left'],p['right']) in [('hold','release'),('release','release_vsl90')]:print(p)
+    for w in windows:print(w)
+
+
+if __name__=='__main__':main()

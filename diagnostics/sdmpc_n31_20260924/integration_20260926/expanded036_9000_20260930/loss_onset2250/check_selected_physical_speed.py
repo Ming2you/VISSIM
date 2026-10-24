@@ -1,0 +1,183 @@
+"""Run the existing two-command check and record its actual17-owner resource ledger."""
+import ctypes
+import copy
+import hashlib
+import importlib.util
+import json
+import pickle
+import sys
+import ast
+from types import SimpleNamespace
+from pathlib import Path
+
+L = Path(__file__).resolve().parent
+I = L.parent.parent
+residual_initialization = '--residual-initialization' in sys.argv[1:]
+native_response_trace = '--native-response-trace' in sys.argv[1:]
+source_conditioned = '--source-conditioned' in sys.argv[1:]
+assert not source_conditioned or (residual_initialization and native_response_trace)
+assert not native_response_trace or residual_initialization
+O = L / ('source_sc101/residual_timing' if residual_initialization else 'physical_speed/selection47')
+base_output = O
+if native_response_trace:
+    O = O/('source_conditioned/execution' if source_conditioned else 'native_response_trace')
+    assert not O.exists(), 'Preserve an existing trace attempt'
+    O.mkdir()
+label = 'res47v2' if residual_initialization else 'ps47v1'
+ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x4000)
+from evaluation.controllers import obs150_contract as oc
+
+
+def verify_existing(raw, derived):
+    obs = raw[oc.RAW_STATE_KEY]
+    path = oc.resolve(obs, oc.derived_path(obs['sim_sec']))
+    assert path.read_bytes() == oc.derived_bytes(derived)
+    return path
+
+
+oc.write_derived = verify_existing
+script = I / 'probe_selected_arrival_path.py'
+spec = importlib.util.spec_from_file_location('selected_speed_probe', script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+original = module.probe_levers
+saved = json.loads((I/f'closedloop_recorded2700_select_{label}/unused_action.joint.json').read_bytes())['selection']
+
+
+def audited(captured, reference, output, **kwargs):
+    from evaluation.controllers import area_leader_objective as constraints
+    from evaluation.controllers import vissim_stackelberg_adapter as adapter
+    from src.controllers import rollout_endpoint as endpoint
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower
+    # The read-only initializer stops before the controller is constructed.
+    # Build its real static owner catalog on a copy; do not install controller
+    # hooks or mutate the execution model just to obtain quantity accounting.
+    cfg_bytes = pickle.dumps(captured['cfg'], protocol=5)
+    quantity_cfg = copy.deepcopy(captured['cfg'])
+    quantity_before = pickle.dumps(quantity_cfg, protocol=5)
+    follower = LinkAgentWuFollower(quantity_cfg)
+    assert pickle.dumps(quantity_cfg, protocol=5) == quantity_before
+    assert pickle.dumps(captured['cfg'], protocol=5) == cfg_bytes
+    assert len(follower.cfg.network.signals) == 17
+    evaluate = endpoint.evaluate_price_point
+    rows = []
+    intervals = {}
+
+    def checked(state, action, *args, **kw):
+        assert len(rows) < 2
+        point = evaluate(state, action, *args, **kw)
+        assert not point.aborted and len(point.states) == 3
+        q = constraints.shared_urban_quantities(follower, point.control_area_response,
+            start_sec=state.time_sec, horizon_steps=3)
+        cap = saved['final_constraints']
+        budget = constraints.shared_quantity_constraints(follower, action, q,
+            start_sec=state.time_sec, horizon_steps=3,
+            np_mode='cap', target_np_veh=cap['np']['target'], np_tolerance_veh=cap['np']['tolerance'],
+            nuf_mode='cap', target_nuf_veh_h=cap['nuf']['target'], nuf_tolerance_veh_h=cap['nuf']['tolerance'])
+        rows.append(dict(case='held_actual' if not rows else 'selected',ttt=point.ttt,
+            resource=budget,quantities=q))
+        if source_conditioned:
+            rows[-1].update(future_observation_inputs=True,autonomous_prediction=False,
+                           optimizer_allowed=False,calibration_allowed=False)
+        if native_response_trace:
+            previous=state
+            windows=[]
+            for end in point.states:
+                window=module.first_interval_response(previous,
+                    SimpleNamespace(states=[end],control_area_response=point.control_area_response),
+                    captured['cfg'])
+                if source_conditioned:
+                    window.update(future_observation_inputs=True,autonomous_prediction=False)
+                windows.append(window)
+                previous=end
+            assert abs(sum(w['ttt_omega_veh_h'] for w in windows)-point.ttt)<1e-8
+            intervals[rows[-1]['case']]=windows
+            (O/'execution_intervals.json').write_text(json.dumps(intervals,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        (O/'execution_quantities.json').write_text(json.dumps(rows,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        return point
+
+    endpoint.evaluate_price_point = checked
+    try:
+        result = original(captured, reference, output, **kwargs)
+    finally:
+        endpoint.evaluate_price_point = evaluate
+    assert len(rows) == 2
+    return result
+
+
+module.probe_levers = audited
+suffix = 'source_conditioned_v1' if source_conditioned else ('native_trace_v1' if native_response_trace else 'resv3')
+sys.argv = [str(script),'--closedloop-recorded','--at=2700','--warm-head-history','--replay-vsl-history',
+    '--selection-check','--probe-label='+label,'--output-suffix='+suffix,
+    '--recording-dir=D:/VISSIM_runs/20260928_rm_observation2700_s47_v3/hold/decisions_sdmpc31_g_2700_hold_s47',
+    '--fixed-replay-summary='+str(I/'native_rm_observation2700_writerfix_v3/analysis/summary.json'),
+    '--tuning-json='+str(L/'source_sc101/readiness_candidate/candidate_config.json' if residual_initialization else (L/'physical_speed/candidate_config.json').relative_to(Path.cwd()))]
+pins = json.loads((base_output/('selection_protocol.json' if residual_initialization else 'protocol.json')).read_bytes())['source_pins']
+if source_conditioned:
+    contract_path = base_output/'source_conditioned/diagnostic_contract.json'
+    contract = json.loads(contract_path.read_bytes())
+    sys.argv.append('--diagnostic-sources='+str(contract_path))
+    prior = json.loads((base_output/'native_response_trace/protocol.json').read_bytes())
+    pins = dict(prior['source_pins'])
+    snapshots = ((script,'probe_before.py.txt'),(Path(__file__).resolve(),'wrapper_before.py.txt'))
+    for path,filename in snapshots:
+        snapshot = base_output/'source_conditioned'/filename
+        assert hashlib.sha256(snapshot.read_bytes()).hexdigest()==pins[str(path)]
+        pins[str(snapshot)] = pins[str(path)]
+        pins[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
+    def functions(tree):
+        return {n.name:ast.dump(n,include_attributes=False) for n in tree.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))}
+    before=functions(ast.parse((base_output/'source_conditioned/probe_before.py.txt').read_text(encoding='utf-8')))
+    after=functions(ast.parse(script.read_text(encoding='utf-8')))
+    assert before.keys()==after.keys()
+    changed={k for k in before if before[k]!=after[k]}
+    assert changed=={'diagnostic_source_forecast','probe_levers','main'}
+    for path,digest in contract['source_pins'].items():
+        assert path not in pins or pins[path]==digest
+        pins[path]=digest
+    pins[str(contract_path)] = hashlib.sha256(contract_path.read_bytes()).hexdigest()
+    reference=I/'closedloop_recorded2700_select_check_res47v2_native_trace_v1/summary.json'
+    pins[str(reference)] = hashlib.sha256(reference.read_bytes()).hexdigest()
+    (O/'protocol.json').write_text(json.dumps(dict(source_pins=pins,forecast_budget=2,fit=0,
+        future_observation_inputs=True,autonomous_prediction=False,optimizer_allowed=False,
+        calibration_allowed=False,new_native_runs=0,reference=str(reference),
+        scope='Observed accepted FW_E source counts only; fixed commands and coefficients. Conditional cause diagnosis, NOT gain qualification.',
+        diagnostic_helper_change=sorted(changed)),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+elif native_response_trace:
+    # The only changed pinned file gained the native preparation option. Its
+    # historical bytes and unchanged forecast functions are independently checked.
+    before=base_output/'native_prepare_before.py.txt'
+    assert hashlib.sha256(before.read_bytes()).hexdigest()==pins[str(script)]
+    old=ast.parse(before.read_text(encoding='utf-8'));new=ast.parse(script.read_text(encoding='utf-8'))
+    def functions(tree):
+        return {n.name:ast.dump(n,include_attributes=False) for n in tree.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))}
+    a,b=functions(old),functions(new)
+    assert a.keys()==b.keys()
+    assert {k for k in a if a[k]!=b[k]}=={'prepare_native_commands','main'}
+    pins=dict(pins);pins[str(script)]=hashlib.sha256(script.read_bytes()).hexdigest()
+    pins[str(Path(__file__).resolve())]=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    reference=I/'closedloop_recorded2700_select_check_res47v2_resv3/summary.json'
+    pins[str(reference)]=hashlib.sha256(reference.read_bytes()).hexdigest()
+    (O/'protocol.json').write_text(json.dumps(dict(source_pins=pins,forecast_budget=2,fit=0,
+        future_observation_inputs=False,new_native_runs=0,reference=str(reference),
+        scope='Same two frozen450s forecasts; export three150s flow/cost/state windows without changing physics.',
+        historical_helper_change=['prepare_native_commands','main']),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+module.main()
+assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==h for p,h in pins.items())
+if native_response_trace:
+    reference=json.loads(reference.read_bytes())['results']
+    actual_path=I/f'closedloop_recorded2700_select_check_{label}_{suffix}/summary.json'
+    actual=json.loads(actual_path.read_bytes())['results']
+    keys=('commands','ramps','cost_by_stock','outside_cost_by_stock','ttt_omega_veh_h','tracked_outside_residence_veh_h')
+    if source_conditioned:
+        keys=('commands',)
+    assert set(actual)==set(reference)=={'held_actual','selected'}
+    for case in actual:
+        for key in keys:assert actual[case][key]==reference[case][key],(case,key)
+    (O/'verification.json').write_text(json.dumps(dict(status='complete',forecasts=2,
+        exact_reference_parity=not source_conditioned,checked_fields=keys,new_native=0,fit=0,
+        future_observation_inputs=source_conditioned,autonomous_prediction=not source_conditioned,
+        optimizer_allowed=False,calibration_allowed=False,
+        result=str(actual_path),result_sha256=hashlib.sha256(actual_path.read_bytes()).hexdigest(),
+        total_compute_sec=sum(v['wall_sec'] for v in actual.values())),indent=2)+'\n',encoding='utf-8')

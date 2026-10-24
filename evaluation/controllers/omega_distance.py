@@ -1,0 +1,1114 @@
+"""Physical travel primitives for full-Omega TVD, in vehicle kilometres.
+
+These observers do not advance traffic or reward a completed *future* path at
+departure. A queue has no distance until its transport law moves it. Cohorts,
+aggregate stocks and route labels are alternative representations of the same
+vehicles, never additive populations. Legacy ``ttd_veh`` remains an exit count.
+
+The opt-in objective measures whole-Omega candidate distance differences.
+Initial fixed-ETA travel is a common constant under the installed transport
+law, explicitly excluded from its shifted score. It is not absolute TVD.
+"""
+from __future__ import annotations
+
+import math
+
+REWARD_SCHEMA = 'omega-distance-reward/v1'
+COMMON_INITIAL = 'fixed_eta_initial_travel_common_constant'
+
+
+def configure_reward(tuning,cfg):
+    """Configure a whole-area control-equivalent distance reward, opt-in only."""
+    import copy
+    import hashlib
+    import json
+    from pathlib import Path
+    spec=tuning.get('adapter',{}).get('sdmpc_distance_reward')
+    if spec is None:
+        for key in ('sdmpc_distance_reward','sdmpc_distance_catalog'):
+            if hasattr(cfg.network,key):delattr(cfg.network,key)
+        return
+    if (set(spec)!={'schema','weight_h_per_km','initial_transport'} or spec['schema']!=REWARD_SCHEMA
+            or spec['initial_transport']!=COMMON_INITIAL):
+        raise ValueError('Explicit full Omega distance definition required')
+    beta=spec['weight_h_per_km']
+    if type(beta) not in (int,float) or not math.isfinite(beta) or beta<=0:
+        raise ValueError('Explicit positive finite distance coefficient required')
+    if (getattr(cfg.network,'sdmpc_terminal_cost',None) is not None
+            or not cfg.network.control_area_enabled or cfg.network.control_area_beta_seconds!=0):
+        raise ValueError('This comparison requires distance ONLY in addition to Omega TTT')
+    pin=cfg.network.physical_ramp_branches['network']
+    path=Path(__file__).resolve().parents[2]/pin['path']
+    if hashlib.sha256(path.read_bytes()).hexdigest()!=pin['sha256']:
+        raise DistanceCoverageError('Distance geometry and physical plant differ')
+    cfg.network.sdmpc_distance_catalog=urban_path_catalog(path,cfg)
+    cfg.network.sdmpc_distance_reward=copy.deepcopy(spec)
+
+
+def reward_token(spec):
+    import hashlib,json
+    return hashlib.sha256(json.dumps(spec,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+
+
+class DistanceCoverageError(ValueError):
+    pass
+
+
+def _nonnegative(value, name):
+    if isinstance(value, bool) or not math.isfinite(value) or value < 0:
+        raise ValueError('Finite nonnegative '+name+' required')
+    return value
+
+
+def inside_length_m(link, begin_m, end_m, membership):
+    """Clip a forward displacement to explicit physical Omega intervals.
+
+    A bool denotes a whole physical link. A tuple/list of nonoverlapping
+    [begin,end] intervals also supports a boundary lying within a link. Missing
+    membership is an error, not an implicit outside/inside assignment.
+    """
+    _nonnegative(begin_m, 'path start')
+    _nonnegative(end_m, 'path end')
+    if end_m < begin_m:
+        raise ValueError('Reverse displacement is not a forward road journey')
+    key = str(link)
+    if key not in membership:
+        raise DistanceCoverageError('Missing distance membership: '+key)
+    support = membership[key]
+    if type(support) is bool:
+        return end_m-begin_m if support else 0.
+    if not isinstance(support, (tuple, list)):
+        raise DistanceCoverageError('Invalid distance membership: '+key)
+    pieces, previous_end = [], 0.
+    for pair in support:
+        if not isinstance(pair, (tuple, list)) or len(pair) != 2:
+            raise DistanceCoverageError('Invalid Omega interval: '+key)
+        lo, hi = pair
+        _nonnegative(lo, 'Omega interval start')
+        _nonnegative(hi, 'Omega interval end')
+        if hi <= lo or lo < previous_end:
+            raise DistanceCoverageError('Unordered/overlapping Omega intervals: '+key)
+        pieces.append(max(0., min(end_m, hi)-max(begin_m, lo)))
+        previous_end = hi
+    return math.fsum(pieces)
+
+
+def timed_path_distance(path, vehicles, start_sec, end_sec, membership):
+    """Part of a supplied causal journey traversed in [start_sec,end_sec].
+
+    Each path row is (link, from_m, to_m, departure_s, arrival_s). Times come
+    from the model's travel reservation, not future observations. Gaps between
+    rows are stopped time. Different rows may revisit a link, but cannot overlap
+    in time. Initial vehicles can already be partway through the first row.
+    Constant speed *within each supplied row* is the explicit travel closure.
+    """
+    _nonnegative(vehicles, 'travel cohort')
+    _nonnegative(start_sec, 'window start')
+    _nonnegative(end_sec, 'window end')
+    if end_sec < start_sec:
+        raise ValueError('Nonnegative distance window required')
+    pieces, previous_end = [], -math.inf
+    for link, begin, end, departure, arrival in path:
+        # Negative historical departures are possible for initialized cohorts.
+        if (not math.isfinite(departure) or not math.isfinite(arrival)
+                or arrival <= departure or departure < previous_end):
+            raise ValueError('Contiguous/ordered positive journey durations required')
+        _nonnegative(begin, 'path start')
+        _nonnegative(end, 'path end')
+        if end <= begin:
+            raise ValueError('Positive forward journey length required')
+        # Check coverage even when the forecast ends before this segment.
+        inside_length_m(link, begin, end, membership)
+        lo, hi = max(start_sec, departure), min(end_sec, arrival)
+        if hi > lo:
+            speed = (end-begin)/(arrival-departure)
+            a, b = begin+(lo-departure)*speed, begin+(hi-departure)*speed
+            pieces.append(inside_length_m(link, a, b, membership))
+        previous_end = arrival
+    return vehicles*math.fsum(pieces)/1000.
+
+
+def slice_path(segments, begin_m=0., end_m=None):
+    """Keep a route-axis subpath while retaining physical link coordinates."""
+    _nonnegative(begin_m, 'route-axis start')
+    lengths = []
+    for segment in segments:
+        a, b = segment['start'], segment['stop']
+        _nonnegative(a, 'physical path start')
+        _nonnegative(b, 'physical path end')
+        if b < a:
+            raise DistanceCoverageError('Physical path runs backwards')
+        lengths.append(b-a)
+    total = math.fsum(lengths)
+    end_m = total if end_m is None else _nonnegative(end_m, 'route-axis end')
+    if end_m < begin_m or begin_m > total+1e-7 or end_m > total+1e-7:
+        raise DistanceCoverageError('Requested subpath exceeds physical route')
+    offset, result = 0., []
+    for segment, length in zip(segments, lengths):
+        lo, hi = max(begin_m, offset), min(end_m, offset+length)
+        if hi > lo:
+            result.append(dict(link=str(segment['link']), start=segment['start']+lo-offset,
+                               stop=segment['start']+hi-offset))
+        offset += length
+    return result
+
+
+def schedule_path(segments, departure_sec, arrival_sec):
+    """Interpolate physical progress over an existing model travel reservation.
+
+    The existing rounded arrival time is authoritative. Uniform path speed is
+    a distance-observation closure only; it never alters readiness or service.
+    A zero-length reservation can still have one numerical step of waiting.
+    """
+    parts = slice_path(segments)
+    if not math.isfinite(departure_sec) or not math.isfinite(arrival_sec) or arrival_sec <= departure_sec:
+        raise ValueError('Positive travel reservation duration required')
+    total = math.fsum(s['stop']-s['start'] for s in parts)
+    offset, result = 0., []
+    for segment in parts:
+        length = segment['stop']-segment['start']
+        begin = departure_sec+(arrival_sec-departure_sec)*offset/total
+        offset += length
+        end = arrival_sec if offset == total else departure_sec+(arrival_sec-departure_sec)*offset/total
+        result.append((segment['link'], segment['start'], segment['stop'], begin, end))
+    return result
+
+
+class TravelReservations:
+    """Passive, query-owned travel integral over one fixed prediction horizon.
+
+    A reservation is booked only after physical admission/service actually
+    accepted its vehicles. Its integral is clipped to the evaluation horizon;
+    it does not credit a downstream stage until that stage is actually entered.
+    This uses the existing deterministic travel law, which can wait at the end
+    but cannot stop a cohort midway through its current reservation. Values
+    are horizon integrals, NOT elapsed-distance counters on intermediate states.
+    """
+    def __init__(self, start_sec, end_sec, membership):
+        _nonnegative(start_sec, 'reservation window start')
+        if not math.isfinite(end_sec) or end_sec <= start_sec:
+            raise ValueError('Positive reservation horizon required')
+        self.start_sec, self.end_sec = start_sec, end_sec
+        self.membership = dict(membership)
+        self.by_provider_stock = {}
+        self.reservation_counts = {}
+        self.geometry_bounds_by_stock = {}
+
+    def reserve(self, provider, stock, segments, vehicles, departure_sec, arrival_sec):
+        if departure_sec < self.start_sec or departure_sec > self.end_sec:
+            raise ValueError('New travel must start within its query horizon')
+        path = schedule_path(segments, departure_sec, arrival_sec)
+        amount = timed_path_distance(path, vehicles, self.start_sec, self.end_sec, self.membership)
+        key = (provider, stock)
+        self.by_provider_stock[key] = self.by_provider_stock.get(key, 0.)+amount
+        self.reservation_counts[provider] = self.reservation_counts.get(provider, 0)+1
+        return amount
+
+    def reserve_family(self,provider,stock,paths,vehicles,departure_sec,arrival_sec):
+        """Midpoint of legal geometric distance bounds, not a new route split.
+
+        The aggregate model leaves some parallel lane paths unidentified. Keep
+        their lower/upper distance integrals, with one explicit midpoint score.
+        Existing selected geometry differs by about metres, not destinations.
+        Queues, chosen turns and arrivals are unchanged. A downstream stage is
+        still credited only after actual service/admission of that stage.
+        """
+        if not paths:
+            raise DistanceCoverageError('No physical paths for '+stock)
+        if departure_sec<self.start_sec or departure_sec>self.end_sec:
+            raise ValueError('New travel must start within its query horizon')
+        values=[timed_path_distance(schedule_path(p,departure_sec,arrival_sec),vehicles,
+                    self.start_sec,self.end_sec,self.membership) for p in paths]
+        lo,hi=min(values),max(values); amount=(lo+hi)/2.
+        key=(provider,stock)
+        self.by_provider_stock[key]=self.by_provider_stock.get(key,0.)+amount
+        bounds=self.geometry_bounds_by_stock.setdefault(key,[0.,0.])
+        bounds[0]+=lo;bounds[1]+=hi
+        self.reservation_counts[provider]=self.reservation_counts.get(provider,0)+1
+        return amount
+
+
+def record_native_route(state, cfg, no, index, vehicles, step, due, *, after_gate=False):
+    observer = getattr(state, '_omega_travel_reservations', None)
+    if observer is None:
+        return
+    from evaluation.controllers.native_input_routes import _inputs
+    stage = _inputs(cfg)[no]['route_stages'][index]
+    gate = stage.get('native_fixed_gate')
+    segments = stage['segments']
+    if gate:
+        segments = slice_path(segments, gate['pre_gate_distance_m'] if after_gate else 0.,
+                              None if after_gate else gate['pre_gate_distance_m'])
+    elif after_gate:
+        raise DistanceCoverageError('Native route records an undeclared timing gate')
+    observer.reserve('native_input_routes', 'storage:'+stage['origin'], segments, vehicles,
+                     step*cfg.simulation.T_u_sec, due*cfg.simulation.T_u_sec)
+
+
+def seed_native_routes(state, cfg, raw):
+    """Record only the initialized exclusive native-source moving cohorts.
+
+    Existing shared downstream vehicles retain their other transport provider.
+    Initial microscopic position, supplied speed and rounded model ETA are all
+    taken from the same current observation used by native_input_routes.
+    """
+    from evaluation.controllers.native_input_routes import _inputs, _travel
+    from evaluation.controllers.projection_support import complete_records
+    observer = state._omega_travel_reservations
+    if observer.start_sec != state.time_sec:
+        raise ValueError('Initial travel must use the query initial state')
+    local = getattr(state, 'native_input_route_state', None)
+    if local is None:
+        return 0
+    if 'cohorts' not in local or local['received_veh'] or local['completed_veh']:
+        raise DistanceCoverageError('Native route seeding requires fresh observed cohorts')
+    # Match the exact initialization order, not just total tagged inventory.
+    expected = []
+    start = int(round(state.time_sec/cfg.simulation.T_u_sec))
+    for no, row in _inputs(cfg).items():
+        first = row['route_stages'][0]
+        if first.get('native_fixed_gate'):
+            raise DistanceCoverageError('Initial native gate stage needs observed gate-side provenance')
+        for record in complete_records(raw):
+            link = str(record['link_no'])
+            if link not in row['physical_projection_links']:
+                continue
+            index = next(i for i,s in enumerate(first['segments']) if s['link'] == link)
+            tail = first['segments'][index:]
+            remaining = max(0., tail[0]['stop']-record['position_m'])
+            remaining += sum(s['stop']-s['start'] for s in tail[1:])
+            due = start+_travel(state,cfg,first,remaining,record['speed_kph'])
+            expected.append(dict(input=no, stage=0, vehicles=1., due=due, queued=False))
+            # VISSIM's small negative entry positions lie before physical0.
+            offset = max(0., record['position_m']-tail[0]['start'])
+            segments = slice_path(tail, min(offset, math.fsum(s['stop']-s['start'] for s in tail)))
+            observer.reserve('native_input_routes', 'storage:'+first['origin'], segments, 1.,
+                             state.time_sec, due*cfg.simulation.T_u_sec)
+    if expected != local['cohorts']:
+        raise DistanceCoverageError('Initial native distance cohorts differ from initialized transport')
+    return len(expected)
+
+
+def record_native_prehead(state, cfg, no, stage, vehicles, step, due):
+    observer = getattr(state, '_omega_travel_reservations', None)
+    if observer is None:
+        return
+    from evaluation.controllers.native_input_prehead import _inputs
+    spec = _inputs(cfg)[no]['prehead_spec']
+    paths = {'decision':'segments_to_decision', 'approach':'segments_decision_to_head',
+             'release':'segments_interhead'}
+    if stage not in paths:
+        raise DistanceCoverageError('Unknown native prehead travel stage')
+    stock = 'movement:'+spec['left_movement'] if stage == 'release' else 'storage:'+spec['origin']
+    observer.reserve('native_input_prehead', stock, spec[paths[stage]], vehicles,
+                     step*cfg.simulation.T_u_sec, due*cfg.simulation.T_u_sec)
+
+
+def seed_native_prehead(state, cfg, raw):
+    from evaluation.controllers.native_input_prehead import _inputs, _due
+    from evaluation.controllers.projection_support import complete_records
+    observer = state._omega_travel_reservations
+    if observer.start_sec != state.time_sec:
+        raise ValueError('Initial prehead travel must use the query initial state')
+    local = getattr(state, 'native_input_prehead_state', None)
+    if local is None:
+        return 0
+    if 'cohorts' not in local or local['generated_veh'] or local['departed_scope_veh']:
+        raise DistanceCoverageError('Prehead seeding requires fresh observed cohorts')
+    expected = []
+    start = int(round(state.time_sec/cfg.simulation.T_u_sec))
+    for no, row in _inputs(cfg).items():
+        spec = row['prehead_spec']
+        for record in complete_records(raw):
+            link = str(record['link_no'])
+            if link not in row['physical_projection_links']:
+                continue
+            segments = spec['segments_to_decision']
+            index = next(i for i,s in enumerate(segments) if s['link'] == link)
+            tail = segments[index:]
+            remaining = max(0., tail[0]['stop']-record['position_m'])
+            remaining += sum(s['stop']-s['start'] for s in tail[1:])
+            due = _due(state,cfg,spec['origin'],start,remaining,record['speed_kph'])
+            expected.append(dict(input=no, vehicles=1., stage='decision', route=None, due=due))
+            offset = max(0., record['position_m']-tail[0]['start'])
+            path = slice_path(tail, min(offset, math.fsum(s['stop']-s['start'] for s in tail)))
+            observer.reserve('native_input_prehead', 'storage:'+spec['origin'], path, 1.,
+                             state.time_sec, due*cfg.simulation.T_u_sec)
+    if expected != local['cohorts']:
+        raise DistanceCoverageError('Initial prehead distance cohorts differ from initialized transport')
+    return len(expected)
+
+
+def choice_path(spec, stage, link, position_m, route):
+    """Physical remainder of one route-choice stage, before any later service."""
+    def remainder(segments, position):
+        rows = [dict(s) for s in segments]
+        if rows:
+            rows[0]['start'] = min(rows[0]['stop'], max(rows[0]['start'], position))
+        return slice_path(rows)
+    if stage == 'local_tagged':
+        return remainder(spec['local_travel_segments'][route][str(link)], position_m)
+    if stage not in ('prechoice', 'prefix_tagged'):
+        raise DistanceCoverageError('Unknown moving route-choice stage: '+stage)
+    decision = spec['decision_link']
+    if stage == 'prefix_tagged' and str(link) == decision and position_m >= spec['decision_position_m']:
+        end = spec['branches'][route]['branch_position_m']
+        return slice_path([dict(link=decision,start=min(position_m,end),stop=end)])
+    result = remainder(spec['prefix_travel_segments'][str(link)], position_m)
+    if stage == 'prefix_tagged':
+        result += slice_path([dict(link=decision,start=spec['decision_position_m'],
+                                   stop=spec['branches'][route]['branch_position_m'])])
+    return result
+
+
+def record_choice(state, cfg, spec, cohort, step, link, position_m):
+    observer = getattr(state, '_omega_travel_reservations', None)
+    if observer is None:
+        return
+    path = choice_path(spec, cohort['stage'], link, position_m, cohort['route'])
+    observer.reserve('route_choice_corridor', 'storage:'+cohort['storage'], path,
+                     cohort['vehicles'], step*cfg.simulation.T_u_sec, cohort['due']*cfg.simulation.T_u_sec)
+
+
+def seed_route_choice(state, cfg, raw):
+    """Reconstruct only the initial path bookings with the same verified mapper.
+
+    _initialize_one reads observations/projection and appends into the supplied
+    local container; it does not alter physical stocks. Its output is checked
+    against the already initialized cohorts before any forecast is accepted.
+    """
+    from evaluation.controllers import route_choice_corridor as choices
+    observer = state._omega_travel_reservations
+    if observer.start_sec != state.time_sec:
+        raise ValueError('Initial choice travel must use the query initial state')
+    actual = getattr(state, 'route_choice_corridor_state', None)
+    if actual is None:
+        return 0
+    if actual['received_veh'] or actual['departed_veh']:
+        raise DistanceCoverageError('Route choice seeding needs freshly observed cohorts')
+    local = {'cohorts':[]}
+    current = choices._routes(raw)
+    start = round(state.time_sec/cfg.simulation.T_u_sec)
+    for spec in choices._specs(cfg):
+        choices._initialize_one(state,cfg,raw,current,start,local,spec)
+    if local['cohorts'] != actual['cohorts']:
+        raise DistanceCoverageError('Initial choice distance cohorts differ from transport')
+    if any(c['stage'] == 'unknown' and c['vehicles'] > 0 for c in local['cohorts']):
+        raise DistanceCoverageError('Unknown current choice is not silently assigned a path')
+    return len(local['cohorts'])
+
+
+def remaining_path(segments, link, position):
+    """Observed remainder, using the same clamped entry convention as transport."""
+    indices = [i for i,s in enumerate(segments) if s['link'] == str(link)]
+    if len(indices) != 1:
+        raise DistanceCoverageError('Current link is absent/ambiguous in travel path: '+str(link))
+    rows = [dict(s) for s in segments[indices[0]:]]
+    rows[0]['start'] = min(rows[0]['stop'], max(rows[0]['start'], position))
+    return slice_path(rows)
+
+
+def urban_path_catalog(network_xml, cfg, *, initial_starts=()):
+    """Compile ordinary accepted travel from physical turns to the next head.
+
+    XML and topology are read once before prediction. Missing paths remain
+    explicit errors. Lane paths to the same modeled head are returned as a
+    family with length bounds, not silently given an invented turn proportion.
+    A shared point queue uses the most upstream physical head plane of its
+    controller on a road; lane-specific head spread is returned as evidence.
+    This adds measurement geometry, never routing or travel time changes.
+    """
+    import xml.etree.ElementTree as ET
+    from collections import defaultdict
+    from evaluation.controllers.route_choice_corridor import _length, _travel_segments
+    tree=ET.parse(network_xml).getroot()
+    links={n.get('no'):n for n in tree.findall('./links/link')}
+    lengths={k:_length(v) for k,v in links.items()}
+    heads=defaultdict(list); successors=defaultdict(list)
+    for h in tree.findall('./signalHeads/signalHead'):
+        if h.get('lane') and h.get('sg'):
+            heads[h.get('lane').split()[0],h.get('sg').split()[0]].append(float(h.get('pos')))
+    for k,node in links.items():
+        a,b=node.find('fromLinkEndPt'),node.find('toLinkEndPt')
+        if a is not None:
+            successors[a.get('lane').split()[0]].append(k)
+            successors[k].append(b.get('lane').split()[0])
+    routes=cfg.network.control_area_routes; movements=cfg.network.urban_movements
+    terminals=defaultdict(dict); head_spreads={}
+    for name,spec in movements.items():
+        route=routes.get('movement:'+name,{})
+        turns=route.get('physical_turns',[route] if route.get('path') else [])
+        # A same-transition alias can mention a different approach. Its marked
+        # canonical physical approach takes precedence, not list order.
+        canonical=[r for r in turns if r.get('source_evidence',{}).get('canonical_approach_leg')]
+        for turn in canonical or turns:
+            link=str(turn.get('from_link',(turn.get('path') or [''])[0]))
+            controller=str(spec.get('signal','')).removeprefix('SC')
+            positions=heads.get((link,controller),[])
+            if not positions:
+                continue
+            origin=spec['origin']; position=min(positions)
+            if link in terminals[origin] and abs(terminals[origin][link]-position)>1e-8:
+                raise DistanceCoverageError('Conflicting stop planes for '+origin)
+            terminals[origin][link]=position
+            head_spreads[origin+'|'+link]=max(positions)-position
+    all_stops={link for rows in terminals.values() for link in rows}
+
+    def tails(start,target):
+        target_heads=terminals.get(target,{})
+        if not target_heads:
+            raise DistanceCoverageError('No physical terminal plane for '+target)
+        frontier=[[str(start)]]; found=[]
+        for _ in range(len(links)):
+            following=[]
+            for path in frontier:
+                here=path[-1]
+                if here in target_heads:
+                    try:
+                        geometry=_travel_segments(path,links,lengths,target_heads[here])
+                    except ValueError:
+                        continue  # A turn behind its entry is not a path.
+                    found.append(geometry)
+                    continue
+                if here in all_stops:
+                    continue
+                for to in successors.get(here,[]):
+                    if to not in path:
+                        following.append(path+[to])
+            frontier=following
+            if not frontier:break
+            if len(frontier)>len(links)*2:
+                raise DistanceCoverageError('Unresolved branching before '+target)
+        unique={tuple((s['link'],s['start'],s['stop']) for s in p):p for p in found}
+        if not unique:
+            raise DistanceCoverageError('No physical path '+str(start)+' -> '+target)
+        return list(unique.values())
+
+    paths={}; errors={}; families={}; head_gaps={}
+    for name,spec in movements.items():
+        target=spec.get('receiving_link')
+        if target not in cfg.network.urban_link_storage_veh:
+            continue
+        turns=routes.get('movement:'+name,{}).get('physical_turns',[])
+        canonical=[r for r in turns if r.get('source_evidence',{}).get('canonical_approach_leg')]
+        candidates=[]; failures=[]
+        for turn in canonical or turns:
+            connector=turn.get('connector')
+            declared=turn.get('path')
+            if connector is None and declared and len(declared)>1:
+                connector=declared[1]
+            if connector is None:
+                failures.append('Composite movement requires its declared path entry');continue
+            try:
+                if target not in terminals and routes.get('movement:'+name,{}).get('target_inside') is False:
+                    # The model drains this outside receiving store without a
+                    # further signal. Its declared physical turn is sufficient;
+                    # do not invent a downstream head or include another trip.
+                    exit_path=declared[1:] if declared else [str(connector),str(turn['to_link'])]
+                    continuations=[_travel_segments(exit_path,links,lengths,lengths[exit_path[-1]])]
+                else:
+                    continuations=tails(connector,target)
+                if declared:
+                    continuations=[p for p in continuations
+                        if [s['link'] for s in p][:len(declared)-1]==declared[1:]]
+                    if not continuations:
+                        raise DistanceCoverageError('Continuation contradicts the declared movement route')
+                # The microscopic head can stand shortly before its connector.
+                source=str(turn.get('from_link',declared[0] if declared else ''))
+                positions=heads.get((source,str(spec.get('signal','')).removeprefix('SC')),[])
+                pad=[]
+                if positions:
+                    branch=float(links[connector].find('fromLinkEndPt').get('pos'))
+                    head_gaps[name]=branch-min(positions)
+                    # Overlapping head/connector planes have zero positive
+                    # road-axis gap. Preserve the overlap as an explicit
+                    # point-queue geometric approximation, not reverse travel.
+                    if branch>min(positions):
+                        pad=[dict(link=source,start=min(positions),stop=branch)]
+                candidates.extend(slice_path(pad+path) for path in continuations)
+            except DistanceCoverageError as error:
+                failures.append(str(error))
+        unique={tuple((s['link'],s['start'],s['stop']) for s in p):p for p in candidates}
+        if unique and not failures:
+            values=list(unique.values())
+            families[name]=values
+            if len(values)==1:
+                paths[name]=values[0]
+        else:
+            errors[name]=failures or ['No unique physical movement path']
+    source_paths={};source_errors={}
+    for no,row in getattr(cfg.network,'native_internal_inputs',{}).get('inputs',{}).items():
+        if row.get('target_kind')=='route_choice' or row.get('kind') in ('native_fixed_route','native_choice_prehead'):
+            continue
+        target=row['target_storage']; declared_paths=row.get('approach_paths',[row['approach_path']])
+        try:
+            family=[]
+            for declared in declared_paths:
+                stop=terminals.get(target,{}).get(declared[-1])
+                if stop is None:raise DistanceCoverageError('No source approach head for '+no)
+                family.append(_travel_segments(declared,links,lengths,stop))
+            source_paths[no]=family
+        except (ValueError,DistanceCoverageError) as error:
+            source_errors[no]=str(error)
+    boundary_paths={};boundary_errors={}
+    for key,row in routes.items():
+        if not key.startswith('input:gate:'):
+            continue
+        origin=key[len('input:gate:'):]; family=[]
+        try:
+            sources=row.get('physical_sources',[])
+            if row.get('status') not in ('unique','multiple') or not sources:
+                raise DistanceCoverageError('No mapped physical gate source')
+            for source in sources:
+                family.extend(tails(str(source['link']),origin))
+            boundary_paths[origin]=family
+        except DistanceCoverageError as error:
+            boundary_errors[origin]=str(error)
+    initial_paths={};initial_errors={}
+    for link,target in initial_starts:
+        key=str(link)+'|'+target
+        try:
+            initial_paths[key]=tails(link,target)
+        except DistanceCoverageError as error:
+            initial_errors[key]=str(error)
+    return dict(paths=paths,path_families=families,errors=errors,terminal_planes=dict(terminals),
+                native_source_paths=source_paths,native_source_errors=source_errors,
+                boundary_paths=boundary_paths,boundary_errors=boundary_errors,
+                initial_paths=initial_paths,initial_errors=initial_errors,
+                head_spread_m=head_spreads,source_head_to_connector_m=head_gaps,lengths_m=lengths,
+                path_length_bounds_m={name:[min(math.fsum(s['stop']-s['start'] for s in p) for p in family),
+                                          max(math.fsum(s['stop']-s['start'] for s in p) for p in family)]
+                                      for name,family in families.items()})
+
+
+def record_reservation(state, cfg, provider, stock, segments, vehicles, step, due):
+    observer = getattr(state, '_omega_travel_reservations', None)
+    if observer is not None:
+        observer.reserve(provider, stock, segments, vehicles,
+                         step*cfg.simulation.T_u_sec, due*cfg.simulation.T_u_sec)
+
+
+def record_ordinary_movement(state,cfg,movement,vehicles,step,due):
+    observer=getattr(state,'_omega_travel_reservations',None)
+    if observer is None or vehicles==0:
+        return
+    catalog=getattr(observer,'ordinary_catalog',None)
+    if catalog is None:
+        # Partial transport diagnostics can opt into individual providers. A
+        # full objective must separately require complete coverage.
+        return
+    paths=catalog['path_families'].get(movement)
+    if paths is None:
+        raise DistanceCoverageError('Ordinary movement '+movement+': '+str(catalog['errors'].get(movement)))
+    target=cfg.network.urban_movements[movement]['receiving_link']
+    observer.reserve_family('ordinary_movement','storage:'+target,paths,vehicles,
+                            step*cfg.simulation.T_u_sec,due*cfg.simulation.T_u_sec)
+
+
+def record_native_simple(state,cfg,no,vehicles,step,due):
+    observer=getattr(state,'_omega_travel_reservations',None)
+    if observer is None or vehicles==0 or not hasattr(observer,'ordinary_catalog'):
+        return
+    catalog=observer.ordinary_catalog
+    paths=catalog['native_source_paths'].get(no)
+    if paths is None:
+        raise DistanceCoverageError('Native source '+no+': '+str(catalog['native_source_errors'].get(no)))
+    target=cfg.network.native_internal_inputs['inputs'][no]['target_storage']
+    observer.reserve_family('native_simple','storage:'+target,paths,vehicles,
+                            step*cfg.simulation.T_u_sec,due*cfg.simulation.T_u_sec)
+
+
+def record_boundary_gate(state,cfg,origin,vehicles,step,due):
+    """Accepted boundary generation to its next modeled head, inside Omega only."""
+    observer=getattr(state,'_omega_travel_reservations',None)
+    if observer is None or vehicles==0 or not hasattr(observer,'ordinary_catalog'):
+        return
+    catalog=observer.ordinary_catalog
+    paths=catalog['boundary_paths'].get(origin)
+    if paths is None:
+        raise DistanceCoverageError('Boundary gate '+origin+': '+str(catalog['boundary_errors'].get(origin)))
+    observer.reserve_family('boundary_gate','transit:gate:'+origin,paths,vehicles,
+                            step*cfg.simulation.T_u_sec,due*cfg.simulation.T_u_sec)
+
+
+def seed_local_upstream(state,cfg):
+    """Initial70/10637/10640/10776 vehicles, before local-cell admission."""
+    local=state.lane_urban_runtime; rows=local.initial_travel_paths
+    expected={}
+    for row in rows:expected[row['due']]=expected.get(row['due'],0.)+row['vehicles']
+    actual=state.urban_storage_release_buffer.get(local.origin,{})
+    if expected!=actual:
+        raise DistanceCoverageError('Initial local distance differs from current travel reservations')
+    for row in rows:
+        record_reservation(state,cfg,'local_upstream','storage:'+local.origin,row['segments'],
+                           row['vehicles'],state.time_sec/cfg.simulation.T_u_sec,row['due'])
+    return len(rows)
+
+
+def record_shared(state, cfg, key, vehicles, position, step, due):
+    if getattr(state, '_omega_travel_reservations', None) is None:
+        return
+    spec = cfg.network.shared_approach
+    path = remaining_path(spec['branches'][key]['travel_segments'], spec['physical_link'], position)
+    record_reservation(state,cfg,'shared_approach','storage:'+spec['storage'],path,vehicles,step,due)
+
+
+def record_sc2001(state, cfg, branch, vehicles, link, position, origin, before_78_m, step, due):
+    if getattr(state, '_omega_travel_reservations', None) is None:
+        return
+    spec = cfg.network.sc2001_corridor
+    segments = [dict(link=s['link'],start=s['start_m'],stop=s['stop_m'])
+                for s in spec['branches'][branch]['travel_segments']]
+    path = remaining_path(segments,link,position)
+    if before_78_m:
+        incoming = [r for r in spec['incoming_movements'].values() if r['origin'] == origin]
+        candidates = {r['entry_connector'] for r in incoming
+                      if r['pre_78_distance_m'] == before_78_m and r['entry_78_position_m'] == position}
+        if len(candidates) != 1:
+            raise DistanceCoverageError('SC2001 incoming path is ambiguous')
+        # This connector is outside Omega, but its travel consumes model time.
+        path = [dict(link=candidates.pop(),start=0.,stop=before_78_m)]+path
+    record_reservation(state,cfg,'sc2001_corridor','storage:'+spec['storage'],path,vehicles,step,due)
+
+
+def record_known(state,cfg,target,vehicles,step,due,link,position):
+    if getattr(state,'_omega_travel_reservations',None) is None:
+        return
+    spec=cfg.network.known_legsplit_routes
+    if target == 'unknown' or 'physical_travel' not in spec:
+        raise DistanceCoverageError('Known legsplit travel has no physical destination')
+    travel=spec['physical_travel']
+    segments=travel['prefix'][str(link)] if target=='prechoice' else travel['destinations'][target]
+    path=remaining_path(segments,link,position)
+    record_reservation(state,cfg,'known_legsplit','storage:'+spec['storage'],path,vehicles,step,due)
+
+
+def record_direct(state,cfg,target,vehicles,step,due,link,position,connector=None,connector_length=0.):
+    if getattr(state,'_omega_travel_reservations',None) is None:
+        return
+    spec=cfg.network.direct_exit_legsplit
+    path=remaining_path(spec['travel']['paths'][target],link,position)
+    if connector is not None:
+        path=[dict(link=str(connector),start=0.,stop=connector_length)]+path
+    record_reservation(state,cfg,'direct_exit','storage:'+spec['storage'],path,vehicles,step,due)
+
+
+def seed_direct(state,cfg,raw):
+    """Rebuild initialized current-route expectations, without touching stock."""
+    from evaluation.controllers.projection_support import complete_records
+    from evaluation.controllers.route_choice_corridor import _direct_reachable_weights, _known_remaining, _speed, _due
+    spec=getattr(cfg.network,'direct_exit_legsplit',None)
+    if not spec:
+        return 0
+    if 'travel' not in spec:
+        raise DistanceCoverageError('Direct exit distance needs physical travel')
+    actual=state.direct_exit_route_state
+    if actual['received'] or actual['departed']:
+        raise DistanceCoverageError('Direct exit seeding needs freshly initialized state')
+    travel=spec['travel']; stock='storage:'+spec['storage']
+    assignments=state.local_observation_summary['projection_diagnostics']['physical_stock_assignment_by_link']
+    selected=[r for r in complete_records(raw) if assignments.get(str(r['link_no']),{}).get(stock,0.)>0]
+    start=int(state.time_sec/cfg.simulation.T_u_sec); expected=[]
+    for r in selected:
+        link=str(r['link_no']);pos=r['position_m'];entry=travel['initial_entries'].get(link)
+        weights=travel['weights'] if entry else _direct_reachable_weights(travel,link,pos)
+        for target,weight in weights.items():
+            path=remaining_path(travel['paths'][target],entry['link'] if entry else link,
+                                entry['position'] if entry else pos)
+            if entry:
+                path=[dict(link=link,start=min(pos,entry['length_m']),stop=entry['length_m'])]+path
+            length=math.fsum(s['stop']-s['start'] for s in path)
+            due=_due(cfg,start,length,_speed(state,cfg,r['speed_kph']))
+            expected.append(dict(target=target,vehicles=weight,due=due))
+            record_reservation(state,cfg,'direct_exit',stock,path,weight,start,due)
+    if expected != actual['cohorts']:
+        raise DistanceCoverageError('Initial direct-exit distance differs from physical transport')
+    return len(expected)
+
+
+def record_gate(state,cfg,route,vehicles,step,due):
+    if getattr(state,'_omega_travel_reservations',None) is None:
+        return
+    spec=cfg.network.physical_gate_travel
+    geometry=spec['geometry'][route]; timing=spec['timings'][route]['parts']
+    if len(geometry)!=len(timing):
+        raise DistanceCoverageError('Gate geometry and declared travel times disagree')
+    # Retain per-link speeds, and stretch them only by the existing final
+    # integer-ETA rounding. No uniform speed across unlike gate links.
+    durations=[(s['stop']-s['start'])/(t['speed_kph']/3.6) for s,t in zip(geometry,timing)]
+    total=math.fsum(durations); offset=0.;path=[];dt=cfg.simulation.T_u_sec
+    for s,t,duration in zip(geometry,timing,durations):
+        if s['link']!=t['link']:
+            raise DistanceCoverageError('Gate timing belongs to a different link')
+        a=step*dt+(due-step)*dt*offset/total
+        offset+=duration
+        b=due*dt if offset==total else step*dt+(due-step)*dt*offset/total
+        if duration>0:path.append((s['link'],s['start'],s['stop'],a,b))
+    observer=state._omega_travel_reservations
+    amount=timed_path_distance(path,vehicles,observer.start_sec,observer.end_sec,observer.membership)
+    key=('gate_future','transit:gate:'+spec['source'])
+    observer.by_provider_stock[key]=observer.by_provider_stock.get(key,0.)+amount
+    observer.reservation_counts['gate_future']=observer.reservation_counts.get('gate_future',0)+1
+
+
+def seed_owned_reservations(state,cfg,raw,provider):
+    """Replay the existing initializer on a private state, not on physical stock.
+
+    Use its identical current positions, route priors and rounded travel times;
+    do not reconstruct distance from merged ETA bins or initialize twice in the
+    actual prediction. Only passive distance bookings return to the query.
+    """
+    from evaluation.controllers import shared_approach, sc2001_corridor, route_choice_corridor
+    choices = {'shared_approach':('shared_approach_state','bins',shared_approach.initialize),
+               'sc2001_corridor':('sc2001_corridor_state','bins',sc2001_corridor.initialize),
+               'known_legsplit':('known_legsplit_route_state','cohorts',route_choice_corridor.initialize_known_legsplit)}
+    field,key,initialize=choices[provider]
+    actual=getattr(state,field,None)
+    if actual is None:
+        return 0
+    observer=state._omega_travel_reservations
+    if observer.start_sec != state.time_sec:
+        raise ValueError('Travel seeding requires the query initial state')
+    staged=state.copy()
+    delattr(staged,field)
+    staged._omega_travel_reservations=observer
+    if provider=='shared_approach':
+        initialize(staged,cfg,raw,None)
+    else:
+        initialize(staged,cfg,raw)
+    if getattr(staged,field)[key] != actual[key]:
+        raise DistanceCoverageError('Replayed initial travel differs: '+provider)
+    return observer.reservation_counts.get(provider,0)
+
+
+def ramp_distance(buffer, start_sec, end_sec, membership):
+    """Travel of already admitted connector cohorts; head/merge queues are zero.
+
+    Lane-resolved buffers own their cohorts. Their aggregate parent and the
+    TrafficState.ramp_queue mirror must not be counted again. New admissions or
+    head departures occur at interval end under the existing ramp law, so this
+    function is called on the interval-start buffer, before advancing it.
+    """
+    if start_sec != buffer.time_sec or buffer._phase != 'idle':
+        raise ValueError('Ramp distance requires the idle interval-start state')
+    if end_sec < start_sec:
+        raise ValueError('Nonnegative ramp distance window required')
+    if hasattr(buffer, '_lane_buffers'):
+        return math.fsum(ramp_distance(lane, start_sec, end_sec, membership)
+                         for lane in buffer._lane_buffers)
+    stages = ((buffer._upstream, 0., buffer.head_position_m, buffer._speed_mps),
+              (buffer._downstream, buffer.head_position_m, buffer.length_m,
+               buffer._posthead_speed_mps))
+    values = []
+    for cohorts, begin, end, speed in stages:
+        inside_length_m(buffer.connector_id, begin, end, membership)
+        for due, n in cohorts:
+            if end > begin:
+                values.append(timed_path_distance(
+                    [(buffer.connector_id, begin, end, due-(end-begin)/speed, due)],
+                    n, start_sec, end_sec, membership))
+    return math.fsum(values)
+
+
+def delayed_port_distance(port, link, start_sec, end_sec, membership):
+    """Constant-speed delayed port, including partial initial/terminal journeys.
+
+    An ETA from an acceleration/FIFO law alone does not determine distance
+    during that ETA. That mode must provide its trajectory before it is counted.
+    """
+    if port.entry_accel_mps2 is not None:
+        raise DistanceCoverageError('Acceleration/FIFO port needs its motion path: '+str(link))
+    if port.last_time_s != start_sec:
+        raise ValueError('Port distance requires the interval-start state')
+    inside_length_m(link, 0., port.length_m, membership)
+    return math.fsum(timed_path_distance(
+        [(link, 0., port.length_m, due-port.travel_s, due)],
+        n, start_sec, end_sec, membership) for due, n in port.pending)
+
+
+def freeway_distance(state, cfg, duration_sec):
+    """METANET left-state N_i*v_i*dt, using the continuity geometry/lanes.
+
+    This is the model's velocity integral, not an inferred discharge count.
+    Origin backlog remains outside Omega. It is not a microscopic trajectory
+    claim when a separate receiving constraint limits the boundary flux.
+    """
+    from evaluation.controllers.area_freeway_accounting import continuity_vehicle_counts
+    _nonnegative(duration_sec, 'freeway distance duration')
+    counts = continuity_vehicle_counts(state, cfg)
+    result = {}
+    for road, values in counts.items():
+        speeds = state.freeway_speed[road]
+        if len(values) != len(speeds):
+            raise DistanceCoverageError('Freeway distance geometry mismatch: '+road)
+        terms = []
+        for n, speed in zip(values, speeds):
+            _nonnegative(n, 'freeway inventory')
+            _nonnegative(speed, 'freeway speed')
+            terms.append(n*speed*duration_sec/3600.)
+        result['freeway:'+road] = math.fsum(terms)
+    return result
+
+
+def local_cell_distance(urban, membership):
+    """Distance from realized local CTM transfers, with left-edge cell positions.
+
+    The finite-volume model does not retain within-cell vehicle positions. Its
+    explicit distance quadrature places stock at each cell's upstream edge:
+    one longitudinal departure advances the source cell length, lateral moves
+    advance zero, and external admissions enter at the receiving cell edge.
+    Thus a complete path earns its represented length, not a whole future link
+    at admission. Off-ramp merge-position and within-cell errors remain the
+    existing spatial projection error, not new physical dynamics.
+    """
+    values = {}
+    for source, target, packets in urban.last_transfers:
+        n = math.fsum(amount for _, amount in packets)
+        _nonnegative(n, 'CTM transferred vehicles')
+        if source[0] == 'external':
+            continue
+        road, lane, cell = source
+        edges = urban.edges[road]
+        begin, end = edges[cell], edges[cell+1]
+        if target[0] == road and target[2] == cell:
+            # Lane exchange does not advance road-axis distance.
+            length = 0.
+        else:
+            if target[0] == road and target[2] != cell+1:
+                raise DistanceCoverageError('CTM transfer skips a longitudinal cell')
+            length = inside_length_m(road, begin, end, membership)
+        key = 'storage:lane_urban_'+str(road)
+        values[key] = values.get(key, 0.)+n*length/1000.
+    return values
+
+
+def cumulative_lane_distance(lane, start_sec, end_sec, link, membership, *, spatial_step_m=2.):
+    """Interior travel from the existing triangular-FD cumulative curves.
+
+    Integrate N(x,t1)-N(x,t0) over physical position, including stopped storage.
+    Initial density uses the lane's finite-spacing projection. Accepted inlet
+    and outlet counts are interpolated within their one-second intervals, a
+    measurement closure only. The Lax-Hopf minimum includes initial, inlet and
+    downstream wave bounds. Two-point Gauss quadrature on bounded panels is
+    explicit numerical integration; halving panels does not change traffic.
+    """
+    _nonnegative(spatial_step_m,'spatial panel length')
+    if spatial_step_m==0 or not lane.start<=start_sec<=end_sec<=lane.time:
+        raise ValueError('Cumulative distance needs an already simulated window')
+    env=lane.envelope; elapsed=lane.time-lane.start
+    if elapsed!=int(elapsed) or len(lane.departure_history)!=int(elapsed)+1:
+        raise DistanceCoverageError('Cumulative lane lacks contiguous one-second history')
+    arrivals=[0.]*(int(elapsed)+1)
+    for t,n in lane.arrivals:
+        if t!=int(t) or not 0<=t<=elapsed:
+            raise DistanceCoverageError('Cumulative admission has an unsupported timestamp')
+        arrivals[int(t)]+=n
+    for i in range(1,len(arrivals)):
+        arrivals[i]+=arrivals[i-1]
+    if arrivals[0]!=0 or abs(arrivals[-1]-lane.admitted)>1e-7:
+        raise DistanceCoverageError('Cumulative initial/admitted stocks disagree')
+    for history in (arrivals,lane.departure_history):
+        if any(b<a-1e-7 or b-a>env.qmax+1e-7 for a,b in zip(history,history[1:])):
+            raise DistanceCoverageError('Boundary count exceeds the lane FD per-second flow')
+    def at(history,t):
+        i=int(t);j=min(i+1,len(history)-1)
+        return history[i]+(history[j]-history[i])*(t-i)
+    def cumulative(x,t):
+        if t==0:return -env.initial_prefix(x)
+        lo=max(0.,x-lane.vfree*t);hi=min(lane.length,x+env.wave*t)
+        points=[lo,hi]+[p for p in env.points if lo<p<hi]
+        value=env.qmax*t-env.critical*x+min(-env.initial_prefix(y)+env.critical*y for y in points)
+        inlet_time=t-x/lane.vfree
+        if inlet_time>=0:value=min(value,at(arrivals,inlet_time))
+        outlet_time=t-(lane.length-x)/env.wave
+        if outlet_time>=0:
+            value=min(value,at(lane.departure_history,outlet_time)-lane.initial+env.jam*(lane.length-x))
+        return value
+    inside_length_m(link,0.,lane.length,membership)
+    support=membership[str(link)]
+    intervals=([(0.,lane.length)] if support else []) if type(support) is bool else support
+    t0,t1=start_sec-lane.start,end_sec-lane.start
+    pieces=[]
+    for lo,hi in intervals:
+        lo=max(0.,lo);hi=min(lane.length,hi)
+        if hi<=lo:continue
+        count=math.ceil((hi-lo)/spatial_step_m);width=(hi-lo)/count
+        for i in range(count):
+            mid=lo+(i+.5)*width
+            for sign in (-1.,1.):
+                x=mid+sign*width/(2*math.sqrt(3.))
+                flow=cumulative(x,t1)-cumulative(x,t0)
+                if flow < -1e-7:
+                    raise DistanceCoverageError('Interior cumulative count travels backwards')
+                pieces.append(max(0.,flow)*width/2)
+    return math.fsum(pieces)/1000.
+
+
+def require_complete_coverage(receipt):
+    """A subtotal must never silently become the requested whole-Omega reward."""
+    if (receipt.get('scope') != 'full_control_area_omega'
+            or receipt.get('coverage_complete') is not True
+            or receipt.get('unresolved_transport')
+            or receipt.get('unresolved_positive_stocks')):
+        raise DistanceCoverageError('Full Omega distance is not yet covered')
+    total = _nonnegative(receipt['tvd_omega_veh_km'], 'Omega distance')
+    parts = receipt['distance_by_stock_veh_km']
+    if abs(total-math.fsum(_nonnegative(x, 'stock distance') for x in parts.values())) > 1e-8:
+        raise DistanceCoverageError('Omega distance decomposition does not close')
+    return total
+
+
+def begin_reward(state,cfg,duration_sec):
+    """Open a query, omitting ONLY candidate-independent initial fixed travel.
+
+    Every initial deterministic transport reservation is already fixed before
+    this query's commands. Its within-reservation travel is a common additive
+    constant. Signal service and later transport are still recorded after
+    actual acceptance. Mainline, ramp buffers, local CTM and off-ramp queues
+    are dynamic and are never covered by this constant exception.
+    """
+    if not getattr(cfg.network,'sdmpc_distance_reward',None):return
+    from evaluation.controllers.control_area_objective import get_ledger
+    if cfg.simulation.T_u_sec!=1 or cfg.simulation.T_f_sec!=1:
+        raise DistanceCoverageError('Distance observer requires the installed one-second transport law')
+    for name in ('lane_freeway_runtime','lane_ramp_runtime','lane_urban_runtime','lane_offramp_runtime'):
+        if getattr(state,name,None) is None:raise DistanceCoverageError('Missing coupled transport '+name)
+    end=state.time_sec+duration_sec
+    observer=TravelReservations(state.time_sec,end,state.lane_offramp_runtime.membership)
+    observer.ordinary_catalog=cfg.network.sdmpc_distance_catalog
+    observer.dynamic_by_stock={};observer.steps=0;observer.local_steps=0
+    observer.coverage={};observer.initial_fixed_reservations={}
+    # Runtime-owned stores are treated by their physical law, never by a
+    # generic initial fixed-ETA exemption.
+    local=state.lane_urban_runtime
+    owned={local.origin,local.off_storage,*local.local_storage.values()}
+    owned.update(row['storage'] for row in state.lane_offramp_runtime.descriptions.values())
+    owned.update(cfg.network.route_choice_corridor['capacity_veh'])
+    for name in ('shared_approach','sc2001_corridor','known_legsplit_routes','direct_exit_legsplit'):
+        spec=getattr(cfg.network,name,None)
+        if spec:owned.add(spec['storage'])
+    arrivals=state.urban_arrival_buffer;releases=state.urban_storage_release_buffer
+    for stock,cohorts in get_ledger(state).stocks.items():
+        if stock.startswith('freeway:'):kind='dynamic_mainline'
+        elif stock.startswith('ramp:'):kind='dynamic_meter_and_merge_buffer'
+        elif stock.startswith('movement:'):
+            if stock[9:] not in cfg.network.urban_movements:
+                raise DistanceCoverageError('Unmapped movement '+stock)
+            kind='point_queue_or_owned_local_cell; accepted_future_motion_required'
+        elif stock.startswith('storage:'):
+            key=stock[8:]
+            if key not in cfg.network.urban_link_storage_veh:
+                raise DistanceCoverageError('Unmapped storage '+stock)
+            if key in owned:kind='owned_transport; fixed_initial_and_accepted_future_stages'
+            else:
+                a=arrivals.get(key,{});r=releases.get(key,{})
+                if a!=r:
+                    raise DistanceCoverageError('Initial generic arrival/release schedules differ '+key)
+                if any(t<state.time_sec or n<0 or not math.isfinite(n) for t,n in a.items()):
+                    raise DistanceCoverageError('Invalid initial fixed ETA '+key)
+                observer.initial_fixed_reservations[key]=dict(a)
+                kind='fixed_initial_ETA_constant; accepted_future_motion_required'
+        elif stock.startswith('transit:gate:'):
+            kind='fixed_initial_gate_constant; accepted_future_generation_path'
+        elif stock.startswith('merge_pending:'):
+            if abs(cohorts['inside'])>1e-7:raise DistanceCoverageError('Noninstantaneous merge pending stock')
+            kind='zero_length_merge_boundary'
+        elif cohorts['inside']==0:kind='outside_only'
+        else:raise DistanceCoverageError('Unclassified positive Omega stock '+stock)
+        observer.coverage[stock]=kind
+    # Freeze the initial schedule receipt, independent of all future actions.
+    observer.initial_gate_buffers={k:dict(v) for k,v in state.urban_inflow_transit_buffer.items()}
+    state._omega_travel_reservations=observer
+
+
+def _add_dynamic(observer,rows):
+    for stock,value in rows.items():
+        _nonnegative(value,'accepted distance')
+        observer.dynamic_by_stock[stock]=observer.dynamic_by_stock.get(stock,0.)+value
+
+
+def before_reward_step(state,cfg,demand):
+    observer=getattr(state,'_omega_travel_reservations',None)
+    if observer is None or not hasattr(observer,'dynamic_by_stock'):return
+    t=state.time_sec
+    if t!=observer.start_sec+observer.steps or t>=observer.end_sec:
+        raise DistanceCoverageError('Missing, repeated or out-of-horizon distance step')
+    membership=observer.membership
+    _add_dynamic(observer,freeway_distance(state,cfg,1.))
+    _add_dynamic(observer,{'ramp:'+k:ramp_distance(p,t,t+1.,membership)
+                          for k,p in state.lane_ramp_runtime.buffers.items()})
+    ports=state.lane_offramp_runtime
+    for off,p in ports.ports.items():
+        row=ports.descriptions[off]
+        _add_dynamic(observer,{'storage:'+row['storage']:delayed_port_distance(p,row['connector'],t,t+1.,membership)})
+    observer.steps+=1
+
+
+def accepted_external_ramp(state,ramp,vehicles):
+    observer=getattr(state,'_omega_travel_reservations',None)
+    if observer is not None and hasattr(observer,'dynamic_by_stock') and vehicles>0:
+        raise DistanceCoverageError('Unmapped accepted external ramp travel: '+ramp)
+
+
+def after_reward_urban(state,cfg):
+    observer=getattr(state,'_omega_travel_reservations',None)
+    if observer is None or not hasattr(observer,'dynamic_by_stock'):return
+    _add_dynamic(observer,local_cell_distance(state.lane_urban_runtime.port.urban,observer.membership))
+    observer.local_steps+=1
+
+
+def finish_reward(point,cfg):
+    spec=getattr(cfg.network,'sdmpc_distance_reward',None)
+    if spec is None:return
+    final=point.states[-1];observer=final._omega_travel_reservations
+    if (final.time_sec!=observer.end_sec or observer.steps!=observer.end_sec-observer.start_sec
+            or observer.local_steps!=observer.steps):
+        raise DistanceCoverageError('Distance interval coverage is incomplete')
+    local=final.lane_urban_runtime
+    lanes=[('10643',local.off_storage,p) for p in local.port.lanes]
+    if local.side_port is not None:lanes.append(('10700',local.local_storage[10700],local.side_port))
+    for link,stock,lane in lanes:
+        _add_dynamic(observer,{'storage:'+stock:cumulative_lane_distance(lane,observer.start_sec,observer.end_sec,link,observer.membership)})
+    pieces=dict(observer.dynamic_by_stock)
+    for (_,stock),value in observer.by_provider_stock.items():pieces[stock]=pieces.get(stock,0.)+value
+    total=math.fsum(pieces.values());beta=spec['weight_h_per_km']
+    owners=(*cfg.network.signals,*cfg.network.freeway_links,'PASSIVE_OMEGA')
+    table=cfg.network.sdmpc_cost_ownership
+    by_owner={o:math.fsum(v for k,v in pieces.items() if table.get(k,'PASSIVE_OMEGA')==o) for o in owners}
+    costs={k:-beta*v for k,v in by_owner.items()}
+    receipt=dict(schema=REWARD_SCHEMA,specification_sha256=reward_token(spec),
+        scope='full_control_area_omega_candidate_differences',absolute_tvd_available=False,
+        omitted_term=COMMON_INITIAL,shifted_tvd_veh_km=total,distance_by_stock_veh_km=pieces,
+        distance_by_owner_veh_km=by_owner,cost_by_owner_veh_h=costs,total_cost_veh_h=-beta*total,
+        start_sec=observer.start_sec,end_sec=observer.end_sec,observed_steps=observer.steps,
+        coverage=observer.coverage,initial_fixed_reservations=observer.initial_fixed_reservations,
+        geometry_distance_bounds={p+'|'+k:v for (p,k),v in observer.geometry_bounds_by_stock.items()})
+    point.objective+=receipt['total_cost_veh_h']
+    point.control_area.update(distance_reward=receipt,additional_cost_veh_h=receipt['total_cost_veh_h'],
+        selection_score_veh_h=point.objective)
+    validate_reward_score(point.control_area,point.objective,cfg)
+
+
+def validate_reward_score(area,objective,cfg):
+    spec=getattr(cfg.network,'sdmpc_distance_reward',None)
+    r=area.get('distance_reward')
+    if spec is None or not isinstance(r,dict) or 'terminal_cost' in area:
+        raise ValueError('Missing exclusive distance reward')
+    if (r.get('schema')!=REWARD_SCHEMA or r.get('specification_sha256')!=reward_token(spec)
+            or r.get('scope')!='full_control_area_omega_candidate_differences'
+            or r.get('absolute_tvd_available') is not False or r.get('omitted_term')!=COMMON_INITIAL):
+        raise ValueError('Distance scope/configuration receipt mismatch')
+    duration=r['end_sec']-r['start_sec']
+    if not math.isfinite(duration) or duration<=0 or r['observed_steps']!=duration or not r['coverage']:
+        raise ValueError('Distance interval or domain coverage missing')
+    parts=r['distance_by_stock_veh_km'];table=cfg.network.sdmpc_cost_ownership
+    if any(not math.isfinite(v) or v<0 for v in parts.values()):raise ValueError('Invalid shifted distance')
+    total=math.fsum(parts.values());beta=spec['weight_h_per_km']
+    owners=(*cfg.network.signals,*cfg.network.freeway_links,'PASSIVE_OMEGA')
+    by_owner={o:math.fsum(v for k,v in parts.items() if table.get(k,'PASSIVE_OMEGA')==o) for o in owners}
+    costs={k:-beta*v for k,v in by_owner.items()};cost=-beta*total
+    if (r['shifted_tvd_veh_km']!=total or r['distance_by_owner_veh_km']!=by_owner
+            or r['cost_by_owner_veh_h']!=costs or r['total_cost_veh_h']!=cost
+            or area['additional_cost_veh_h']!=cost or area['near_score_veh_h']+cost!=objective
+            or area['selection_score_veh_h']!=objective):
+        raise ValueError('Distance reward partition/score mismatch')

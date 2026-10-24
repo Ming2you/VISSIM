@@ -1,0 +1,123 @@
+{
+  "schema": "route-choice-corridor/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "membership_path": "diagnostics/control_area_membership.json",
+  "jam_source": {
+    "path": "outputs/urban_storage_capacity_core17legs4b_20260819.json",
+    "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+  },
+  "decision": "1129",
+  "decision_link": "56",
+  "decision_position_m": 253.17220072044452,
+  "prefix_storage": "SC1004_E_choice",
+  "prefix_links": [
+    "10627",
+    "10632",
+    "10634",
+    "10636",
+    "75",
+    "10701",
+    "56"
+  ],
+  "local_storage": "SC1004_to_SC1005",
+  "local_links": [
+    "10617",
+    "57"
+  ],
+  "bypass_storage": "SC1004_to_SC107",
+  "bypass_connector": "10621",
+  "local_connector": "10617",
+  "post_stopline_projection": {
+    "10624": "SC1005_to_SC107"
+  },
+  "shared_continuation": {
+    "source_storage": "shared_69",
+    "branch": "2",
+    "previous_target": "in_SC1005_W",
+    "path": [
+      "10636",
+      "75",
+      "10701",
+      "56"
+    ],
+    "native_route": "1134:2"
+  },
+  "native_paths": {
+    "1": [
+      "56",
+      "10621"
+    ],
+    "2": [
+      "56",
+      "10617",
+      "57",
+      "10624",
+      "61"
+    ],
+    "3": [
+      "56",
+      "10617",
+      "57",
+      "10623",
+      "404"
+    ]
+  },
+  "local_movements": {
+    "2": "SC1005_W_SC1004_to_E_SC107",
+    "3": "SC1005_W_SC1004_to_N_SC105"
+  },
+  "local_queue_heads": {
+    "2": "90030863",
+    "3": "90030862"
+  },
+  "incoming_turns": {
+    "N_SC1003": {
+      "keep": "SC1004_N_SC1003_to_E_SC1005",
+      "remove": "SC1004_N_SC1003_to_E_SC107",
+      "connector": "10627",
+      "source_link": "46",
+      "signal_controlled": true
+    },
+    "S": {
+      "keep": "SC1004_S_to_E_SC1005",
+      "remove": "SC1004_S_to_E_SC107",
+      "connector": "10632",
+      "source_link": "66",
+      "signal_controlled": false
+    },
+    "W": {
+      "keep": "SC1004_W_to_E_SC1005",
+      "remove": "SC1004_W_to_E_SC107",
+      "connector": "10634",
+      "source_link": "71",
+      "signal_controlled": true
+    },
+    "offE": {
+      "keep": "SC1004_offE_to_E_SC1005",
+      "remove": "SC1004_offE_to_E_SC107",
+      "connector": "10634",
+      "source_link": "71",
+      "signal_controlled": true
+    },
+    "offW": {
+      "keep": "SC1004_offW_to_E_SC1005",
+      "remove": "SC1004_offW_to_E_SC107",
+      "connector": "10634",
+      "source_link": "71",
+      "signal_controlled": true
+    }
+  },
+  "model_limitations": [
+    "Future native1129 probabilities are conditional on eligibility, not measured route IDs.",
+    "Missing post-choice route identities require explicit error or hold_diagnostic policy; no posterior is supplied.",
+    "Travel uses geometry and observed speed with the existing speed-delay floor; lane changes and queue-tail dynamics remain approximate.",
+    "Bypass transfer enters the existing SC1004_to_SC107 receiver and keeps that receiver's downstream prediction model."
+  ],
+  "service_resource_calibration": {
+    "path": "diagnostics/sc1004_resource_service_calibration.json",
+    "sha256": "7262d38b5fa981d60cf71ff59d0f6c7c3cfffb1dc3349044e02c219cc4494f9e"
+  }
+}

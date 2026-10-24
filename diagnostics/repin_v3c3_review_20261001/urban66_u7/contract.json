@@ -1,0 +1,64 @@
+{
+  "schema": "kinematic-urban-arrival/v1",
+  "network": {
+    "path": "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\network\\native_seed29.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  },
+  "speed_floor_kph": 20.0,
+  "sources": {
+    "in_SC1004_S": {
+      "link": "66",
+      "movements": {
+        "SC1004_S_to_N_SC1003": {
+          "connector": "10631",
+          "expected_spec": {
+            "intersection": "SC1004",
+            "approach": "S",
+            "exit": "N_SC1003",
+            "beta": 0.4375,
+            "signal": "SC1004",
+            "turn": "through",
+            "phase": "SC1004_p1",
+            "origin": "in_SC1004_S",
+            "destination": "SC1004_to_SC1003",
+            "receiving_link": "SC1004_to_SC1003",
+            "kind": "boundary_in"
+          }
+        },
+        "SC1004_S_to_E_SC1005": {
+          "connector": "10632",
+          "expected_spec": {
+            "intersection": "SC1004",
+            "approach": "S",
+            "exit": "E_SC1005",
+            "beta": 0.29166666666666663,
+            "signal": "SC1004",
+            "turn": "right",
+            "phase": "SC1004_p1",
+            "origin": "in_SC1004_S",
+            "destination": "SC1004_E_choice",
+            "receiving_link": "SC1004_E_choice",
+            "kind": "boundary_in"
+          }
+        },
+        "SC1004_S_to_W": {
+          "connector": "10633",
+          "expected_spec": {
+            "intersection": "SC1004",
+            "approach": "S",
+            "exit": "W",
+            "beta": 0.2708333333333333,
+            "signal": "SC1004",
+            "turn": "left",
+            "phase": "SC1004_p2",
+            "origin": "in_SC1004_S",
+            "destination": "out_SC1004_W",
+            "receiving_link": "SC1004_W_out",
+            "kind": "boundary_in"
+          }
+        }
+      }
+    }
+  },
+  "scope": "Bounded Claude U7a+b diagnostic: current queue and residual composition, geometry ETA, and this gate travel only. No change to demand, service or physical lane owners."
+}

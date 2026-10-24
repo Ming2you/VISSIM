@@ -1,0 +1,112 @@
+{
+  "prepared_utc": "2026-10-12T02:30:50.716335+00:00",
+  "runtime_root": "D:/VISSIM_runtime/20261012_adopted355_vsl_three",
+  "source_worktree": "E:/VISSIM_workspaces/vsl349_causal_20261011",
+  "order": [
+    "window",
+    "optimized",
+    "off"
+  ],
+  "conditions": {
+    "window": {
+      "config": "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/window_config.json",
+      "sha256": "18b0b88df763aaa98fc0f4ea9c6c1e85fba9291a8e1a0af8d8d816ee359f7731",
+      "results_root": "E:/VISSIM_runs/20261012_adopted355_window_s29_8100",
+      "status": "prepared",
+      "launches_consumed": 0
+    },
+    "optimized": {
+      "config": "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/optimized_config.json",
+      "sha256": "c90882628ddc75c0c75c9a82771c96a50614b297839ec32c506859a969dc1df3",
+      "results_root": "E:/VISSIM_runs/20261012_adopted355_optimized_s29_8100",
+      "status": "prepared",
+      "launches_consumed": 0
+    },
+    "off": {
+      "config": "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native413_adopted355/off_config.json",
+      "sha256": "ab8539057d576a91176ecdcf2963bbb5d435ba79d3d62612b377f5d6f7d7c376",
+      "results_root": "E:/VISSIM_runs/20261012_adopted355_off_s29_8100",
+      "status": "prepared",
+      "launches_consumed": 0
+    }
+  },
+  "common": {
+    "seed": 29,
+    "sim_period": 8100,
+    "analysis_end_sec": 8100,
+    "freeway_demand": 0.8,
+    "urban_demand": 0.9,
+    "area": "Omega701",
+    "objective": "Omega TTT",
+    "terminal_cost": false,
+    "horizon_sec": 450,
+    "control_sec": 150,
+    "freeway_exchange_sec": 5,
+    "urban_exchange_sec": 10,
+    "rm_min_green_sec": 2,
+    "rm_delta_green_sec": 2
+  },
+  "controller_health_gate": {
+    "expected_steps": 48,
+    "min_fresh_steps": 44,
+    "max_error_holds": 4,
+    "unknown_classifications_allowed": 0,
+    "phase": "After each closed arm before next condition",
+    "scope": "Calculation/writer coverage only; not native execution/performance validation",
+    "helper_sha256": "8d9931491378190ec952f65c40709c9c838444401b761b09e489a196d9a6f2e2"
+  },
+  "queue_script_sha256": "ad4d826d53b61ef5c85b74efa5b95b40d1fbdb39bec42cb8d2f4da61f44ce2a3",
+  "current_authorization": "지금까지 채택된 플랜트 바탕으로 어제 돌아가다 만 queue 다시 런 해줄래?",
+  "native_budget": 3,
+  "automatic_retries": 0,
+  "adopted_plant": "native354 plus adopted355 single-lane causal receiving for10639/10484",
+  "adoption_evidence": "E:/VISSIM_analysis/20261012_ramp_plant355/plan.json",
+  "validation_reused": {
+    "tests": 22,
+    "scalar_ad_axes": 213,
+    "scalar_ad_cost_max_error": 2.842170943040401e-14,
+    "full_selection_sec": 219.509,
+    "full_selection_converged": false,
+    "qualification": "Physical and controller integration verified; material VSL gain still unqualified"
+  },
+  "config_delta_only": {
+    "urban.single_lane_causal_receiving": {
+      "ramps": [
+        "RM_C10639",
+        "RM_C10484"
+      ],
+      "wave_m_s": 3.2557309454394003
+    }
+  },
+  "prior_queue": "E:/VISSIM_runtime/20261011_native354_numeric_fixed_vsl_three",
+  "prior_status": {
+    "window": "normal8100_closed;47fresh1held",
+    "optimized": "last2850;ownersclosed;no_terminal_error_record",
+    "off": "preflight_only"
+  },
+  "restart_scope": "Fresh three arms with the same adopted plant; old completed window is historical different-plant evidence.",
+  "launch_isolation": "One on-demand Windows task, hidden, no trigger/retry; independent of Codex child-process lifetime.",
+  "disk": {
+    "source_bytes": 49453622064,
+    "freeze_drive": "D",
+    "results_drive": "E",
+    "expected_prior_arm_bytes": 7516902908
+  },
+  "limitations": [
+    "Historical seed29 service calibration is fixed; this native experiment is not held out.",
+    "Large urban control gain-direction errors remain; native improvement is not pre-certified.",
+    "Optimized VSL controls more zones than window VSL; not a timing-only comparison.",
+    "Small projection failures retain previous control under the existing recorded error policy.",
+    "Post-head SC109/SC105 stock retains its previous aggregate owner and reservation; no downstream reownership model is claimed.",
+    "The VSL gain calibration goal remains open. Projection repairs do not establish native TTT improvement.",
+    "Two window forecasts precede only the SC105 zero-roundoff replacement repair; the optimized forecast includes it.",
+    "Native349 completed but many controller calls held prior commands after initialization errors; simulation completion is not successful full-policy optimization.",
+    "Native350 integrates only evidenced initialization fixes; pending VSL physics calibration is not claimed complete.",
+    "Unknown passed-head routes or insufficient receiver capacity still fail explicitly; recoverable decision errors retain previous commands through existing runner policy.",
+    "Three arms include independently selected city/RM policies; differences are not pure VSL causal effects.",
+    "The previous queue ended without a recorded terminal exception; no root cause is asserted.",
+    "No trial410 service uplift, rejected anticipation coefficients or future observations are adopted.",
+    "Simulation completion and controller health do not establish native TTT improvement.",
+    "No production/source/config edits during active canonical freeze or native execution."
+  ]
+}

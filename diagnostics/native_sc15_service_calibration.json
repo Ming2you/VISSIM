@@ -1,0 +1,683 @@
+{
+  "schema": "native-fixed-service-calibration/v1",
+  "purpose": "Opt-in SC15-only queued-discharge lower-rate prior; no global capacity replacement",
+  "seed": 13,
+  "calibration_scope": "Seed13 fit outside two excluded time holdouts; not an independent-seed validation",
+  "excluded_time_holdouts_sec": [
+    [
+      900,
+      1350
+    ],
+    [
+      2700,
+      3150
+    ]
+  ],
+  "seed14_validation": "pending",
+  "selected_estimator": "sum_gap_count / sum_block_duration_upper_sec * 3600",
+  "method": "Consecutive same-GREEN headway blocks, each gap after third departure with observed stopped queue throughout intervening integer frames; use endpoint time brackets once per block.",
+  "network_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+  "sig_sha256": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae",
+  "fzp": {
+    "path": "evaluation\\runs\\codex_area_observed_nc_s13_20260910\\vissim_eval\\modi_eval_userfix Ver2_001.fzp",
+    "sha256": "55c1bc02c68bb8def9c0c3b3ce163a918c20845b4e7113a4768ffe9616986340",
+    "bytes": 1415953087
+  },
+  "inputs": {
+    "1086": {
+      "physical_source": "343",
+      "native_decision": "1099",
+      "controller": "15",
+      "signal_group": "5",
+      "head": "110501",
+      "lanes": 1,
+      "blocks": [
+        {
+          "input_no": "1086",
+          "green_start_sec": 183.0,
+          "gap_count": 3,
+          "vehicle_ids": [
+            579,
+            601,
+            668,
+            732
+          ],
+          "first_crossing_lower_sec": 189.0,
+          "first_crossing_upper_sec": 190.0,
+          "last_crossing_lower_sec": 196.0,
+          "last_crossing_upper_sec": 197.0,
+          "duration_lower_sec": 6.0,
+          "duration_upper_sec": 8.0,
+          "linear_estimate_duration_sec": 7.364623877517374
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 343.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            1483,
+            1629,
+            1830
+          ],
+          "first_crossing_lower_sec": 349.0,
+          "first_crossing_upper_sec": 350.0,
+          "last_crossing_lower_sec": 354.0,
+          "last_crossing_upper_sec": 355.0,
+          "duration_lower_sec": 4.0,
+          "duration_upper_sec": 6.0,
+          "linear_estimate_duration_sec": 5.077794555922424
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 503.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            2479,
+            2737,
+            2764
+          ],
+          "first_crossing_lower_sec": 508.0,
+          "first_crossing_upper_sec": 509.0,
+          "last_crossing_lower_sec": 512.0,
+          "last_crossing_upper_sec": 513.0,
+          "duration_lower_sec": 3.0,
+          "duration_upper_sec": 5.0,
+          "linear_estimate_duration_sec": 3.903871691537745
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 1463.0,
+          "gap_count": 4,
+          "vehicle_ids": [
+            9417,
+            9603,
+            9640,
+            9672,
+            9688
+          ],
+          "first_crossing_lower_sec": 1470.0,
+          "first_crossing_upper_sec": 1471.0,
+          "last_crossing_lower_sec": 1477.0,
+          "last_crossing_upper_sec": 1478.0,
+          "duration_lower_sec": 6.0,
+          "duration_upper_sec": 8.0,
+          "linear_estimate_duration_sec": 7.777444269003809
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 1623.0,
+          "gap_count": 5,
+          "vehicle_ids": [
+            10861,
+            10925,
+            11018,
+            11139,
+            11161,
+            11250
+          ],
+          "first_crossing_lower_sec": 1629.0,
+          "first_crossing_upper_sec": 1630.0,
+          "last_crossing_lower_sec": 1641.0,
+          "last_crossing_upper_sec": 1642.0,
+          "duration_lower_sec": 11.0,
+          "duration_upper_sec": 13.0,
+          "linear_estimate_duration_sec": 12.004719544921727
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 1783.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            12146,
+            12228,
+            12280
+          ],
+          "first_crossing_lower_sec": 1790.0,
+          "first_crossing_upper_sec": 1791.0,
+          "last_crossing_lower_sec": 1795.0,
+          "last_crossing_upper_sec": 1796.0,
+          "duration_lower_sec": 4.0,
+          "duration_upper_sec": 6.0,
+          "linear_estimate_duration_sec": 5.328730048412581
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 1943.0,
+          "gap_count": 3,
+          "vehicle_ids": [
+            13396,
+            13579,
+            13662,
+            13723
+          ],
+          "first_crossing_lower_sec": 1949.0,
+          "first_crossing_upper_sec": 1950.0,
+          "last_crossing_lower_sec": 1955.0,
+          "last_crossing_upper_sec": 1956.0,
+          "duration_lower_sec": 5.0,
+          "duration_upper_sec": 7.0,
+          "linear_estimate_duration_sec": 5.933825313238231
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 2103.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            15182,
+            15280
+          ],
+          "first_crossing_lower_sec": 2109.0,
+          "first_crossing_upper_sec": 2110.0,
+          "last_crossing_lower_sec": 2110.0,
+          "last_crossing_upper_sec": 2111.0,
+          "duration_lower_sec": 0.0,
+          "duration_upper_sec": 2.0,
+          "linear_estimate_duration_sec": 1.8914502871416516
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 2263.0,
+          "gap_count": 4,
+          "vehicle_ids": [
+            16335,
+            16380,
+            16432,
+            16447,
+            16567
+          ],
+          "first_crossing_lower_sec": 2269.0,
+          "first_crossing_upper_sec": 2270.0,
+          "last_crossing_lower_sec": 2280.0,
+          "last_crossing_upper_sec": 2281.0,
+          "duration_lower_sec": 10.0,
+          "duration_upper_sec": 12.0,
+          "linear_estimate_duration_sec": 11.12719167122441
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 2423.0,
+          "gap_count": 4,
+          "vehicle_ids": [
+            17405,
+            17421,
+            17438,
+            17497,
+            17880
+          ],
+          "first_crossing_lower_sec": 2430.0,
+          "first_crossing_upper_sec": 2431.0,
+          "last_crossing_lower_sec": 2440.0,
+          "last_crossing_upper_sec": 2441.0,
+          "duration_lower_sec": 9.0,
+          "duration_upper_sec": 11.0,
+          "linear_estimate_duration_sec": 10.77562545661749
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 2583.0,
+          "gap_count": 4,
+          "vehicle_ids": [
+            18983,
+            19005,
+            19035,
+            19043,
+            19057
+          ],
+          "first_crossing_lower_sec": 2589.0,
+          "first_crossing_upper_sec": 2590.0,
+          "last_crossing_lower_sec": 2601.0,
+          "last_crossing_upper_sec": 2602.0,
+          "duration_lower_sec": 11.0,
+          "duration_upper_sec": 13.0,
+          "linear_estimate_duration_sec": 11.408032036212717
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 3223.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            24091,
+            24101
+          ],
+          "first_crossing_lower_sec": 3228.0,
+          "first_crossing_upper_sec": 3229.0,
+          "last_crossing_lower_sec": 3231.0,
+          "last_crossing_upper_sec": 3232.0,
+          "duration_lower_sec": 2.0,
+          "duration_upper_sec": 4.0,
+          "linear_estimate_duration_sec": 2.6729629035353355
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 3383.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            24951,
+            25229,
+            25246
+          ],
+          "first_crossing_lower_sec": 3388.0,
+          "first_crossing_upper_sec": 3389.0,
+          "last_crossing_lower_sec": 3392.0,
+          "last_crossing_upper_sec": 3393.0,
+          "duration_lower_sec": 3.0,
+          "duration_upper_sec": 5.0,
+          "linear_estimate_duration_sec": 4.113781940880017
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 3543.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            26130,
+            26321,
+            26330
+          ],
+          "first_crossing_lower_sec": 3548.0,
+          "first_crossing_upper_sec": 3549.0,
+          "last_crossing_lower_sec": 3552.0,
+          "last_crossing_upper_sec": 3553.0,
+          "duration_lower_sec": 3.0,
+          "duration_upper_sec": 5.0,
+          "linear_estimate_duration_sec": 4.384344141306883
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 3703.0,
+          "gap_count": 5,
+          "vehicle_ids": [
+            26981,
+            27034,
+            27035,
+            27235,
+            27307,
+            27472
+          ],
+          "first_crossing_lower_sec": 3708.0,
+          "first_crossing_upper_sec": 3709.0,
+          "last_crossing_lower_sec": 3719.0,
+          "last_crossing_upper_sec": 3720.0,
+          "duration_lower_sec": 10.0,
+          "duration_upper_sec": 12.0,
+          "linear_estimate_duration_sec": 11.2773256013229
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 3863.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            27948,
+            28152,
+            28403
+          ],
+          "first_crossing_lower_sec": 3869.0,
+          "first_crossing_upper_sec": 3870.0,
+          "last_crossing_lower_sec": 3875.0,
+          "last_crossing_upper_sec": 3876.0,
+          "duration_lower_sec": 5.0,
+          "duration_upper_sec": 7.0,
+          "linear_estimate_duration_sec": 5.792958455742337
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 4023.0,
+          "gap_count": 4,
+          "vehicle_ids": [
+            28889,
+            28962,
+            29056,
+            29061,
+            29162
+          ],
+          "first_crossing_lower_sec": 4029.0,
+          "first_crossing_upper_sec": 4030.0,
+          "last_crossing_lower_sec": 4039.0,
+          "last_crossing_upper_sec": 4040.0,
+          "duration_lower_sec": 9.0,
+          "duration_upper_sec": 11.0,
+          "linear_estimate_duration_sec": 10.066068198474568
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 4343.0,
+          "gap_count": 3,
+          "vehicle_ids": [
+            30439,
+            30543,
+            30544,
+            30591
+          ],
+          "first_crossing_lower_sec": 4350.0,
+          "first_crossing_upper_sec": 4351.0,
+          "last_crossing_lower_sec": 4358.0,
+          "last_crossing_upper_sec": 4359.0,
+          "duration_lower_sec": 7.0,
+          "duration_upper_sec": 9.0,
+          "linear_estimate_duration_sec": 8.590374171929398
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 4503.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            31455,
+            31486,
+            31521
+          ],
+          "first_crossing_lower_sec": 4510.0,
+          "first_crossing_upper_sec": 4511.0,
+          "last_crossing_lower_sec": 4515.0,
+          "last_crossing_upper_sec": 4516.0,
+          "duration_lower_sec": 4.0,
+          "duration_upper_sec": 6.0,
+          "linear_estimate_duration_sec": 5.832336150964693
+        },
+        {
+          "input_no": "1086",
+          "green_start_sec": 4663.0,
+          "gap_count": 3,
+          "vehicle_ids": [
+            32354,
+            32527,
+            32552,
+            32582
+          ],
+          "first_crossing_lower_sec": 4669.0,
+          "first_crossing_upper_sec": 4670.0,
+          "last_crossing_lower_sec": 4678.0,
+          "last_crossing_upper_sec": 4679.0,
+          "duration_lower_sec": 8.0,
+          "duration_upper_sec": 10.0,
+          "linear_estimate_duration_sec": 8.289401823955814
+        }
+      ],
+      "gap_count": 58,
+      "duration_upper_sum_sec": 160.0,
+      "duration_lower_sum_sec": 120.0,
+      "linear_estimate_duration_sum_sec": 143.6128621398621,
+      "selected_service_veh_h": 1305.0,
+      "measurement_rate_lower_veh_h": 1305.0,
+      "measurement_rate_upper_veh_h": 1740.0,
+      "linear_estimate_rate_veh_h": 1453.908771741164
+    },
+    "1087": {
+      "physical_source": "341",
+      "native_decision": "1100",
+      "controller": "15",
+      "signal_group": "1",
+      "head": "110101",
+      "lanes": 1,
+      "blocks": [
+        {
+          "input_no": "1087",
+          "green_start_sec": 343.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            1453,
+            1492
+          ],
+          "first_crossing_lower_sec": 348.0,
+          "first_crossing_upper_sec": 349.0,
+          "last_crossing_lower_sec": 350.0,
+          "last_crossing_upper_sec": 351.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 2.377732797270596
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 663.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            3531,
+            3544
+          ],
+          "first_crossing_lower_sec": 669.0,
+          "first_crossing_upper_sec": 670.0,
+          "last_crossing_lower_sec": 672.0,
+          "last_crossing_upper_sec": 673.0,
+          "duration_lower_sec": 2.0,
+          "duration_upper_sec": 4.0,
+          "linear_estimate_duration_sec": 2.6886034667453487
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 1463.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            9273,
+            9292
+          ],
+          "first_crossing_lower_sec": 1469.0,
+          "first_crossing_upper_sec": 1470.0,
+          "last_crossing_lower_sec": 1471.0,
+          "last_crossing_upper_sec": 1472.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 2.037430310875834
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 1623.0,
+          "gap_count": 3,
+          "vehicle_ids": [
+            10956,
+            10971,
+            10984,
+            11047
+          ],
+          "first_crossing_lower_sec": 1630.0,
+          "first_crossing_upper_sec": 1631.0,
+          "last_crossing_lower_sec": 1637.0,
+          "last_crossing_upper_sec": 1638.0,
+          "duration_lower_sec": 6.0,
+          "duration_upper_sec": 8.0,
+          "linear_estimate_duration_sec": 7.227726111165339
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 1783.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            11984,
+            12006,
+            12089
+          ],
+          "first_crossing_lower_sec": 1789.0,
+          "first_crossing_upper_sec": 1790.0,
+          "last_crossing_lower_sec": 1793.0,
+          "last_crossing_upper_sec": 1794.0,
+          "duration_lower_sec": 3.0,
+          "duration_upper_sec": 5.0,
+          "linear_estimate_duration_sec": 4.258126420128747
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 1943.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            13474,
+            13533
+          ],
+          "first_crossing_lower_sec": 1949.0,
+          "first_crossing_upper_sec": 1950.0,
+          "last_crossing_lower_sec": 1951.0,
+          "last_crossing_upper_sec": 1952.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 2.0721618061597837
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 2103.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            14988,
+            15202
+          ],
+          "first_crossing_lower_sec": 2109.0,
+          "first_crossing_upper_sec": 2110.0,
+          "last_crossing_lower_sec": 2111.0,
+          "last_crossing_upper_sec": 2112.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 2.144905084676793
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 2263.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            16282,
+            16381,
+            16448
+          ],
+          "first_crossing_lower_sec": 2268.0,
+          "first_crossing_upper_sec": 2269.0,
+          "last_crossing_lower_sec": 2272.0,
+          "last_crossing_upper_sec": 2273.0,
+          "duration_lower_sec": 3.0,
+          "duration_upper_sec": 5.0,
+          "linear_estimate_duration_sec": 3.9413668674583278
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 2583.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            19499,
+            19561
+          ],
+          "first_crossing_lower_sec": 2588.0,
+          "first_crossing_upper_sec": 2589.0,
+          "last_crossing_lower_sec": 2591.0,
+          "last_crossing_upper_sec": 2592.0,
+          "duration_lower_sec": 2.0,
+          "duration_upper_sec": 4.0,
+          "linear_estimate_duration_sec": 2.381498511544578
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 3223.0,
+          "gap_count": 2,
+          "vehicle_ids": [
+            23937,
+            24076,
+            24143
+          ],
+          "first_crossing_lower_sec": 3229.0,
+          "first_crossing_upper_sec": 3230.0,
+          "last_crossing_lower_sec": 3233.0,
+          "last_crossing_upper_sec": 3234.0,
+          "duration_lower_sec": 3.0,
+          "duration_upper_sec": 5.0,
+          "linear_estimate_duration_sec": 3.7442347936516853
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 3383.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            24965,
+            24984
+          ],
+          "first_crossing_lower_sec": 3388.0,
+          "first_crossing_upper_sec": 3389.0,
+          "last_crossing_lower_sec": 3391.0,
+          "last_crossing_upper_sec": 3392.0,
+          "duration_lower_sec": 2.0,
+          "duration_upper_sec": 4.0,
+          "linear_estimate_duration_sec": 2.3670297410590138
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 3543.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            26352,
+            26414
+          ],
+          "first_crossing_lower_sec": 3549.0,
+          "first_crossing_upper_sec": 3550.0,
+          "last_crossing_lower_sec": 3551.0,
+          "last_crossing_upper_sec": 3552.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 2.0169058296537514
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 4023.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            28917,
+            29014
+          ],
+          "first_crossing_lower_sec": 4028.0,
+          "first_crossing_upper_sec": 4029.0,
+          "last_crossing_lower_sec": 4030.0,
+          "last_crossing_upper_sec": 4031.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 2.0408741276446563
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 4183.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            29744,
+            29760
+          ],
+          "first_crossing_lower_sec": 4188.0,
+          "first_crossing_upper_sec": 4189.0,
+          "last_crossing_lower_sec": 4190.0,
+          "last_crossing_upper_sec": 4191.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 2.4508294742954604
+        },
+        {
+          "input_no": "1087",
+          "green_start_sec": 4183.0,
+          "gap_count": 1,
+          "vehicle_ids": [
+            29839,
+            29872
+          ],
+          "first_crossing_lower_sec": 4194.0,
+          "first_crossing_upper_sec": 4195.0,
+          "last_crossing_lower_sec": 4196.0,
+          "last_crossing_upper_sec": 4197.0,
+          "duration_lower_sec": 1.0,
+          "duration_upper_sec": 3.0,
+          "linear_estimate_duration_sec": 1.8530563922768124
+        }
+      ],
+      "gap_count": 20,
+      "duration_upper_sum_sec": 59.0,
+      "duration_lower_sum_sec": 29.0,
+      "linear_estimate_duration_sum_sec": 43.60248173460673,
+      "selected_service_veh_h": 1220.3389830508474,
+      "measurement_rate_lower_veh_h": 1220.3389830508474,
+      "measurement_rate_upper_veh_h": 2482.7586206896553,
+      "linear_estimate_rate_veh_h": 1651.2821549525363
+    }
+  },
+  "excluded_qualified_gap_counts": {
+    "1086": 10,
+    "1087": 11
+  },
+  "limitations": [
+    "Bounds describe one-second crossing-time uncertainty for these sampled discharge blocks, not confidence bounds on a population saturation flow.",
+    "The selected lower rate is conservative with respect to these timing intervals; residual downstream interference can still reduce observed discharge.",
+    "Whole GREEN averages and stochastic desired-volume averages are not used as saturation estimators.",
+    "The two time holdouts belong to the same seed13 trajectory; seed14 remains an independent validation requirement."
+  ],
+  "source_sha256": {
+    "diagnostics\\prepare_sc15_service_calibration.py": "1d74c8cae8a42675b0dfcba7fb3ef24ecfe6a9c426136af8d67d146fa40df572",
+    "diagnostics\\native_sc15_head_crossings.csv": "f2138286f3b9416e1346454decd46c4d04ef9a5daa088923914ca37d8900311e",
+    "diagnostics\\native_sc15_headways.csv": "30994977da2ef4713892cdf19a690769a26420387dc0b3267534aecef0e56c0c",
+    "diagnostics\\native_sc15_source_discharge.json": "e296019fdfb667f5d33cf52bffc636245ad84e7916a2d7b70de21b19d4fc9485"
+  }
+}
