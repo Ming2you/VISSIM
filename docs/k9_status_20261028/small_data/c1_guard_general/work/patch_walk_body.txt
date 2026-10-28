@@ -1,0 +1,113 @@
+    # ------------------------------------------------------------------ (2) headless feeders by upstream walk
+    # Link-level walk (vehicles change lanes on a link); lane detail kept in landings/exits.
+    feeders = {}
+
+    def frow(link):
+        f = feeders.get(link)
+        if f is None:
+            f = dict(link=link, is_connector=L[link]['is_connector'], link_lanes=L[link]['lanes'],
+                     link_len_m=L[link]['length_m'], from_m=None, to_m=0.0, part=part_of(link), servers=set(),
+                     via=set(), exits=[], landings=[], boundaries=[], freeway_spill=None, min_depth=99,
+                     inputs_on_link=inputs_by_link.get(link, []), plant_storage_key=l2o.get(link))
+            if L[link]['is_connector']:
+                f['connector_from'] = dict(link=L[link]['from_link'], lane=L[link]['from_lane'], pos_m=L[link]['from_pos'])
+                f['connector_to'] = dict(link=L[link]['to_link'], lane=L[link]['to_lane'], pos_m=L[link]['to_pos'])
+            feeders[link] = f
+        return f
+
+    def add_once(lst, item):
+        if item not in lst:
+            lst.append(item)
+
+    def walk_conn(c, land_link, land_lane_first, land_pos, land_end, server, via, depth):
+        """Connector c lands on land_link at land_pos; the landing link stretch toward the server ends at land_end."""
+        cl = L[c]
+        f = frow(c)
+        c_heads = [h for i in range(1, cl['lanes'] + 1) for h in hb.get((c, i), [])]
+        start = max([h['pos'] for h in c_heads], default=0.0)
+        f['from_m'] = start if f['from_m'] is None else min(f['from_m'], start)
+        f['to_m'] = cl['length_m']
+        f['servers'].add(server)
+        f['via'].add(via)
+        f['min_depth'] = min(f['min_depth'], depth)
+        add_once(f['landings'], dict(on_link=land_link, on_lanes=list(range(land_lane_first, land_lane_first + cl['lanes'])),
+                                     landing_pos_m=land_pos, landing_to_server_end_m=land_end - land_pos,
+                                     storage_landing_to_end=storage(max(0.0, land_end - land_pos))))
+        if c_heads:
+            add_once(f['boundaries'], dict(kind='head_on_connector', heads=[describe_head(h) for h in c_heads]))
+            return
+        fl = cl['from_link']
+        if fl in fwe or fl in fww:
+            f['freeway_spill'] = dict(road=('FW_E' if fl in fwe else 'FW_W'), link=fl, lane=cl['from_lane'],
+                                      diverge_pos_m=cl['from_pos'])
+            return
+        walk_link(fl, cl['from_pos'], c, server, via, depth + 1)
+
+    def walk_link(link, end_pos, exit_conn, server, via, depth):
+        if depth > 25:
+            raise ValueError('walk too deep at ' + link)
+        lanes = range(1, L[link]['lanes'] + 1)
+        hs = [h for ln in lanes for h in hb.get((link, ln), []) if h['pos'] <= end_pos + 2 * EPS]
+        if hs:
+            # departure lies after a stop line: the upstream server is that head (boundary on the connector row)
+            add_once(frow(exit_conn)['boundaries'], dict(kind='upstream_stopline', link=link, departure_pos_m=end_pos,
+                                                        heads=[describe_head(h) for h in sorted(hs, key=lambda h: h['lane'])]))
+            return
+        f = frow(link)
+        f['from_m'] = 0.0
+        f['to_m'] = max(f['to_m'], end_pos)
+        f['servers'].add(server)
+        f['via'].add(via)
+        f['min_depth'] = min(f['min_depth'], depth)
+        cl = L[exit_conn]
+        add_once(f['exits'], dict(connector=exit_conn, departure_pos_m=end_pos,
+                                  from_lanes=list(range(cl['from_lane'], cl['from_lane'] + cl['lanes'])), server=server))
+        if inputs_by_link.get(link):
+            add_once(f['boundaries'], dict(kind='vehicle_input', inputs=inputs_by_link[link]))
+        seen_c = set()
+        for ln in lanes:
+            for ic in in_c.get((link, ln), []):
+                if ic['to_pos'] > end_pos + EPS or ic['connector'] in seen_c:
+                    continue
+                seen_c.add(ic['connector'])
+                key = (ic['connector'], server)
+                if key in visited:
+                    continue
+                visited.add(key)
+                walk_conn(ic['connector'], link, L[ic['connector']]['to_lane'], ic['to_pos'], end_pos, server, via, depth + 1)
+
+    visited = set()
+
+    def srv_name(h):
+        role, ph = head_role(h)
+        if role == 'meter':
+            return 'meter:' + meter_sc[h['sc']]
+        if role == 'controlled_phase':
+            return 'SC%s:%s(SG%s)' % (h['sc'], '/'.join(ph), h['sg'])
+        return '%s:SC%s:SG%s' % (role, h['sc'], h['sg'])
+
+    approach_boundaries = []
+    for r in approach:
+        if r['role'] != 'controlled_phase':
+            continue
+        h = {'sc': r['sc'][2:], 'sg': r['sg']}
+        server = srv_name(h)
+        link, lane = r['link'], r['lane']
+        via = 'approach:%s:%s' % (link, lane)
+        lo = r['segment_start_m']
+        # any connector landing on this link (any lane) inside [segment start of this lane, head]; lane changes allowed
+        for ln in range(1, L[link]['lanes'] + 1):
+            for ic in in_c.get((link, ln), []):
+                if ic['to_pos'] > r['head_pos_m'] + EPS:
+                    continue
+                if ic['to_pos'] < lo - EPS:
+                    add_once(approach_boundaries, dict(approach=via, connector=ic['connector'], landing_pos_m=ic['to_pos'],
+                                                       upstream_head=r['upstream_head'],
+                                                       note='lands upstream of a same-link upstream stopline'))
+                    continue
+                key = (ic['connector'], server)
+                if key in visited:
+                    continue
+                visited.add(key)
+                walk_conn(ic['connector'], link, L[ic['connector']]['to_lane'], ic['to_pos'], r['head_pos_m'], server, via, 1)
+

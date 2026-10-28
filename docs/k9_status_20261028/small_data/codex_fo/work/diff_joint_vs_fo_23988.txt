@@ -1,0 +1,49 @@
+A=D:\VISSIM_handoff\20261024\code\diagnostics\repin_v3c3_review_20261001\urban_rm269\aggregate270\native413_adopted355\optimized_config.json
+B=D:\VISSIM_handoff\20261024\original_code_dependencies\solo\diagnostics\solo355_local_20261013\freeway_only_config.json
+n_diff=22
+ONLY_FO adapter.sdmpc_actuator_scope = {"baseline": {"green_times": {"SC1001_p1": 46.0, "SC1001_p2": 23.0, "SC1001_p3": 45.0, "SC1001_p4": 24.0, "SC1002_p1": 46.0, "SC1002_p2": 23.0, "SC1002_p3": 45.0, "SC1002_p4": 24.0, "SC1003_p1": 46.0, "SC1003_p2": 23.0, "SC1003_p3": 45.0, "SC1003_p4": 24.0, "SC1004_p1": 46.0, "SC1004_p2": 23.0, "SC1...<1515 chars>
+ONLY_FO adapter.sdmpc_array_transport = false
+ONLY_FO adapter.sdmpc_array_urban_pipeline = false
+DIFF adapter.sdmpc_compact_audit
+  JOINT: true
+  FO: false
+DIFF adapter.sdmpc_fast_primitives
+  JOINT: true
+  FO: false
+ONLY_FO adapter.sdmpc_flow_update_cache = false
+ONLY_FO adapter.sdmpc_information_scope = "freeway_only"
+DIFF adapter.sdmpc_initial_derivative_overlap
+  JOINT: true
+  FO: false
+DIFF adapter.sdmpc_initial_shared_prediction
+  JOINT: true
+  FO: false
+ONLY_FO adapter.sdmpc_persistent_urban_fifo = false
+DIFF adapter.sdmpc_prediction_cache
+  JOINT: true
+  FO: false
+DIFF adapter.sdmpc_prediction_hotpath
+  JOINT: true
+  FO: false
+DIFF adapter.sdmpc_ramp_stock_cache
+  JOINT: true
+  FO: false
+ONLY_FO adapter.sdmpc_receiving_geometry_cache = false
+DIFF adapter.sdmpc_response_cap_cache
+  JOINT: true
+  FO: false
+ONLY_FO adapter.sdmpc_spatial_receiving = false
+ONLY_FO adapter.sdmpc_stock_geometry_hotpath = false
+ONLY_JOINT adapter.sdmpc_tangent_concurrent_primal = true
+DIFF adapter.sdmpc_tangent_shared_primal
+  JOINT: true
+  FO: false
+DIFF adapter.sdmpc_trial_derivative_overlap
+  JOINT: true
+  FO: false
+DIFF description
+  JOINT: "Fixed reviewed aggregate urban calibration; same FW80/U90 seed29 Omega701, 8100s. In-sample native experiment; large urban gain-direction error remains unqualified."
+  FO: "Opt-in own-region S-DMPC; adopted355 interior equations, closed-window crossing requests and static open outlets."
+DIFF name
+  JOINT: "native348_FW5_U10_optimized"
+  FO: "solo355_local_freeway_only"

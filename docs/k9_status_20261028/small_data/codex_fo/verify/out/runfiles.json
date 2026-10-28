@@ -1,0 +1,1541 @@
+{
+ "cfg_fo_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+ "cfg_b_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+ "scope_mode": "freeway_only",
+ "n_baseline_green": 68,
+ "n_baseline_offsets": 17,
+ "information_scope_in_fo": false,
+ "fixed_vsl_fo": {
+  "start_sec": 0,
+  "base_kmh": 110,
+  "zone_kmh": {}
+ },
+ "fixed_vsl_b": {
+  "start_sec": 0,
+  "base_kmh": 110,
+  "zone_kmh": {}
+ },
+ "actuator_scope_in_b": false,
+ "seeds": {
+  "31": {
+   "paths": {
+    "prov": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s31/sdmpc/run_provenance_sdmpc31_sdmpc9000_s31.json",
+    "runlog": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s31/sdmpc/runlog_sdmpc31_sdmpc9000_s31.txt",
+    "dec": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s31/sdmpc/decisions_sdmpc31_sdmpc9000_s31",
+    "lsa": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s31/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_001.lsa",
+    "wrapper_end": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s31/fo_launch/wrapper_run1_try1_end.json",
+    "b_lsa": "D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_001.lsa",
+    "b_prov": "D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/run_provenance_sdmpc31_sdmpc9000_s31.json"
+   },
+   "prov_seed": 31,
+   "b_prov_seed": 31,
+   "prov_hits": {
+    "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3": [
+     "/env/RW_SIGNAL_OBSERVATION_CONFIG_SHA256",
+     "/files/tuning/sha256",
+     "/ramp_meter_timing/config_chain/0/sha256",
+     "/signal_observation/config_chain/0/sha256"
+    ],
+    "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373": [
+     "/observation/freeze/sha256"
+    ],
+    "729640af": [],
+    "558de2c1": []
+   },
+   "n_decisions": 61,
+   "n_exit_nonzero": 0,
+   "decision_times": [
+    1,
+    150,
+    300,
+    450,
+    600,
+    750,
+    900,
+    1050,
+    1200,
+    1350,
+    1500,
+    1650,
+    1800,
+    1950,
+    2100,
+    2250,
+    2400,
+    2550,
+    2700,
+    2850,
+    3000,
+    3150,
+    3300,
+    3450,
+    3600,
+    3750,
+    3900,
+    4050,
+    4200,
+    4350,
+    4500,
+    4650,
+    4800,
+    4950,
+    5100,
+    5250,
+    5400,
+    5550,
+    5700,
+    5850,
+    6000,
+    6150,
+    6300,
+    6450,
+    6600,
+    6750,
+    6900,
+    7050,
+    7200,
+    7350,
+    7500,
+    7650,
+    7800,
+    7950,
+    8100,
+    8250,
+    8400,
+    8550,
+    8700,
+    8850,
+    9000
+   ],
+   "wall_ge900": {
+    "n": 55,
+    "mean": 238.14600000000002,
+    "median": 211.91,
+    "max": 466.31,
+    "max_at": [
+     4500
+    ],
+    "n_gt1500": 0,
+    "n_gt3600": 0
+   },
+   "summary": {
+    "DECISIONS_OK": [
+     "61"
+    ],
+    "DECISIONS_FAILED": [
+     "0"
+    ],
+    "DECISIONS_HELD_PREVIOUS": [
+     "0"
+    ],
+    "DECISIONS_HELD_ON_EXCEPTION": [
+     "0"
+    ],
+    "SIM_SEC": [
+     "9000"
+    ],
+    "SIGNAL_FAILURES": [
+     "0"
+    ],
+    "SIGNAL_WRITE_ATTEMPTS": [
+     "29136"
+    ],
+    "SIGNAL_READBACK_OK": [
+     "29136"
+    ],
+    "SIGNAL_PERSISTENCE_CHECKS": [
+     "35843"
+    ],
+    "SIGNAL_PERSISTENCE_OK": [
+     "35843"
+    ],
+    "SIGNAL_SG_PLAN_ROWS": [
+     "6710"
+    ],
+    "SIGNAL_MIDBLOCK_PLAN_SKIPS": [
+     "24"
+    ]
+   },
+   "stage_sim_done": true,
+   "n_hold_attempt_lines": 0,
+   "n_held_previous_lines": 0,
+   "scope_err_in_runlog": {
+    "Inactive urban actuator changed": 0,
+    "Actuator scope requires": 0,
+    "Unknown or incomplete actuator scope": 0,
+    "Fixed urban baseline must cover": 0,
+    "Invalid fixed urban command": 0
+   },
+   "n_error_files": 0,
+   "wrapper_end": {
+    "time": "2026-10-28T03:50:25.8380790+09:00",
+    "runner_exit": 0,
+    "wall_sec": 22204.5
+   },
+   "n_csv": 61,
+   "csv_signal_rows": {
+    "ge900": 935,
+    "lt900": 0
+   },
+   "csv_signal_mismatch_vs_baseline": {
+    "ge900": 0,
+    "lt900": 0
+   },
+   "csv_signal_sg": {
+    "n_decisions": 55,
+    "rows_first": 122,
+    "all_equal": true,
+    "scs": [
+     1,
+     5,
+     6,
+     7,
+     11,
+     12,
+     16,
+     101,
+     105,
+     107,
+     108,
+     109,
+     1001,
+     1002,
+     1003,
+     1004,
+     1005
+    ],
+    "scs_outside_urban17": [],
+    "distinct_sg_keys": 122
+   },
+   "csv_ramp_rows": 488,
+   "csv_ramp_rate_ne_green_x90": 0,
+   "csv_vsl_rows": 4026,
+   "csv_vsl_not110": [],
+   "csv_vsl_not110_n": 0,
+   "meter_ids": {
+    "9101": "RM_C10480",
+    "9102": "RM_C10482",
+    "9103": "RM_C10646",
+    "9104": "RM_C10644",
+    "9105": "RM_C10639",
+    "9106": "RM_C10681",
+    "9107": "RM_C10490",
+    "9108": "RM_C10484"
+   },
+   "n_json": 61,
+   "json": {
+    "status": {
+     "ok": 61
+    },
+    "coord_kinds": {
+     "meter": 1320
+    },
+    "coord_n": {
+     "24": 55
+    },
+    "gt_bad": 0,
+    "off_bad": 0,
+    "gt_n": {
+     "(68, 17)": 55
+    },
+    "vsl_not110": 0,
+    "vsl_n": {
+     "44": 55
+    },
+    "rwg_vs_csv_bad": 0,
+    "policy": {
+     "7673d3675011666d841f065c095fc1800fa07295d70ce734d1cd591f8b679773": 55
+    },
+    "regional_keys": [],
+    "warm_gt_bad": 0,
+    "warm_off_bad": 0,
+    "selection": {
+     "best_observed_feasible_sdmpc": 55
+    }
+   },
+   "readback_rows": {
+    "meter|immediate": 9068,
+    "meter|post_step": 9515,
+    "urban17|immediate": 20068,
+    "urban17|post_step": 26328
+   },
+   "readback_bad": {},
+   "meters": {
+    "RM_C10480": {
+     "sc": 9101,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 810,
+     "T_tight10": 900,
+     "T_tight6": 1200,
+     "green_hist": {
+      "2": 675,
+      "4": 90,
+      "6": 15,
+      "8": 30
+     },
+     "mean_green": 2.5185185185185186,
+     "none_seconds": 0
+    },
+    "RM_C10482": {
+     "sc": 9102,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 0,
+     "T_tight10": null,
+     "T_tight6": null,
+     "green_hist": {
+      "10": 810
+     },
+     "mean_green": 10.0,
+     "none_seconds": 0
+    },
+    "RM_C10646": {
+     "sc": 9103,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 615,
+     "T_tight10": 1050,
+     "T_tight6": 1200,
+     "green_hist": {
+      "4": 60,
+      "5": 60,
+      "6": 225,
+      "7": 135,
+      "8": 75,
+      "9": 60,
+      "10": 195
+     },
+     "mean_green": 7.314814814814815,
+     "none_seconds": 0
+    },
+    "RM_C10644": {
+     "sc": 9104,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 0,
+     "T_tight10": null,
+     "T_tight6": null,
+     "green_hist": {
+      "10": 810
+     },
+     "mean_green": 10.0,
+     "none_seconds": 0
+    },
+    "RM_C10639": {
+     "sc": 9105,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 735,
+     "T_tight10": 1050,
+     "T_tight6": 1200,
+     "green_hist": {
+      "2": 270,
+      "3": 30,
+      "4": 90,
+      "6": 195,
+      "8": 150,
+      "10": 75
+     },
+     "mean_green": 5.074074074074074,
+     "none_seconds": 0
+    },
+    "RM_C10681": {
+     "sc": 9106,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 810,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 60,
+      "3": 135,
+      "4": 285,
+      "5": 60,
+      "6": 120,
+      "7": 15,
+      "8": 15,
+      "9": 120
+     },
+     "mean_green": 4.925925925925926,
+     "none_seconds": 0
+    },
+    "RM_C10490": {
+     "sc": 9107,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 765,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 15,
+      "3": 15,
+      "4": 150,
+      "5": 15,
+      "6": 165,
+      "7": 75,
+      "8": 195,
+      "9": 135,
+      "10": 45
+     },
+     "mean_green": 6.777777777777778,
+     "none_seconds": 0
+    },
+    "RM_C10484": {
+     "sc": 9108,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 795,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "4": 285,
+      "6": 330,
+      "8": 180,
+      "10": 15
+     },
+     "mean_green": 5.814814814814815,
+     "none_seconds": 0
+    }
+   },
+   "lsa_rows": 31398,
+   "lsa_fractional_times": 0,
+   "periods_urban17": {
+    "1": 150,
+    "5": 150,
+    "6": 150,
+    "7": 120,
+    "11": 150,
+    "12": 150,
+    "16": 150,
+    "101": 150,
+    "105": 150,
+    "107": 150,
+    "108": 150,
+    "109": 150,
+    "1001": 150,
+    "1002": 150,
+    "1003": 150,
+    "1004": 150,
+    "1005": 150
+   },
+   "urban_written_sg": 136,
+   "urban_written_sg_with_green": 122,
+   "urban_written_sg_not_in_lsa": [
+    [
+     7,
+     2
+    ],
+    [
+     7,
+     3
+    ],
+    [
+     7,
+     5
+    ],
+    [
+     7,
+     6
+    ],
+    [
+     16,
+     1
+    ],
+    [
+     16,
+     5
+    ],
+    [
+     107,
+     4
+    ],
+    [
+     107,
+     8
+    ],
+    [
+     108,
+     3
+    ],
+    [
+     108,
+     7
+    ],
+    [
+     109,
+     1
+    ],
+    [
+     109,
+     3
+    ],
+    [
+     109,
+     4
+    ],
+    [
+     109,
+     8
+    ]
+   ],
+   "urban_readback_vs_native": {
+    "0": {
+     "frames": 13285,
+     "sg_with_diff": 122
+    },
+    "1": {
+     "frames": 0,
+     "sg_with_diff": 0
+    },
+    "2": {
+     "frames": 13285,
+     "sg_with_diff": 122
+    }
+   },
+   "urban_readback_vs_native_shift1_per_sg": {},
+   "urban_readback_none_seconds": 0,
+   "urban_written_lsa_rows_after900": 0,
+   "unwritten_sg": {
+    "n": 161,
+    "n_in_urban17": 6,
+    "n_with_rows_after900": 161,
+    "frames_diff": 0,
+    "sg_with_diff": 0,
+    "sc_without_period": []
+   },
+   "lsa_pre900_fo_eq_b": {
+    "equal": true,
+    "n_fo": 5202,
+    "n_b": 5202
+   },
+   "vsl_readback": {
+    "rows": {
+     "immediate": 16104
+    },
+    "bad": 0
+   }
+  },
+  "41": {
+   "paths": {
+    "prov": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s41/sdmpc/run_provenance_sdmpc31_sdmpc9000_s41.json",
+    "runlog": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s41/sdmpc/runlog_sdmpc31_sdmpc9000_s41.txt",
+    "dec": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s41/sdmpc/decisions_sdmpc31_sdmpc9000_s41",
+    "lsa": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s41/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_001.lsa",
+    "wrapper_end": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s41/fo_launch/wrapper_run1_try1_end.json",
+    "b_lsa": "D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_001.lsa",
+    "b_prov": "D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/run_provenance_sdmpc31_sdmpc9000_s41.json"
+   },
+   "prov_seed": 41,
+   "b_prov_seed": 41,
+   "prov_hits": {
+    "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3": [
+     "/env/RW_SIGNAL_OBSERVATION_CONFIG_SHA256",
+     "/files/tuning/sha256",
+     "/ramp_meter_timing/config_chain/0/sha256",
+     "/signal_observation/config_chain/0/sha256"
+    ],
+    "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373": [
+     "/observation/freeze/sha256"
+    ],
+    "729640af": [],
+    "558de2c1": []
+   },
+   "n_decisions": 61,
+   "n_exit_nonzero": 0,
+   "decision_times": [
+    1,
+    150,
+    300,
+    450,
+    600,
+    750,
+    900,
+    1050,
+    1200,
+    1350,
+    1500,
+    1650,
+    1800,
+    1950,
+    2100,
+    2250,
+    2400,
+    2550,
+    2700,
+    2850,
+    3000,
+    3150,
+    3300,
+    3450,
+    3600,
+    3750,
+    3900,
+    4050,
+    4200,
+    4350,
+    4500,
+    4650,
+    4800,
+    4950,
+    5100,
+    5250,
+    5400,
+    5550,
+    5700,
+    5850,
+    6000,
+    6150,
+    6300,
+    6450,
+    6600,
+    6750,
+    6900,
+    7050,
+    7200,
+    7350,
+    7500,
+    7650,
+    7800,
+    7950,
+    8100,
+    8250,
+    8400,
+    8550,
+    8700,
+    8850,
+    9000
+   ],
+   "wall_ge900": {
+    "n": 55,
+    "mean": 247.70381818181818,
+    "median": 204.2,
+    "max": 527.87,
+    "max_at": [
+     3150
+    ],
+    "n_gt1500": 0,
+    "n_gt3600": 0
+   },
+   "summary": {
+    "DECISIONS_OK": [
+     "61"
+    ],
+    "DECISIONS_FAILED": [
+     "0"
+    ],
+    "DECISIONS_HELD_PREVIOUS": [
+     "0"
+    ],
+    "DECISIONS_HELD_ON_EXCEPTION": [
+     "0"
+    ],
+    "SIM_SEC": [
+     "9000"
+    ],
+    "SIGNAL_FAILURES": [
+     "0"
+    ],
+    "SIGNAL_WRITE_ATTEMPTS": [
+     "28506"
+    ],
+    "SIGNAL_READBACK_OK": [
+     "28506"
+    ],
+    "SIGNAL_PERSISTENCE_CHECKS": [
+     "35221"
+    ],
+    "SIGNAL_PERSISTENCE_OK": [
+     "35221"
+    ],
+    "SIGNAL_SG_PLAN_ROWS": [
+     "6710"
+    ],
+    "SIGNAL_MIDBLOCK_PLAN_SKIPS": [
+     "24"
+    ]
+   },
+   "stage_sim_done": true,
+   "n_hold_attempt_lines": 0,
+   "n_held_previous_lines": 0,
+   "scope_err_in_runlog": {
+    "Inactive urban actuator changed": 0,
+    "Actuator scope requires": 0,
+    "Unknown or incomplete actuator scope": 0,
+    "Fixed urban baseline must cover": 0,
+    "Invalid fixed urban command": 0
+   },
+   "n_error_files": 0,
+   "wrapper_end": {
+    "time": "2026-10-28T04:01:33.1033814+09:00",
+    "runner_exit": 0,
+    "wall_sec": 22801.9
+   },
+   "n_csv": 61,
+   "csv_signal_rows": {
+    "ge900": 935,
+    "lt900": 0
+   },
+   "csv_signal_mismatch_vs_baseline": {
+    "ge900": 0,
+    "lt900": 0
+   },
+   "csv_signal_sg": {
+    "n_decisions": 55,
+    "rows_first": 122,
+    "all_equal": true,
+    "scs": [
+     1,
+     5,
+     6,
+     7,
+     11,
+     12,
+     16,
+     101,
+     105,
+     107,
+     108,
+     109,
+     1001,
+     1002,
+     1003,
+     1004,
+     1005
+    ],
+    "scs_outside_urban17": [],
+    "distinct_sg_keys": 122
+   },
+   "csv_ramp_rows": 488,
+   "csv_ramp_rate_ne_green_x90": 0,
+   "csv_vsl_rows": 4026,
+   "csv_vsl_not110": [],
+   "csv_vsl_not110_n": 0,
+   "meter_ids": {
+    "9101": "RM_C10480",
+    "9102": "RM_C10482",
+    "9103": "RM_C10646",
+    "9104": "RM_C10644",
+    "9105": "RM_C10639",
+    "9106": "RM_C10681",
+    "9107": "RM_C10490",
+    "9108": "RM_C10484"
+   },
+   "n_json": 61,
+   "json": {
+    "status": {
+     "ok": 61
+    },
+    "coord_kinds": {
+     "meter": 1320
+    },
+    "coord_n": {
+     "24": 55
+    },
+    "gt_bad": 0,
+    "off_bad": 0,
+    "gt_n": {
+     "(68, 17)": 55
+    },
+    "vsl_not110": 0,
+    "vsl_n": {
+     "44": 55
+    },
+    "rwg_vs_csv_bad": 0,
+    "policy": {
+     "7673d3675011666d841f065c095fc1800fa07295d70ce734d1cd591f8b679773": 55
+    },
+    "regional_keys": [],
+    "warm_gt_bad": 0,
+    "warm_off_bad": 0,
+    "selection": {
+     "best_observed_feasible_sdmpc": 55
+    }
+   },
+   "readback_rows": {
+    "meter|immediate": 8438,
+    "meter|post_step": 8893,
+    "urban17|immediate": 20068,
+    "urban17|post_step": 26328
+   },
+   "readback_bad": {},
+   "meters": {
+    "RM_C10480": {
+     "sc": 9101,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 810,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 690,
+      "4": 90,
+      "6": 15,
+      "8": 15
+     },
+     "mean_green": 2.4074074074074074,
+     "none_seconds": 0
+    },
+    "RM_C10482": {
+     "sc": 9102,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 0,
+     "T_tight10": null,
+     "T_tight6": null,
+     "green_hist": {
+      "10": 810
+     },
+     "mean_green": 10.0,
+     "none_seconds": 0
+    },
+    "RM_C10646": {
+     "sc": 9103,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 585,
+     "T_tight10": 1050,
+     "T_tight6": 1200,
+     "green_hist": {
+      "4": 30,
+      "6": 315,
+      "8": 240,
+      "10": 225
+     },
+     "mean_green": 7.62962962962963,
+     "none_seconds": 0
+    },
+    "RM_C10644": {
+     "sc": 9104,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 0,
+     "T_tight10": null,
+     "T_tight6": null,
+     "green_hist": {
+      "10": 810
+     },
+     "mean_green": 10.0,
+     "none_seconds": 0
+    },
+    "RM_C10639": {
+     "sc": 9105,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 675,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 330,
+      "3": 30,
+      "4": 60,
+      "5": 45,
+      "6": 60,
+      "7": 75,
+      "8": 60,
+      "9": 15,
+      "10": 135
+     },
+     "mean_green": 5.018518518518518,
+     "none_seconds": 0
+    },
+    "RM_C10681": {
+     "sc": 9106,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 720,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 45,
+      "3": 180,
+      "4": 105,
+      "5": 195,
+      "6": 45,
+      "7": 75,
+      "8": 30,
+      "9": 45,
+      "10": 90
+     },
+     "mean_green": 5.388888888888889,
+     "none_seconds": 0
+    },
+    "RM_C10490": {
+     "sc": 9107,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 660,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "3": 15,
+      "4": 105,
+      "5": 45,
+      "6": 165,
+      "7": 75,
+      "8": 135,
+      "9": 120,
+      "10": 150
+     },
+     "mean_green": 7.2407407407407405,
+     "none_seconds": 0
+    },
+    "RM_C10484": {
+     "sc": 9108,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 765,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "4": 195,
+      "6": 345,
+      "8": 225,
+      "10": 45
+     },
+     "mean_green": 6.296296296296297,
+     "none_seconds": 0
+    }
+   },
+   "lsa_rows": 31398,
+   "lsa_fractional_times": 0,
+   "periods_urban17": {
+    "1": 150,
+    "5": 150,
+    "6": 150,
+    "7": 120,
+    "11": 150,
+    "12": 150,
+    "16": 150,
+    "101": 150,
+    "105": 150,
+    "107": 150,
+    "108": 150,
+    "109": 150,
+    "1001": 150,
+    "1002": 150,
+    "1003": 150,
+    "1004": 150,
+    "1005": 150
+   },
+   "urban_written_sg": 136,
+   "urban_written_sg_with_green": 122,
+   "urban_written_sg_not_in_lsa": [
+    [
+     7,
+     2
+    ],
+    [
+     7,
+     3
+    ],
+    [
+     7,
+     5
+    ],
+    [
+     7,
+     6
+    ],
+    [
+     16,
+     1
+    ],
+    [
+     16,
+     5
+    ],
+    [
+     107,
+     4
+    ],
+    [
+     107,
+     8
+    ],
+    [
+     108,
+     3
+    ],
+    [
+     108,
+     7
+    ],
+    [
+     109,
+     1
+    ],
+    [
+     109,
+     3
+    ],
+    [
+     109,
+     4
+    ],
+    [
+     109,
+     8
+    ]
+   ],
+   "urban_readback_vs_native": {
+    "0": {
+     "frames": 13285,
+     "sg_with_diff": 122
+    },
+    "1": {
+     "frames": 0,
+     "sg_with_diff": 0
+    },
+    "2": {
+     "frames": 13285,
+     "sg_with_diff": 122
+    }
+   },
+   "urban_readback_vs_native_shift1_per_sg": {},
+   "urban_readback_none_seconds": 0,
+   "urban_written_lsa_rows_after900": 0,
+   "unwritten_sg": {
+    "n": 161,
+    "n_in_urban17": 6,
+    "n_with_rows_after900": 161,
+    "frames_diff": 0,
+    "sg_with_diff": 0,
+    "sc_without_period": []
+   },
+   "lsa_pre900_fo_eq_b": {
+    "equal": true,
+    "n_fo": 5202,
+    "n_b": 5202
+   },
+   "vsl_readback": {
+    "rows": {
+     "immediate": 16104
+    },
+    "bad": 0
+   }
+  },
+  "43": {
+   "paths": {
+    "prov": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43/sdmpc/run_provenance_sdmpc31_sdmpc9000_s43.json",
+    "runlog": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43/sdmpc/runlog_sdmpc31_sdmpc9000_s43.txt",
+    "dec": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43/sdmpc/decisions_sdmpc31_sdmpc9000_s43",
+    "lsa": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.lsa",
+    "wrapper_end": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43/fo_launch/wrapper_run1_try1_end.json",
+    "b_lsa": "D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.lsa",
+    "b_prov": "D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/run_provenance_sdmpc31_sdmpc9000_s43.json"
+   },
+   "prov_seed": 43,
+   "b_prov_seed": 43,
+   "prov_hits": {
+    "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3": [
+     "/env/RW_SIGNAL_OBSERVATION_CONFIG_SHA256",
+     "/files/tuning/sha256",
+     "/ramp_meter_timing/config_chain/0/sha256",
+     "/signal_observation/config_chain/0/sha256"
+    ],
+    "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373": [
+     "/observation/freeze/sha256"
+    ],
+    "729640af": [],
+    "558de2c1": []
+   },
+   "n_decisions": 61,
+   "n_exit_nonzero": 0,
+   "decision_times": [
+    1,
+    150,
+    300,
+    450,
+    600,
+    750,
+    900,
+    1050,
+    1200,
+    1350,
+    1500,
+    1650,
+    1800,
+    1950,
+    2100,
+    2250,
+    2400,
+    2550,
+    2700,
+    2850,
+    3000,
+    3150,
+    3300,
+    3450,
+    3600,
+    3750,
+    3900,
+    4050,
+    4200,
+    4350,
+    4500,
+    4650,
+    4800,
+    4950,
+    5100,
+    5250,
+    5400,
+    5550,
+    5700,
+    5850,
+    6000,
+    6150,
+    6300,
+    6450,
+    6600,
+    6750,
+    6900,
+    7050,
+    7200,
+    7350,
+    7500,
+    7650,
+    7800,
+    7950,
+    8100,
+    8250,
+    8400,
+    8550,
+    8700,
+    8850,
+    9000
+   ],
+   "wall_ge900": {
+    "n": 55,
+    "mean": 231.40254545454545,
+    "median": 211.65,
+    "max": 435.5,
+    "max_at": [
+     6450
+    ],
+    "n_gt1500": 0,
+    "n_gt3600": 0
+   },
+   "summary": {
+    "DECISIONS_OK": [
+     "61"
+    ],
+    "DECISIONS_FAILED": [
+     "0"
+    ],
+    "DECISIONS_HELD_PREVIOUS": [
+     "0"
+    ],
+    "DECISIONS_HELD_ON_EXCEPTION": [
+     "0"
+    ],
+    "SIM_SEC": [
+     "9000"
+    ],
+    "SIGNAL_FAILURES": [
+     "0"
+    ],
+    "SIGNAL_WRITE_ATTEMPTS": [
+     "28716"
+    ],
+    "SIGNAL_READBACK_OK": [
+     "28716"
+    ],
+    "SIGNAL_PERSISTENCE_CHECKS": [
+     "35441"
+    ],
+    "SIGNAL_PERSISTENCE_OK": [
+     "35441"
+    ],
+    "SIGNAL_SG_PLAN_ROWS": [
+     "6710"
+    ],
+    "SIGNAL_MIDBLOCK_PLAN_SKIPS": [
+     "24"
+    ]
+   },
+   "stage_sim_done": true,
+   "n_hold_attempt_lines": 0,
+   "n_held_previous_lines": 0,
+   "scope_err_in_runlog": {
+    "Inactive urban actuator changed": 0,
+    "Actuator scope requires": 0,
+    "Unknown or incomplete actuator scope": 0,
+    "Fixed urban baseline must cover": 0,
+    "Invalid fixed urban command": 0
+   },
+   "n_error_files": 0,
+   "wrapper_end": {
+    "time": "2026-10-28T04:22:14.4504223+09:00",
+    "runner_exit": 0,
+    "wall_sec": 21779.5
+   },
+   "n_csv": 61,
+   "csv_signal_rows": {
+    "ge900": 935,
+    "lt900": 0
+   },
+   "csv_signal_mismatch_vs_baseline": {
+    "ge900": 0,
+    "lt900": 0
+   },
+   "csv_signal_sg": {
+    "n_decisions": 55,
+    "rows_first": 122,
+    "all_equal": true,
+    "scs": [
+     1,
+     5,
+     6,
+     7,
+     11,
+     12,
+     16,
+     101,
+     105,
+     107,
+     108,
+     109,
+     1001,
+     1002,
+     1003,
+     1004,
+     1005
+    ],
+    "scs_outside_urban17": [],
+    "distinct_sg_keys": 122
+   },
+   "csv_ramp_rows": 488,
+   "csv_ramp_rate_ne_green_x90": 0,
+   "csv_vsl_rows": 4026,
+   "csv_vsl_not110": [],
+   "csv_vsl_not110_n": 0,
+   "meter_ids": {
+    "9101": "RM_C10480",
+    "9102": "RM_C10482",
+    "9103": "RM_C10646",
+    "9104": "RM_C10644",
+    "9105": "RM_C10639",
+    "9106": "RM_C10681",
+    "9107": "RM_C10490",
+    "9108": "RM_C10484"
+   },
+   "n_json": 61,
+   "json": {
+    "status": {
+     "ok": 61
+    },
+    "coord_kinds": {
+     "meter": 1320
+    },
+    "coord_n": {
+     "24": 55
+    },
+    "gt_bad": 0,
+    "off_bad": 0,
+    "gt_n": {
+     "(68, 17)": 55
+    },
+    "vsl_not110": 0,
+    "vsl_n": {
+     "44": 55
+    },
+    "rwg_vs_csv_bad": 0,
+    "policy": {
+     "7673d3675011666d841f065c095fc1800fa07295d70ce734d1cd591f8b679773": 55
+    },
+    "regional_keys": [],
+    "warm_gt_bad": 0,
+    "warm_off_bad": 0,
+    "selection": {
+     "best_observed_feasible_sdmpc": 55
+    }
+   },
+   "readback_rows": {
+    "meter|immediate": 8648,
+    "meter|post_step": 9113,
+    "urban17|immediate": 20068,
+    "urban17|post_step": 26328
+   },
+   "readback_bad": {},
+   "meters": {
+    "RM_C10480": {
+     "sc": 9101,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 810,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 585,
+      "4": 120,
+      "6": 75,
+      "8": 30
+     },
+     "mean_green": 2.888888888888889,
+     "none_seconds": 0
+    },
+    "RM_C10482": {
+     "sc": 9102,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 0,
+     "T_tight10": null,
+     "T_tight6": null,
+     "green_hist": {
+      "10": 810
+     },
+     "mean_green": 10.0,
+     "none_seconds": 0
+    },
+    "RM_C10646": {
+     "sc": 9103,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 645,
+     "T_tight10": 1050,
+     "T_tight6": 1200,
+     "green_hist": {
+      "4": 90,
+      "6": 390,
+      "8": 165,
+      "10": 165
+     },
+     "mean_green": 7.0,
+     "none_seconds": 0
+    },
+    "RM_C10644": {
+     "sc": 9104,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 0,
+     "T_tight10": null,
+     "T_tight6": null,
+     "green_hist": {
+      "10": 810
+     },
+     "mean_green": 10.0,
+     "none_seconds": 0
+    },
+    "RM_C10639": {
+     "sc": 9105,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 705,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 300,
+      "3": 90,
+      "4": 45,
+      "5": 60,
+      "6": 60,
+      "7": 30,
+      "8": 105,
+      "9": 15,
+      "10": 105
+     },
+     "mean_green": 4.87037037037037,
+     "none_seconds": 0
+    },
+    "RM_C10681": {
+     "sc": 9106,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 720,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 60,
+      "3": 30,
+      "4": 240,
+      "5": 75,
+      "6": 165,
+      "7": 75,
+      "8": 60,
+      "9": 15,
+      "10": 90
+     },
+     "mean_green": 5.648148148148148,
+     "none_seconds": 0
+    },
+    "RM_C10490": {
+     "sc": 9107,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 675,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "4": 210,
+      "6": 210,
+      "7": 30,
+      "8": 225,
+      "10": 135
+     },
+     "mean_green": 6.7407407407407405,
+     "none_seconds": 0
+    },
+    "RM_C10484": {
+     "sc": 9108,
+     "n_cycles": 810,
+     "mismatch_n": 0,
+     "mismatch_first": [],
+     "n_green_lt10": 765,
+     "T_tight10": 900,
+     "T_tight6": 1050,
+     "green_hist": {
+      "2": 45,
+      "3": 15,
+      "4": 300,
+      "6": 255,
+      "8": 150,
+      "10": 45
+     },
+     "mean_green": 5.574074074074074,
+     "none_seconds": 0
+    }
+   },
+   "lsa_rows": 31398,
+   "lsa_fractional_times": 0,
+   "periods_urban17": {
+    "1": 150,
+    "5": 150,
+    "6": 150,
+    "7": 120,
+    "11": 150,
+    "12": 150,
+    "16": 150,
+    "101": 150,
+    "105": 150,
+    "107": 150,
+    "108": 150,
+    "109": 150,
+    "1001": 150,
+    "1002": 150,
+    "1003": 150,
+    "1004": 150,
+    "1005": 150
+   },
+   "urban_written_sg": 136,
+   "urban_written_sg_with_green": 122,
+   "urban_written_sg_not_in_lsa": [
+    [
+     7,
+     2
+    ],
+    [
+     7,
+     3
+    ],
+    [
+     7,
+     5
+    ],
+    [
+     7,
+     6
+    ],
+    [
+     16,
+     1
+    ],
+    [
+     16,
+     5
+    ],
+    [
+     107,
+     4
+    ],
+    [
+     107,
+     8
+    ],
+    [
+     108,
+     3
+    ],
+    [
+     108,
+     7
+    ],
+    [
+     109,
+     1
+    ],
+    [
+     109,
+     3
+    ],
+    [
+     109,
+     4
+    ],
+    [
+     109,
+     8
+    ]
+   ],
+   "urban_readback_vs_native": {
+    "0": {
+     "frames": 13285,
+     "sg_with_diff": 122
+    },
+    "1": {
+     "frames": 0,
+     "sg_with_diff": 0
+    },
+    "2": {
+     "frames": 13285,
+     "sg_with_diff": 122
+    }
+   },
+   "urban_readback_vs_native_shift1_per_sg": {},
+   "urban_readback_none_seconds": 0,
+   "urban_written_lsa_rows_after900": 0,
+   "unwritten_sg": {
+    "n": 161,
+    "n_in_urban17": 6,
+    "n_with_rows_after900": 161,
+    "frames_diff": 0,
+    "sg_with_diff": 0,
+    "sc_without_period": []
+   },
+   "lsa_pre900_fo_eq_b": {
+    "equal": true,
+    "n_fo": 5202,
+    "n_b": 5202
+   },
+   "vsl_readback": {
+    "rows": {
+     "immediate": 16104
+    },
+    "bad": 0
+   }
+  }
+ }
+}

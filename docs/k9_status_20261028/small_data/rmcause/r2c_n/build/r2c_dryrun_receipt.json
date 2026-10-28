@@ -1,0 +1,83 @@
+{
+ "created": "2026-10-24T14:35:28+09:00",
+ "dest_root": "D:\\VISSIM_runs\\20261001_v3c3",
+ "priority": {
+  "set_ok": true,
+  "priority_class": "0x4000"
+ },
+ "script_sha256": "acdd600cdfeb8f67b3f7b7974a3a635bb620f17e50535c6b26aa0bab094a9baf",
+ "runner": {
+  "fast_nc_run.ps1": "269345dade5657a25e224728985a2a32e35fa0e1669404a631591a191fb67136",
+  "fast_nc_runner.vbs": "bf07acdaaa678d764ccbd0fd237a5aad85c3419f0628790358dd478ffc5e2cf1"
+ },
+ "seeds": {
+  "s31": {
+   "plain_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_run.ps1 -Prepared D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\prepared -Output D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\run",
+   "exit_code": 0,
+   "seconds": 1.72,
+   "stderr_bytes": 0,
+   "dryrun_check.txt": {
+    "path": "D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\dryrun_check.txt",
+    "state": "written",
+    "sha256": "0f543bc0cec43184f326f6436536a9d6b1cf34e4c8c5b806d4f3489728bc0a8f"
+   },
+   "launch_form_without_execute": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_run.ps1 -Prepared D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\prepared -Output D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\run -MinimumFreeGiB 8 -AllowConcurrent",
+   "launch_form_exit_code": 0,
+   "launch_form_stdout_identical": true,
+   "fields_differing_from_rm_arm_dryrun_check": [
+    "arguments"
+   ],
+   "arguments_differing_from_rm_arm": [
+    "network",
+    "prepared",
+    "output"
+   ],
+   "rm_arm_dryrun_check_sha256": "a527dc7cfd92896631b6734e46d483fc987477c31c33db871b99f88a849b9107",
+   "arguments": {
+    "runner_vbs": "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_runner.vbs",
+    "network": "D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\prepared\\network\\baseline_s31_v3c3rm10681.inpx",
+    "prepared": "D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\prepared",
+    "output": "D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\run",
+    "seed": "31",
+    "terminal_sec": "9000",
+    "mode": "fixed_profile"
+   },
+   "run_dir_created": false,
+   "launch_log_created": false
+  },
+  "s41": {
+   "plain_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_run.ps1 -Prepared D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\prepared -Output D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\run",
+   "exit_code": 0,
+   "seconds": 1.72,
+   "stderr_bytes": 0,
+   "dryrun_check.txt": {
+    "path": "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\dryrun_check.txt",
+    "state": "written",
+    "sha256": "ae42733429d5b7654c2885e8530955060ec7efa71ab47255d0a7a60593c0e815"
+   },
+   "launch_form_without_execute": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_run.ps1 -Prepared D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\prepared -Output D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\run -MinimumFreeGiB 8 -AllowConcurrent",
+   "launch_form_exit_code": 0,
+   "launch_form_stdout_identical": true,
+   "fields_differing_from_rm_arm_dryrun_check": [
+    "arguments"
+   ],
+   "arguments_differing_from_rm_arm": [
+    "network",
+    "prepared",
+    "output"
+   ],
+   "rm_arm_dryrun_check_sha256": "9f218f38613d89ec2e40fb8d35c006b98df2cd3e010dedc5e8cd931b5b4b3d36",
+   "arguments": {
+    "runner_vbs": "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_runner.vbs",
+    "network": "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\prepared\\network\\baseline_s41_v3c3rm10681.inpx",
+    "prepared": "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\prepared",
+    "output": "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\run",
+    "seed": "41",
+    "terminal_sec": "9000",
+    "mode": "fixed_profile"
+   },
+   "run_dir_created": false,
+   "launch_log_created": false
+  }
+ }
+}

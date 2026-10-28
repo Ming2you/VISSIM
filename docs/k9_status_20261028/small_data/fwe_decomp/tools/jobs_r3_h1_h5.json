@@ -1,0 +1,83 @@
+{
+ "name": "r3_h1_h5",
+ "source": "out/inventory.json (f51abd20...) fzp_sha256_cached",
+ "jobs": [
+  {
+   "job": "H1",
+   "arm": "B",
+   "seed": 31,
+   "fzp": "D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_001.fzp",
+   "expect_sha256": "5932e6e195bae4ee567020ebbe3b539c93793347c98b1a35697037122b1fe52f",
+   "tools": [
+    {
+     "tool": "fwe_scan",
+     "tag": "b_s31"
+    }
+   ]
+  },
+  {
+   "job": "H2",
+   "arm": "B",
+   "seed": 41,
+   "fzp": "D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_001.fzp",
+   "expect_sha256": "8ac58a253c6a5d87569dd9bf047be0cef743724153c240c178a097f962d4b159",
+   "tools": [
+    {
+     "tool": "fwe_scan",
+     "tag": "b_s41"
+    }
+   ]
+  },
+  {
+   "job": "H3",
+   "arm": "B",
+   "seed": 43,
+   "fzp": "D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.fzp",
+   "expect_sha256": "2f7011a33ef6d5004c2b7a2dcfa951e9649bc2bd95fec33cc51d762222755514",
+   "tools": [
+    {
+     "tool": "fwe_scan",
+     "tag": "b_s43"
+    }
+   ]
+  },
+  {
+   "job": "H4",
+   "arm": "codex urban_only",
+   "seed": 29,
+   "fzp": "D:/VISSIM_handoff/20261024/raw/urban_only/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp",
+   "expect_sha256": "a8a4b4e2a681be36f0c89e908f6f13e837a75eb60870d887256c5935e4ca5b38",
+   "tools": [
+    {
+     "tool": "fwe_scan",
+     "tag": "cx_urban_s29"
+    },
+    {
+     "tool": "firstseen",
+     "tag": "urban_only"
+    },
+    {
+     "tool": "linkbin",
+     "tag": "lb_urban_only"
+    }
+   ]
+  },
+  {
+   "job": "H5",
+   "arm": "codex freeway_only",
+   "seed": 29,
+   "fzp": "D:/VISSIM_handoff/20261024/raw/freeway_only/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp",
+   "expect_sha256": "05b45b03ed323ad67bef1271ebeb0a5df88a320cdd9a906fade801efa201cdc2",
+   "tools": [
+    {
+     "tool": "firstseen",
+     "tag": "freeway_only"
+    },
+    {
+     "tool": "linkbin",
+     "tag": "lb_freeway_only"
+    }
+   ]
+  }
+ ]
+}

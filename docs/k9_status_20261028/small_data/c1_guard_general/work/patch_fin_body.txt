@@ -1,0 +1,35 @@
+    # finalize feeders
+    frows = []
+    for link, f in sorted(feeders.items(), key=lambda kv: int(kv[0])):
+        if f['from_m'] is None:
+            continue
+        f['servers'] = sorted(f['servers'])
+        f['via'] = sorted(f['via'])
+        f['storage'] = storage(max(0.0, f['to_m'] - f['from_m']))
+        ex = {}
+        for e in f['exits']:
+            k = (e['connector'], e['departure_pos_m'])
+            ex.setdefault(k, dict(connector=e['connector'], departure_pos_m=e['departure_pos_m'],
+                                  from_lanes=e['from_lanes'], servers=[]))
+            if e['server'] not in ex[k]['servers']:
+                ex[k]['servers'].append(e['server'])
+        f['exits'] = sorted(ex.values(), key=lambda e: (e['departure_pos_m'], e['connector']))
+        d0 = dist_to_servers(link, f['from_m'])
+        own = f['to_m'] - f['from_m']
+        f['dist_from_start_to_server_m'] = {k: v for k, v in sorted(d0.items()) if k in f['servers'] or k.startswith('freeway_merge')}
+        f['dist_from_end_to_server_m'] = {k: v - own for k, v in f['dist_from_start_to_server_m'].items()}
+        rr = route_servers_chained(link)
+        f['routes'] = rr
+        agg = defaultdict(float)
+        for r in rr:
+            srv = r['server']
+            key = (srv['kind'] if srv['kind'] != 'head' else
+                   'head:' + srv['link'] + ':' + ','.join('SC%s/SG%s' % x for x in srv['heads']))
+            agg[key] += 1
+        f['route_server_counts'] = dict(agg)
+        frows.append(f)
+
+    for name, m in meters.items():
+        a = m['approach_segment']
+        m['approach_segment']['dist_from_start_to_meter_head_m'] = dist_to_servers(a['link'], a['from_m']).get('meter:' + name)
+

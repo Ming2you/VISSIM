@@ -1,0 +1,314 @@
+{
+ "decisions": [
+  {
+   "T": 3150,
+   "chain": "VB-31",
+   "prev_T": 3000,
+   "type": "SS"
+  },
+  {
+   "T": 3150,
+   "chain": "VB-43",
+   "prev_T": 3000,
+   "type": "SS"
+  },
+  {
+   "T": 3150,
+   "chain": "VB-41",
+   "prev_T": 3000,
+   "type": "SS"
+  },
+  {
+   "T": 150,
+   "chain": "VB-41w",
+   "prev_T": 1,
+   "type": "NN"
+  },
+  {
+   "T": 300,
+   "chain": "VB-41w",
+   "prev_T": 150,
+   "type": "NN"
+  },
+  {
+   "T": 450,
+   "chain": "VB-41w",
+   "prev_T": 300,
+   "type": "NN"
+  },
+  {
+   "T": 600,
+   "chain": "VB-41w",
+   "prev_T": 450,
+   "type": "NN"
+  },
+  {
+   "T": 750,
+   "chain": "VB-41w",
+   "prev_T": 600,
+   "type": "NN"
+  },
+  {
+   "T": 900,
+   "chain": "VB-41w",
+   "prev_T": 750,
+   "type": "SN"
+  },
+  {
+   "T": 1050,
+   "chain": "VB-41w",
+   "prev_T": 900,
+   "type": "SS"
+  }
+ ],
+ "schema": "k92vb-closed-leaves/v1",
+ "source": {
+  "classify_out.json": "eda96865db22fb67165c5fa4a3569954962934405e9e17af389eeba78e9c1ea6",
+  "maker": "AD32/make_closed32.py",
+  "report": "KB/k92_vb/VB_PRECHECK_STOP.md r2 section 2.2 (b96637d9...)",
+  "vvb_a_01.json": "618b9592e7753147cbc3cf139d4140cc1a099bc636acf2e151f8c8aeb8323741"
+ },
+ "types": {
+  "NN": {
+   "csv_sha_equal_if_same": [],
+   "leaves": [
+    {
+     "hard": "H5",
+     "outcome_in_report": "HARD H5",
+     "path": "/prediction_error/source_action_json",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(D2b)",
+     "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "sha"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "path"
+    }
+   ],
+   "n_hard_paths": 1,
+   "n_instances": 3,
+   "n_paths": 3,
+   "name": "무제어 ← 무제어"
+  },
+  "SN": {
+   "csv_sha_equal_if_same": [
+    "/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256"
+   ],
+   "leaves": [
+    {
+     "hard": "H5",
+     "outcome_in_report": "HARD H5",
+     "path": "/prediction_error/source_action_json",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 2,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 2,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 2,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(D2b)",
+     "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "sha"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "path"
+    }
+   ],
+   "n_hard_paths": 1,
+   "n_instances": 12,
+   "n_paths": 9,
+   "name": "첫 SDMPC ← 무제어"
+  },
+  "SS": {
+   "csv_sha_equal_if_same": [
+    "/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+    "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256"
+   ],
+   "leaves": [
+    {
+     "hard": "H4",
+     "outcome_in_report": "HARD H4",
+     "path": "/metadata/sdmpc_state/previous_application/receipt_sha256",
+     "previous_file": ".json.applied",
+     "record_instances": 1,
+     "via": "sha"
+    },
+    {
+     "hard": "H4",
+     "outcome_in_report": "HARD H4",
+     "path": "/metadata/sdmpc_state/previous_application/source",
+     "previous_file": ".json.applied",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": "H5",
+     "outcome_in_report": "HARD H5",
+     "path": "/prediction_error/source_action_json",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 2,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(D2)",
+     "path": "/metadata/joint_leader_selection/price_state/previous_application/receipt_sha256",
+     "previous_file": ".json.applied",
+     "record_instances": 1,
+     "via": "sha"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/price_state/previous_application/source",
+     "previous_file": ".json.applied",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 2,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 1,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+     "previous_file": ".csv",
+     "record_instances": 2,
+     "via": "path"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(D2b)",
+     "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "sha"
+    },
+    {
+     "hard": null,
+     "outcome_in_report": "unclassified(not allowed)",
+     "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+     "previous_file": ".json",
+     "record_instances": 1,
+     "via": "path"
+    }
+   ],
+   "n_hard_paths": 3,
+   "n_instances": 16,
+   "n_paths": 13,
+   "name": "SDMPC ← SDMPC"
+  }
+ }
+}

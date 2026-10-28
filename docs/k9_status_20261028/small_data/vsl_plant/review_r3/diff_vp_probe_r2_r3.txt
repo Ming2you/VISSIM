@@ -1,0 +1,33 @@
+--- vp_probe.py@r2
++++ vp_probe.py@r3
+@@ -26,9 +26,10 @@
+   EXEC  = pack([held(action_T), held(action_{T+150}), held(action_{T+300})]) = the block-0 commands VISSIM actually
+           ran in [T, T+450).
+ Checks written to the output (the caller applies the stop rules):
+-  R1  REC, AD mode (as recorded: the selected plan was scored by an AD rollout) -> objective bit-equal to action_T
+-      metadata.joint_leader_selection.selected_objective and every omega_partition cost within 1e-9 veh*h
+-      (PRE_VP_FIXED section 3.4; the r1 docstring said "bit-equal" for the costs, the code always used 1e-9).
++  R1  REC, AD mode (as recorded: the selected plan was scored by an AD rollout) -> objective within 1e-9 veh*h of
++      action_T metadata.joint_leader_selection.selected_objective and every omega_partition cost within 1e-9 veh*h
++      (PRE_VP_R3, user decision D-K9-108, data-after amendment r3; r2 = PRE_VP_FIXED section 3.4 required the
++      objective bit-equal.  R1_objective_bit_equal is still written, report only).
+   R2  REC, scalar mode -> recorded gap R2 - R1 (reported).
+   R3  REPACK scalar == REC scalar (bit).  REPACK normally has the REC token, so Query.evaluate serves it from the
+       same physical-key cache entry (one worker): R3 then checks the identity repack, not a second rollout.
+@@ -302,11 +303,14 @@
+             out['checks']['R1_costs_max_abs_diff'] = cdiff
+             out['checks']['R1_costs_within_1e-9'] = same_keys and cdiff <= 1e-9
+             out['checks']['R1_objective_diff'] = r1['objective_veh_h'] - rec_obj
++            # r3 (D-K9-108): the objective uses the same tolerance as the costs; bit equality stays a report field.
++            odiff = out['checks']['R1_objective_diff']
++            out['checks']['R1_objective_within_1e-9'] = math.isfinite(odiff) and abs(odiff) <= 1e-9
+             write(out)
+             if mode == 'S' and SPEC.get('smoke_candidates'):
+                 evaluate([('CAND_direct_ad', plans['CAND_direct'])], True, 'CAND_ad')
+-            if not (out['checks']['R1_objective_bit_equal'] and out['checks']['R1_costs_within_1e-9']) and mode != 'S':
+-                out['stop'] = 'S-R1: recorded plan does not reproduce the recorded objective bit-exactly (or a cost by > 1e-9)'
++            if not (out['checks']['R1_objective_within_1e-9'] and out['checks']['R1_costs_within_1e-9']) and mode != 'S':
++                out['stop'] = 'S-R1: recorded plan does not reproduce the recorded objective within 1e-9 (or a cost by > 1e-9)'
+                 write(out)
+                 return finish(out, 5)
+             # scalar batch

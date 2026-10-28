@@ -1,0 +1,161 @@
+{
+ "schema": "b0-code-patches/v1",
+ "a0_code": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/a0/code",
+ "ours": "D:/VISSIM-merge/frozen/sdmpc31_c20aff1d_202610230833",
+ "files": [
+  {
+   "file": "evaluation/controllers/physical_movement_routes.py",
+   "codex_sha256": "8a1a70b1aeada21863db9d7691e7e7e8f01fe1c36849029bb11374c1e130f45f",
+   "b0_sha256": "3b5df9f72eff7455be1f15236d81e72f17aa5a30b74b6117f94db2c17af4a4c2",
+   "patches": [
+    {
+     "id": "F1a",
+     "why": "port check_source_routing_decisions + source_decision_record (v3c1 V1 decision 1160 on source 21)",
+     "source": "ours physical_movement_routes.py:442-485"
+    },
+    {
+     "id": "F1b",
+     "why": "call site as ours (no reviewed_source_decisions key = the codex rule, admits none)",
+     "source": "ours physical_movement_routes.py:555-556"
+    }
+   ]
+  },
+  {
+   "file": "evaluation/controllers/control_area_objective.py",
+   "codex_sha256": "71222de0e46df076e3248d76b7d9d478440c0de99a5b41ca91bfce6a17103ab5",
+   "b0_sha256": "e71a88c648574032dab2bb30250545efa1b33eab66bcf30b6a055b97fd03a6b9",
+   "patches": [
+    {
+     "id": "F2a",
+     "why": "PHANTOM_ROUTE_ALIAS table + probability check",
+     "source": "ours control_area_objective.py:252-273"
+    },
+    {
+     "id": "F2b",
+     "why": "transfer() takes the sibling route",
+     "source": "ours control_area_objective.py:630"
+    },
+    {
+     "id": "F2c",
+     "why": "alias block, same text as ours",
+     "source": "ours control_area_objective.py:651-663"
+    },
+    {
+     "id": "F2d",
+     "why": "emit_transfer: alias_route default",
+     "source": "ours control_area_objective.py:745"
+    },
+    {
+     "id": "F2e",
+     "why": "emit_transfer: look up the sibling route",
+     "source": "ours control_area_objective.py:759-760"
+    },
+    {
+     "id": "F2f",
+     "why": "emit_transfer passes the sibling route",
+     "source": "ours control_area_objective.py:766"
+    }
+   ]
+  },
+  {
+   "file": "evaluation/controllers/lane_offramp_runtime.py",
+   "codex_sha256": "9203f59685ebac25e29c3b5b76ade6db6af8d52b4ecb27bca44364a2e9bfef19",
+   "b0_sha256": "f07f7e1f499d6fddbd1f1916c21659e6e7921b4b249a81bc5d11dec21a6331aa",
+   "patches": [
+    {
+     "id": "F3",
+     "why": "v3c3 route 1133:2 form -> no 10638 retained tags (64cf form unchanged)",
+     "source": "ours lane_offramp_runtime.py:109 (no tags)"
+    }
+   ]
+  },
+  {
+   "file": "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+   "codex_sha256": "b56e1b368b2666fbb613eac178036db6048b5fa50d60f7ae97fb4dd0d8ecad0b",
+   "b0_sha256": "6029d082710f03a871f4578a0ab7df6bb9b9d41f5ae936187e3a2764c9f56924",
+   "patches": [
+    {
+     "id": "H1",
+     "why": "accept hold_previous_on_exception (RW_DECISION_ERROR_POLICY, codex hold path on, timeout 0 = none); codex branch unchanged",
+     "source": "ours watchdog :319-363"
+    },
+    {
+     "id": "H1b",
+     "why": "log line as ours :363",
+     "source": "ours watchdog :363"
+    }
+   ]
+  },
+  {
+   "file": "evaluation/controllers/control_hold.py",
+   "codex_sha256": "68c19eb53fa25ed7c877a31165236d66cb107dec950d21fca49de4ecadb8b752",
+   "b0_sha256": "bf3c28a42324b915e32834397d1aa96ed3a96a6acadb1362c96fbd552bcbd33c",
+   "patches": [
+    {
+     "id": "H2a",
+     "why": "policy hold_previous_on_exception accepted after the eligibility check",
+     "source": "ours decision_hold.py check()"
+    },
+    {
+     "id": "H2b",
+     "why": "eligibility function (excluded types, contract frames/messages)",
+     "source": "ours decision_hold.py:49-63, check()"
+    }
+   ]
+  },
+  {
+   "file": "scripts/run_real_world_stackelberg_controller.vbs",
+   "codex_sha256": "1472208893db281a90a712bcf21d6e81a8100f81f6d8b1b6cfa4b66ef1b7b024",
+   "b0_sha256": "ac8c20da0de1746ee92455ae5c75e49dcc50f50eb8ad3b76b077b5fff161e4f0",
+   "patches": [
+    {
+     "id": "H3a",
+     "why": "gate the codex hold path by our policy",
+     "source": "ours VBS :1241-1259"
+    },
+    {
+     "id": "H3b",
+     "why": "gate function",
+     "source": "ours VBS :1241-1259"
+    },
+    {
+     "id": "H3c",
+     "why": "summary line",
+     "source": "ours VBS :564"
+    }
+   ]
+  },
+  {
+   "file": "diagnostics/sdmpc_n31_20260924/integration_20260926/run_closedloop3000.ps1",
+   "codex_sha256": "8e95423b4b3c17b6b8ac16067c4ff14ecce2078ccfbb1eafec2e180079a9b171",
+   "b0_sha256": "8b2da855da5bdf237d2555fdd08ecb3f41f08dc56b4e8aa0187aa0a1b21bde6e",
+   "patches": [
+    {
+     "id": "N1a",
+     "why": "network path/sha parameters (B0: v3c3)",
+     "source": "TAKEOVER_PLAN 1.2 / R_NET 3.3"
+    },
+    {
+     "id": "N1b",
+     "why": "copy the parameterised network and the .sig files beside it",
+     "source": "R_NET 3.1-1"
+    },
+    {
+     "id": "N1c",
+     "why": "sha check against the parameter",
+     "source": "R_NET 3.1-1"
+    },
+    {
+     "id": "N1d",
+     "why": "NC reuse check against the parameter",
+     "source": "R_NET 3.1-1"
+    },
+    {
+     "id": "N1e",
+     "why": "detached mode passes the network parameters",
+     "source": "R_NET 3.1-1"
+    }
+   ]
+  }
+ ]
+}

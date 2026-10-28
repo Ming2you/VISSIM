@@ -1,0 +1,171 @@
+{
+ "ALL_OK": true,
+ "E_in_A": [
+  [
+   "/metadata/k92_w",
+   null
+  ],
+  [
+   "/metadata/k92_hb",
+   null
+  ],
+  [
+   "/metadata/k92_hb_seed_binding",
+   null
+  ],
+  [
+   "/metadata/head_discharge_floor_173_p4_e36d6761cfeac634",
+   null
+  ],
+  [
+   "/metadata/k92_w/after",
+   null
+  ],
+  [
+   "/metadata/k92_hb/evidence_sha256",
+   null
+  ]
+ ],
+ "arm": {
+  "blob": "b6ccd50d96321e293f6ad9cf020e53ce1a8fbf5c",
+  "crlf": 0,
+  "sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866",
+  "size": 278607,
+  "worktree_same": true
+ },
+ "arm_minus_base": [
+  [
+   "/urban/capacity/head_floor_seed",
+   "presence",
+   "b_only"
+  ],
+  [
+   "/urban/sc109w_through_saturation",
+   "presence",
+   "b_only"
+  ]
+ ],
+ "cfg": {
+  "blob": "268ae47132443a4a97e87ffa51ca7f7f0c878586",
+  "crlf": 0,
+  "sha256": "d0f9ef395d4f9c51e6c68412f7c33abd546217e0d8cdc59d3c620183fa7aaec6",
+  "size": 278142,
+  "worktree_same": true
+ },
+ "diff_b9734abe_e27ceac8": {
+  "by_status": {
+   "A": 21,
+   "M": 10
+  },
+  "cfg_in": false,
+  "gb7_in": false
+ },
+ "docline": {
+  "a24": "R2-12는 재생 출력을 본 뒤 더한 항목입니다(보충 1 §E '재생 출력을 본 뒤에는 더하지 않음'의 사후 예외, 사용자 결정 D-K9-38 ④, 보충 24 §14.3)",
+  "a34": "- R2-12는 재생 출력을 본 뒤 더한 항목입니다(보충 1 §E '재생 출력을 본 뒤에는 더하지 않음'의 사후 예외, 사용자 결정 D-K9-38 ④, 보충 24 §14.3).",
+  "a34_is_dash_a24_dot": true
+ },
+ "evidence": {
+  "/urban/capacity/head_floor_seed": {
+   "blob": "6ed42f162c71d87520fa1849c70fc80b385646a3",
+   "equal": true,
+   "evidence_file_sha256": "b9fa1d01b9d922e9fc327793aa428cd7b544dae221044704dea7f0af610f20ee",
+   "pinned": "b9fa1d01b9d922e9fc327793aa428cd7b544dae221044704dea7f0af610f20ee"
+  },
+  "/urban/sc109w_through_saturation": {
+   "blob": "0399c3699c626e8bc33adc4180ce716873d8e4a1",
+   "equal": true,
+   "evidence_file_sha256": "b4b7294df0369874ea53dd5f0538abd31bac1c946aebdf241bdc7837a7671712",
+   "pinned": "b4b7294df0369874ea53dd5f0538abd31bac1c946aebdf241bdc7837a7671712"
+  }
+ },
+ "frz_k8b_vs_tree": {
+  "exclusions": {
+   "dirs": [
+    "__pycache__",
+    ".pytest_cache",
+    ".git",
+    "__tangentcache__"
+   ],
+   "names": [
+    ".git"
+   ],
+   "root_only": [
+    "FREEZE.json"
+   ],
+   "suffixes": [
+    ".pyc"
+   ]
+  },
+  "files": 10548,
+  "git": {
+   "branch": "claude/k8-sc1001eb-defects-20261004",
+   "head": "b9734abe1c83f95c9cec5fca5e42b7b18cd45991",
+   "status_entries": 0
+  },
+  "only_frz": [],
+  "only_tree": [],
+  "tree": 10548
+ },
+ "list_after": {
+  "expected": "a8148f3849fb5e26f09d8f0a095d442aa56da051d888df0b2f657dba089e7af1",
+  "match": true,
+  "print_line": "GB7_ALLOWED schema=k8-gb7-allowed/v1 V=7 A_K8=35 R1=16 R2=12 R3=7 list_sha256=a8148f3849fb5e26f09d8f0a095d442aa56da051d888df0b2f657dba089e7af1",
+  "sha": "a8148f3849fb5e26f09d8f0a095d442aa56da051d888df0b2f657dba089e7af1"
+ },
+ "list_before": {
+  "A_K8": 34,
+  "sha": "f954c2b0510ddc8d77d8b5b6d2efb288eee4110e37eac935a4d153baefe366e7"
+ },
+ "new_values": {
+  "/urban/capacity/head_floor_seed": {
+   "evidence": "diagnostics/sdmpc_n31_20260924/k92/head_floor_seed_v3c3_robs_20261016.json",
+   "evidence_sha256": "b9fa1d01b9d922e9fc327793aa428cd7b544dae221044704dea7f0af610f20ee"
+  },
+  "/urban/sc109w_through_saturation": {
+   "evidence": "diagnostics/sdmpc_n31_20260924/k92/sc109w_through_saturation_v3b_u4_20261016.json",
+   "evidence_sha256": "b4b7294df0369874ea53dd5f0538abd31bac1c946aebdf241bdc7837a7671712"
+  }
+ },
+ "pins": {
+  "bad": [],
+  "lines": 78
+ },
+ "policy": [
+  "hold_previous_on_exception",
+  "hold_previous_on_exception"
+ ],
+ "reason": {
+  "a24_line592_has_label": true,
+  "equal_bytes": true,
+  "len24": 117,
+  "len34": 117,
+  "sha24": "7a51c150f6bc3cc4"
+ },
+ "table": [
+  [
+   "/diagnostics/leg_ramp_split_len_SC1001_W_out",
+   "R2-12"
+  ],
+  [
+   "/diagnostics/leg_ramp_split_length_fallback",
+   "R2-12"
+  ],
+  [
+   "/diagnostics/leg_ramp_split_req_last_SC1001_W_out",
+   null
+  ],
+  [
+   "/diagnostics/leg_ramp_split_u_on_last",
+   null
+  ],
+  [
+   "/diagnostics/leg_ramp_split_len_SC1001_W_out/x",
+   null
+  ],
+  [
+   "/diagnostics/leg_ramp_split_injected_RM_C10484",
+   "R2-11"
+  ]
+ ]
+}

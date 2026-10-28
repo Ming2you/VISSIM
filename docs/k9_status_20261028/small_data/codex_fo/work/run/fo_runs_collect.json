@@ -1,0 +1,694 @@
+{
+ "root": "D:/VISSIM_runs/20261028_codex_fo_v3c3",
+ "seeds": {
+  "s31": {
+   "provenance_seed": 31,
+   "provenance_sha256": "b6696f014b83edcaa059ce69298cc709d3928d4175fc79157e07079f468989f0",
+   "tries": [
+    "launched_s31_run1_try1.json"
+   ],
+   "stalled_records": [],
+   "receipt": {
+    "time_before_create": "2026-10-27T21:40:14.6787604+09:00",
+    "time_after_create": "2026-10-27T21:40:14.8480103+09:00",
+    "ReturnValue": 0,
+    "ProcessId": 40692,
+    "wrapper_creation": "2026-10-27T21:40:14.6953950+09:00",
+    "PriorityClass": 32,
+    "vissim_count_before": 2,
+    "vissim_pids_before": [
+     30964,
+     51120
+    ],
+    "pending_before": 0,
+    "disk_free_gb": {
+     "D": 191.5,
+     "C": 16.1
+    }
+   },
+   "tryend": {
+    "key": "s31_run1_try1",
+    "status": "completed",
+    "detail": "runner_exit 0, STAGE=SIM_DONE, SIM_SEC=9000",
+    "res": "D:\\VISSIM_runs\\20261028_codex_fo_v3c3\\s31",
+    "time": "2026-10-28T03:50:42.7282116+09:00",
+    "launcher_pid": 47704
+   },
+   "wrapper_started": {
+    "time": "2026-10-27T21:40:15.8163106+09:00",
+    "wrapper_pid": 40692,
+    "wrapper_priority": "Normal"
+   },
+   "wrapper_end": {
+    "time": "2026-10-28T03:50:25.8380790+09:00",
+    "runner_exit": 0,
+    "wall_sec": 22204.5
+   },
+   "wrapper_error_exists": false,
+   "watchdog_vissim": [
+    [
+     "10-27 21:41:14",
+     "53192"
+    ]
+   ],
+   "watchdog_kill_policy": [
+    "10-27 21:40:33  KILL_POLICY sdmpc31_sdmpc9000_s31 pid_only runner_pid=43056 runner_start=2026-10-27T21:40:33.9120966+09:00\r"
+   ],
+   "watchdog_last": [
+    "10-27 21:41:14  VISSIM_PROCESS sdmpc31_sdmpc9000_s31 pid=53192",
+    "10-28 03:50:25  OK sdmpc31_sdmpc9000_s31 attempt=1 elapsed=22192s"
+   ],
+   "watchdog_kill_lines": [],
+   "runlog_lines": 6744,
+   "runlog_markers": {
+    "STAGE=SIM_DONE": [
+     [
+      6735,
+      "STAGE=SIM_DONE"
+     ]
+    ],
+    "SIM_SEC=": [
+     [
+      6736,
+      "SIM_SEC=9000"
+     ]
+    ],
+    "DECISIONS_OK=": [
+     [
+      6712,
+      "DECISIONS_OK=61"
+     ]
+    ],
+    "DECISIONS_FAILED=": [
+     [
+      6713,
+      "DECISIONS_FAILED=0"
+     ]
+    ],
+    "DECISIONS_HELD_PREVIOUS=": [
+     [
+      6714,
+      "DECISIONS_HELD_PREVIOUS=0"
+     ]
+    ],
+    "DECISIONS_HELD_ON_EXCEPTION=": [
+     [
+      6715,
+      "DECISIONS_HELD_ON_EXCEPTION=0"
+     ]
+    ],
+    "RUN_MODE=": [
+     [
+      469,
+      "RUN_MODE=CONTINUOUS_EVENT_OBS150 controller=wu-link warmup_controller=no-control control_start_sec=900"
+     ]
+    ]
+   },
+   "decisions": {
+    "n": 61,
+    "warmup_n": 6,
+    "control_n": 55,
+    "exit_nonzero": 0,
+    "warmup_wall_min": 14.08,
+    "warmup_wall_max": 18.48,
+    "first_control": [
+     [
+      900,
+      155.4,
+      0
+     ]
+    ],
+    "control_wall": {
+     "n": 55,
+     "mean": 238.1,
+     "median": 211.9,
+     "p90": 372.5,
+     "min": 118.51,
+     "max": 466.31,
+     "max_T": 4500,
+     "gt360": 6,
+     "gt1500": 0,
+     "gt3600": 0
+    },
+    "hold_attempt_lines": 0,
+    "held_previous_lines": 0
+   },
+   "runlog_error_like_lines": 0,
+   "action_json_n": 61,
+   "error_txt_n": 0,
+   "native_status_stage": "requested_native_arms_complete_unanalyzed",
+   "err_files": {
+    "network/VISSIG_Controller.dll.err": {
+     "lines": 9,
+     "bytes": 464,
+     "warning": 0,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "network/sdmpc31_sdmpc9000_s31.err": {
+     "lines": 1,
+     "bytes": 200,
+     "warning": 1,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "network/sdmpc31_sdmpc9000_s31_001.err": {
+     "lines": 1541,
+     "bytes": 1297813,
+     "warning": 1357,
+     "note": 184,
+     "vehicle_input_not_finished": 1
+    },
+    "runlog_sdmpc31_sdmpc9000_s31.txt.err": {
+     "lines": 0,
+     "bytes": 0,
+     "warning": 0,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "vissim_network.err": {
+     "lines": 1,
+     "bytes": 200,
+     "warning": 1,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "vissim_simulation_001.err": {
+     "lines": 1541,
+     "bytes": 1297813,
+     "warning": 1357,
+     "note": 184,
+     "vehicle_input_not_finished": 1
+    }
+   },
+   "fzp_bytes": 1140488386,
+   "vissim_eval_files": [
+    "sdmpc31_sdmpc9000_s31_001.fzp",
+    "sdmpc31_sdmpc9000_s31_001.lsa",
+    "sdmpc31_sdmpc9000_s31_001.mer"
+   ],
+   "result_root_bytes": 2477499517
+  },
+  "s41": {
+   "provenance_seed": 41,
+   "provenance_sha256": "ac44e896142f9bd1546c28799cdf8de8b4b00ef56e139ab0137653b100a54653",
+   "tries": [
+    "launched_s41_run1_try1.json"
+   ],
+   "stalled_records": [],
+   "receipt": {
+    "time_before_create": "2026-10-27T21:41:28.1073315+09:00",
+    "time_after_create": "2026-10-27T21:41:28.2741786+09:00",
+    "ReturnValue": 0,
+    "ProcessId": 50620,
+    "wrapper_creation": "2026-10-27T21:41:28.1248890+09:00",
+    "PriorityClass": 32,
+    "vissim_count_before": 3,
+    "vissim_pids_before": [
+     30964,
+     51120,
+     53192
+    ],
+    "pending_before": 0,
+    "disk_free_gb": {
+     "D": 191.5,
+     "C": 16.1
+    }
+   },
+   "tryend": {
+    "key": "s41_run1_try1",
+    "status": "completed",
+    "detail": "runner_exit 0, STAGE=SIM_DONE, SIM_SEC=9000",
+    "res": "D:\\VISSIM_runs\\20261028_codex_fo_v3c3\\s41",
+    "time": "2026-10-28T04:02:52.8760631+09:00",
+    "launcher_pid": 47704
+   },
+   "wrapper_started": {
+    "time": "2026-10-27T21:41:29.3083223+09:00",
+    "wrapper_pid": 50620,
+    "wrapper_priority": "Normal"
+   },
+   "wrapper_end": {
+    "time": "2026-10-28T04:01:33.1033814+09:00",
+    "runner_exit": 0,
+    "wall_sec": 22801.9
+   },
+   "wrapper_error_exists": false,
+   "watchdog_vissim": [
+    [
+     "10-27 21:42:25",
+     "52432"
+    ]
+   ],
+   "watchdog_kill_policy": [
+    "10-27 21:41:45  KILL_POLICY sdmpc31_sdmpc9000_s41 pid_only runner_pid=49556 runner_start=2026-10-27T21:41:45.3376472+09:00\r"
+   ],
+   "watchdog_last": [
+    "10-27 21:42:25  VISSIM_PROCESS sdmpc31_sdmpc9000_s41 pid=52432",
+    "10-28 04:01:32  OK sdmpc31_sdmpc9000_s41 attempt=1 elapsed=22788s"
+   ],
+   "watchdog_kill_lines": [],
+   "runlog_lines": 6737,
+   "runlog_markers": {
+    "STAGE=SIM_DONE": [
+     [
+      6728,
+      "STAGE=SIM_DONE"
+     ]
+    ],
+    "SIM_SEC=": [
+     [
+      6729,
+      "SIM_SEC=9000"
+     ]
+    ],
+    "DECISIONS_OK=": [
+     [
+      6705,
+      "DECISIONS_OK=61"
+     ]
+    ],
+    "DECISIONS_FAILED=": [
+     [
+      6706,
+      "DECISIONS_FAILED=0"
+     ]
+    ],
+    "DECISIONS_HELD_PREVIOUS=": [
+     [
+      6707,
+      "DECISIONS_HELD_PREVIOUS=0"
+     ]
+    ],
+    "DECISIONS_HELD_ON_EXCEPTION=": [
+     [
+      6708,
+      "DECISIONS_HELD_ON_EXCEPTION=0"
+     ]
+    ],
+    "RUN_MODE=": [
+     [
+      469,
+      "RUN_MODE=CONTINUOUS_EVENT_OBS150 controller=wu-link warmup_controller=no-control control_start_sec=900"
+     ]
+    ]
+   },
+   "decisions": {
+    "n": 61,
+    "warmup_n": 6,
+    "control_n": 55,
+    "exit_nonzero": 0,
+    "warmup_wall_min": 12.84,
+    "warmup_wall_max": 19.41,
+    "first_control": [
+     [
+      900,
+      159.69,
+      0
+     ]
+    ],
+    "control_wall": {
+     "n": 55,
+     "mean": 247.7,
+     "median": 204.2,
+     "p90": 409.5,
+     "min": 127.5,
+     "max": 527.87,
+     "max_T": 3150,
+     "gt360": 9,
+     "gt1500": 0,
+     "gt3600": 0
+    },
+    "hold_attempt_lines": 0,
+    "held_previous_lines": 0
+   },
+   "runlog_error_like_lines": 0,
+   "action_json_n": 61,
+   "error_txt_n": 0,
+   "native_status_stage": "requested_native_arms_complete_unanalyzed",
+   "err_files": {
+    "network/VISSIG_Controller.dll.err": {
+     "lines": 9,
+     "bytes": 464,
+     "warning": 0,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "network/sdmpc31_sdmpc9000_s41.err": {
+     "lines": 1,
+     "bytes": 200,
+     "warning": 1,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "network/sdmpc31_sdmpc9000_s41_001.err": {
+     "lines": 1762,
+     "bytes": 1343351,
+     "warning": 1578,
+     "note": 184,
+     "vehicle_input_not_finished": 2
+    },
+    "runlog_sdmpc31_sdmpc9000_s41.txt.err": {
+     "lines": 0,
+     "bytes": 0,
+     "warning": 0,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "vissim_network.err": {
+     "lines": 1,
+     "bytes": 200,
+     "warning": 1,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "vissim_simulation_001.err": {
+     "lines": 1762,
+     "bytes": 1343351,
+     "warning": 1578,
+     "note": 184,
+     "vehicle_input_not_finished": 2
+    }
+   },
+   "fzp_bytes": 1171446282,
+   "vissim_eval_files": [
+    "sdmpc31_sdmpc9000_s41_001.fzp",
+    "sdmpc31_sdmpc9000_s41_001.lsa",
+    "sdmpc31_sdmpc9000_s41_001.mer"
+   ],
+   "result_root_bytes": 2491775457
+  },
+  "s43": {
+   "provenance_seed": 43,
+   "provenance_sha256": "cd2c3a9bbd4460b4154861ff9aa8ece23ac91a3565441e51a4881341955dc556",
+   "tries": [
+    "launched_s43_run1_try1.json"
+   ],
+   "stalled_records": [],
+   "receipt": {
+    "time_before_create": "2026-10-27T22:19:11.6894475+09:00",
+    "time_after_create": "2026-10-27T22:19:11.8557236+09:00",
+    "ReturnValue": 0,
+    "ProcessId": 53820,
+    "wrapper_creation": "2026-10-27T22:19:11.7048100+09:00",
+    "PriorityClass": 32,
+    "vissim_count_before": 3,
+    "vissim_pids_before": [
+     30964,
+     53192,
+     52432
+    ],
+    "pending_before": 0,
+    "disk_free_gb": {
+     "D": 190.4,
+     "C": 15.6
+    }
+   },
+   "tryend": {
+    "key": "s43_run1_try1",
+    "status": "completed",
+    "detail": "runner_exit 0, STAGE=SIM_DONE, SIM_SEC=9000",
+    "res": "D:\\VISSIM_runs\\20261028_codex_fo_v3c3\\s43",
+    "time": "2026-10-28T04:22:32.4404678+09:00",
+    "launcher_pid": 47704
+   },
+   "wrapper_started": {
+    "time": "2026-10-27T22:19:12.8657390+09:00",
+    "wrapper_pid": 53820,
+    "wrapper_priority": "Normal"
+   },
+   "wrapper_end": {
+    "time": "2026-10-28T04:22:14.4504223+09:00",
+    "runner_exit": 0,
+    "wall_sec": 21779.5
+   },
+   "wrapper_error_exists": false,
+   "watchdog_vissim": [
+    [
+     "10-27 22:20:08",
+     "55356"
+    ]
+   ],
+   "watchdog_kill_policy": [
+    "10-27 22:19:28  KILL_POLICY sdmpc31_sdmpc9000_s43 pid_only runner_pid=12468 runner_start=2026-10-27T22:19:28.2151366+09:00\r"
+   ],
+   "watchdog_last": [
+    "10-27 22:20:08  VISSIM_PROCESS sdmpc31_sdmpc9000_s43 pid=55356",
+    "10-28 04:22:14  OK sdmpc31_sdmpc9000_s43 attempt=1 elapsed=21766s"
+   ],
+   "watchdog_kill_lines": [],
+   "runlog_lines": 6548,
+   "runlog_markers": {
+    "STAGE=SIM_DONE": [
+     [
+      6539,
+      "STAGE=SIM_DONE"
+     ]
+    ],
+    "SIM_SEC=": [
+     [
+      6540,
+      "SIM_SEC=9000"
+     ]
+    ],
+    "DECISIONS_OK=": [
+     [
+      6516,
+      "DECISIONS_OK=61"
+     ]
+    ],
+    "DECISIONS_FAILED=": [
+     [
+      6517,
+      "DECISIONS_FAILED=0"
+     ]
+    ],
+    "DECISIONS_HELD_PREVIOUS=": [
+     [
+      6518,
+      "DECISIONS_HELD_PREVIOUS=0"
+     ]
+    ],
+    "DECISIONS_HELD_ON_EXCEPTION=": [
+     [
+      6519,
+      "DECISIONS_HELD_ON_EXCEPTION=0"
+     ]
+    ],
+    "RUN_MODE=": [
+     [
+      469,
+      "RUN_MODE=CONTINUOUS_EVENT_OBS150 controller=wu-link warmup_controller=no-control control_start_sec=900"
+     ]
+    ]
+   },
+   "decisions": {
+    "n": 61,
+    "warmup_n": 6,
+    "control_n": 55,
+    "exit_nonzero": 0,
+    "warmup_wall_min": 16.23,
+    "warmup_wall_max": 20.38,
+    "first_control": [
+     [
+      900,
+      138.74,
+      0
+     ]
+    ],
+    "control_wall": {
+     "n": 55,
+     "mean": 231.4,
+     "median": 211.7,
+     "p90": 365.1,
+     "min": 113.0,
+     "max": 435.5,
+     "max_T": 6450,
+     "gt360": 6,
+     "gt1500": 0,
+     "gt3600": 0
+    },
+    "hold_attempt_lines": 0,
+    "held_previous_lines": 0
+   },
+   "runlog_error_like_lines": 0,
+   "action_json_n": 61,
+   "error_txt_n": 0,
+   "native_status_stage": "requested_native_arms_complete_unanalyzed",
+   "err_files": {
+    "network/VISSIG_Controller.dll.err": {
+     "lines": 9,
+     "bytes": 464,
+     "warning": 0,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "network/sdmpc31_sdmpc9000_s43.err": {
+     "lines": 1,
+     "bytes": 200,
+     "warning": 1,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "network/sdmpc31_sdmpc9000_s43_001.err": {
+     "lines": 1691,
+     "bytes": 1327289,
+     "warning": 1507,
+     "note": 184,
+     "vehicle_input_not_finished": 0
+    },
+    "runlog_sdmpc31_sdmpc9000_s43.txt.err": {
+     "lines": 0,
+     "bytes": 0,
+     "warning": 0,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "vissim_network.err": {
+     "lines": 1,
+     "bytes": 200,
+     "warning": 1,
+     "note": 0,
+     "vehicle_input_not_finished": 0
+    },
+    "vissim_simulation_001.err": {
+     "lines": 1691,
+     "bytes": 1327289,
+     "warning": 1507,
+     "note": 184,
+     "vehicle_input_not_finished": 0
+    }
+   },
+   "fzp_bytes": 1165375506,
+   "vissim_eval_files": [
+    "sdmpc31_sdmpc9000_s43_001.fzp",
+    "sdmpc31_sdmpc9000_s43_001.lsa",
+    "sdmpc31_sdmpc9000_s43_001.mer"
+   ],
+   "result_root_bytes": 2454580321
+  }
+ },
+ "launcher": {
+  "start": [
+   "2026-10-27 21:40:13"
+  ],
+  "exit": [
+   "2026-10-28 04:22:32"
+  ],
+  "polls": 265,
+  "max_vissim": 4,
+  "seat_busy_polls": 24,
+  "errors": [],
+  "launch_stopped": [],
+  "launched": [
+   [
+    "2026-10-27 21:40:14",
+    "s31_run1_try1",
+    "0",
+    "40692",
+    "2"
+   ],
+   [
+    "2026-10-27 21:41:28",
+    "s41_run1_try1",
+    "0",
+    "50620",
+    "3"
+   ],
+   [
+    "2026-10-27 22:19:11",
+    "s43_run1_try1",
+    "0",
+    "53820",
+    "3"
+   ]
+  ],
+  "vissim_wait_end": [
+   [
+    "2026-10-27 21:41:16",
+    "s31_run1_try1",
+    "vissim_process",
+    "53192",
+    "62"
+   ],
+   [
+    "2026-10-27 21:42:30",
+    "s41_run1_try1",
+    "vissim_process",
+    "52432",
+    "62"
+   ],
+   [
+    "2026-10-27 22:20:08",
+    "s43_run1_try1",
+    "vissim_process",
+    "55356",
+    "57"
+   ]
+  ],
+  "try_end": [
+   [
+    "2026-10-28 03:50:42",
+    "s31_run1_try1",
+    "completed"
+   ],
+   [
+    "2026-10-28 04:02:52",
+    "s41_run1_try1",
+    "completed"
+   ],
+   [
+    "2026-10-28 04:22:32",
+    "s43_run1_try1",
+    "completed"
+   ]
+  ],
+  "log_sha256": "b62f95139f6544226ece61bbf402de3825612a64235de6922712ebcf61e2f22a",
+  "other_vissim_windows": {
+   "30964": {
+    "first_seen_poll": "2026-10-27 21:41:17",
+    "poll_before_first": null,
+    "last_seen_poll": "2026-10-28 01:04:05",
+    "first_poll_without": "2026-10-28 01:05:37",
+    "polls": 135
+   },
+   "51120": {
+    "first_seen_poll": "2026-10-27 21:41:17",
+    "poll_before_first": null,
+    "last_seen_poll": "2026-10-27 22:17:40",
+    "first_poll_without": "2026-10-27 22:20:09",
+    "polls": 26
+   },
+   "6768": {
+    "first_seen_poll": "2026-10-28 01:27:00",
+    "poll_before_first": "2026-10-28 01:25:28",
+    "last_seen_poll": "2026-10-28 04:22:32",
+    "first_poll_without": null,
+    "polls": 116
+   }
+  },
+  "our_vissim_polls": {
+   "53192:s31": [
+    "2026-10-27 21:42:30",
+    "2026-10-28 03:49:11",
+    242
+   ],
+   "52432:s41": [
+    "2026-10-27 21:42:41",
+    "2026-10-28 04:01:22",
+    249
+   ],
+   "55356:s43": [
+    "2026-10-27 22:20:21",
+    "2026-10-28 04:21:01",
+    237
+   ]
+  },
+  "vissim_count_hist": {
+   "2": 14,
+   "3": 24,
+   "4": 226,
+   "1": 1
+  }
+ }
+}

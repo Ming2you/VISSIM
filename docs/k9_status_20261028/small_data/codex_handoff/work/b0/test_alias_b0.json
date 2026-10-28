@@ -1,0 +1,79 @@
+{
+ "contract": {
+  "movement:SC5_S_to_E_SC6": {
+   "phantom_probs": [
+    null,
+    null
+   ],
+   "phantom_status": "no_match",
+   "sibling": "movement:SC5_S_SC11_to_E_SC6",
+   "sibling_probs": [
+    1.0,
+    1.0
+   ],
+   "sibling_ok": true
+  },
+  "movement:SC5_S_to_N_SC102": {
+   "phantom_probs": [
+    null,
+    null
+   ],
+   "phantom_status": "no_match",
+   "sibling": "movement:SC5_S_SC11_to_N_SC102",
+   "sibling_probs": [
+    0.0,
+    0.0
+   ],
+   "sibling_ok": true
+  },
+  "movement:SC5_S_to_W_SC101": {
+   "phantom_probs": [
+    null,
+    null
+   ],
+   "phantom_status": "no_match",
+   "sibling": "movement:SC5_S_SC11_to_W_SC101",
+   "sibling_probs": [
+    1.0,
+    1.0
+   ],
+   "sibling_ok": true
+  }
+ },
+ "ledger": {
+  "no_alias": "MembershipError: unresolved destination of movement:SC5_S_to_N_SC102: (None, None)",
+  "with_alias": {
+   "stocks": {
+    "q": {
+     "inside": 1.5,
+     "outside": 0.5
+    },
+    "r": {
+     "inside": 0.0,
+     "outside": 2.0
+    }
+   },
+   "flow_counts": {
+    "phantom_route_alias:movement:SC5_S_to_N_SC102": 2.0,
+    "spatial_remap_exit_veh": 0.0,
+    "spatial_remap_entry_veh": 0.5,
+    "movement:SC5_S_to_N_SC102": 2.0
+   }
+  },
+  "non_phantom_with_probs": {
+   "stocks": {
+    "q": {
+     "inside": 1.5,
+     "outside": 0.5
+    },
+    "r": {
+     "inside": 1.5,
+     "outside": 0.5
+    }
+   },
+   "flow_counts": {
+    "movement:other": 2.0
+   }
+  }
+ }
+}

@@ -1,0 +1,271 @@
+{
+ "schema": "vp-r3-patchtest/1",
+ "kst": "2026-10-27 18:14:37 KST",
+ "ok": true,
+ "n": 30,
+ "n_ok": 30,
+ "results": [
+  {
+   "name": "A1_r3_probe_2ulp_no_S-R1",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "A2_r3_probe_2e-9_S-R1",
+   "ok": true,
+   "detail": "['S-R1: R1 objective within 1e-9 False costs True']"
+  },
+  {
+   "name": "A3_costs_over_tol_S-R1",
+   "ok": true,
+   "detail": "['S-R1: R1 objective within 1e-9 True costs False']"
+  },
+  {
+   "name": "A4_probe_stop_field_still_S-R1",
+   "ok": true,
+   "detail": "['S-R1: S-R1: synthetic']"
+  },
+  {
+   "name": "A5_r2_form_diff_2ulp_ok",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A6_r2_form_diff_0_ok",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A7_r2_form_diff_1e-9_edge_ok",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A8_r2_form_diff_over",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A9_missing_nan_bool_false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A10_r3_bool_wins",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A11_tolerance_constant",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "A12_existing_records_r3_rule",
+   "ok": true,
+   "detail": "{'P1_s31_T1800_stopped': {'r1_objective_ok_r3': True, 'costs_ok': True, 'bit_equal_r2': False, 'sha256': '46e85a2fa899ee8807270f9e31fcbb2111f4c5c023b456df17bb1b323f497a30'}, 'A_s31_T3300': {'r1_objective_ok_r3': True, 'costs_ok': True, 'bit_equal_r2': True, 'sha256': 'f8dc7daccbdf6cb04b3abaa65d1be81"
+  },
+  {
+   "name": "B1_r3_stop_during_lock_wait_runs_nothing",
+   "ok": true,
+   "detail": "{'acquire': 1, 'release': 1, 'runs': [], 'done': [], 'log_after_lock': True, 'log_before': False, 'queue_end': True}"
+  },
+  {
+   "name": "B1_r2_gap_shown",
+   "ok": true,
+   "detail": "{'acquire': 1, 'release': 1, 'runs': ['job1.py'], 'done': ['t1.done'], 'log_after_lock': False, 'log_before': True, 'queue_end': True}"
+  },
+  {
+   "name": "B2_r3_no_stop_runs_all",
+   "ok": true,
+   "detail": "{'acquire': 2, 'release': 2, 'runs': ['job1.py', 'job2.py'], 'done': ['t1.done', 't2.done'], 'log_after_lock': False, 'log_before': False, 'queue_end': True}"
+  },
+  {
+   "name": "B3_r3_stop_before_no_lock",
+   "ok": true,
+   "detail": "{'acquire': 0, 'release': 0, 'runs': [], 'done': [], 'log_after_lock': False, 'log_before': True, 'queue_end': True}"
+  },
+  {
+   "name": "B4_r3_stop_during_second_wait",
+   "ok": true,
+   "detail": "{'acquire': 2, 'release': 2, 'runs': ['job1.py'], 'done': ['t1.done'], 'log_after_lock': True, 'log_before': False, 'queue_end': True}"
+  },
+  {
+   "name": "C1_real_record_fields",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': True, 'freeze_sha256': True, 'files_expected': True, 'missing_n': True, 'differs_n': True, 'missing_empty': True, 'differs_empty': True}"
+  },
+  {
+   "name": "C2_time_field_ignored",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': True, 'freeze_sha256': True, 'files_expected': True, 'missing_n': True, 'differs_n': True, 'missing_empty': True, 'differs_empty': True}"
+  },
+  {
+   "name": "C3_ok_false",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': False, 'freeze_sha256': True, 'files_expected': True, 'missing_n': True, 'differs_n': True, 'missing_empty': True, 'differs_empty': True}"
+  },
+  {
+   "name": "C4_ok_int",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': False, 'freeze_sha256': True, 'files_expected': True, 'missing_n': True, 'differs_n': True, 'missing_empty': True, 'differs_empty': True}"
+  },
+  {
+   "name": "C5_missing_n",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': True, 'freeze_sha256': True, 'files_expected': True, 'missing_n': False, 'differs_n': True, 'missing_empty': True, 'differs_empty': True}"
+  },
+  {
+   "name": "C6_differs_list",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': True, 'freeze_sha256': True, 'files_expected': True, 'missing_n': True, 'differs_n': True, 'missing_empty': True, 'differs_empty': False}"
+  },
+  {
+   "name": "C7_files_expected",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': True, 'freeze_sha256': True, 'files_expected': False, 'missing_n': True, 'differs_n': True, 'missing_empty': True, 'differs_empty': True}"
+  },
+  {
+   "name": "C8_freeze_sha",
+   "ok": true,
+   "detail": "{'schema': True, 'ok': True, 'freeze_sha256': False, 'files_expected': True, 'missing_n': True, 'differs_n': True, 'missing_empty': True, 'differs_empty': True}"
+  },
+  {
+   "name": "C9_not_dict",
+   "ok": true,
+   "detail": "{'schema': False, 'ok': False, 'freeze_sha256': False, 'files_expected': False, 'missing_n': False, 'differs_n': False, 'missing_empty': False, 'differs_empty': False}"
+  },
+  {
+   "name": "D1_compile",
+   "ok": true,
+   "detail": "{'vp_probe.py': True, 'vp_jobcheck.py': True, 'vp_queue.py': True, 'vp_treefields.py': True}"
+  },
+  {
+   "name": "D2_probe_stop_uses_tolerance",
+   "ok": true,
+   "detail": "[\"            if not (out['checks']['R1_objective_within_1e-9'] and out['checks']['R1_costs_within_1e-9']) and mode != 'S':\"]"
+  },
+  {
+   "name": "D3_probe_writes_both_fields",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "D4_queue_recheck_between_lock_and_run",
+   "ok": true,
+   "detail": "(2441, 2653, 2868)"
+  }
+ ],
+ "tool_sha256": {
+  "vp_probe.py": "81925375151d5eb4b5129c3999e3fdc5e1975bbe01ad485be4a664ce9e209dae",
+  "vp_jobcheck.py": "a664ab99dbcd7766049533dcaaf44c6ca952006c0f740b65915300b885305b24",
+  "vp_queue.py": "9145bd3592f566257c1bcfdfa4b530a5c5149cc43fd41831822b59dbc0d40d7c",
+  "vp_treefields.py": "e864fcf8a6587ae138a232e860fc2e9a3fb11607ccf5333b564ab3477dc18f55",
+  "vp_probe_r2.py": "1c08ad5b76f570806dbb4dba8b7aab6d5619cabbbc9be8df61b9d87e9f1c6091",
+  "vp_jobcheck_r2.py": "a922ab6d6bb7b8e06ad1b0d00123844a6931d7c9071787cca3cde980a54c0ae7",
+  "vp_queue_r2.py": "53efbad49aece715e05bf1c28ac473daac9f8a3ec8bcdf5da5790c5639c94e3d"
+ },
+ "existing_records_r3_rule": {
+  "P1_s31_T1800_stopped": {
+   "r1_objective_ok_r3": true,
+   "costs_ok": true,
+   "bit_equal_r2": false,
+   "sha256": "46e85a2fa899ee8807270f9e31fcbb2111f4c5c023b456df17bb1b323f497a30"
+  },
+  "A_s31_T3300": {
+   "r1_objective_ok_r3": true,
+   "costs_ok": true,
+   "bit_equal_r2": true,
+   "sha256": "f8dc7daccbdf6cb04b3abaa65d1be81618e744db48634dcecc583e88d122b2fd"
+  },
+  "A_s31_T3450": {
+   "r1_objective_ok_r3": true,
+   "costs_ok": true,
+   "bit_equal_r2": true,
+   "sha256": "866ab2153032d04e02be7f8868316ea10f4abdba104f149622776c5037f23e14"
+  }
+ },
+ "queue_scenarios": {
+  "B1_r3": {
+   "acquire": 1,
+   "release": 1,
+   "runs": [],
+   "done": [],
+   "log_after_lock": true,
+   "log_before": false,
+   "queue_end": true
+  },
+  "B1_r2": {
+   "acquire": 1,
+   "release": 1,
+   "runs": [
+    "job1.py"
+   ],
+   "done": [
+    "t1.done"
+   ],
+   "log_after_lock": false,
+   "log_before": true,
+   "queue_end": true
+  },
+  "B2_r3": {
+   "acquire": 2,
+   "release": 2,
+   "runs": [
+    "job1.py",
+    "job2.py"
+   ],
+   "done": [
+    "t1.done",
+    "t2.done"
+   ],
+   "log_after_lock": false,
+   "log_before": false,
+   "queue_end": true
+  },
+  "B3_r3": {
+   "acquire": 0,
+   "release": 0,
+   "runs": [],
+   "done": [],
+   "log_after_lock": false,
+   "log_before": true,
+   "queue_end": true
+  },
+  "B4_r3": {
+   "acquire": 2,
+   "release": 2,
+   "runs": [
+    "job1.py"
+   ],
+   "done": [
+    "t1.done"
+   ],
+   "log_after_lock": true,
+   "log_before": false,
+   "queue_end": true
+  }
+ },
+ "tree_record": {
+  "real_fields": {
+   "schema": true,
+   "ok": true,
+   "freeze_sha256": true,
+   "files_expected": true,
+   "missing_n": true,
+   "differs_n": true,
+   "missing_empty": true,
+   "differs_empty": true
+  },
+  "real_sha256": "67e6681e3c1c30595b660660c66e04210b690a4f0099f516b1ae57169c6c86d3",
+  "real_checked_kst": "2026-10-27 17:32:39 KST"
+ },
+ "compile": {
+  "vp_probe.py": true,
+  "vp_jobcheck.py": true,
+  "vp_queue.py": true,
+  "vp_treefields.py": true
+ },
+ "temp_folder_removed": true,
+ "self_sha256": "7c480d07d2b7f57d60c66ab5b22f2a71310e2c2bb5ac93b15c80ed8e2d5d08a5"
+}

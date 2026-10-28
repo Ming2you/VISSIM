@@ -1,0 +1,29 @@
+﻿warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b0\frozen\sdmpc31_a49981ff_202610260258\diagnostics\sdmpc_n31_20260924\integration_20260926\run_closedloop3000.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\source\diagnostics\sdmpc_n31_20260924\integration_20260926\run_closedloop3000.ps1', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b0\\frozen\\sdmpc31_a49981ff_202610260258\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\run_closedloop3000.ps1" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\source\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\run_closedloop3000.ps1"
+index f735ce8..423190c 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b0\\frozen\\sdmpc31_a49981ff_202610260258\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\run_closedloop3000.ps1"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\source\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\run_closedloop3000.ps1"
+@@ -164,18 +164,19 @@ try {
+           '-Mapping',(Join-Path $frozen 'evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json'),
+           '-Tuning',$tuningPath,
+           '-VbsConfig',(Join-Path $selectedRoot 'scenario/lane_native_b110.vbs'),
+-          '-NoGlobalKill','-MaxAttempts','1','-StartupStallSec','300','-StallSec','2400')
++          '-NoGlobalKill','-MaxAttempts','1','-StartupStallSec','300','-StallSec','3600')
+         if ($PreflightOnly) { $arguments+='-PreflightOnly' }
+         else {
+             $live=@(Get-CimInstance Win32_Process | Where-Object {$_.Name -match '^Vissim'})
+             # The cscript may exit just before its COM server closes. Only wait;
+             # never close another process or replay a completed simulation.
+-            for($wait=0; $live.Count -and $wait -lt 30; $wait++) {
++            # D-K9-90 (2026-10-26): launch while the PC-wide VISSIM count is below the 4-seat cap; wait/refuse at 4 or more.
++            for($wait=0; $live.Count -ge 4 -and $wait -lt 30; $wait++) {
+                 if (Test-Path -LiteralPath (Join-Path $runsRoot 'STOP')) {throw 'STOP exists; no next run'}
+                 Start-Sleep -Seconds 1
+                 $live=@(Get-CimInstance Win32_Process | Where-Object {$_.Name -match '^Vissim'})
+             }
+-            if($live.Count) {throw 'Another VISSIM is open; preserve it and do not launch'}
++            if($live.Count -ge 4) {throw 'PC-wide VISSIM count is at the 4-seat cap; preserve them and do not launch'}
+         }
+         Save-Status $(if($PreflightOnly){'preflight'}else{'native_running'}) $arm @{name=$name;out_dir=$out;frozen=$frozen;controller=$controller;arguments=$arguments}
+         $launchLog=Join-Path $out $(if($PreflightOnly){'preflight_launch.log'}else{'launch.log'})

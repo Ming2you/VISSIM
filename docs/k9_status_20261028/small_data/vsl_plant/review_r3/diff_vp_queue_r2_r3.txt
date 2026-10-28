@@ -1,0 +1,25 @@
+--- vp_queue.py@r2
++++ vp_queue.py@r3
+@@ -7,7 +7,9 @@
+                                      "dir": ...},
+                                     {"tag": ..., "kind": "py", "args": [script, arg, ...]}]}
+ Per job: skip when <VP>/logs/<name>/<tag>.done exists (resume); stop before the next job when <VP>/STOP_VP exists;
+-take the shared LOCK (exclusive create; our own last release must be >= 20 s ago), run the job as a BELOW_NORMAL
++take the shared LOCK (exclusive create; our own last release must be >= 20 s ago), look for STOP_VP once more right
++after taking the LOCK (r3, D-K9-109: another queue may have written it while we waited; then release the LOCK, run
++nothing, write no .done and stop), run the job as a BELOW_NORMAL
+ child with the K9-2 environment (vp_common.child_env), release the LOCK, write <tag>.done with the exit code.  A job
+ of mode A/P is followed by vp_jobcheck.py (stop rules of PRE_VP section 7); a nonzero job exit, a probe stop or a
+ jobcheck hit writes STOP_VP and the queue stops (user decision).  Kills nothing except a job's own process tree (vp_job.py watchdog)."""
+@@ -45,6 +47,11 @@
+         else:
+             argv = [C.PY, '-B'] + [str(a) for a in j['args']]
+         C.lock_acquire('vsl_plant %s/%s' % (spec['name'], j['tag']), log)
++        if stop.is_file():
++            # r3 (D-K9-109): STOP_VP written while this queue waited on the LOCK -> no job, no .done.
++            log('STOP_VP present after LOCK: stop before %s' % j['tag'])
++            C.lock_release(log)
++            break
+         try:
+             log('JOB_BEGIN %s %s' % (j['tag'], ' '.join(argv[2:])[:400]))
+             rc, sec = C.run_capture(argv, logdir / (j['tag'] + '.out.txt'), env)

@@ -1,0 +1,22 @@
+LIST head_sha=f954c2b0510ddc8d77d8b5b6d2efb288eee4110e37eac935a4d153baefe366e7 new_sha=a8148f3849fb5e26f09d8f0a095d442aa56da051d888df0b2f657dba089e7af1 expect_match=True A_K8=35 [('R1', 16), ('R2', 12), ('R3', 7)]
+R2-12 table: [('/diagnostics/leg_ramp_split_len_SC1001_W_out', 'R2-12'), ('/diagnostics/leg_ramp_split_length_fallback', 'R2-12'), ('/diagnostics/leg_ramp_split_req_last_SC1001_W_out', None), ('/diagnostics/leg_ramp_split_u_on_last', None), ('/diagnostics/leg_ramp_split_len_SC1001_W_out/x', None), ('/diagnostics/leg_ramp_split_injected_RM_C10484', 'R2-11')]
+VB41w T=000001 diffs=17 outside_A=4 inside_by_entry=[('R3-01', 2), ('R3-03', 2), ('R3-05', 2), ('V', 7)]
+VB41w T=000150 diffs=39 outside_A=8 inside_by_entry=[('R2-02', 18), ('R3-01', 2), ('R3-03', 2), ('R3-05', 2), ('V', 7)]
+VB41w T=000300 diffs=71 outside_A=8 inside_by_entry=[('R2-02', 18), ('R2-03', 29), ('R2-05', 3), ('R3-01', 2), ('R3-03', 2), ('R3-05', 2), ('V', 7)]
+VB41w T=000450 diffs=71 outside_A=8 inside_by_entry=[('R2-02', 18), ('R2-03', 29), ('R2-05', 3), ('R3-01', 2), ('R3-03', 2), ('R3-05', 2), ('V', 7)]
+VB41w T=000600 diffs=71 outside_A=8 inside_by_entry=[('R2-02', 18), ('R2-03', 29), ('R2-05', 3), ('R3-01', 2), ('R3-03', 2), ('R3-05', 2), ('V', 7)]
+VB41w T=000750 diffs=71 outside_A=8 inside_by_entry=[('R2-02', 18), ('R2-03', 29), ('R2-05', 3), ('R3-01', 2), ('R3-03', 2), ('R3-05', 2), ('V', 7)]
+OUTSIDE_A union (path [kind] -> number of T among 6):
+   /metadata/head_discharge_floor_173_p4_<hash16>  [only in replay] -> 6
+   /metadata/head_observation_groups_carried  [value] -> 4
+   /metadata/head_observation_prior_discarded  [value] -> 1
+   /metadata/k92_hb  [only in replay] -> 6
+   /metadata/k92_hb_seed_binding  [only in replay] -> 6
+   /metadata/k92_w  [only in replay] -> 6
+   /metadata/n31_binding/vsl_cohort_initialization/sha256  [value] -> 5
+   /metadata/n31_binding/vsl_cohort_initialization/source  [value] -> 5
+   /prediction_error/source_action_json  [value] -> 5
+ROBS3 s31 T=000001 metadata keys(k92_/floor_173_p4): []
+ROBS3 s31 T=000150 metadata keys(k92_/floor_173_p4): []
+ROBS3 s31 T=000750 metadata keys(k92_/floor_173_p4): []
+ROBS3 s31 T=000900 metadata keys(k92_/floor_173_p4): ['head_discharge_floor_173_p4_<hash16>']

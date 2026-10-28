@@ -1,0 +1,27 @@
+K9-2-6: promote the bundle-1 arm config_n31_v2_k92b1.json bytes to config_n31_v2.json (V-A, runtime unchanged)
+
+K8 amendment 34 section 3.1 (D-K9-67, D-K9-72): byte copy of the judged bundle-1 arm
+diagnostics/sdmpc_n31_20260924/config_n31_v2_k92b1.json (made in K9-2-3) onto the deployed tuning
+diagnostics/sdmpc_n31_20260924/config_n31_v2.json, the same route as K8-7 / K8-10. No line-ending change.
+Tuning sha256 d0f9ef39...aec6 (278,142 B, blob 268ae47132443a4a97e87ffa51ca7f7f0c878586)
+-> c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866
+(278,607 B, blob b6ccd50d96321e293f6ad9cf020e53ce1a8fbf5c), LF, attr -text.
+JSON value difference against e27ceac8 = exactly two paths, both on the new side only:
+  /urban/sc109w_through_saturation (W)   evidence_sha256 b4b7294d...1712 = evidence file bytes
+  /urban/capacity/head_floor_seed  (H-b) evidence_sha256 b9fa1d01...20ee = evidence file bytes
+runtime.decision_error_policy = hold_previous_on_exception is present (unchanged).
+Checks, amendment 34 section 3.1 order 1-6, all true:
+  1 make_config --k92b1 --check run on the clean K9-2-5 tree before the byte copy (D-K9-72):
+    exit 0, "CONFIG_N31_K92B1_OK family=single_value sha256=c8e3ee2c...1866", stderr 0 B, no writes
+  2 byte copy arm -> deployed tuning
+  3 build_obs150_detectors.py --tuning config_n31_v2.json --check: exit 0,
+    "OBS150_DETECTORS_OK rows=294 sha256=108debbb...cfbc ...", stderr 0 B, no writes
+  4 hash-object --no-filters b6ccd50d..., sha256 c8e3ee2c..., 278,607 B, bytes equal to the arm file
+  5 JSON diff = the two paths above, evidence sha = file bytes, policy key present
+  6 diff scope: M config_n31_v2.json only; evaluation/ vendor/ plant/ scripts/ unchanged; no untracked files
+After this commit make_config_n31.py --k92b1 --check raises ValueError by design
+(the generator reads this file as its base; amendment 34 section 2.2, disclosure 9.1-7).
+Amendment 34 fixed sha256 a05592d48512a515fc254d70b8173360d448b0aa17afb3f63c98b52ef713205e.
+Not pushed.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

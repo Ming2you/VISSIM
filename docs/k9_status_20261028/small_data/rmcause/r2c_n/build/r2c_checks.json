@@ -1,0 +1,203 @@
+{
+ "created": "2026-10-24T14:35:17+09:00",
+ "dest_root": "D:\\VISSIM_runs\\20261001_v3c3",
+ "priority": {
+  "set_ok": true,
+  "priority_class": "0x4000"
+ },
+ "script_sha256": "acdd600cdfeb8f67b3f7b7974a3a635bb620f17e50535c6b26aa0bab094a9baf",
+ "build_receipt_sha256": "c6ca754a8f2dd7fceb72f88d31a9495aa3b823b6f3930e68245e6e75cb7a5b4a",
+ "checks": {
+  "code_used_by_rm_arms_unchanged": {
+   "ok": true,
+   "detail": {
+    "sha256_now_equals_rm_build_receipt": {
+     "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_fixed_profile.py": "a05eb0c5d06cad37d19c3c31a2b42687ad016c3b258aad3a592dc170c6615bbb",
+     "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_prepare.py": "eb1bd0f0a4ccfef12f6b6b768ef1c7532d2bbf935f68488185b18166dc5514e0",
+     "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_fixed_profile_verify.py": "914413913c41f6e085b840fa8e33bd7eda6dc7bc74cc10f88622d3c64084de7e",
+     "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_run.ps1": "269345dade5657a25e224728985a2a32e35fa0e1669404a631591a191fb67136",
+     "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_nc_runner.vbs": "bf07acdaaa678d764ccbd0fd237a5aad85c3419f0628790358dd478ffc5e2cf1",
+     "D:\\VISSIM-merge\\sim3\\evaluation\\controllers\\diagnostic_profile.py": "389d81c8b06c6993b4e6028d637a3bb08b8ac0b698c65fab049f5762bdeb2dc9"
+    },
+    "sim3_head": "673eece910c4c830eb32aa33d259627775edbe09",
+    "sim3_status_of_these_files": [
+     "M diagnostics/fast_fixed_profile.py"
+    ]
+   }
+  },
+  "selection_mechanism_code_lines": {
+   "ok": true,
+   "detail": {
+    "fast_fixed_profile.py history init over cfg meters": [
+     213
+    ],
+    "fast_fixed_profile.py rule loop over cfg meters": [
+     224
+    ],
+    "fast_fixed_profile.py meter write inside that loop": [
+     244
+    ],
+    "fast_fixed_profile.py observations need every station id": [
+     188
+    ],
+    "verify loops decision meters only": [
+     115
+    ],
+    "verify untargeted SG ownership must not change": [
+     160
+    ],
+    "vbs applies only rule_events rows": [
+     423
+    ],
+    "vbs untargeted SG ownership check": [
+     466
+    ]
+   }
+  },
+  "s31_prepared_static": {
+   "ok": true,
+   "detail": {
+    "files": 58,
+    "files_differing_from_rm_arm": [
+     "prepared.json",
+     "rule_policy.json"
+    ],
+    "network": "D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\prepared\\network\\baseline_s31_v3c3rm10681.inpx",
+    "network_sha256": "046303541667838f30045a06d230fb5b31944a18db483770539dfcc873176f0d",
+    "network_sha256_equals_rm_arm": true,
+    "rule_policy_json_diff_vs_rm": [
+     [
+      "/meters/RM_C10480",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10482",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10646",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10644",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10639",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10490",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10484",
+      "removed"
+     ]
+    ],
+    "rule_policy_meters": [
+     "RM_C10681"
+    ],
+    "alinea_RM_C10681": {
+     "gain_vph_per_pct": 140,
+     "target_occupancy_pct": 15,
+     "min_rate_vph": 511.2,
+     "max_rate_vph": 3024.0
+    },
+    "prepared_json_diff_vs_rm_after_path_swap": [
+     [
+      "/snapshot_sha256/D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3rm10681\\prepared\\rule_policy.json",
+      "changed"
+     ]
+    ],
+    "snapshot_pins_valid": 53,
+    "inputs_pins_valid": 44,
+    "compile_profile_events": 0,
+    "fixed_initial_rows_reproduced": 864,
+    "proof_equals_file_and_prepared_json": true,
+    "rule_runtime": [
+     "C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+     "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_fixed_profile.py",
+     "900"
+    ],
+    "run_dir_and_launch_log_absent": true
+   }
+  },
+  "s41_prepared_static": {
+   "ok": true,
+   "detail": {
+    "files": 58,
+    "files_differing_from_rm_arm": [
+     "prepared.json",
+     "rule_policy.json"
+    ],
+    "network": "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\prepared\\network\\baseline_s41_v3c3rm10681.inpx",
+    "network_sha256": "e4953eaf8c8f983f28b9a14c684075757ddd45e180e63f2235dc9db8b4ed7524",
+    "network_sha256_equals_rm_arm": true,
+    "rule_policy_json_diff_vs_rm": [
+     [
+      "/meters/RM_C10480",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10482",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10646",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10644",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10639",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10490",
+      "removed"
+     ],
+     [
+      "/meters/RM_C10484",
+      "removed"
+     ]
+    ],
+    "rule_policy_meters": [
+     "RM_C10681"
+    ],
+    "alinea_RM_C10681": {
+     "gain_vph_per_pct": 140,
+     "target_occupancy_pct": 15,
+     "min_rate_vph": 511.2,
+     "max_rate_vph": 3024.0
+    },
+    "prepared_json_diff_vs_rm_after_path_swap": [
+     [
+      "/snapshot_sha256/D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3rm10681\\prepared\\rule_policy.json",
+      "changed"
+     ]
+    ],
+    "snapshot_pins_valid": 53,
+    "inputs_pins_valid": 44,
+    "compile_profile_events": 0,
+    "fixed_initial_rows_reproduced": 864,
+    "proof_equals_file_and_prepared_json": true,
+    "rule_runtime": [
+     "C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+     "D:\\VISSIM-merge\\sim3\\diagnostics\\fast_fixed_profile.py",
+     "900"
+    ],
+    "run_dir_and_launch_log_absent": true
+   }
+  }
+ },
+ "failed": [],
+ "summary": {
+  "code_used_by_rm_arms_unchanged": true,
+  "selection_mechanism_code_lines": true,
+  "s31_prepared_static": true,
+  "s41_prepared_static": true
+ }
+}

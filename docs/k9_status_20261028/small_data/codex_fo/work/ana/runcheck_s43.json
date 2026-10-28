@@ -1,0 +1,222 @@
+{
+ "seed": 43,
+ "root": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43",
+ "selftest_b": false,
+ "checks": {
+  "V1_completion": true,
+  "V9_no_scope_hold": true,
+  "V2_provenance": true,
+  "V3_meters_commanded": true,
+  "V4_urban_baseline_only": true,
+  "V5_vsl_110": true,
+  "V6_prefix_equals_B": true
+ },
+ "report": {
+  "V1": {
+   "wrapper_end": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43/fo_launch\\wrapper_run1_try1_end.json",
+   "runner_exit": 0,
+   "summary": {
+    "DECISIONS_OK": "61",
+    "DECISIONS_FAILED": "0",
+    "DECISIONS_HELD_PREVIOUS": "0",
+    "DECISIONS_HELD_ON_EXCEPTION": "0"
+   },
+   "error_txt": 0,
+   "decision_lines": 61,
+   "exit_nonzero": 0,
+   "hold_attempt_lines": 0,
+   "held_previous_lines": 0,
+   "holds_T_cause": []
+  },
+  "V9": {
+   "scope_holds": [],
+   "scope_error_txt": []
+  },
+  "V2": {
+   "seed": 43,
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "rw_config_sha": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "freeze_sha256": "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373",
+   "hold_env": [
+    "hold_previous_on_exception",
+    "1",
+    "0"
+   ]
+  },
+  "V3": {
+   "meter_rows": 17761,
+   "requested_ne_readback_or_not_ok": 0,
+   "per_meter": {
+    "RM_C10480": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "2": 585,
+      "4": 120,
+      "6": 75,
+      "8": 30
+     },
+     "cycles_green_lt10": 810
+    },
+    "RM_C10482": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "10": 810
+     },
+     "cycles_green_lt10": 0
+    },
+    "RM_C10646": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "4": 90,
+      "6": 390,
+      "8": 165,
+      "10": 165
+     },
+     "cycles_green_lt10": 645
+    },
+    "RM_C10644": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "10": 810
+     },
+     "cycles_green_lt10": 0
+    },
+    "RM_C10639": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "2": 300,
+      "3": 90,
+      "4": 45,
+      "5": 60,
+      "6": 60,
+      "7": 30,
+      "8": 105,
+      "9": 15,
+      "10": 105
+     },
+     "cycles_green_lt10": 705
+    },
+    "RM_C10681": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "2": 60,
+      "3": 30,
+      "4": 240,
+      "5": 75,
+      "6": 165,
+      "7": 75,
+      "8": 60,
+      "9": 15,
+      "10": 90
+     },
+     "cycles_green_lt10": 720
+    },
+    "RM_C10490": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "4": 210,
+      "6": 210,
+      "7": 30,
+      "8": 225,
+      "10": 135
+     },
+     "cycles_green_lt10": 675
+    },
+    "RM_C10484": {
+     "cycles": 810,
+     "mismatch": 0,
+     "examples": [],
+     "readback_green_hist": {
+      "2": 45,
+      "3": 15,
+      "4": 300,
+      "6": 255,
+      "8": 150,
+      "10": 45
+     },
+     "cycles_green_lt10": 765
+    }
+   }
+  },
+  "V4": {
+   "signal_rows_T_ge_900": 935,
+   "signal_rows_off_baseline": 0,
+   "examples": [],
+   "signal_sg_decisions": 55,
+   "signal_sg_distinct_schedules": 1,
+   "sg_native_run": {
+    "written_sg": 136,
+    "sg_with_difference": 0,
+    "differing_frames_total": 0,
+    "pass": true
+   },
+   "sg_tool_sha256": "751e1e4c4a790e4870c421dbd0ddce4e67baf464b406cfa357acc21bf8db8f01",
+   "d_not_written_sg_in_lsa": 146,
+   "d_not_written_sg_with_difference": 0,
+   "d_differing_frames": 0,
+   "d_examples": {},
+   "d_fo_lsa": "D:/VISSIM_runs/20261028_codex_fo_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.lsa",
+   "d_fo_lsa_sha256": "fa60a1c1101c4593ecf50ee5e00af56fcc2a8c1cb0b4d913e9e3000c9630bea0",
+   "d_b_lsa_sha256": "eedff15a272f554209b86c9b777281eb2ef77cc0a632a693ad6a5f36ab7633a1",
+   "report_lsa_prefix_2_899_sg_differing_fo_vs_b": [],
+   "report_lsa_prefix_2_899_sg_differing_n": 0,
+   "e_urban_readback_rows": 46396,
+   "e_urban_readback_bad": 0,
+   "d_pass": true,
+   "e_pass": true
+  },
+  "V5": {
+   "action_vsl_values": {
+    "110.0": 4026
+   },
+   "vsl_readback_rows": 16104,
+   "vsl_readback_not_110_or_not_ok": 0
+  },
+  "V6": {
+   "fo_lf_sha_le_895_1": "86c06c735b3aba291da9a2efc94fb6f4086ea90392ba2ea16410b9823605b9a8",
+   "nc3": "86c06c735b3aba291da9a2efc94fb6f4086ea90392ba2ea16410b9823605b9a8",
+   "b": "86c06c735b3aba291da9a2efc94fb6f4086ea90392ba2ea16410b9823605b9a8",
+   "fo_eq_nc3": true,
+   "fo_eq_b": true,
+   "fo_has_0p1_frame": false,
+   "fo_rows_0p1": 0
+  },
+  "V7": {
+   "warmup_csv_equal_b": {
+    "1": true,
+    "150": true,
+    "300": true,
+    "450": true,
+    "600": true,
+    "750": true
+   },
+   "t1_prediction_runtime_unavailable_reason": "Startup has no closed observation window; legal native baseline held without prediction",
+   "solo_text": true
+  },
+  "V8": {
+   "n": 55,
+   "mean": 231.4,
+   "median": 211.7,
+   "max": 435.5,
+   "gt1500": 0,
+   "gt3600": 0
+  }
+ },
+ "usable": true,
+ "pass": true
+}

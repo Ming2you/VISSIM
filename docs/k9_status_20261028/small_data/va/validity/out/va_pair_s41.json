@@ -1,0 +1,77 @@
+{
+ "tool": "va_j1a.py pair",
+ "tool_sha256": "968891df5b19627bf7743b8b39a871704509b8d4f3e6643d35cbec25d6ac88c6",
+ "profile": "va",
+ "seed": "41",
+ "name": "sdmpc31_v3c3_k92va_s41",
+ "nc3": {
+  "fzp": "D:\\VISSIM_runs\\20261001_v3c3\\s41_v3c3nc\\run\\vissim_eval\\baseline_s41_v3c3nc_001.fzp",
+  "inpx_sha256": "726af589bddb8c7267654bda446d2f1a4378451f51e1593857062fca0d32587e",
+  "fzp_bytes": 1196651038,
+  "fzp_last_frame_sec": 8995.1,
+  "shim": {
+   "skipped": 0,
+   "rows": 430150,
+   "last_t": 945.1,
+   "stopped_at": 950.1
+  },
+  "frames": {
+   "n": 189,
+   "first_sec": 5.1,
+   "last_sec": 945.1,
+   "dt_sec": 5.0,
+   "irregular_steps": 0
+  },
+  "rows": 430150
+ },
+ "cut_sec": 950.0,
+ "t_act": 900,
+ "stage1_sha256": {
+  "stage1_common.py": "e000c69eebad2636c00299727ceb1624d408d5ac3c6ae26204301b1fa891fdae",
+  "stage1_scan.py": "651c4f51fdddf49d46c77ed4c28b0626c410b3282426b9fd30f2a6ef43f7625f",
+  "stage1_uninserted.py": "19eba94ed01bce47b591b47362aba13b2ac697cfbf2cb9156954b573e7727cd1",
+  "stage1_report.py": "cb4ccc3a431f32ebb6f716a0b67c148a71d82470c443b4851f80832d98d7a1b9"
+ },
+ "priority": "0x4000",
+ "arm": {
+  "fzp": "D:\\VISSIM_runs\\20261023_sdmpc31_k92\\sdmpc31_v3c3_k92va_s41\\vissim_eval\\sdmpc31_sdmpc31_v3c3_k92va_s41_001.fzp",
+  "inpx_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+  "fzp_bytes": 1145992810,
+  "fzp_last_frame_sec": 8995.1,
+  "shim": {
+   "skipped": 1,
+   "rows": 430154,
+   "last_t": 945.1,
+   "stopped_at": 950.1
+  },
+  "frames": {
+   "n": 189,
+   "first_sec": 5.1,
+   "last_sec": 945.1,
+   "dt_sec": 5.0,
+   "irregular_steps": 0
+  },
+  "rows": 430154
+ },
+ "pairing_check": {
+  "seed_nc": 41,
+  "seed_arm": 41,
+  "same_frame_times": true,
+  "first_divergent_frame_sec": 905.1,
+  "first_divergent_entry_sec": 915.7,
+  "inputs_identical_entry_times": 31,
+  "inputs": 34,
+  "t_act": 900,
+  "ok": true
+ },
+ "pre900_frames": 179,
+ "pre900_all_equal": true,
+ "pre900_omega_equal": true,
+ "pre900_entries_equal_inputs": 34,
+ "inputs": 34,
+ "pre900_entries_total": [
+  7061,
+  7061
+ ],
+ "elapsed_sec": 4.4
+}

@@ -1,0 +1,11 @@
+- [2026-10-21 11:56 +0900] ReviewDeclare A30: (11:45–11:47 실행) 새 구동기 `check30 --mode decl`(WMI 분리 `rv30_check30_decl`, 읽기만) → `RV30/out/check30_rv.json` `9df7c11f7c510ff9fa614c71d6d632cecc552cba72732ff69a80042b592d03c9`: 37점검 거짓 0, OUTK 18,019파일·4,223,333,998 B = 선언 목록(검토가 OUTK를 바꾸지 않음). 끝 스냅숏 `RV30/out/snap_rv30_after.json` `11060d6b70244fdf90b460802f9f45549b922d5bccef8c76f257181f5ad00d1e` s02 대비 SAME.
+
+## 2026-10-21 11:55 +0900 — ReviewDeclare A30: 보충 30 고정 (반박 검토 끝)
+
+- 이 항목 덧붙임 전 LOG sha256 `35ea2fb49837fe582a0ec7cd9febe0deb04c77cd4c2d5626472a3504a39650e3`, 178,592 B.
+- Declare 판 보존: `SP/K8_PREDECLARATION_AMENDMENT_30_r1.md` + `.sha256`(`304719e1…`, Declare 판과 같은 바이트), 사본 `RV30/r1/`.
+- **고정판** `SP/K8_PREDECLARATION_AMENDMENT_30.md` sha256 `ba556227a6356b1733bfa8125b334cfef180c1eed97e8d69ae4ba53a3106a56a`(83,288 B, 476줄, LF), `.sha256` 같은 값 [실행 `sha256sum -c` OK]. **고정점** `KB/AMENDMENT30_FIXED.md` sha256 `ad3fafadd59985b3b71f33d5523ceb2324aa8267395d7280039228669cb83e9c`(고정판 sha 64자 + 기대 고정 목록 `KB/a30decl/a30_pins.expected.sha256` `7afabd03f315c8925c4a8bb1b1566d246cbfb9273470876963df9e7fe4f3d30e` 64자; Declare 판 sha는 16자만). 구동기 자신의 `a30_sha()` = `ba556227…`, C6 같은 뜻 참(83줄·틀린 줄 0) [실행 `RV30/rv_fixcheck30.py` `4952b5d3b6a28aacc479e65a39bb4c8621db142eaf58685bb87861758ef706d6`].
+- 고친 곳(글만, §13.1 V1–V8): V1 Gates의 F 잡 로그 걸러 읽기 = 07:05:57 KST `grep -c` 한 번(개수만), 세션 기록 7개에 F 주 표본 목적값 줄 0 → "가능성"을 사실로; V2 07:04:42 KST 실패 진단에 `f_vref.log` 끝 300 B도 열림(값 없음); V3 §8 표에 보충 24 §5.4 끝 줄·보충 29 §5 "누가"(검증 도구 고정 시점) 더함; V4 G2 종료 코드 = `steps.jsonl` rc, STOP 파일 없는 SystemExit 끝 → G2 거짓 STOP; V5 S-K41에 `chain30` 밖 쓰는 명령; V6 `capture.json` 셈의 정확한 뜻; V7 봉인 이동 완전성 근거·목록 밖 s47 파일(재생 상태 공개)·봉인 뿌리 맨 위 여섯; V8 v3c3-s43 같은 VR 호출 rc 0·21/21. 새 구동기·판정기·`dry_a30.py`·차이 파일·확인 출력·기대 고정 목록 바이트는 그대로.
+- 확인(§13.2): §0 sha 모두 같음; 지속성 좁힘은 보고 전용만 바꿈(판정 칸 줄 = 기반); F 값 계산·열람 0(파일 시각·`judge/` 셋·LOG·세션 기록·`check30` 다시); 이어 하기 가드; J-b 판정 항목 45개 값에 트리·경로 글자 0, 한 트리 안 비교 셋 = 다시 돌림 목록; STOP 규칙 ↔ 코드.
+- 지킨 것 [실행]: VISSIM·COM·러너·동결·결정 재생·plant 잡·v3c3-s47 VR 0. OUTK·TREE·봉인 뿌리·GWT8·KI·AD30 쓰기 0. F 잡 로그·봉인 로그·s47 F 데이터 폴더·`f_vref` 내용 열람 0. 봉인 시드·codex 64cf 숫자 0. 커밋·푸시 0(GWT8 head `e27ceac8`, status 0줄, K8 `b9734abe`). python·VISSIM 0. C: 38 GB, D: 396 GB.
+- 남은 미해결: 없음. 다음: 보충 30 §6 G0부터(Apply).

@@ -1,0 +1,8318 @@
+{
+ "31": {
+  "assets_equal": true,
+  "assets_n": 43,
+  "assets_not_equal": [],
+  "assets_extra_in_vsl": [],
+  "inpx": {
+   "vsl": "baseline_s31_v3c3vsl.inpx",
+   "nc3": "baseline_s31_v3c3nc.inpx",
+   "vsl_sha": "046303541667838f30045a06d230fb5b31944a18db483770539dfcc873176f0d",
+   "nc3_sha": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "vsl_lines": 36097,
+   "nc3_lines": 35979
+  },
+  "inpx_hunks_n": 8,
+  "inpx_removed_n": 8,
+  "inpx_added_n": 126,
+  "removed_tags": {
+   "dataColl": 1,
+   "delays": 1,
+   "linkResults": 1,
+   "nodeRawData": 1,
+   "queues": 1,
+   "scDetRec": 1,
+   "vehTravTmRawData": 1,
+   "vehTravTms": 1
+  },
+  "added_tags": {
+   "<blank>": 2,
+   "dataCollectionMeasurement": 58,
+   "dataCollectionPoint": 58,
+   "dataColl": 1,
+   "delays": 1,
+   "linkResults": 1,
+   "nodeRawData": 1,
+   "queues": 1,
+   "scDetRec": 1,
+   "vehTravTmRawData": 1,
+   "vehTravTms": 1
+  },
+  "removed_lines": [
+   "\t\t<dataColl collectData=\"false\" fromTime=\"0\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<delays collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<linkResults collectData=\"false\" fromTime=\"600\" interval=\"150\" perLane=\"false\" toTime=\"10800\" />",
+   "\t\t<nodeRawData fromTime=\"0\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"false\" />",
+   "\t\t<queues collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<scDetRec writeFile=\"false\" />",
+   "\t\t<vehTravTmRawData fromTime=\"1800\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"false\" />",
+   "\t\t<vehTravTms aggrBySect=\"DESTINATION\" collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />"
+  ],
+  "added_non_detector_lines": [
+   "<dataColl collectData=\"true\" fromTime=\"0\" interval=\"150\" toTime=\"10800\" />",
+   "<delays collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "<linkResults collectData=\"true\" fromTime=\"600\" interval=\"150\" perLane=\"false\" toTime=\"10800\" />",
+   "<nodeRawData fromTime=\"0\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"true\" />",
+   "<queues collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "<scDetRec writeFile=\"true\" />",
+   "<vehTravTmRawData fromTime=\"1800\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"true\" />",
+   "<vehTravTms aggrBySect=\"DESTINATION\" collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />"
+  ],
+  "hunks": [
+   {
+    "tag": "insert",
+    "nc3": [
+     2746,
+     2745
+    ],
+    "vsl": [
+     2746,
+     2804
+    ]
+   },
+   {
+    "tag": "insert",
+    "nc3": [
+     3063,
+     3062
+    ],
+    "vsl": [
+     3122,
+     3180
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5398,
+     5398
+    ],
+    "vsl": [
+     5516,
+     5516
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5400,
+     5400
+    ],
+    "vsl": [
+     5518,
+     5518
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5403,
+     5403
+    ],
+    "vsl": [
+     5521,
+     5521
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5406,
+     5406
+    ],
+    "vsl": [
+     5524,
+     5524
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5422,
+     5423
+    ],
+    "vsl": [
+     5540,
+     5541
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5463,
+     5464
+    ],
+    "vsl": [
+     5581,
+     5582
+    ]
+   }
+  ],
+  "dsd63_66_vsl": [
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 1\" name=\"RW_VSL_RW_FW_E_S5_L2_LN1\" no=\"63\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 2\" name=\"RW_VSL_RW_FW_E_S5_L2_LN2\" no=\"64\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 3\" name=\"RW_VSL_RW_FW_E_S5_L2_LN3\" no=\"65\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 4\" name=\"RW_VSL_RW_FW_E_S5_L2_LN4\" no=\"66\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />"
+  ],
+  "dsd63_66_nc3": [
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 1\" name=\"RW_VSL_RW_FW_E_S5_L2_LN1\" no=\"63\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 2\" name=\"RW_VSL_RW_FW_E_S5_L2_LN2\" no=\"64\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 3\" name=\"RW_VSL_RW_FW_E_S5_L2_LN3\" no=\"65\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 4\" name=\"RW_VSL_RW_FW_E_S5_L2_LN4\" no=\"66\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />"
+  ],
+  "dist91_vsl": [
+   "<desSpeedDistribution name=\"91 km/h\" no=\"91\"> | <speedDistrDatPts> | <speedDistributionDataPoint fx=\"0\" x=\"90\" /> | <speedDistributionDataPoint fx=\"1\" x=\"92\" />"
+  ],
+  "sim_line_vsl": [
+   "<simulation comment=\"\" numCores=\"1\" numRuns=\"1\" randSeed=\"31\" randSeedIncr=\"1\" retroSync=\"false\" simMode=\"MICRO\" simPeriod=\"9001\" simRes=\"10\" simSpeed=\"1\" startTm=\"0\" useAllCores=\"false\" useMaxSimSpeed=\"true\" volumeIncrDynAssign=\"0\" />"
+  ],
+  "sim_line_nc3": [
+   "<simulation comment=\"\" numCores=\"1\" numRuns=\"1\" randSeed=\"31\" randSeedIncr=\"1\" retroSync=\"false\" simMode=\"MICRO\" simPeriod=\"9001\" simRes=\"10\" simSpeed=\"1\" startTm=\"0\" useAllCores=\"false\" useMaxSimSpeed=\"true\" volumeIncrDynAssign=\"0\" />"
+  ],
+  "events": {
+   "n": 16,
+   "kinds": [
+    "vsl"
+   ],
+   "times": [
+    "900"
+   ],
+   "nos": [
+    63,
+    64,
+    65,
+    66
+   ],
+   "classes": [
+    "10",
+    "20",
+    "30",
+    "70"
+   ],
+   "values": [
+    "91"
+   ]
+  },
+  "readback_phase_counts": {
+   "0|initial|signal": 440,
+   "0|initial|vsl": 424,
+   "900|write|vsl": 16,
+   "9000|final|signal": 440,
+   "9000|final|vsl": 424
+  },
+  "readback_non_initial_final": [
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   }
+  ],
+  "readback_writes_n": 16,
+  "readback_writes_all_ok": true,
+  "final_dsd63_66": [
+   [
+    "63",
+    "10",
+    "91"
+   ],
+   [
+    "63",
+    "20",
+    "91"
+   ],
+   [
+    "63",
+    "30",
+    "91"
+   ],
+   [
+    "63",
+    "70",
+    "91"
+   ],
+   [
+    "64",
+    "10",
+    "91"
+   ],
+   [
+    "64",
+    "20",
+    "91"
+   ],
+   [
+    "64",
+    "30",
+    "91"
+   ],
+   [
+    "64",
+    "70",
+    "91"
+   ],
+   [
+    "65",
+    "10",
+    "91"
+   ],
+   [
+    "65",
+    "20",
+    "91"
+   ],
+   [
+    "65",
+    "30",
+    "91"
+   ],
+   [
+    "65",
+    "70",
+    "91"
+   ],
+   [
+    "66",
+    "10",
+    "91"
+   ],
+   [
+    "66",
+    "20",
+    "91"
+   ],
+   [
+    "66",
+    "30",
+    "91"
+   ],
+   [
+    "66",
+    "70",
+    "91"
+   ]
+  ],
+  "initial_vs_final_diffs": [
+   [
+    "('signal', '1', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '10', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1005', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1005', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '102', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '102', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '103', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '105', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '107', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '107', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '108', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '108', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '109', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '109', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '11', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '5')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '11', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '12', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '12', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '13', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '13', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '3')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '13', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '14', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '14', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '15', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '5')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '15', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '16', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '16', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '17', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '18', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '18', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '19', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '19', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '18')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '20')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '22')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '24')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2005', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2005', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '11')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '15')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '18')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '20')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '22')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '24')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '20')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '22')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '24')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '6', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '6', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '7', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '7', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '7', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '8', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '5')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '8', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9101', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9102', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9103', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9104', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9105', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9106', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9107', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9108', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('vsl', '63', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '70')",
+    "110",
+    "91"
+   ]
+  ],
+  "readback_csv_vsl": [
+   "kind,no,time_int,expected,actual",
+   "native_simulation,RandSeed,,31,31",
+   "native_simulation,SimRes,,10,10",
+   "native_simulation,NumRuns,,1,1",
+   "native_simulation,SimPeriod,,9001,9001",
+   "native_recording,VehRecResolution,,50,50",
+   "native_recording,VehRecFromTime,,5,5",
+   "fixed_simulation,SimPeriod,,9001,9001"
+  ],
+  "readback_csv_nc3": [
+   "kind,no,time_int,expected,actual",
+   "native_simulation,RandSeed,,31,31",
+   "native_simulation,SimRes,,10,10",
+   "native_simulation,NumRuns,,1,1",
+   "native_recording,VehRecResolution,,50,50",
+   "native_recording,VehRecFromTime,,5,5"
+  ],
+  "run_json_keys": {
+   "completed": true,
+   "exit_code": 0,
+   "fixed_profile_validation_exit_code": 0,
+   "started": "2026-10-27T10:57:05.6453338+09:00",
+   "finished": "2026-10-27T12:37:33.3813606+09:00",
+   "seed": 31
+  }
+ },
+ "41": {
+  "assets_equal": true,
+  "assets_n": 43,
+  "assets_not_equal": [],
+  "assets_extra_in_vsl": [],
+  "inpx": {
+   "vsl": "baseline_s41_v3c3vsl.inpx",
+   "nc3": "baseline_s41_v3c3nc.inpx",
+   "vsl_sha": "e4953eaf8c8f983f28b9a14c684075757ddd45e180e63f2235dc9db8b4ed7524",
+   "nc3_sha": "726af589bddb8c7267654bda446d2f1a4378451f51e1593857062fca0d32587e",
+   "vsl_lines": 36097,
+   "nc3_lines": 35979
+  },
+  "inpx_hunks_n": 8,
+  "inpx_removed_n": 8,
+  "inpx_added_n": 126,
+  "removed_tags": {
+   "dataColl": 1,
+   "delays": 1,
+   "linkResults": 1,
+   "nodeRawData": 1,
+   "queues": 1,
+   "scDetRec": 1,
+   "vehTravTmRawData": 1,
+   "vehTravTms": 1
+  },
+  "added_tags": {
+   "<blank>": 2,
+   "dataCollectionMeasurement": 58,
+   "dataCollectionPoint": 58,
+   "dataColl": 1,
+   "delays": 1,
+   "linkResults": 1,
+   "nodeRawData": 1,
+   "queues": 1,
+   "scDetRec": 1,
+   "vehTravTmRawData": 1,
+   "vehTravTms": 1
+  },
+  "removed_lines": [
+   "\t\t<dataColl collectData=\"false\" fromTime=\"0\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<delays collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<linkResults collectData=\"false\" fromTime=\"600\" interval=\"150\" perLane=\"false\" toTime=\"10800\" />",
+   "\t\t<nodeRawData fromTime=\"0\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"false\" />",
+   "\t\t<queues collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<scDetRec writeFile=\"false\" />",
+   "\t\t<vehTravTmRawData fromTime=\"1800\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"false\" />",
+   "\t\t<vehTravTms aggrBySect=\"DESTINATION\" collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />"
+  ],
+  "added_non_detector_lines": [
+   "<dataColl collectData=\"true\" fromTime=\"0\" interval=\"150\" toTime=\"10800\" />",
+   "<delays collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "<linkResults collectData=\"true\" fromTime=\"600\" interval=\"150\" perLane=\"false\" toTime=\"10800\" />",
+   "<nodeRawData fromTime=\"0\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"true\" />",
+   "<queues collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "<scDetRec writeFile=\"true\" />",
+   "<vehTravTmRawData fromTime=\"1800\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"true\" />",
+   "<vehTravTms aggrBySect=\"DESTINATION\" collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />"
+  ],
+  "hunks": [
+   {
+    "tag": "insert",
+    "nc3": [
+     2746,
+     2745
+    ],
+    "vsl": [
+     2746,
+     2804
+    ]
+   },
+   {
+    "tag": "insert",
+    "nc3": [
+     3063,
+     3062
+    ],
+    "vsl": [
+     3122,
+     3180
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5398,
+     5398
+    ],
+    "vsl": [
+     5516,
+     5516
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5400,
+     5400
+    ],
+    "vsl": [
+     5518,
+     5518
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5403,
+     5403
+    ],
+    "vsl": [
+     5521,
+     5521
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5406,
+     5406
+    ],
+    "vsl": [
+     5524,
+     5524
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5422,
+     5423
+    ],
+    "vsl": [
+     5540,
+     5541
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5463,
+     5464
+    ],
+    "vsl": [
+     5581,
+     5582
+    ]
+   }
+  ],
+  "dsd63_66_vsl": [
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 1\" name=\"RW_VSL_RW_FW_E_S5_L2_LN1\" no=\"63\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 2\" name=\"RW_VSL_RW_FW_E_S5_L2_LN2\" no=\"64\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 3\" name=\"RW_VSL_RW_FW_E_S5_L2_LN3\" no=\"65\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 4\" name=\"RW_VSL_RW_FW_E_S5_L2_LN4\" no=\"66\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />"
+  ],
+  "dsd63_66_nc3": [
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 1\" name=\"RW_VSL_RW_FW_E_S5_L2_LN1\" no=\"63\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 2\" name=\"RW_VSL_RW_FW_E_S5_L2_LN2\" no=\"64\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 3\" name=\"RW_VSL_RW_FW_E_S5_L2_LN3\" no=\"65\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 4\" name=\"RW_VSL_RW_FW_E_S5_L2_LN4\" no=\"66\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />"
+  ],
+  "dist91_vsl": [
+   "<desSpeedDistribution name=\"91 km/h\" no=\"91\"> | <speedDistrDatPts> | <speedDistributionDataPoint fx=\"0\" x=\"90\" /> | <speedDistributionDataPoint fx=\"1\" x=\"92\" />"
+  ],
+  "sim_line_vsl": [
+   "<simulation comment=\"\" numCores=\"1\" numRuns=\"1\" randSeed=\"41\" randSeedIncr=\"1\" retroSync=\"false\" simMode=\"MICRO\" simPeriod=\"9001\" simRes=\"10\" simSpeed=\"1\" startTm=\"0\" useAllCores=\"false\" useMaxSimSpeed=\"true\" volumeIncrDynAssign=\"0\" />"
+  ],
+  "sim_line_nc3": [
+   "<simulation comment=\"\" numCores=\"1\" numRuns=\"1\" randSeed=\"41\" randSeedIncr=\"1\" retroSync=\"false\" simMode=\"MICRO\" simPeriod=\"9001\" simRes=\"10\" simSpeed=\"1\" startTm=\"0\" useAllCores=\"false\" useMaxSimSpeed=\"true\" volumeIncrDynAssign=\"0\" />"
+  ],
+  "events": {
+   "n": 16,
+   "kinds": [
+    "vsl"
+   ],
+   "times": [
+    "900"
+   ],
+   "nos": [
+    63,
+    64,
+    65,
+    66
+   ],
+   "classes": [
+    "10",
+    "20",
+    "30",
+    "70"
+   ],
+   "values": [
+    "91"
+   ]
+  },
+  "readback_phase_counts": {
+   "0|initial|signal": 440,
+   "0|initial|vsl": 424,
+   "900|write|vsl": 16,
+   "9000|final|signal": 440,
+   "9000|final|vsl": 424
+  },
+  "readback_non_initial_final": [
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   }
+  ],
+  "readback_writes_n": 16,
+  "readback_writes_all_ok": true,
+  "final_dsd63_66": [
+   [
+    "63",
+    "10",
+    "91"
+   ],
+   [
+    "63",
+    "20",
+    "91"
+   ],
+   [
+    "63",
+    "30",
+    "91"
+   ],
+   [
+    "63",
+    "70",
+    "91"
+   ],
+   [
+    "64",
+    "10",
+    "91"
+   ],
+   [
+    "64",
+    "20",
+    "91"
+   ],
+   [
+    "64",
+    "30",
+    "91"
+   ],
+   [
+    "64",
+    "70",
+    "91"
+   ],
+   [
+    "65",
+    "10",
+    "91"
+   ],
+   [
+    "65",
+    "20",
+    "91"
+   ],
+   [
+    "65",
+    "30",
+    "91"
+   ],
+   [
+    "65",
+    "70",
+    "91"
+   ],
+   [
+    "66",
+    "10",
+    "91"
+   ],
+   [
+    "66",
+    "20",
+    "91"
+   ],
+   [
+    "66",
+    "30",
+    "91"
+   ],
+   [
+    "66",
+    "70",
+    "91"
+   ]
+  ],
+  "initial_vs_final_diffs": [
+   [
+    "('signal', '1', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '10', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1005', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1005', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '102', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '102', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '103', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '105', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '107', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '107', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '108', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '108', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '109', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '109', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '11', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '5')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '11', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '12', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '12', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '13', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '13', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '3')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '13', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '14', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '14', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '15', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '5')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '15', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '16', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '16', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '17', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '18', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '18', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '19', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '19', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '18')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '20')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '22')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '24')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2005', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2005', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '11')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '15')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '18')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '20')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '22')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '24')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '20')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '22')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '24')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '6', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '6', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '7', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '7', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '7', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '8', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '5')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '8', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9101', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9102', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9103', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9104', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9105', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9106', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9107', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9108', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('vsl', '63', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '70')",
+    "110",
+    "91"
+   ]
+  ],
+  "readback_csv_vsl": [
+   "kind,no,time_int,expected,actual",
+   "native_simulation,RandSeed,,41,41",
+   "native_simulation,SimRes,,10,10",
+   "native_simulation,NumRuns,,1,1",
+   "native_simulation,SimPeriod,,9001,9001",
+   "native_recording,VehRecResolution,,50,50",
+   "native_recording,VehRecFromTime,,5,5",
+   "fixed_simulation,SimPeriod,,9001,9001"
+  ],
+  "readback_csv_nc3": [
+   "kind,no,time_int,expected,actual",
+   "native_simulation,RandSeed,,41,41",
+   "native_simulation,SimRes,,10,10",
+   "native_simulation,NumRuns,,1,1",
+   "native_recording,VehRecResolution,,50,50",
+   "native_recording,VehRecFromTime,,5,5"
+  ],
+  "run_json_keys": {
+   "completed": true,
+   "exit_code": 0,
+   "fixed_profile_validation_exit_code": 0,
+   "started": "2026-10-27T10:58:06.6033435+09:00",
+   "finished": "2026-10-27T12:39:39.6077278+09:00",
+   "seed": 41
+  }
+ },
+ "43": {
+  "assets_equal": true,
+  "assets_n": 43,
+  "assets_not_equal": [],
+  "assets_extra_in_vsl": [],
+  "inpx": {
+   "vsl": "baseline_s43_v3c3vsl.inpx",
+   "nc3": "baseline_s43_v3c3nc.inpx",
+   "vsl_sha": "94318d4d1c235fa800da70cbcfff85e13567092a86c628e62010b9b03396549f",
+   "nc3_sha": "51478c397b3a2570fc2254a9fa8120a2415304942589f5fb5c2eb1b6858f2dda",
+   "vsl_lines": 36097,
+   "nc3_lines": 35979
+  },
+  "inpx_hunks_n": 8,
+  "inpx_removed_n": 8,
+  "inpx_added_n": 126,
+  "removed_tags": {
+   "dataColl": 1,
+   "delays": 1,
+   "linkResults": 1,
+   "nodeRawData": 1,
+   "queues": 1,
+   "scDetRec": 1,
+   "vehTravTmRawData": 1,
+   "vehTravTms": 1
+  },
+  "added_tags": {
+   "<blank>": 2,
+   "dataCollectionMeasurement": 58,
+   "dataCollectionPoint": 58,
+   "dataColl": 1,
+   "delays": 1,
+   "linkResults": 1,
+   "nodeRawData": 1,
+   "queues": 1,
+   "scDetRec": 1,
+   "vehTravTmRawData": 1,
+   "vehTravTms": 1
+  },
+  "removed_lines": [
+   "\t\t<dataColl collectData=\"false\" fromTime=\"0\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<delays collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<linkResults collectData=\"false\" fromTime=\"600\" interval=\"150\" perLane=\"false\" toTime=\"10800\" />",
+   "\t\t<nodeRawData fromTime=\"0\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"false\" />",
+   "\t\t<queues collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "\t\t<scDetRec writeFile=\"false\" />",
+   "\t\t<vehTravTmRawData fromTime=\"1800\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"false\" />",
+   "\t\t<vehTravTms aggrBySect=\"DESTINATION\" collectData=\"false\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />"
+  ],
+  "added_non_detector_lines": [
+   "<dataColl collectData=\"true\" fromTime=\"0\" interval=\"150\" toTime=\"10800\" />",
+   "<delays collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "<linkResults collectData=\"true\" fromTime=\"600\" interval=\"150\" perLane=\"false\" toTime=\"10800\" />",
+   "<nodeRawData fromTime=\"0\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"true\" />",
+   "<queues collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />",
+   "<scDetRec writeFile=\"true\" />",
+   "<vehTravTmRawData fromTime=\"1800\" toTime=\"9000\" writeDatabase=\"false\" writeFile=\"true\" />",
+   "<vehTravTms aggrBySect=\"DESTINATION\" collectData=\"true\" fromTime=\"600\" interval=\"150\" toTime=\"10800\" />"
+  ],
+  "hunks": [
+   {
+    "tag": "insert",
+    "nc3": [
+     2746,
+     2745
+    ],
+    "vsl": [
+     2746,
+     2804
+    ]
+   },
+   {
+    "tag": "insert",
+    "nc3": [
+     3063,
+     3062
+    ],
+    "vsl": [
+     3122,
+     3180
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5398,
+     5398
+    ],
+    "vsl": [
+     5516,
+     5516
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5400,
+     5400
+    ],
+    "vsl": [
+     5518,
+     5518
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5403,
+     5403
+    ],
+    "vsl": [
+     5521,
+     5521
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5406,
+     5406
+    ],
+    "vsl": [
+     5524,
+     5524
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5422,
+     5423
+    ],
+    "vsl": [
+     5540,
+     5541
+    ]
+   },
+   {
+    "tag": "replace",
+    "nc3": [
+     5463,
+     5464
+    ],
+    "vsl": [
+     5581,
+     5582
+    ]
+   }
+  ],
+  "dsd63_66_vsl": [
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 1\" name=\"RW_VSL_RW_FW_E_S5_L2_LN1\" no=\"63\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 2\" name=\"RW_VSL_RW_FW_E_S5_L2_LN2\" no=\"64\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 3\" name=\"RW_VSL_RW_FW_E_S5_L2_LN3\" no=\"65\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 4\" name=\"RW_VSL_RW_FW_E_S5_L2_LN4\" no=\"66\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />"
+  ],
+  "dsd63_66_nc3": [
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 1\" name=\"RW_VSL_RW_FW_E_S5_L2_LN1\" no=\"63\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 2\" name=\"RW_VSL_RW_FW_E_S5_L2_LN2\" no=\"64\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 3\" name=\"RW_VSL_RW_FW_E_S5_L2_LN3\" no=\"65\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />",
+   "<desSpeedDecision anmFlag=\"false\" lane=\"2 4\" name=\"RW_VSL_RW_FW_E_S5_L2_LN4\" no=\"66\" pos=\"3998.6659943877257\" timeFrom=\"0\" timeTo=\"99999\"> | <vehClassDesSpeedDistr> | <vehClassDesSpeedDistribution desSpeedDistr=\"110\" vehClass=\"10\" />"
+  ],
+  "dist91_vsl": [
+   "<desSpeedDistribution name=\"91 km/h\" no=\"91\"> | <speedDistrDatPts> | <speedDistributionDataPoint fx=\"0\" x=\"90\" /> | <speedDistributionDataPoint fx=\"1\" x=\"92\" />"
+  ],
+  "sim_line_vsl": [
+   "<simulation comment=\"\" numCores=\"1\" numRuns=\"1\" randSeed=\"43\" randSeedIncr=\"1\" retroSync=\"false\" simMode=\"MICRO\" simPeriod=\"9001\" simRes=\"10\" simSpeed=\"1\" startTm=\"0\" useAllCores=\"false\" useMaxSimSpeed=\"true\" volumeIncrDynAssign=\"0\" />"
+  ],
+  "sim_line_nc3": [
+   "<simulation comment=\"\" numCores=\"1\" numRuns=\"1\" randSeed=\"43\" randSeedIncr=\"1\" retroSync=\"false\" simMode=\"MICRO\" simPeriod=\"9001\" simRes=\"10\" simSpeed=\"1\" startTm=\"0\" useAllCores=\"false\" useMaxSimSpeed=\"true\" volumeIncrDynAssign=\"0\" />"
+  ],
+  "events": {
+   "n": 16,
+   "kinds": [
+    "vsl"
+   ],
+   "times": [
+    "900"
+   ],
+   "nos": [
+    63,
+    64,
+    65,
+    66
+   ],
+   "classes": [
+    "10",
+    "20",
+    "30",
+    "70"
+   ],
+   "values": [
+    "91"
+   ]
+  },
+  "readback_phase_counts": {
+   "0|initial|signal": 440,
+   "0|initial|vsl": 424,
+   "900|write|vsl": 16,
+   "9000|final|signal": 440,
+   "9000|final|vsl": 424
+  },
+  "readback_non_initial_final": [
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "63",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "64",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "65",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "10",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "20",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "30",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   },
+   {
+    "time_s": "900",
+    "phase": "write",
+    "kind": "vsl",
+    "no": "66",
+    "veh_class": "70",
+    "expected": "91",
+    "actual": "91",
+    "contr_by_com": "",
+    "ok": "1"
+   }
+  ],
+  "readback_writes_n": 16,
+  "readback_writes_all_ok": true,
+  "final_dsd63_66": [
+   [
+    "63",
+    "10",
+    "91"
+   ],
+   [
+    "63",
+    "20",
+    "91"
+   ],
+   [
+    "63",
+    "30",
+    "91"
+   ],
+   [
+    "63",
+    "70",
+    "91"
+   ],
+   [
+    "64",
+    "10",
+    "91"
+   ],
+   [
+    "64",
+    "20",
+    "91"
+   ],
+   [
+    "64",
+    "30",
+    "91"
+   ],
+   [
+    "64",
+    "70",
+    "91"
+   ],
+   [
+    "65",
+    "10",
+    "91"
+   ],
+   [
+    "65",
+    "20",
+    "91"
+   ],
+   [
+    "65",
+    "30",
+    "91"
+   ],
+   [
+    "65",
+    "70",
+    "91"
+   ],
+   [
+    "66",
+    "10",
+    "91"
+   ],
+   [
+    "66",
+    "20",
+    "91"
+   ],
+   [
+    "66",
+    "30",
+    "91"
+   ],
+   [
+    "66",
+    "70",
+    "91"
+   ]
+  ],
+  "initial_vs_final_diffs": [
+   [
+    "('signal', '1', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '10', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '10', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1001', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1002', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1004', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1005', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '1005', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '1005', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '101', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '101', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '102', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '102', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '102', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '103', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '103', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '104', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '104', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '105', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '105', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '106', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '106', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '107', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '107', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '107', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '108', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '108', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '108', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '109', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '109', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '109', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '11', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '5')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '11', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '11', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '12', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '12', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '12', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '13', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '13', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '3')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '13', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '13', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '14', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '14', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '14', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '1')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '15', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '5')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '15', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '15', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '16', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '16', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '16', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '17', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '17', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '18', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '18', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '18', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '19', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '19', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '19', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '18')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '20')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '22')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '24')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2001', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2002', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2004', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2005', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '2005', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '2005', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '11')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '15')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '3')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '7')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '3', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '3', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '10')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '14')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '18')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '20')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '22')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '24')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '4', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '4', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '12')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '16')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '19')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '20')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '21')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '22')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '23')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '24')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '5', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '5', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '6', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '6', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '6', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '7', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '7', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '7', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '7', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '1')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '8', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '5')",
+    "",
+    "AMBER"
+   ],
+   [
+    "('signal', '8', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '8', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '10')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9', '9')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '11')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '12')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '13')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '14')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '15')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '16')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '17')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '18')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9001', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9001', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9002', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9002', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9002', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '2')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '4')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9003', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '6')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9003', '8')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '1')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '2')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '3')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '4')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '5')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '6')",
+    "",
+    "GREEN"
+   ],
+   [
+    "('signal', '9004', '7')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9004', '8')",
+    "",
+    "RED"
+   ],
+   [
+    "('signal', '9101', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9102', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9103', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9104', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9105', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9106', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9107', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('signal', '9108', '1')",
+    "",
+    "OFF"
+   ],
+   [
+    "('vsl', '63', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '63', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '64', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '65', '70')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '10')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '20')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '30')",
+    "110",
+    "91"
+   ],
+   [
+    "('vsl', '66', '70')",
+    "110",
+    "91"
+   ]
+  ],
+  "readback_csv_vsl": [
+   "kind,no,time_int,expected,actual",
+   "native_simulation,RandSeed,,43,43",
+   "native_simulation,SimRes,,10,10",
+   "native_simulation,NumRuns,,1,1",
+   "native_simulation,SimPeriod,,9001,9001",
+   "native_recording,VehRecResolution,,50,50",
+   "native_recording,VehRecFromTime,,5,5",
+   "fixed_simulation,SimPeriod,,9001,9001"
+  ],
+  "readback_csv_nc3": [
+   "kind,no,time_int,expected,actual",
+   "native_simulation,RandSeed,,43,43",
+   "native_simulation,SimRes,,10,10",
+   "native_simulation,NumRuns,,1,1",
+   "native_recording,VehRecResolution,,50,50",
+   "native_recording,VehRecFromTime,,5,5"
+  ],
+  "run_json_keys": {
+   "completed": true,
+   "exit_code": 0,
+   "fixed_profile_validation_exit_code": 0,
+   "started": "2026-10-27T10:59:07.7254459+09:00",
+   "finished": "2026-10-27T12:39:43.1427719+09:00",
+   "seed": 43
+  }
+ }
+}

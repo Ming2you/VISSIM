@@ -1,0 +1,31 @@
+[
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/gate1/g1_summary.py",
+  "src_sha256": "cf1786c878bfecfe4bb896fa8886ab6fc0125025557ba43cfbff89e3a0f33370",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/gate1/g1_summary_r2.py",
+  "dst_sha256": "520bb2b99a3cda8fc637572cbcbf80e735302ab3eb338ee0d3fd2014b054b5f5",
+  "eol": "LF",
+  "why": "r2 after data: freeze_verify_after.txt is UTF-16LE (PS 5.1 redirection); r1 read it as UTF-8 and missed FREEZE_VERIFIED",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     216,
+     216
+    ],
+    "dst_lines": [
+     216,
+     217
+    ],
+    "old": [
+     "    t = open(fv, encoding='utf-8', errors='replace').read()"
+    ],
+    "new": [
+     "    raw_fv = open(fv, 'rb').read()   # r2: PS 5.1 '>' writes UTF-16LE with BOM",
+     "    t = raw_fv.decode('utf-16') if raw_fv[:2] in (b'\\xff\\xfe', b'\\xfe\\xff') else raw_fv.decode('utf-8', errors='replace')"
+    ]
+   }
+  ]
+ }
+]

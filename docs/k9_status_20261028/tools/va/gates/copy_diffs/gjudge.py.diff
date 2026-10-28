@@ -1,0 +1,277 @@
+--- k8b_orig/gjudge.py	2026-10-14 18:52:22.111627700 +0900
++++ gjudge.py	2026-10-23 08:52:15.114180600 +0900
+@@ -1,10 +1,19 @@
+-"""Judges of the Gates stage (amendment 21 sections 6-8, amendment 22 section 8, OG_METHOD.md 2-5), written before any
+-gate data of this stage.  Read-only; BLIND (paths, kinds, counts, sha, booleans; never an objective / prediction value).
++"""Judges of the V-A OfflineGates stage (amendment 34 section 5, OG_METHOD.md 2-5), written before any gate data of this
++stage.  Read-only; BLIND (paths, kinds, counts, sha, booleans; never an objective / prediction value).
+ 
+-Profiles make the same judge runnable on the FRZ_K8 outputs (OUT8) for a self-test:
+-  PROFILE_NEW: OUT = OUTH, root = FRZ_K8', head = K8-10, tuning d0f9ef39, GB-9' Root = GWT8 @ K8-10.
+-  PROFILE_K8 : OUT = OUT8, root = FRZ_K8,  head = 74cd495f, tuning 5f0d0e40 (self-test only).
+-Functions return dicts with 'status' in {PASS, FAIL, HOLD(보류), INCOMPLETE, PROGRESS_DK912}."""
++Copy of the K8b judge SP/j1/fix/gates/gjudge.py (b9daf7cd...).  Differences = amendment 34 section 5.0 R4 closed list:
++  item 1  expected values: PROFILE_NEW = OUTVA, FRZ_K92, K9-2-7, tuning c8e3ee2c..., FRZ_K92 gb7_allowed.py
++          (file sha = K9-2-7 blob bytes sha, list a8148f38...7af1).  FRZ7, K7 GB-9 wall reference, R-obs3 unchanged.
++  item 2  gb7_row condition 7 = gb7_k92decl.judge_cond7(...)['c7_A_or_EK92'] (section 5.2-4, floor key
++          head_discharge_floor_173_p4_e36d6761cfeac634, evidence Root = FRZ_K92); c7_declared_A, outside_A,
++          outside_A_and_EK92, ek92 hits / checks are report fields; per-item hits counted with gb7_k92decl.which.
++  item 3  GB-7' PASS also needs control_fields_equal_count == 61; each hash A/B run also needs control_fields_equal.
++  item 4  the D-K9-12 branch (PROGRESS_DK912) and DK912_PATH are removed (raw_get went with it).
++  item 5  cmp21 / judge_pairs / gh2*_pairs (G-H2a-d) are removed.
++  item 7  PROFILE_K8B (FRZ_K8b, b9734abe, d0f9ef39..., list f954c2b0..., OUTH) is for self-test (i) only; its E_K92
++          evidence Root is FRZ_K8b.  Because the two profiles use different lists, the list module is a profile entry
++          (P['G']) instead of a module global.
++Functions return dicts with 'status' in {PASS, FAIL, INCOMPLETE}."""
+ import os
+ import sys
+ from pathlib import Path
+@@ -12,17 +21,22 @@
+ sys.dont_write_bytecode = True
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+ import gcommon as c  # noqa: E402
+-import cmp21  # noqa: E402
++import gb7_k92decl as ek  # noqa: E402
+ 
+-PROFILE_NEW = {'name': 'FRZ_K8b', 'OUT': c.OUTH, 'FRZ': c.FRZN, 'HEAD': c.HEAD, 'TUNING': c.TUNING_SHA, 'WT': c.WT}
+-PROFILE_K8 = {'name': 'FRZ_K8(selftest)', 'OUT': c.OUT8, 'FRZ': c.FRZ8, 'HEAD': c.HEAD74, 'TUNING': c.TUNING74_SHA,
+-              'WT': c.WT}
++EK92_FILE_SHA = c.sha256_file(Path(ek.__file__))
++if EK92_FILE_SHA != c.EK92_SHA:
++    raise SystemExit('gb7_k92decl.py sha %s != fixed %s (S-A34-11)' % (EK92_FILE_SHA, c.EK92_SHA))
++G_NEW, LREC_NEW = c.load_allowed()
++G_K8B, LREC_K8B = c.load_allowed(c.FRZ8, c.ALLOWED_FILE_K8B_SHA, c.LIST_K8B_SHA, c.A_K8_N_K8B)
++PROFILE_NEW = {'name': 'FRZ_K92', 'OUT': c.OUTV, 'FRZ': c.FRZN, 'HEAD': c.HEAD, 'TUNING': c.TUNING_SHA, 'WT': c.WT,
++               'G': G_NEW, 'LREC': LREC_NEW, 'EK92_ROOT': c.FRZN, 'FLOOR_KEY': c.FLOOR_KEY}
++PROFILE_K8B = {'name': 'FRZ_K8b(selftest)', 'OUT': c.OUTH, 'FRZ': c.FRZ8, 'HEAD': c.HEAD_K8B,
++               'TUNING': c.TUNING_K8B_SHA, 'WT': c.WT, 'G': G_K8B, 'LREC': LREC_K8B, 'EK92_ROOT': c.FRZ8,
++               'FLOOR_KEY': c.FLOOR_KEY}
+ TIMES = [1] + [150 * k for k in range(1, 61)]
+ K7_WALL = {900: (670, 657.096231), 2700: (573.3, 560.722297), 4950: (664, 650.498557), 6300: (649.6, 636.919625)}
+ CONTROL_FIELDS = ('N_P_star', 'N_UF_star', 'ramp_metering', 'vsl', 'green_times', 'offsets', 'inflow_outflow_allocation')
+-DK912_PATH = '/diagnostics/leg_ramp_split_len_SC1001_W_out'
+-G, LREC = c.load_allowed()
+-V7 = tuple(G.V)
++COND_KEYS = ('c1_prepare', 'c2_ps1_and_compare', 'c3_freeze', 'c4_roots', 'c5_tuning', 'c6_S', 'c7_diff_in_A', 'c8_csv')
+ 
+ 
+ def norm(p):
+@@ -49,15 +63,6 @@
+     return out
+ 
+ 
+-def raw_get(doc, path):
+-    cur = doc
+-    for part in path.strip('/').split('/'):
+-        if not isinstance(cur, dict) or part not in cur:
+-            return cmp21.MISSING
+-        cur = cur[part]
+-    return cur
+-
+-
+ def standing(s):
+     rr = s.get('replay_run') or {}
+     st = s.get('standing') or {}
+@@ -69,7 +74,8 @@
+ 
+ 
+ def gb7_row(s, T, P):
+-    """OG_METHOD.md section 2 conditions 1-8 (no-control replay, Root = the profile's frozen root)."""
++    """OG_METHOD.md section 2 conditions 1-8 (no-control replay, Root = the profile's frozen root); condition 7 =
++    A or E_K92 (amendment 34 section 5.2)."""
+     s6 = '%06d' % T
+     d = Path(s['replay_dir'])
+     r = {'T': T, 'tag': s.get('tag')}
+@@ -109,13 +115,20 @@
+         a, b = c.read_json(a_path), c.read_json(b_path)
+         diff = raw_diff(a, b)
+         paths = [p for p, _ in diff]
+-        outside = G.outside(paths)
++        j = ek.judge_cond7(a, b, P['G'], P['EK92_ROOT'], floor_key=P['FLOOR_KEY'])
+         r['diff_count'] = len(paths)
+-        r['diff_outside_A'] = [list(x) for x in diff if x[0] in set(outside)][:200]
+-        r['c7_diff_in_A'] = not outside
++        r['c7_diff_in_A'] = j['c7_A_or_EK92'] is True
++        r['c7_declared_A'] = j['c7_declared_A'] is True
++        r['diff_outside_A'] = j['outside_A']
++        r['diff_outside_A_EK92'] = j['outside_A_and_EK92']
++        r['ek92'] = {'hits': j['ek92_hits'], 'checks': j['ek92_checks'], 'floor_key': j['floor_key'],
++                     'allowed_list_sha256': j['allowed_list_sha256'],
++                     'allowed_list_is_expected': j['allowed_list_is_expected'],
++                     'outside_A_count': j['outside_A_count'], 'outside_A_and_EK92_count': j['outside_A_and_EK92_count']}
++        ok_paths = tuple(p for p, _e in j['ek92_hits'])
+         hits = {}
+         for p, kind in diff:
+-            w = G.which(p) or 'OUTSIDE'
++            w = ek.which(p, P['G'], P['FLOOR_KEY'], ok_paths)
+             h = hits.setdefault(w, {'paths': 0, 'kinds': {}})
+             h['paths'] += 1
+             h['kinds'][kind] = h['kinds'].get(kind, 0) + 1
+@@ -125,17 +138,19 @@
+         r['control_fields_equal'] = all(not raw_diff(a.get(k), b.get(k)) for k in CONTROL_FIELDS)
+     else:
+         r['c7_diff_in_A'] = False
++        r['c7_declared_A'] = False
+         r['c8_csv'] = False
+         r['control_fields_equal'] = False
+         r['missing_action'] = [a_path.is_file(), b_path.is_file()]
+     r['adapter_wall_sec'] = rr.get('wall_sec')
+-    r['ok'] = all(r.get(k) is True for k in ('c1_prepare', 'c2_ps1_and_compare', 'c3_freeze', 'c4_roots', 'c5_tuning',
+-                                             'c6_S', 'c7_diff_in_A', 'c8_csv'))
++    r['ok'] = all(r.get(k) is True for k in COND_KEYS)
+     return r
+ 
+ 
+-def judge_gb7(P, gh2a=None):
+-    """GB-7' (OG_METHOD 2) and, for PROFILE_NEW, the amendment 21 section 8 three-way result (D-K9-12)."""
++def judge_gb7(P):
++    """GB-7' (OG_METHOD 2 + amendment 34 sections 5.1 row 1, 5.0 R4 item 3): 61 rows present, conditions 1-8 true in
++    every row (condition 7 = A or E_K92) and control_fields_equal_count == 61 -> PASS; a missing row -> INCOMPLETE;
++    otherwise FAIL.  c7_declared_A (list A alone) is reported only."""
+     rows, missing, fails = [], [], []
+     for T in TIMES:
+         sp = P['OUT'] / 'gb7' / 'A' / ('T%06d.summary.json' % T)
+@@ -153,57 +168,28 @@
+             a['paths'] += h['paths']
+             a['decisions'] += 1
+     res = {'gate': "GB-7'", 'profile': P['name'], 'n_expected': 61, 'n_present': len(rows), 'missing': missing,
+-           'fails': fails, 'pass_count': sum(1 for r in rows if r['ok']), 'allowed_list': LREC, 'hits_by_item': agg,
++           'fails': fails, 'pass_count': sum(1 for r in rows if r['ok']), 'allowed_list': P['LREC'],
++           'ek92_module_sha256': EK92_FILE_SHA, 'ek92_floor_key': P['FLOOR_KEY'], 'ek92_root': str(P['EK92_ROOT']),
++           'hits_by_item': agg,
+            'control_fields_equal_count': sum(1 for r in rows if r.get('control_fields_equal')),
+            'csv_equal_count': sum(1 for r in rows if r.get('c8_csv')),
+-           'cond_true_counts': {k: sum(1 for r in rows if r.get(k) is True) for k in
+-                                ('c1_prepare', 'c2_ps1_and_compare', 'c3_freeze', 'c4_roots', 'c5_tuning', 'c6_S',
+-                                 'c7_diff_in_A', 'c8_csv')},
++           'c7_declared_A_count': sum(1 for r in rows if r.get('c7_declared_A') is True),
++           'cond_true_counts': {k: sum(1 for r in rows if r.get(k) is True) for k in COND_KEYS},
+            'wall_sec_range': [min((r.get('adapter_wall_sec') or 0) for r in rows) if rows else None,
+                               max((r.get('adapter_wall_sec') or 0) for r in rows) if rows else None],
+            'rows': rows}
+     if missing:
+-        res['status_declared'] = 'INCOMPLETE'
+-    elif not fails:
+-        res['status_declared'] = 'PASS'
++        res['status'] = 'INCOMPLETE'
++    elif not fails and res['control_fields_equal_count'] == 61:
++        res['status'] = 'PASS'
+     else:
+-        res['status_declared'] = 'FAIL'
+-    res['status'] = res['status_declared']
+-    if res['status_declared'] == 'FAIL' and P is PROFILE_NEW:
+-        # amendment 21 section 8 case 2: "FAIL(선언 목록 기준) + D-K9-12 예외 적용" (progress verdict) only if all hold.
+-        t1 = next((r for r in rows if r['T'] == 1), None)
+-        cond = {}
+-        cond['gh2a_pass'] = bool(gh2a) and gh2a.get('status') == 'PASS'
+-        nt =(Path(c.HERE).parents[2] / 'K9_1_J1_NOTES_20261013.md').read_text(encoding='utf-8')
+-        cond['qk9r_row_present'] = ('D-K9-22 (Q-K9R 확인 2)' in nt and '같은 사건일 때만 재적용' in nt)
+-        cond['only_T1_fails'] = fails == [1]
+-        others_ok = all(all(r.get(k) is True for k in ('c1_prepare', 'c2_ps1_and_compare', 'c3_freeze', 'c4_roots',
+-                                                        'c5_tuning', 'c6_S', 'c8_csv')) and r.get('control_fields_equal')
+-                        for r in rows)
+-        cond['conditions_1_6_8_and_controls_61of61'] = others_ok and len(rows) == 61
+-        cond['t1_only_condition7'] = bool(t1) and t1.get('c7_diff_in_A') is False and all(
+-            t1.get(k) is True for k in ('c1_prepare', 'c2_ps1_and_compare', 'c3_freeze', 'c4_roots', 'c5_tuning', 'c6_S',
+-                                        'c8_csv'))
+-        outside_t1 = sorted({p for p, _k in (t1 or {}).get('diff_outside_A', [])})
+-        cond['outside_A_set'] = outside_t1
+-        cond['outside_A_is_exactly_dk912_path'] = outside_t1 == [DK912_PATH]
+-        same_value = False
+-        if t1 is not None:
+-            new_doc = c.read_json(c.OUTH / 'gb7' / 'A' / 'T000001' / 'replay' / 'action_000001.json')
+-            old_doc = c.read_json(c.OUT8 / 'gb7' / 'A' / 'T000001' / 'replay' / 'action_000001.json')
+-            va, vb = raw_get(old_doc, DK912_PATH), raw_get(new_doc, DK912_PATH)
+-            same_value = (va is not cmp21.MISSING and vb is not cmp21.MISSING and type(va) is type(vb)
+-                          and not raw_diff(va, vb))
+-        cond['value_equals_FRZ_K8_T1_replay_incl_type'] = same_value
+-        res['dk912'] = cond
+-        if all(v is True for k, v in cond.items() if k not in ('outside_A_set',)):
+-            res['status'] = 'PROGRESS_DK912'
+-            res['status_text'] = 'FAIL(선언 목록 기준) + D-K9-12 예외 적용'
++        res['status'] = 'FAIL'
+     return res
+ 
+ 
+ def judge_hash(P):
+     groups, ok_all, missing = {}, True, []
++    v7 = tuple(P['G'].V)
+     for T in (4050, 4500, 9000):
+         s6 = '%06d' % T
+         g = {'runs': {}, 'pairs': {}}
+@@ -219,12 +205,14 @@
+             r = gb7_row(s, T, P)
+             r['env_pythonhashseed'] = s.get('env_pythonhashseed')
+             r['env_ok'] = s.get('env_pythonhashseed') == (None if seed == 'unset' else seed)
+-            r['ok_h'] = r['ok'] and r['env_ok']
++            r['ok_h'] = r['ok'] and r['env_ok'] and r.get('control_fields_equal') is True
+             ok_all = ok_all and r['ok_h']
+             g['runs'][seed] = {k: r.get(k) for k in ('ok_h', 'ok', 'env_ok', 'env_pythonhashseed', 'c1_prepare',
+                                                      'c2_ps1_and_compare', 'c3_freeze', 'c4_roots', 'c5_tuning',
+-                                                     'c6_S', 'c7_diff_in_A', 'c8_csv', 'diff_count', 'standing',
+-                                                     'adapter_wall_sec', 'diff_outside_A')}
++                                                     'c6_S', 'c7_diff_in_A', 'c8_csv', 'control_fields_equal',
++                                                     'c7_declared_A', 'diff_count', 'standing', 'adapter_wall_sec',
++                                                     'diff_outside_A', 'diff_outside_A_EK92', 'hits')}
++            g['runs'][seed]['ek92_hits'] = (r.get('ek92') or {}).get('hits')
+             g['runs'][seed]['csv_sha256'] = s.get('replay_action_csv_sha256')
+             d = Path(s['replay_dir'])
+             if (d / 'replay' / ('action_%s.json' % s6)).is_file():
+@@ -233,7 +221,7 @@
+             bd, bdir = docs['unset']
+             for seed in ('0', '2'):
+                 doc, d = docs[seed]
+-                diff = [x for x in raw_diff(bd, doc) if x[0] not in V7]
++                diff = [x for x in raw_diff(bd, doc) if x[0] not in v7]
+                 csv_same = ((bdir / 'replay' / ('action_%s.csv' % s6)).read_bytes()
+                             == (d / 'replay' / ('action_%s.csv' % s6)).read_bytes())
+                 g['pairs']['unset_vs_' + seed] = {'json_diff_outside_V': [list(x) for x in diff[:20]], 'n': len(diff),
+@@ -312,48 +300,3 @@
+     expected = 61 + 9 + 4
+     return {'gate': 'S', 'status': 'INCOMPLETE' if n < expected else ('PASS' if not bad else 'FAIL'), 'n': n,
+             'expected': expected, 'bad': bad}
+-
+-
+-def judge_pairs(name, pairs):
+-    """pairs: list of (label, dir_old, dir_new, T, new_root); amendment 21 section 6.4 per decision; all PASS = PASS."""
+-    rows = []
+-    for label, d_old, d_new, T, new_root in pairs:
+-        r = cmp21.compare(d_old, d_new, T, new_root, label=label)
+-        rows.append(r)
+-    st = [r.get('verdict') for r in rows]
+-    if any(v == 'INCOMPLETE' for v in st):
+-        status = 'INCOMPLETE'
+-    elif any(v == 'FAIL' for v in st):
+-        status = 'FAIL'
+-    elif any(v == 'HOLD' for v in st):
+-        status = 'HOLD'
+-    else:
+-        status = 'PASS' if rows else 'INCOMPLETE'
+-    return {'gate': name, 'status': status, 'n': len(rows), 'verdicts': {r['label']: r.get('verdict') for r in rows},
+-            'rows': rows}
+-
+-
+-def gh2a_pairs():
+-    return [('T%06d' % T, c.OUT8 / 'gb7' / 'A' / ('T%06d' % T) / 'replay', c.OUTH / 'gb7' / 'A' / ('T%06d' % T) / 'replay',
+-             T, c.FRZN) for T in TIMES]
+-
+-
+-def gh2b_pairs():
+-    out = []
+-    for T in (4050, 4500, 9000):
+-        for seed in ('unset', '0', '2'):
+-            tag = 'T%06d_h%s_r1' % (T, seed)
+-            out.append((tag, c.OUT8 / 'gb7' / 'H' / tag / 'replay', c.OUTH / 'gb7' / 'H' / tag / 'replay', T, c.FRZN))
+-    return out
+-
+-
+-def gh2c_pairs():
+-    return [('T%06d_r1' % T, c.OUT8 / 'gb9' / 'B' / ('T%06d_r1' % T) / 'replay',
+-             c.OUTH / 'gb9' / 'B' / ('T%06d_r1' % T) / 'replay', T, c.WT) for T in (900, 2700, 4950, 6300)]
+-
+-
+-def gh2d_pairs():
+-    return [('T004050', c.OUTH / 'gh2d' / 'T004050_off' / 'replay', c.OUTH / 'gb7' / 'A' / 'T004050' / 'replay', 4050,
+-             c.FRZN),
+-            ('T002700', c.OUTH / 'gh2d' / 'T002700_off' / 'replay', c.OUTH / 'gb9' / 'B' / 'T002700_r1' / 'replay', 2700,
+-             c.WT)]

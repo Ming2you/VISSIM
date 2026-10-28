@@ -1,0 +1,2183 @@
+{
+ "A": {
+  "counts": {
+   "b1_decisions": 41,
+   "chain_first": [
+    [
+     "VB-31",
+     3000
+    ],
+    [
+     "VB-43",
+     3000
+    ],
+    [
+     "VB-41",
+     3000
+    ],
+    [
+     "VB-41w",
+     1
+    ]
+   ],
+   "chained": [
+    [
+     "VB-31",
+     3150
+    ],
+    [
+     "VB-43",
+     3150
+    ],
+    [
+     "VB-41",
+     3150
+    ],
+    [
+     "VB-41w",
+     150
+    ],
+    [
+     "VB-41w",
+     300
+    ],
+    [
+     "VB-41w",
+     450
+    ],
+    [
+     "VB-41w",
+     600
+    ],
+    [
+     "VB-41w",
+     750
+    ],
+    [
+     "VB-41w",
+     900
+    ],
+    [
+     "VB-41w",
+     1050
+    ]
+   ],
+   "n_chained": 10,
+   "off_decisions": 14,
+   "vb_i4_total": 55
+  },
+  "decisions": [
+   {
+    "T": 3150,
+    "chain": "VB-31",
+    "must_differ_hard_paths": [
+     "/metadata/sdmpc_state/previous_application/receipt_sha256",
+     "/metadata/sdmpc_state/previous_application/source",
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 25,
+    "n_must_differ": 16,
+    "n_must_differ_hard": 3,
+    "n_must_differ_nonhard": 13,
+    "nonhard_outcomes": [
+     "unclassified(D2)",
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 3000,
+    "prev_files": {
+     ".csv": "be0ae31dd49db52ea3324c5140fe1767a6ffca10a9c918ac3e0adc5413ee41ff",
+     ".decision_budget.json": "41c3d5753466b07ef10274c4095b040dc2d2918453ec4a76b2dfa71cfc58c554",
+     ".joint.json": "5ba3c5fcda63c234b962b3ae1e9ed6366399351832c42c99d35507f4f8d6b9d5",
+     ".joint.progress.jsonl": "b636a24a9c548772fcbcfaa5fcc5762e696bfa5c345df1b9cc95b08af7d99307",
+     ".joint_written.json": "a3f0b35a9fd05cda200b3be54c5a32a56124bc46a5ccc1007ea857e82c0b9eb7",
+     ".json": "34d4067dcffcbc487f040d0084055617b1f4e459fcf0c13e82056488cdf6b7f2",
+     ".json.applied": "602f2a857c13546ea9f512297b3ce79906e4ff0b5147f50a2588f7c7507955a8",
+     ".json.sdmpc_pending": "bdc49e0131f564a2a59f9b50ad33260803b02b747892215402124b75fbca5a26",
+     ".stderr.txt": "4e5606299f49dbdcd4dd4932cea0f2b1f42a53dd61868c935283544bd5f9baec",
+     ".stdout.txt": "f79d025f62f4af0ba72e45b9e57fbe5b39224794508ca82c12a3e650567f7f8b"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.json.applied",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "n_value": "<run>/decisions_<name>/action_003000.json.applied",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_003000.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 3150,
+    "chain": "VB-43",
+    "must_differ_hard_paths": [
+     "/metadata/sdmpc_state/previous_application/receipt_sha256",
+     "/metadata/sdmpc_state/previous_application/source",
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 25,
+    "n_must_differ": 16,
+    "n_must_differ_hard": 3,
+    "n_must_differ_nonhard": 13,
+    "nonhard_outcomes": [
+     "unclassified(D2)",
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 3000,
+    "prev_files": {
+     ".csv": "44479f0c09af57db6594a3ef0cbe720ff6669ff0fa1a41d2a1a7054ee901b584",
+     ".decision_budget.json": "e96558d2360e5836315e58bd5bae303d45b1bd9cd11667305e3cd6d2d4e9a670",
+     ".joint.json": "e68ac67d88dce4b503706dbb88044defc3611e5bc063550868f07c07ad3450d9",
+     ".joint.progress.jsonl": "bdd52c6896f1f3719d2ce89e22e6f7279452b92217465a9c1bd4272178006597",
+     ".joint_written.json": "1cdffeeb8a96a7016356e5aa911546c3b537ad44e10324318fae6c76f5137dc8",
+     ".json": "a1e95c80dece8f42f8ced3ad6077c281a47650681b5f5f65032d33acbc0e4c6b",
+     ".json.applied": "61983196eb59ef0ee11de2703422ece699e4300f8b4ce2b7dd1e9ef0fc1fe917",
+     ".json.sdmpc_pending": "bdc49e0131f564a2a59f9b50ad33260803b02b747892215402124b75fbca5a26",
+     ".stderr.txt": "4e5606299f49dbdcd4dd4932cea0f2b1f42a53dd61868c935283544bd5f9baec",
+     ".stdout.txt": "ff4231db80dd07767d9e952f3e9944c734ca55bb1d23afbe773b7b7ffe0c491b"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.json.applied",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "n_value": "<run>/decisions_<name>/action_003000.json.applied",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_003000.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 3150,
+    "chain": "VB-41",
+    "must_differ_hard_paths": [
+     "/metadata/sdmpc_state/previous_application/receipt_sha256",
+     "/metadata/sdmpc_state/previous_application/source",
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 25,
+    "n_must_differ": 16,
+    "n_must_differ_hard": 3,
+    "n_must_differ_nonhard": 13,
+    "nonhard_outcomes": [
+     "unclassified(D2)",
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 3000,
+    "prev_files": {
+     ".csv": "eaedb43fbbdc5a214841b94b77fc90dee124479280bf3e19f52b94eea9ec390d",
+     ".decision_budget.json": "6cf62ffc58ef73ef502af3783ef49cf4157cb7655f8fb25601cef9d38cbf3419",
+     ".joint.json": "f869f06de70b6d6c85de8edabf5fc3cd3d11c8391f75dab714feb3ad4f47829c",
+     ".joint.progress.jsonl": "6af8696b1abb46e9c2484825b0cfe55aacf237fdf6f2b6780d033df796b1abb0",
+     ".joint_written.json": "3248ed813e9db00977ca0bb27803fdf4506e8deb0905d94b1cf7fae28fa4347c",
+     ".json": "8989915534f8c278f1b41389897288f46f30721a42449ac09628a85388f248b9",
+     ".json.applied": "f72c349e10bf098406ab508106311fe284772bb2522abc4302440a62d26772da",
+     ".json.sdmpc_pending": "bdc49e0131f564a2a59f9b50ad33260803b02b747892215402124b75fbca5a26",
+     ".stderr.txt": "4e5606299f49dbdcd4dd4932cea0f2b1f42a53dd61868c935283544bd5f9baec",
+     ".stdout.txt": "755dfb1f6f32516de7c93b1f12329c542c8c27c3732dbb8fd358c4aa674a6c25"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.json.applied",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_003000.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "n_value": "<run>/decisions_<name>/action_003000.json.applied",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_003000.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 150,
+    "chain": "VB-41w",
+    "must_differ_hard_paths": [
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 3,
+    "n_must_differ": 3,
+    "n_must_differ_hard": 1,
+    "n_must_differ_nonhard": 2,
+    "nonhard_outcomes": [
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 1,
+    "prev_files": {
+     ".csv": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+     ".decision_budget.json": "17e5327deab151eb05b018bf165b073c77f1ee739f3b066b6fd005148671a2c1",
+     ".json": "eabe77619c644bd7eb2f04c486a51a8c278181c2ebd87d40c1f143f5821b80ee",
+     ".stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     ".stdout.txt": "12b8dfd282e8c7502e31f868c303e5e72eb0d8c8d211a75ea1c076f6c4bb654d"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000001.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_000001.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 300,
+    "chain": "VB-41w",
+    "must_differ_hard_paths": [
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 3,
+    "n_must_differ": 3,
+    "n_must_differ_hard": 1,
+    "n_must_differ_nonhard": 2,
+    "nonhard_outcomes": [
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 150,
+    "prev_files": {
+     ".csv": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+     ".decision_budget.json": "dc84211c2b0f8a7b6ccdeaa63459f2af87f5fed8c7268723dc4c0caa2e19ab4c",
+     ".json": "192ecf1771575fb877d51248041828890e26f53d5e233ed8ab4ced0f8f74a4df",
+     ".stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     ".stdout.txt": "332d4221f0dfa6c16792347de5d466190790da79dfcc1a79866cfb4a518f2fde"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000150.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_000150.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 450,
+    "chain": "VB-41w",
+    "must_differ_hard_paths": [
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 3,
+    "n_must_differ": 3,
+    "n_must_differ_hard": 1,
+    "n_must_differ_nonhard": 2,
+    "nonhard_outcomes": [
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 300,
+    "prev_files": {
+     ".csv": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+     ".decision_budget.json": "0bdc335e11f18b924cfeb12bd34011b21bad4881162a151a6e804e30f125b324",
+     ".json": "be8941c88106d479627663cae6b56feb56f1e2e0d35d71ac91c6351f346a96e0",
+     ".stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     ".stdout.txt": "724461f52e2cc2ae1f887514f16a7bf2318fbbe6ce3c8f1022543cdc74043fe9"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000300.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_000300.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 600,
+    "chain": "VB-41w",
+    "must_differ_hard_paths": [
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 3,
+    "n_must_differ": 3,
+    "n_must_differ_hard": 1,
+    "n_must_differ_nonhard": 2,
+    "nonhard_outcomes": [
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 450,
+    "prev_files": {
+     ".csv": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+     ".decision_budget.json": "c94c2f55bd039eed1082b06c351de80ffc72339884f27c262184ef291bd7a408",
+     ".json": "4244b04974feb887e4898e2e3ca0e7e953fbd1bb7112f4f5c76e77783f8d8942",
+     ".stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     ".stdout.txt": "cea11cbf879280fa4622a2e246962b2224c3acebeb59a76c2f47586b9403b3b4"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000450.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_000450.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 750,
+    "chain": "VB-41w",
+    "must_differ_hard_paths": [
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 3,
+    "n_must_differ": 3,
+    "n_must_differ_hard": 1,
+    "n_must_differ_nonhard": 2,
+    "nonhard_outcomes": [
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 600,
+    "prev_files": {
+     ".csv": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+     ".decision_budget.json": "b1012976d3230c3d729e61b8aa782c895f942d9b53e985d92e2ad66c16fc00c7",
+     ".json": "14acdb540f1c5f89431b3d6a8abca5f1559401ed72f95c23cb6a5d86f43cd830",
+     ".stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     ".stdout.txt": "895a491c6976179165842726e22d0d1dad8e87ce5e013765d7c0f573d5585bed"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000600.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_000600.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 900,
+    "chain": "VB-41w",
+    "must_differ_hard_paths": [
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 21,
+    "n_must_differ": 12,
+    "n_must_differ_hard": 1,
+    "n_must_differ_nonhard": 11,
+    "nonhard_outcomes": [
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 750,
+    "prev_files": {
+     ".csv": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+     ".decision_budget.json": "320777d35787f991e8ba5c9b35aa0517a7dd82f906a80a8275182a9196d093a5",
+     ".json": "6da9dddeedc87374c71de2226cf32a1509af1ffa24d50ffb3cd064f7d07d9eca",
+     ".stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     ".stdout.txt": "c3f03deb58d53db2d63d74ef711779d428dcb8f74ad7bf3b9b70cc93d2ea592b"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000750.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_000750.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   },
+   {
+    "T": 1050,
+    "chain": "VB-41w",
+    "must_differ_hard_paths": [
+     "/metadata/sdmpc_state/previous_application/receipt_sha256",
+     "/metadata/sdmpc_state/previous_application/source",
+     "/prediction_error/source_action_json"
+    ],
+    "n_leaves": 25,
+    "n_must_differ": 16,
+    "n_must_differ_hard": 3,
+    "n_must_differ_nonhard": 13,
+    "nonhard_outcomes": [
+     "unclassified(D2)",
+     "unclassified(D2b)",
+     "unclassified(not allowed)"
+    ],
+    "other_decision_dir_strings": 2,
+    "prev_T": 900,
+    "prev_files": {
+     ".csv": "879b08faab7ee50bcb944f3d98c2e8545995ffbc309989da729d57e8350a7465",
+     ".decision_budget.json": "496ac02bc74f2d1c5719eabf87b9b2eddcd16577f5911afbcbd6fcec3222e853",
+     ".joint.json": "d244c2f06fd75ac07300067c2f33ec3852ca4228c07c7b615211a7c381cba1dc",
+     ".joint.progress.jsonl": "cdeccbfa1b53e1c729d45a29d27a7a3ca472ce22b183a0f5a2ae7fd5e8e12851",
+     ".joint_written.json": "98d93cbda5c820f20d46aab89f2ae2acc032892e6b6c87d10a2e4354e55ba356",
+     ".json": "0450353077cb5a837bd12ff07e88dcfe3c0917d3d8e79c494a08c3db40ccb7f3",
+     ".json.applied": "574dfdc1d5c962596c7605085223b3049b67a38fef05e253ba7e00ec7d152044",
+     ".json.sdmpc_pending": "bdc49e0131f564a2a59f9b50ad33260803b02b747892215402124b75fbca5a26",
+     ".stderr.txt": "4e5606299f49dbdcd4dd4932cea0f2b1f42a53dd61868c935283544bd5f9baec",
+     ".stdout.txt": "22f306f655efbfde90dd935259145769894b8ebc63c89598beacbebcbe9e68ec"
+    },
+    "rows": [
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.json",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (state path V leaf + wall-clock leaves)",
+      "file": ".json",
+      "hard": null,
+      "outcome": "unclassified(D2b)",
+      "path": "/metadata/n31_binding/vsl_cohort_initialization/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.json.applied",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/price_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/tangent_derivatives[*]/candidate_prediction_reused/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".csv",
+      "hard": null,
+      "n_value": "<run>/decisions_<name>/action_000900.csv",
+      "outcome": "unclassified(not allowed)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/path",
+      "via": "path"
+     },
+     {
+      "differs": "no if the chain CSV of the previous decision = record CSV bytes (VB-I1 H1)",
+      "file": ".csv",
+      "hard": null,
+      "outcome": "unclassified(D2)",
+      "path": "/metadata/joint_leader_selection/surrogate_query/warm_budget_binding/source_action/diagnostics/sdmpc_prediction_sequence/future[*]/diagnostics/physical_ramp_recorded_csv/sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "n_value": "<run>/decisions_<name>/action_000900.json.applied",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/source",
+      "via": "path"
+     },
+     {
+      "differs": "yes: bytes (receipt line 2 = chain CSV path)",
+      "file": ".json.applied",
+      "hard": "H4",
+      "outcome": "HARD H4",
+      "path": "/metadata/sdmpc_state/previous_application/receipt_sha256",
+      "via": "sha"
+     },
+     {
+      "differs": "yes: location (chain file is under OK2/vb; N(OK2 path) keeps OK2 text)",
+      "file": ".json",
+      "hard": "H5",
+      "n_value": "<run>/decisions_<name>/action_000900.json",
+      "outcome": "HARD H5",
+      "path": "/prediction_error/source_action_json",
+      "via": "path"
+     }
+    ]
+   }
+  ],
+  "n_location": {
+   "equal_after_N": false,
+   "ok2_vb": "d:/vissim_runs/20261001_v3c3/reports/k8/k92_b1/vb/vb-41_off/decisions/action_003000.json",
+   "record": "<run>/decisions_<name>/action_003000.json"
+  }
+ },
+ "C": {
+  "hold_files": {
+   "sdmpc31_v3c3_k8j1_s41": [],
+   "sdmpc31_v3c3_k8j1_s43": [],
+   "sdmpc31_v3c3_k8j1r_s31": []
+  },
+  "n_decisions": 41,
+  "rows": [
+   {
+    "T": 3000,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3150,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3300,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3450,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3600,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3750,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3900,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4050,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4200,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4350,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4500,
+    "chain": "VB-31",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1r_s31",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3000,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3150,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3300,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3450,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3600,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3750,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3900,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4050,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4200,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4350,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4500,
+    "chain": "VB-43",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 1,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s43",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3000,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3150,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3300,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3450,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3600,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3750,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 3900,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4050,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4200,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4350,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 4500,
+    "chain": "VB-41",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 1,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": "<absent>",
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 150,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": "<absent>",
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 300,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": "<absent>",
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 450,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": "<absent>",
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 600,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": "<absent>",
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 750,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": "<absent>",
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 900,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   },
+   {
+    "T": 1050,
+    "chain": "VB-41w",
+    "controller_status": "ok",
+    "exception_keys": [],
+    "floor_173_p4_keys": 0,
+    "prior_discarded": 0.0,
+    "run": "sdmpc31_v3c3_k8j1_s41",
+    "sdmpc_active": true,
+    "snapshot_is_T": true,
+    "top_status": "<absent>"
+   }
+  ],
+  "summary": {
+   "VB-31": {
+    "controller_status": [
+     "ok"
+    ],
+    "exception_keys": [],
+    "floor_keys": [
+     1
+    ],
+    "n": 11,
+    "prior_discarded": [
+     "0.0"
+    ],
+    "sdmpc_active_by_T": {
+     "3000": "True",
+     "3150": "True",
+     "3300": "True",
+     "3450": "True",
+     "3600": "True",
+     "3750": "True",
+     "3900": "True",
+     "4050": "True",
+     "4200": "True",
+     "4350": "True",
+     "4500": "True"
+    },
+    "snapshot_is_T_all": true
+   },
+   "VB-41": {
+    "controller_status": [
+     "ok"
+    ],
+    "exception_keys": [],
+    "floor_keys": [
+     0
+    ],
+    "n": 11,
+    "prior_discarded": [
+     "0.0"
+    ],
+    "sdmpc_active_by_T": {
+     "3000": "True",
+     "3150": "True",
+     "3300": "True",
+     "3450": "True",
+     "3600": "True",
+     "3750": "True",
+     "3900": "True",
+     "4050": "True",
+     "4200": "True",
+     "4350": "True",
+     "4500": "True"
+    },
+    "snapshot_is_T_all": true
+   },
+   "VB-41w": {
+    "controller_status": [
+     "ok"
+    ],
+    "exception_keys": [],
+    "floor_keys": [
+     0
+    ],
+    "n": 8,
+    "prior_discarded": [
+     "0.0"
+    ],
+    "sdmpc_active_by_T": {
+     "1": "<absent>",
+     "150": "<absent>",
+     "300": "<absent>",
+     "450": "<absent>",
+     "600": "<absent>",
+     "750": "<absent>",
+     "900": "True",
+     "1050": "True"
+    },
+    "snapshot_is_T_all": true
+   },
+   "VB-43": {
+    "controller_status": [
+     "ok"
+    ],
+    "exception_keys": [],
+    "floor_keys": [
+     1
+    ],
+    "n": 11,
+    "prior_discarded": [
+     "0.0"
+    ],
+    "sdmpc_active_by_T": {
+     "3000": "True",
+     "3150": "True",
+     "3300": "True",
+     "3450": "True",
+     "3600": "True",
+     "3750": "True",
+     "3900": "True",
+     "4050": "True",
+     "4200": "True",
+     "4350": "True",
+     "4500": "True"
+    },
+    "snapshot_is_T_all": true
+   }
+  }
+ },
+ "receipts": [
+  {
+   "chain": "VB-31",
+   "line1_is_prev_T": true,
+   "line2_N": "<run>/decisions_<name>/action_003000.csv",
+   "line2_is_record_csv": true,
+   "line3_is_csv_size": true,
+   "n_lines": 3,
+   "prev_T": 3000,
+   "receipt_sha256": "602f2a857c13546ea9f512297b3ce79906e4ff0b5147f50a2588f7c7507955a8"
+  },
+  {
+   "chain": "VB-43",
+   "line1_is_prev_T": true,
+   "line2_N": "<run>/decisions_<name>/action_003000.csv",
+   "line2_is_record_csv": true,
+   "line3_is_csv_size": true,
+   "n_lines": 3,
+   "prev_T": 3000,
+   "receipt_sha256": "61983196eb59ef0ee11de2703422ece699e4300f8b4ce2b7dd1e9ef0fc1fe917"
+  },
+  {
+   "chain": "VB-41",
+   "line1_is_prev_T": true,
+   "line2_N": "<run>/decisions_<name>/action_003000.csv",
+   "line2_is_record_csv": true,
+   "line3_is_csv_size": true,
+   "n_lines": 3,
+   "prev_T": 3000,
+   "receipt_sha256": "f72c349e10bf098406ab508106311fe284772bb2522abc4302440a62d26772da"
+  },
+  {
+   "chain": "VB-41w",
+   "line1_is_prev_T": true,
+   "line2_N": "<run>/decisions_<name>/action_000900.csv",
+   "line2_is_record_csv": true,
+   "line3_is_csv_size": true,
+   "n_lines": 3,
+   "prev_T": 900,
+   "receipt_sha256": "574dfdc1d5c962596c7605085223b3049b67a38fef05e253ba7e00ec7d152044"
+  }
+ ],
+ "schema": "vvb-a/v1",
+ "tool_sha256": "b3e62b1fa9139916c8a24cf6a88a0b30eefa457a5703bb189d32afd15098b1fa"
+}

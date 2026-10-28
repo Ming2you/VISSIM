@@ -1,0 +1,13 @@
+old_sha256 d0f9ef395d4f9c51e6c68412f7c33abd546217e0d8cdc59d3c620183fa7aaec6 bytes 278142
+new_sha256 c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866 bytes 278607
+diff /urban/capacity/head_floor_seed new_only
+diff /urban/sc109w_through_saturation new_only
+check_two_paths True
+check_new_side_only True
+value /urban/capacity/head_floor_seed {"evidence": "diagnostics/sdmpc_n31_20260924/k92/head_floor_seed_v3c3_robs_20261016.json", "evidence_sha256": "b9fa1d01b9d922e9fc327793aa428cd7b544dae221044704dea7f0af610f20ee"}
+evidence /urban/capacity/head_floor_seed declared_ok True file_sha256 b9fa1d01b9d922e9fc327793aa428cd7b544dae221044704dea7f0af610f20ee file_eq_declared True
+value /urban/sc109w_through_saturation {"evidence": "diagnostics/sdmpc_n31_20260924/k92/sc109w_through_saturation_v3b_u4_20261016.json", "evidence_sha256": "b4b7294df0369874ea53dd5f0538abd31bac1c946aebdf241bdc7837a7671712"}
+evidence /urban/sc109w_through_saturation declared_ok True file_sha256 b4b7294df0369874ea53dd5f0538abd31bac1c946aebdf241bdc7837a7671712 file_eq_declared True
+policy old hold_previous_on_exception
+policy new hold_previous_on_exception
+P5_ALL_OK

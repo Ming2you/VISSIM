@@ -1,0 +1,636 @@
+{
+ "amendment_declare_sha256": "f57821001a045064a6657937c7e1f280a6a6b277c34fc958613afd9d27bc343a",
+ "code": {
+  "capture_child_stops_at_query": true,
+  "cx_np_only_count": {
+   "area_follower_objective.py": 3,
+   "physical_ramp_branches.py": 2,
+   "sdmpc.py": 2
+  },
+  "k92_stage_open_refuses_other_tokens": true,
+  "lane_buffers_only_in_lane_resolved": true,
+  "load_prices_policy_check": true,
+  "ou_lattice_includes_actual_pm2": true,
+  "ou_lpr_516": [
+   "row['service_by_green_veh_h'],dropped=physical_ramp_branches.measured_head_service_table("
+  ],
+  "ou_np_only_count": {
+   "area_follower_objective.py": 0,
+   "physical_ramp_branches.py": 0,
+   "sdmpc.py": 0
+  },
+  "ou_sd_uses_domain_only_np_values": true,
+  "sd980_line": [
+   "'finite_neighbor_audit_performed': False, 'policy': policy}"
+  ]
+ },
+ "floor_gaps_with_H": {
+  "RM_C10484": [
+   {
+    "floor": 9,
+    "old": 7,
+    "rounded_down": 8
+   }
+  ],
+  "RM_C10490": [
+   {
+    "floor": 9,
+    "old": 7,
+    "rounded_down": 8
+   }
+  ],
+  "RM_C10639": [
+   {
+    "floor": 9,
+    "old": 7,
+    "rounded_down": 8
+   }
+  ],
+  "RM_C10681": [
+   {
+    "floor": 9,
+    "old": 7,
+    "rounded_down": 8
+   }
+  ]
+ },
+ "floor_gaps_without_H": {},
+ "g0_in_lattice_at_actual2": {
+  "RM_C10480": true,
+  "RM_C10482": true,
+  "RM_C10484": true,
+  "RM_C10490": true,
+  "RM_C10639": true,
+  "RM_C10644": true,
+  "RM_C10646": true,
+  "RM_C10681": true
+ },
+ "head": {
+  "dropped": {
+   "RM_C10484": {
+    "9": "10"
+   },
+   "RM_C10490": {
+    "9": "10"
+   },
+   "RM_C10639": {
+    "9": "10"
+   },
+   "RM_C10681": {
+    "9": "10"
+   }
+  },
+  "g10_same_as_current": {
+   "RM_C10484": true,
+   "RM_C10490": true,
+   "RM_C10639": true,
+   "RM_C10681": true
+  },
+  "installed_repr_equals_evidence": {
+   "RM_C10484": true,
+   "RM_C10490": true,
+   "RM_C10639": true,
+   "RM_C10681": true
+  },
+  "ouc_equals_ref_head": true,
+  "ouc_head_keys": [
+   "RM_C10490"
+  ],
+  "ref_head_keys": [
+   "RM_C10490"
+  ],
+  "reference_config_sha8": "add58bc4"
+ },
+ "line_endings": {
+  ".gitattributes": {
+   "cr": 5631,
+   "lf": 5670,
+   "text_attr": "unset"
+  },
+  "evaluation/controllers/area_follower_objective.py": {
+   "cr": 2717,
+   "lf": 3392,
+   "text_attr": "unset"
+  },
+  "evaluation/controllers/lane_plant_runtime.py": {
+   "cr": 794,
+   "lf": 794,
+   "text_attr": "unspecified"
+  },
+  "evaluation/controllers/physical_ramp_branches.py": {
+   "cr": 0,
+   "lf": 555,
+   "text_attr": "unset"
+  },
+  "evaluation/controllers/runtime_setup.py": {
+   "cr": 583,
+   "lf": 595,
+   "text_attr": "unset"
+  },
+  "evaluation/controllers/sdmpc.py": {
+   "cr": 1004,
+   "lf": 1004,
+   "text_attr": "unspecified"
+  },
+  "evaluation/controllers/vissim_stackelberg_adapter.py": {
+   "cr": 0,
+   "lf": 14192,
+   "text_attr": "unset"
+  }
+ },
+ "manifest_diff": [
+  "/membership/path",
+  "/membership/sha256"
+ ],
+ "omega": {
+  "added": 66,
+  "added_equals_declared": true,
+  "added_unique_connector_support_in_membership": false,
+  "inside": 701,
+  "old_inside": 635,
+  "outside": 535,
+  "overlap": 0,
+  "removed": 0,
+  "roads_by_signal_sum": 37,
+  "schema": "control-area-membership/v1",
+  "unresolved": []
+ },
+ "pack_diffs": {
+  "native_input_1083_signal_authority_ver2_022a16.json": {
+   "by_top": {
+    "membership": 2
+   },
+   "n": 2,
+   "value_paths": [
+    "/membership/path",
+    "/membership/sha256"
+   ]
+  },
+  "native_internal_inputs_c92673.json": {
+   "by_top": {
+    "canonical_contract": 2,
+    "membership": 2
+   },
+   "n": 4,
+   "value_paths": [
+    "/canonical_contract/path",
+    "/canonical_contract/sha256",
+    "/membership/path",
+    "/membership/sha256"
+   ]
+  },
+  "physical_projection_support_635_proposal_ec2393.json": {
+   "by_top": {
+    "controlled_approach_revision": 1,
+    "evidence": 33,
+    "link_to_storage": 29
+   },
+   "n": 63,
+   "value_paths": [
+    "/evidence/10379/source_lineage/canonical_contract/path",
+    "/evidence/10379/source_lineage/canonical_contract/sha256",
+    "/evidence/336/downstream_path/canonical_contract/path",
+    "/evidence/336/downstream_path/canonical_contract/sha256"
+   ]
+  },
+  "route_choice_corridor_1099_sc15_calibrated_e02d01.json": {
+   "by_top": {
+    "membership_path": 1
+   },
+   "n": 1,
+   "value_paths": [
+    "/membership_path"
+   ]
+  },
+  "route_choice_corridor_1100_sc15_calibrated_05ed35.json": {
+   "by_top": {
+    "membership_path": 1
+   },
+   "n": 1,
+   "value_paths": [
+    "/membership_path"
+   ]
+  },
+  "route_choice_corridor_1128_ver2_0fd58c.json": {
+   "by_top": {
+    "membership_path": 1
+   },
+   "n": 1,
+   "value_paths": [
+    "/membership_path"
+   ]
+  },
+  "route_choice_corridor_sc1004_calibrated_9e6354.json": {
+   "by_top": {
+    "membership_path": 1
+   },
+   "n": 1,
+   "value_paths": [
+    "/membership_path"
+   ]
+  },
+  "sc2001_corridor_nc13_2d0c62.json": {
+   "by_top": {
+    "membership_path": 1
+   },
+   "n": 1,
+   "value_paths": [
+    "/membership_path"
+   ]
+  }
+ },
+ "pins_b0": {
+  "excluded": [
+   {
+    "backslash": true,
+    "exists": true,
+    "file": "omega701/membership.json",
+    "pointer": "/previous_membership",
+    "relative": true,
+    "sha_ok": true
+   },
+   {
+    "backslash": true,
+    "exists": true,
+    "file": "omega701/membership.json",
+    "pointer": "/area_revision_sources/0",
+    "relative": true,
+    "sha_ok": true
+   },
+   {
+    "backslash": true,
+    "exists": true,
+    "file": "omega701/membership.json",
+    "pointer": "/area_revision_sources/1",
+    "relative": true,
+    "sha_ok": true
+   },
+   {
+    "backslash": true,
+    "exists": true,
+    "file": "omega701/membership.json",
+    "pointer": "/area_revision_sources/2",
+    "relative": true,
+    "sha_ok": false
+   },
+   {
+    "backslash": true,
+    "exists": false,
+    "file": "omega701/membership.json",
+    "pointer": "/area_revision_sources/3",
+    "relative": true,
+    "sha_ok": false
+   }
+  ],
+  "judged": 106,
+  "judged_backslash": 4,
+  "judged_bad": [],
+  "membership_path_fields": [
+   {
+    "exists": true,
+    "file": "evidence/physical_projection_support_635_proposal_ec2393.json",
+    "pointer": "/controlled_approach_revision/membership_path"
+   },
+   {
+    "exists": true,
+    "file": "evidence/sc2001_corridor_nc13_2d0c62.json",
+    "pointer": "/membership_path"
+   },
+   {
+    "exists": true,
+    "file": "evidence/route_choice_corridor_sc1004_calibrated_9e6354.json",
+    "pointer": "/membership_path"
+   },
+   {
+    "exists": true,
+    "file": "evidence/route_choice_corridor_1128_ver2_0fd58c.json",
+    "pointer": "/membership_path"
+   },
+   {
+    "exists": true,
+    "file": "evidence/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
+    "pointer": "/membership_path"
+   },
+   {
+    "exists": true,
+    "file": "evidence/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
+    "pointer": "/membership_path"
+   }
+  ],
+  "total": 111
+ },
+ "pins_declare": {
+  "lines": 53,
+  "ok": 53
+ },
+ "robs": {
+  "31": {
+   "t750_greens": [
+    10.0
+   ],
+   "t750_has_sdmpc_state": false
+  },
+  "43": {
+   "t750_greens": [
+    10.0
+   ],
+   "t750_has_sdmpc_state": false
+  }
+ },
+ "route_contract_sha": [
+  "11d0db79",
+  "08fec9c7"
+ ],
+ "route_inputs_changed": {
+  "input:gate:in_SC1004_S": [
+   "outside_generation",
+   "generation",
+   "unique"
+  ],
+  "input:gate:in_SC107_S": [
+   "outside_generation",
+   "generation",
+   "unique"
+  ],
+  "input:gate:in_SC108_S": [
+   "outside_generation",
+   "generation",
+   "unique"
+  ],
+  "input:gate:in_SC109_E": [
+   "outside_generation",
+   "generation",
+   "unique"
+  ],
+  "input:gate:in_SC12_E": [
+   "outside_generation",
+   "generation",
+   "unique"
+  ],
+  "input:gate:in_SC16_E": [
+   "outside_generation",
+   "generation",
+   "unique"
+  ],
+  "input:gate:in_SC1_S": [
+   "outside_generation",
+   "generation",
+   "unique"
+  ]
+ },
+ "route_mixed_new": 0,
+ "route_mixed_old": 0,
+ "support": {
+  "area_membership_sha8": "4863f5ee",
+  "area_membership_sha_same": true,
+  "aus_eq_new_evidence": true,
+  "aus_eq_new_link_to_storage": true,
+  "aus_n": 29,
+  "aus_subset_added_links": true
+ },
+ "va": {
+  "31": {
+   "audit_flag": false,
+   "sg2_rows_shape_900_2700": [
+    [
+     1,
+     false,
+     false
+    ]
+   ],
+   "t750_greens": [
+    10.0
+   ],
+   "t750_has_sdmpc_state": false,
+   "token16": "428e650ded2f1cb8",
+   "transformed_controllers": [
+    "action_csv_schema.py",
+    "area_follower_objective.py",
+    "area_freeway_accounting.py",
+    "area_leader_objective.py",
+    "area_meter_finalization.py",
+    "area_runtime.py",
+    "beta_source.py",
+    "control_area_objective.py",
+    "diagnostic_profile.py",
+    "diagnostic_signal_profile.py",
+    "fixed_signal_schedule.py",
+    "freeway_fd.py",
+    "freeway_geometry.py",
+    "freeway_local_state.py",
+    "head_service_resources.py",
+    "lane_coupling.py",
+    "lane_freeway_runtime.py",
+    "lane_offramp_runtime.py",
+    "lane_ramp_runtime.py",
+    "lane_urban_runtime.py",
+    "link_predictor.py",
+    "local_signal_service.py",
+    "meter_spill.py",
+    "native_input_prehead.py",
+    "native_input_routes.py",
+    "native_internal_input.py",
+    "native_phase_green.py",
+    "network_provenance.py",
+    "observation_projection.py",
+    "offramp_routing.py",
+    "offset_promotion.py",
+    "physical_movement_routes.py",
+    "physical_ramp_boundary.py",
+    "physical_ramp_branches.py",
+    "physical_urban_transport.py",
+    "plant_cycle.py",
+    "projection_support.py",
+    "route_choice_corridor.py",
+    "runtime_setup.py",
+    "sc2001_corridor.py",
+    "sdmpc.py",
+    "sdmpc_aggregate.py",
+    "sdmpc_continuous.py",
+    "sdmpc_prediction_cache.py",
+    "sdmpc_sequence.py",
+    "sdmpc_tangent_audit.py",
+    "sdmpc_tangent_concurrent.py",
+    "sdmpc_tangent_constraints.py",
+    "sdmpc_tangent_fast.py",
+    "sdmpc_tangent_reverse.py",
+    "sdmpc_tangent_state.py",
+    "sdmpc_tangent_summary.py",
+    "sdmpc_tangent_surrogate.py",
+    "shared_approach.py",
+    "signal_actuation_contract.py",
+    "signal_group_plan.py",
+    "signal_timing_oracle.py",
+    "stopline_approach.py",
+    "urban_flow_accounting.py",
+    "vehicle_routes.py",
+    "vissim_stackelberg_adapter.py"
+   ]
+  },
+  "41": {
+   "audit_flag": false,
+   "sg2_rows_shape_900_2700": [
+    [
+     1,
+     false,
+     false
+    ]
+   ],
+   "t750_greens": [
+    10.0
+   ],
+   "t750_has_sdmpc_state": false,
+   "token16": "428e650ded2f1cb8",
+   "transformed_controllers": [
+    "action_csv_schema.py",
+    "area_follower_objective.py",
+    "area_freeway_accounting.py",
+    "area_leader_objective.py",
+    "area_meter_finalization.py",
+    "area_runtime.py",
+    "beta_source.py",
+    "control_area_objective.py",
+    "diagnostic_profile.py",
+    "diagnostic_signal_profile.py",
+    "fixed_signal_schedule.py",
+    "freeway_fd.py",
+    "freeway_geometry.py",
+    "freeway_local_state.py",
+    "head_service_resources.py",
+    "lane_coupling.py",
+    "lane_freeway_runtime.py",
+    "lane_offramp_runtime.py",
+    "lane_ramp_runtime.py",
+    "lane_urban_runtime.py",
+    "link_predictor.py",
+    "local_signal_service.py",
+    "meter_spill.py",
+    "native_input_prehead.py",
+    "native_input_routes.py",
+    "native_internal_input.py",
+    "native_phase_green.py",
+    "network_provenance.py",
+    "observation_projection.py",
+    "offramp_routing.py",
+    "offset_promotion.py",
+    "physical_movement_routes.py",
+    "physical_ramp_boundary.py",
+    "physical_ramp_branches.py",
+    "physical_urban_transport.py",
+    "plant_cycle.py",
+    "projection_support.py",
+    "route_choice_corridor.py",
+    "runtime_setup.py",
+    "sc2001_corridor.py",
+    "sdmpc.py",
+    "sdmpc_aggregate.py",
+    "sdmpc_continuous.py",
+    "sdmpc_prediction_cache.py",
+    "sdmpc_sequence.py",
+    "sdmpc_tangent_audit.py",
+    "sdmpc_tangent_concurrent.py",
+    "sdmpc_tangent_constraints.py",
+    "sdmpc_tangent_fast.py",
+    "sdmpc_tangent_reverse.py",
+    "sdmpc_tangent_state.py",
+    "sdmpc_tangent_summary.py",
+    "sdmpc_tangent_surrogate.py",
+    "shared_approach.py",
+    "signal_actuation_contract.py",
+    "signal_group_plan.py",
+    "signal_timing_oracle.py",
+    "stopline_approach.py",
+    "urban_flow_accounting.py",
+    "vehicle_routes.py",
+    "vissim_stackelberg_adapter.py"
+   ]
+  },
+  "43": {
+   "audit_flag": false,
+   "sg2_rows_shape_900_2700": [
+    [
+     1,
+     false,
+     false
+    ]
+   ],
+   "t750_greens": [
+    10.0
+   ],
+   "t750_has_sdmpc_state": false,
+   "token16": "428e650ded2f1cb8",
+   "transformed_controllers": [
+    "action_csv_schema.py",
+    "area_follower_objective.py",
+    "area_freeway_accounting.py",
+    "area_leader_objective.py",
+    "area_meter_finalization.py",
+    "area_runtime.py",
+    "beta_source.py",
+    "control_area_objective.py",
+    "diagnostic_profile.py",
+    "diagnostic_signal_profile.py",
+    "fixed_signal_schedule.py",
+    "freeway_fd.py",
+    "freeway_geometry.py",
+    "freeway_local_state.py",
+    "head_service_resources.py",
+    "lane_coupling.py",
+    "lane_freeway_runtime.py",
+    "lane_offramp_runtime.py",
+    "lane_ramp_runtime.py",
+    "lane_urban_runtime.py",
+    "link_predictor.py",
+    "local_signal_service.py",
+    "meter_spill.py",
+    "native_input_prehead.py",
+    "native_input_routes.py",
+    "native_internal_input.py",
+    "native_phase_green.py",
+    "network_provenance.py",
+    "observation_projection.py",
+    "offramp_routing.py",
+    "offset_promotion.py",
+    "physical_movement_routes.py",
+    "physical_ramp_boundary.py",
+    "physical_ramp_branches.py",
+    "physical_urban_transport.py",
+    "plant_cycle.py",
+    "projection_support.py",
+    "route_choice_corridor.py",
+    "runtime_setup.py",
+    "sc2001_corridor.py",
+    "sdmpc.py",
+    "sdmpc_aggregate.py",
+    "sdmpc_continuous.py",
+    "sdmpc_prediction_cache.py",
+    "sdmpc_sequence.py",
+    "sdmpc_tangent_audit.py",
+    "sdmpc_tangent_concurrent.py",
+    "sdmpc_tangent_constraints.py",
+    "sdmpc_tangent_fast.py",
+    "sdmpc_tangent_reverse.py",
+    "sdmpc_tangent_state.py",
+    "sdmpc_tangent_summary.py",
+    "sdmpc_tangent_surrogate.py",
+    "shared_approach.py",
+    "signal_actuation_contract.py",
+    "signal_group_plan.py",
+    "signal_timing_oracle.py",
+    "stopline_approach.py",
+    "urban_flow_accounting.py",
+    "vehicle_routes.py",
+    "vissim_stackelberg_adapter.py"
+   ]
+  }
+ },
+ "vehicle_inputs_on_added_links": [
+  "194",
+  "282",
+  "1064",
+  "1065",
+  "1074",
+  "1082",
+  "1100"
+ ]
+}

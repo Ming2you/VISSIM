@@ -1,0 +1,37 @@
+--- k8b_orig/gb7_report.py	2026-10-14 22:52:50.537633900 +0900
++++ gb7_report.py	2026-10-23 08:53:16.158973300 +0900
+@@ -1,10 +1,13 @@
+ """GB-7' report-only items (OG_METHOD.md section 2 "보고만" (a)(b) + A-item hit counts), amendment 21 section 8 "보고는
+-OG_METHOD §2 '보고만'(a)(b)를 그대로".  Not a judgement.  Reads OUTH gb7/A bundles; writes OUTH/judge/gb7_report.json.
+-(a) for each difference on R3-04/05/06: original value with the FRZ_K7 root prefix replaced by FRZ_K8' (case-insensitive,
++OG_METHOD §2 '보고만'(a)(b)를 그대로".  Not a judgement.  Reads OUTVA gb7/A bundles; writes OUTVA/judge/gb7_report.json.
++(a) for each difference on R3-04/05/06: original value with the FRZ_K7 root prefix replaced by FRZ_K92 (case-insensitive,
+     separators normalized) == replay value?  Values are printed only for the not-equal ones (paths; none expected).
+ (b) R3-03 input names (run_provenance/inputs/<name>/sha256, metadata side included); names outside
+     {tuning_json, adapter_py, main_vbs_runner} listed apart.
+-Also: per A item, number of paths / decisions, max |delta| of numeric leaves (timing leaves only in practice), int leaves."""
++Also: per A item, number of paths / decisions, max |delta| of numeric leaves (timing leaves only in practice), int leaves.
++V-A copy of SP/j1/fix/gates/gb7_report.py (e41cb191...): expected values only (OUTVA, FRZ_K92 via gcommon, FRZ_K92 list
++via gcommon.load_allowed() defaults; amendment 34 5.0 R4 item 1).  Items are list A items; E_K92 paths count as
++'OUTSIDE' here (E1-E4 hits are in judge/gb7_result.json hits_by_item)."""
+ import json
+ import os
+ import re
+@@ -56,7 +59,7 @@
+     agg, r3a_n, r3a_eq, r3a_bad, names, ints = {}, 0, 0, [], set(), 0
+     for T in times:
+         s6 = '%06d' % T
+-        d = c.OUTH / 'gb7' / 'A' / ('T%s' % s6)
++        d = c.OUTV / 'gb7' / 'A' / ('T%s' % s6)
+         a = c.read_json(d / 'original' / ('action_%s.json' % s6))
+         b = c.read_json(d / 'replay' / ('action_%s.json' % s6))
+         ints += int_leaves(a)
+@@ -89,7 +92,7 @@
+            'r3_a': {'n_paths': r3a_n, 'n_prefix_substitution_equal': r3a_eq, 'not_equal': r3a_bad[:50]},
+            'r3_b': {'names': sorted(names), 'outside_expected': sorted(names - R3_EXPECTED)},
+            'int_leaves_original_total': ints}
+-    c.write_json(c.OUTH / 'judge' / 'gb7_report.json', rep)
++    c.write_json(c.OUTV / 'judge' / 'gb7_report.json', rep)
+     print('GB7_REPORT r3a=%d/%d r3b=%s outside=%s items=%s' % (
+         r3a_eq, r3a_n, rep['r3_b']['names'], rep['r3_b']['outside_expected'],
+         {k: (v['paths'], v['decisions']) for k, v in agg.items()}))

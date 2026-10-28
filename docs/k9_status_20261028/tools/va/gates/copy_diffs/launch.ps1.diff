@@ -1,0 +1,15 @@
+--- k8b_orig/launch.ps1	2026-10-14 19:01:59.346481300 +0900
++++ launch.ps1	2026-10-23 08:53:05.352873600 +0900
+@@ -1,10 +1,11 @@
+ # Detached launch of one Gates-stage job (WMI Win32_Process.Create, BELOW_NORMAL, PYTHONHASHSEED=0, python -B).
++# V-A copy of SP/j1/fix/gates/launch.ps1 (f0ae4042...): log folder = OUTVA\logs (amendment 34 5.0 R4 item 1).
+ # powershell -NoProfile -File launch.ps1 -Tag <tag> -Script <script.py> [-ArgLine "<args>"]
+ param([Parameter(Mandatory=$true)][string]$Tag, [Parameter(Mandatory=$true)][string]$Script, [string]$ArgLine = '')
+ $ErrorActionPreference = 'Stop'
+ $here = $PSScriptRoot
+ $py = 'C:\Users\TRLAB\AppData\Local\Programs\Python\Python312\python.exe'
+-$logDir = 'D:\VISSIM_runs\20261001_v3c3\reports\k8\offline_gates_k8h\logs'
++$logDir = 'D:\VISSIM_runs\20261001_v3c3\reports\k8\k92_va\offline_gates\logs'
+ New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+ $log = Join-Path $logDir ("{0}.txt" -f $Tag)
+ if (Test-Path -LiteralPath $log) { throw "log exists (never reused): $log" }

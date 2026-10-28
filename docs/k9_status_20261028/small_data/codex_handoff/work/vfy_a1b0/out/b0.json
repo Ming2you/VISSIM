@@ -1,0 +1,769 @@
+{
+ "sha": {
+  "codex_tuning": "c90882628ddc75c0c75c9a82771c96a50614b297839ec32c506859a969dc1df3",
+  "b_cfg": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+  "g_cfg": "e8a5730aed250e3dbd721c4ce931d2603fed49fe7a77d3022985d046b7e3d855"
+ },
+ "leafdiff_counts": {
+  "changed": 28,
+  "added": 20,
+  "removed": 11
+ },
+ "listed_with_change": {
+  "/control_area_objective/membership_path": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/freeway/lane_plant": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/freeway/offramp_route_inventory": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/observation/physical_branch_projection/source/network/path": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/observation/physical_branch_projection/source/network/sha256": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/observation/physical_support_repair": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/runtime/decision_error_policy": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/arrival/kinematic_contract": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/capacity/head_free_service": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/capacity/head_resource_contract": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/known_wout_route_evidence/path": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/known_wout_route_evidence/sha256": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/movements/dynamic_physical_route_topology": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/movements/native_input_signal_authority": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/movements/physical_phase_authority": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/movements/physical_route_topology": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/native_internal_inputs": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/physical_ramp_branches": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/queue/head_lane_contract": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/route_choice_corridor/evidence_paths": {
+   "changed": 4,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/sc2001_corridor": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/urban/shared_approach": {
+   "changed": 1,
+   "added": 0,
+   "removed": 0
+  },
+  "/adapter/sdmpc_fixed_vsl": {
+   "changed": 0,
+   "added": 3,
+   "removed": 0
+  },
+  "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp": {
+   "changed": 0,
+   "added": 8,
+   "removed": 4
+  },
+  "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp": {
+   "changed": 0,
+   "added": 8,
+   "removed": 4
+  },
+  "/calibration_override/prediction/local_ramp_arrival_forecast/strict_ramp_keys": {
+   "changed": 0,
+   "added": 1,
+   "removed": 0
+  },
+  "/runtime/decision_timeout_sec": {
+   "changed": 0,
+   "added": 0,
+   "removed": 1
+  },
+  "/urban/calibrated_aggregate": {
+   "changed": 0,
+   "added": 0,
+   "removed": 2
+  }
+ },
+ "listed_without_change": [
+  "/route_contract_path",
+  "/regular_alias_pool"
+ ],
+ "changes_outside_listed": [
+  [
+   "changed",
+   "/control_area_objective/route_contract_path"
+  ],
+  [
+   "changed",
+   "/name"
+  ],
+  [
+   "changed",
+   "/urban/capacity/regular_alias_pool"
+  ]
+ ],
+ "n_changes_outside_listed": 3,
+ "key_values": {
+  "/adapter/sdmpc_fixed_vsl": {
+   "codex": "<<absent>>",
+   "b": {
+    "start_sec": 0,
+    "base_kmh": 110,
+    "zone_kmh": {}
+   },
+   "groupkeys": {
+    "start_sec": 0,
+    "base_kmh": 110,
+    "zone_kmh": {}
+   }
+  },
+  "/urban/calibrated_aggregate": {
+   "codex": {
+    "path": "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native348/calibration.json",
+    "sha256": "be929a1db8f0b0117412b32ce013b8eaaff80bfd3a2e2946baa1148efcb75d17"
+   },
+   "b": "<<absent>>",
+   "groupkeys": "<<absent>>"
+  },
+  "/runtime/decision_error_policy": {
+   "codex": "hold_previous",
+   "b": "hold_previous_on_exception",
+   "groupkeys": "hold_previous_on_exception"
+  },
+  "/runtime/decision_timeout_sec": {
+   "codex": 1800,
+   "b": "<<absent>>",
+   "groupkeys": "<<absent>>"
+  },
+  "/freeway/lane_plant": {
+   "codex": "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/candidate_manifest.json",
+   "b": "diagnostics/b0_v3c3/lane_plant/candidate_manifest.json",
+   "groupkeys": "diagnostics/b0_v3c3/lane_plant/candidate_manifest.json"
+  },
+  "/execution/signal_vbs_config": {
+   "codex": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/lane_native_b110.vbs",
+   "b": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/lane_native_b110.vbs",
+   "groupkeys": "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/lane_native_b110.vbs"
+  },
+  "/calibration_override/prediction/local_ramp_arrival_forecast": {
+   "codex": {
+    "enabled": true,
+    "blend": "max",
+    "queue_drain_horizon_sec": 120.0,
+    "min_vph_if_observed": 120.0,
+    "max_vph_per_ramp": 900.0,
+    "multiplier": 1.0,
+    "queue_drain_horizon_sec_by_ramp": {
+     "R_D_W": 33.5,
+     "R_F_W": 77.2,
+     "R_D_E": 30.7,
+     "R_F_E": 6.5
+    },
+    "max_vph_by_ramp": {
+     "R_D_W": 865.0,
+     "R_F_W": 1394.0,
+     "R_D_E": 1079.0,
+     "R_F_E": 638.0
+    }
+   },
+   "b": {
+    "enabled": true,
+    "blend": "max",
+    "queue_drain_horizon_sec": 120.0,
+    "min_vph_if_observed": 120.0,
+    "max_vph_per_ramp": 900.0,
+    "multiplier": 1.0,
+    "queue_drain_horizon_sec_by_ramp": {
+     "RM_C10480": 17.4,
+     "RM_C10482": 43.0,
+     "RM_C10646": 31.1,
+     "RM_C10644": 88.4,
+     "RM_C10639": 38.6,
+     "RM_C10681": 154.3,
+     "RM_C10490": 33.1,
+     "RM_C10484": 44.6
+    },
+    "max_vph_by_ramp": {
+     "RM_C10480": 220.0,
+     "RM_C10482": 2353.0,
+     "RM_C10646": 413.0,
+     "RM_C10644": 545.0,
+     "RM_C10639": 551.0,
+     "RM_C10681": 1262.0,
+     "RM_C10490": 850.0,
+     "RM_C10484": 600.0
+    },
+    "strict_ramp_keys": true
+   },
+   "groupkeys": {
+    "enabled": true,
+    "blend": "max",
+    "queue_drain_horizon_sec": 120.0,
+    "min_vph_if_observed": 120.0,
+    "max_vph_per_ramp": 900.0,
+    "multiplier": 1.0,
+    "queue_drain_horizon_sec_by_ramp": {
+     "R_D_W": 33.5,
+     "R_F_W": 77.2,
+     "R_D_E": 30.7,
+     "R_F_E": 6.5
+    },
+    "max_vph_by_ramp": {
+     "R_D_W": 865.0,
+     "R_F_W": 1394.0,
+     "R_D_E": 1079.0,
+     "R_F_E": 638.0
+    }
+   }
+  }
+ },
+ "b_cfg_text_has_calibrated_aggregate": false,
+ "codex_calibrated_aggregate": {
+  "path": "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native348/calibration.json",
+  "sha256": "be929a1db8f0b0117412b32ce013b8eaaff80bfd3a2e2946baa1148efcb75d17"
+ },
+ "codex_calibrated_aggregate_files": {
+  "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native348/calibration.json": "be929a1db8f0b0117412b32ce013b8eaaff80bfd3a2e2946baa1148efcb75d17"
+ },
+ "groupkeys_vs_b": {
+  "changed": [],
+  "added": [
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/R_D_E",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/R_D_W",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/R_F_E",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/R_F_W",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/R_D_E",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/R_D_W",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/R_F_E",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/R_F_W"
+  ],
+  "removed": [
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10480",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10482",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10484",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10490",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10639",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10644",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10646",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/max_vph_by_ramp/RM_C10681",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10480",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10482",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10484",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10490",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10639",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10644",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10646",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/queue_drain_horizon_sec_by_ramp/RM_C10681",
+   "/calibration_override/prediction/local_ramp_arrival_forecast/strict_ramp_keys"
+  ]
+ },
+ "tree": {
+  "n_b0": 7989,
+  "n_a1frozen": 7999,
+  "modified": [
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/run_closedloop3000.ps1",
+   "evaluation/controllers/control_area_objective.py",
+   "evaluation/controllers/control_hold.py",
+   "evaluation/controllers/lane_offramp_runtime.py",
+   "evaluation/controllers/physical_movement_routes.py",
+   "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+   "scripts/run_real_world_stackelberg_controller.vbs"
+  ],
+  "modified_sha12": {
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/run_closedloop3000.ps1": [
+    "8e95423b4b3c",
+    "8b2da855da5b"
+   ],
+   "evaluation/controllers/control_area_objective.py": [
+    "71222de0e46d",
+    "e71a88c64857"
+   ],
+   "evaluation/controllers/control_hold.py": [
+    "68c19eb53fa2",
+    "bf3c28a42324"
+   ],
+   "evaluation/controllers/lane_offramp_runtime.py": [
+    "9203f59685eb",
+    "f07f7e1f499d"
+   ],
+   "evaluation/controllers/physical_movement_routes.py": [
+    "8a1a70b1aead",
+    "3b5df9f72eff"
+   ],
+   "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1": [
+    "b56e1b368b26",
+    "6029d082710f"
+   ],
+   "scripts/run_real_world_stackelberg_controller.vbs": [
+    "1472208893db",
+    "ac8c20da0de1"
+   ]
+  },
+  "n_added": 107,
+  "added_top": [
+   "diagnostics/b0_v3c3/B0_REPIN_RECEIPT.json",
+   "diagnostics/b0_v3c3/config_b0_v3c3.json",
+   "diagnostics/b0_v3c3/config_b0_v3c3_groupkeys.json",
+   "diagnostics/b0_v3c3/evidence/native_input_1083_signal_authority_ver2_022a16.json",
+   "diagnostics/b0_v3c3/evidence/native_internal_inputs_c92673.json",
+   "diagnostics/b0_v3c3/evidence/physical_projection_support_635_proposal_ec2393.json",
+   "diagnostics/b0_v3c3/evidence/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
+   "diagnostics/b0_v3c3/evidence/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
+   "diagnostics/b0_v3c3/evidence/route_choice_corridor_1128_ver2_0fd58c.json",
+   "diagnostics/b0_v3c3/evidence/route_choice_corridor_sc1004_calibrated_9e6354.json",
+   "diagnostics/b0_v3c3/evidence/sc2001_corridor_nc13_2d0c62.json",
+   "diagnostics/b0_v3c3/goal8_265/authority.json",
+   "diagnostics/b0_v3c3/lane_plant/candidate_manifest.json",
+   "diagnostics/b0_v3c3/lane_plant/reference_config_eval036_sign18.json",
+   "diagnostics/b0_v3c3/native_beta/physical_routes.json",
+   "diagnostics/b0_v3c3/omega701/membership.json",
+   "diagnostics/b0_v3c3/omega701/route_contract.json",
+   "diagnostics/b0_v3c3/repin_v3c3_review_20261001/goal8_265/head47/physical_support.json",
+   "diagnostics/b0_v3c3/repin_v3c3_review_20261001/unrouted10646/route_contract.json",
+   "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban66_u7/contract.json",
+   "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban_rm269/sc1_supply/contract.json",
+   "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban_rm269/sc6_queue/authority.json",
+   "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban_rm269/sc6_queue/head_lane_support.json",
+   "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban_rm269/sc6_queue/head_resources.json",
+   "diagnostics/b0_v3c3/sdmpc_n31_20260924/integration_20260926/expanded036_9000_20260930/loss_onset2250/city_path/head_lane_support.json",
+   "diagnostics/b0_v3c3/sdmpc_n31_20260924/integration_20260926/expanded036_9000_20260930/loss_onset2250/source_sc101/head_lane_support.json",
+   "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c3_nc_20261001/observations/s31_v3c3nc_observations/geometry.json",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/aggregate_diverge_response/before_sources/diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/SHA256SUMS.txt",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/aggregate_diverge_response/before_sources/diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/aggregate_diverge_response/executed_sources/diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/SHA256SUMS.txt",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/aggregate_diverge_response/executed_sources/diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/low_density_pressure/before_sources/diagnostics/demand_sweep/ramp_dsd_20260916_v2/state_response_20260919/SHA256SUMS.txt",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/low_density_pressure/before_sources/diagnostics/demand_sweep/ramp_dsd_20260916_v2/state_response_20260919/test_state_response.py",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/low_density_pressure/executed_sources/diagnostics/demand_sweep/ramp_dsd_20260916_v2/state_response_20260919/SHA256SUMS.txt",
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/low_density_pressure/executed_sources/diagnostics/demand_sweep/ramp_dsd_20260916_v2/state_response_20260919/test_state_response.py",
+   "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+   "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed10.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed1001_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed1002_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed1003_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed1004_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed1005_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed101_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed102.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed103.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed104.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed105_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed106.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed107_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed108_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed109.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed109_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed11.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed12.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed13.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed14.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed15.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed16.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed17.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed18.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed19.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed1_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed2.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed2001.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed2002.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed2003.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed2004.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed2005.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed3_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed4.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed5_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed6.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed7_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed8.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed9001.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed9002.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed9003.sig",
+   "diagnostics/sdmpc_n31_20260924/network/개포동 test-bed9_n4dr150.sig",
+   "diagnostics/sdmpc_n31_20260924/obs150/obs150_detectors_v2.csv",
+   "diagnostics/sdmpc_n31_20260924/obs150/obs150_detectors_v2.manifest.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/dynamic_area_routes_ver2_dbaf86.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/head_free_service_10565_v1_71c2bf.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/head_service_resource_contract_7b2da6.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
+   "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110_sgplan.vbs",
+   "diagnostics/sdmpc_n31_20260924/scenario/native_input_1083_signal_authority_ver2_022a16.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/native_input_1093_prehead_ver2_9b761e.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/native_input_1096_route_ver2_2de3e0.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/native_internal_inputs_c92673.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_635_proposal_ec2393.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_ver2_b49a6f.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/profile.csv",
+   "diagnostics/sdmpc_n31_20260924/scenario/repin_receipt.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1128_ver2_0fd58c.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_sc1004_calibrated_9e6354.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/shared_approach_f34fb1.json",
+   "diagnostics/sdmpc_n31_20260924/scenario/topology_routes_v2_8ac6fd.json"
+  ],
+  "n_only_in_a1frozen": 117,
+  "only_in_a1frozen": [
+   "FREEZE.json",
+   "evaluation/controllers/__tangentcache__/007f6ed47c0ddaf6a18abe258ceb0579f7525211295c67e5306ad1975d4bbee4.mcode",
+   "evaluation/controllers/__tangentcache__/0196f26dca0009f89f1ae7c83c9c5a9c178f42759607a6ec2dd121f7a3da3502.mcode",
+   "evaluation/controllers/__tangentcache__/024aa569fbd24dced845b478a653294d50f52b021b94a86c9afbb2e7d98e78ca.mcode",
+   "evaluation/controllers/__tangentcache__/06b2b98cae68cbae23c2648da054f025803d1853af982012206b79be4e47f6fc.mcode",
+   "evaluation/controllers/__tangentcache__/070e86b5a21cb224388ea7632c69e1ed8cb448a516753416fd3af182ca664448.mcode",
+   "evaluation/controllers/__tangentcache__/0c95736fbffce48beb8b210a9d875015663e52ceaddecb4b69f563ea7148947c.mcode",
+   "evaluation/controllers/__tangentcache__/0cc756b91f823982f05cd9db2db6c22e66e972bec3048a723a36f7a7129fae57.mcode",
+   "evaluation/controllers/__tangentcache__/0de98ea69bb34691dc015d41816a92fe0ea5eaccb4457246f08190282d5051d4.mcode",
+   "evaluation/controllers/__tangentcache__/10b4cac22262e58300f71112e0dc5634dbd7edfe45bedb7ce1965c18bc1d0dbc.mcode",
+   "evaluation/controllers/__tangentcache__/14a1e830dd3b99b467c13afe27726be4e59bf8a582c804a577707bbba3b5b121.mcode",
+   "evaluation/controllers/__tangentcache__/1641393b9fddb7b482d0ffcc3b945224393b5ad4e5d551b96183af31f6085e18.mcode",
+   "evaluation/controllers/__tangentcache__/170aea8a8c37a828c8c882cb01d18b5e2acf5e13abb652d2336e87c5122a79b4.mcode",
+   "evaluation/controllers/__tangentcache__/1720cf39179e2ba88c61b70ed883949e600cadb5cbc7c41955af6a32a0d71430.mcode",
+   "evaluation/controllers/__tangentcache__/1bbe2c57cfc27f21d2d17d4da423aab62f07675f9eacbe667a41d2234ecf7da1.mcode",
+   "evaluation/controllers/__tangentcache__/20009303f1b0b06c43e1bd0802001e582dc60b444fc4a98b69ac52f90e4b6de3.mcode",
+   "evaluation/controllers/__tangentcache__/223ce8d2297dd2aabacc5ce67ae727e095015e0e1609181b5b944b3a54ca529b.mcode",
+   "evaluation/controllers/__tangentcache__/235f12778954ccaa9481f816fed90707f59acfeb004c65036d73ea62497652a6.mcode",
+   "evaluation/controllers/__tangentcache__/2515466f632fbead5265d1cf5a2d7a224c8cc58c1891d5b73e5c76f65fe8551e.mcode",
+   "evaluation/controllers/__tangentcache__/251a009d49732693b9ff66e7f2c4bbddf21ec4543c495d572400db2c6ae22235.mcode",
+   "evaluation/controllers/__tangentcache__/25cabb48d45f4e34cf6e66dc824c094de8b2665dfbdada0080da8b4c721f9315.mcode",
+   "evaluation/controllers/__tangentcache__/26fd4947eef881e7d53c2f4babf8f69eead06d7cd36082f8e54df05f51167d50.mcode",
+   "evaluation/controllers/__tangentcache__/2b96d307d1db128076388e32d354ad193f927f61cd7ace30fab571bef265d6f5.mcode",
+   "evaluation/controllers/__tangentcache__/2d4ba11cc418d88a4055e9a64c0deeef887fd1697bda1b67c3488d422ca58c8d.mcode",
+   "evaluation/controllers/__tangentcache__/2e1686e05007a45892725b20ff60a87b607229feac5d235887dc183ce6516466.mcode",
+   "evaluation/controllers/__tangentcache__/30ca970ee83bd66a32ef8cf4d11d4a3501c854a58121465122559b6e9e5f39ec.mcode",
+   "evaluation/controllers/__tangentcache__/320668c8a8f45363a4ba3033f61b6a29ed3a4ce7ddd5debcbbde07860f71d916.mcode",
+   "evaluation/controllers/__tangentcache__/32e79886261ab1a417c95702c5c0c32bdc79dcd307d48a773d50ac1b6660a136.mcode",
+   "evaluation/controllers/__tangentcache__/39383078e7ab355db49c97174e117be899bbb9e4c15223723fdbf1e875171d54.mcode",
+   "evaluation/controllers/__tangentcache__/3b086fd640c805b49f53445ff51d636c45f5350a3835a6d5583e1a4453933f50.mcode",
+   "evaluation/controllers/__tangentcache__/3bdb9cd2baddca9bf6f5b41f2a32665c335cecaa77a9e53ca0f6a29dad74a8fa.mcode",
+   "evaluation/controllers/__tangentcache__/3cac0afb51d9986badc9f4a98baca92ce1e37a11ac5f9405c490fb8652011417.mcode",
+   "evaluation/controllers/__tangentcache__/414a3616f933614b42f2e20c4e82e4ea7a8213521fe211d4b536ce4f95fe8f05.mcode",
+   "evaluation/controllers/__tangentcache__/4a23a40e00fcab7f57a749c2b9a44538ded7ac4223d6f4d775e1d22e2ba4267d.mcode",
+   "evaluation/controllers/__tangentcache__/4a4d1358991a7cc7c0c7808770d6d43d7b92529fed40b332aaed38b8e133fb6d.mcode",
+   "evaluation/controllers/__tangentcache__/4d1be02c92b95fda3c16f4146b49fbc119cc5632b4d2f4776dc3d7779053544f.mcode",
+   "evaluation/controllers/__tangentcache__/4dafff99a4e9228a12eb95ca66a744ca9ac704bc2fe13a29e64cbe26921c3b6b.mcode",
+   "evaluation/controllers/__tangentcache__/4eea81e4ec724110c5309ef453c86c30a60b65531e73494cb76e5ae3afa88884.mcode",
+   "evaluation/controllers/__tangentcache__/59755031f0beb2bca5c519e75d257249c52657e1af7255a6d905c977943a34b0.mcode",
+   "evaluation/controllers/__tangentcache__/5a53745ef65ea4f43fee862f53ca773e73d472845daefe2f85f2bf8189b74e87.mcode"
+  ]
+ },
+ "patch_sha_check": {
+  "diagnostics/sdmpc_n31_20260924/integration_20260926/run_closedloop3000.ps1": {
+   "claim": [
+    "8e95423b4b3c",
+    "8b2da855da5b"
+   ],
+   "mine": [
+    "8e95423b4b3c",
+    "8b2da855da5b"
+   ],
+   "match": true
+  },
+  "evaluation/controllers/control_area_objective.py": {
+   "claim": [
+    "71222de0e46d",
+    "e71a88c64857"
+   ],
+   "mine": [
+    "71222de0e46d",
+    "e71a88c64857"
+   ],
+   "match": true
+  },
+  "evaluation/controllers/control_hold.py": {
+   "claim": [
+    "68c19eb53fa2",
+    "bf3c28a42324"
+   ],
+   "mine": [
+    "68c19eb53fa2",
+    "bf3c28a42324"
+   ],
+   "match": true
+  },
+  "evaluation/controllers/lane_offramp_runtime.py": {
+   "claim": [
+    "9203f59685eb",
+    "f07f7e1f499d"
+   ],
+   "mine": [
+    "9203f59685eb",
+    "f07f7e1f499d"
+   ],
+   "match": true
+  },
+  "evaluation/controllers/physical_movement_routes.py": {
+   "claim": [
+    "8a1a70b1aead",
+    "3b5df9f72eff"
+   ],
+   "mine": [
+    "8a1a70b1aead",
+    "3b5df9f72eff"
+   ],
+   "match": true
+  }
+ },
+ "frz": {
+  "freeze_json_sha": "853d1c4fb97ed3de4cf62a409b06b9001648ce56171e2ed826236bdddb1506c6",
+  "freeze_json_keys": [
+   "schema",
+   "created_at",
+   "source",
+   "frozen",
+   "git",
+   "exclusions",
+   "plan_subtrees",
+   "plan_subtree_files",
+   "file_count",
+   "total_bytes",
+   "tree_sha256",
+   "files"
+  ],
+  "freeze_file_count": 7989,
+  "freeze_files": 7989,
+  "n_files_on_disk_excl_git": 7978,
+  "modified_equal_in_frz": {
+   "diagnostics/sdmpc_n31_20260924/integration_20260926/run_closedloop3000.ps1": true,
+   "evaluation/controllers/control_area_objective.py": true,
+   "evaluation/controllers/control_hold.py": true,
+   "evaluation/controllers/lane_offramp_runtime.py": true,
+   "evaluation/controllers/physical_movement_routes.py": true,
+   "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1": true,
+   "scripts/run_real_world_stackelberg_controller.vbs": true
+  }
+ },
+ "lane_plant": {
+  "manifest_sha": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c",
+  "refcfg_sha": "20e5a1cc6236f47b59077f16df9ce3d52c637c389d55a3c4c61c93ec5de55a37",
+  "manifest_diff": {
+   "changed": [
+    [
+     "/membership/path",
+     "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/membership.json",
+     "diagnostics/b0_v3c3/omega701/membership.json"
+    ],
+    [
+     "/membership/sha256",
+     "efdfaeb1b9d0d670119c8e158eabd615033bb1127cabd84d187b064ba64cd473",
+     "9bb740b321d28162c0e849b56e0e618adf4ec800caa60476c96f3fc469318d51"
+    ],
+    [
+     "/observation/detectors/path",
+     "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/obs150/obs150_detectors_v2.csv",
+     "diagnostics/sdmpc_n31_20260924/obs150/obs150_detectors_v2.csv"
+    ],
+    [
+     "/qualification",
+     "Frozen cellwise expanded_joint tested with current coupled routing; NOT gain qualified or production adopted.",
+     "Frozen cellwise expanded_joint tested with current coupled routing; NOT gain qualified or production adopted. | B0 2026-"
+    ],
+    [
+     "/sources/geometry/path",
+     "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/port_gain/geometry.json",
+     "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c3_nc_20261001/observations/s31_v3c3nc_observatio"
+    ],
+    [
+     "/sources/geometry/sha256",
+     "91a584ab779330f928a79855d68bcdbb133dfaaef57a2de66d5d415e9a474ee2",
+     "2e3d8bfea90297a6c5f8bd9e3176b902a98ed4c81525936653c73db91f88ffcf"
+    ],
+    [
+     "/sources/network/path",
+     "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx",
+     "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx"
+    ],
+    [
+     "/sources/network/sha256",
+     "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+     "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+    ],
+    [
+     "/sources/reference_config/path",
+     "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/cellwise_calibration/expanded_joint/e",
+     "diagnostics/b0_v3c3/lane_plant/reference_config_eval036_sign18.json"
+    ],
+    [
+     "/sources/reference_config/sha256",
+     "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+     "20e5a1cc6236f47b59077f16df9ce3d52c637c389d55a3c4c61c93ec5de55a37"
+    ],
+    [
+     "/sources/sig_manifest/path",
+     "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/sig_manifest.json",
+     "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json"
+    ],
+    [
+     "/sources/sig_manifest/sha256",
+     "f3b660ce2ab996b3face29829bfa145a360d813be33251c505682c3569f19417",
+     "5421dc93b290ad6361a729b1137a7e32f3ca5083eef837e39408dd95653e4661"
+    ]
+   ],
+   "added": [],
+   "removed": []
+  },
+  "codex_ref_candidates": [
+   [
+    "/sources/reference_config/path",
+    "diagnostics/sdmpc_n31_20260924/integration_20260926/baseline_reproduction_20260929/cellwise_calibration/expanded_joint/eval_036/reference_config.json"
+   ],
+   [
+    "/sources/reference_protocol/path",
+    "diagnostics/repin_v3c3_review_20261001/retained10638/local_protocol.json"
+   ]
+  ],
+  "refcfg_vs_/sources/reference_config/path": {
+   "src_sha": "7f6df2d14795b22d858aa772f5813e42b67f9d1ec4296cc6203bd854c28d83a4",
+   "changed": [
+    [
+     "/freeway/component_vsl_transport/FW_E/sign_cells/5",
+     16,
+     18
+    ]
+   ],
+   "added": [],
+   "removed": []
+  },
+  "refcfg_vs_/sources/reference_protocol/path": {
+   "src_sha": "a41386433da3b8f6341b1d5319396336cd874336a384d23f1e8cb5fe7fda73e5",
+   "changed": [],
+   "added": [
+    "/_canon_note",
+    "/_canonical/_pruned_dead_paths_note",
+    "/_canonical/_pure_duplicates_removed",
+    "/_canonical/arm/axis_1",
+    "/_canonical/arm/axis_2",
+    "/_canonical/arm/control",
+    "/_canonical/arm/family",
+    "/_canonical/arm/far_rates",
+    "/_canonical/arm/network",
+    "/_canonical/arm/outflow_fixes",
+    "/_canonical/arm/reference",
+    "/_canonical/arm/w_ramp_queue",
+    "/_canonical/arm/watch",
+    "/_canonical/chain/0",
+    "/_canonical/chain/1",
+    "/_canonical/chain/10",
+    "/_canonical/chain/11",
+    "/_canonical/chain/12",
+    "/_canonical/chain/13",
+    "/_canonical/chain/14"
+   ],
+   "removed": [
+    "/assumptions/0",
+    "/assumptions/1",
+    "/assumptions/2",
+    "/assumptions/3",
+    "/assumptions/4",
+    "/assumptions/5",
+    "/assumptions/6",
+    "/assumptions/7",
+    "/configured_first_exit_fraction",
+    "/continuation_semantics",
+    "/continuation_source",
+    "/defer_destinations",
+    "/defer_mandatory_while_forward_open",
+    "/evaluated_arms/0",
+    "/evaluated_arms/1",
+    "/evaluated_arms/2",
+    "/evaluated_arms/3",
+    "/forecast_history/background/0/0/0",
+    "/forecast_history/background/0/0/1",
+    "/forecast_history/background/0/0/2"
+   ]
+  }
+ },
+ "va_t900": {
+  "31": {
+   "state_000900": true,
+   "prev750_exists": true,
+   "prev750_has_sdmpc_state": false,
+   "prev750_controller": "NoControl"
+  },
+  "41": {
+   "state_000900": true,
+   "prev750_exists": true,
+   "prev750_has_sdmpc_state": false,
+   "prev750_controller": "NoControl"
+  },
+  "43": {
+   "state_000900": true,
+   "prev750_exists": true,
+   "prev750_has_sdmpc_state": false,
+   "prev750_controller": "NoControl"
+  }
+ }
+}

@@ -1,0 +1,197 @@
+{
+ "schema": "sdmpc31-launch-plan/v1",
+ "created_at": "2026-10-23T08:38:22+09:00",
+ "name": "sdmpc31_v3c3_k92pre_s31",
+ "sim_period": 9000,
+ "seed": 31,
+ "controller": "no-control",
+ "warmup_controller": "no-control",
+ "control_start_sec": 900,
+ "control_interval_sec": 150,
+ "state_log_interval_sec": 150,
+ "stall_sec": 2400,
+ "startup_stall_sec": 300,
+ "preflight": true,
+ "ground_truth_windows": [],
+ "gt_text": "",
+ "root": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833",
+ "freeze": {
+  "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\FREEZE.json",
+  "sha256": "011f5be253fd31a5fb8342859b2b571375e49b4bbbbb42ea8f3ca93657b68476",
+  "head": "c20aff1d7bf0c432cb4f20e2922bd406d857aa5d",
+  "tree_sha256": "9704503c8e0bb217a1564edfb27b0fc93284a2d2be1882ae87f37acb8429d857"
+ },
+ "tuning": {
+  "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\config_n31_v2.json",
+  "sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866",
+  "chain": [
+   {
+    "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\config_n31_v2.json",
+    "sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866"
+   }
+  ]
+ },
+ "manifest": {
+  "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\plant_n31_v2.json",
+  "rel": "diagnostics/sdmpc_n31_20260924/plant_n31_v2.json",
+  "sha256": "b119d6d90081ac0ffabef45e02c189055d2f3c6280c2f65b2ce806730537098f",
+  "mode": "v2"
+ },
+ "sources": {
+  "network": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\network\\baseline_s31_v3c3nc.inpx",
+   "rel": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+   "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+  },
+  "geometry": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3c3_nc_20261001\\observations\\s31_v3c3nc_observations\\geometry.json",
+   "rel": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c3_nc_20261001/observations/s31_v3c3nc_observations/geometry.json",
+   "sha256": "2e3d8bfea90297a6c5f8bd9e3176b902a98ed4c81525936653c73db91f88ffcf"
+  },
+  "refined_partition": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\geometry_200_branch_guard.json",
+   "rel": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/segment_resolution_20260921/geometry_200_branch_guard.json",
+   "sha256": "9769b3a4462f5d9c619709ffea7d6b14fc1faeecade0ff4cf73d9e9023906bea"
+  },
+  "reference_config": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\reference_config_n31_v2.json",
+   "rel": "diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json",
+   "sha256": "add58bc436423a01753b24b5a4d96e846c5c50cfed98118ea361782c7cb78fd2"
+  },
+  "parameters": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\res10_b110_20260923\\train_s31_v2nc\\boundary_literature_v1\\boundary_fit\\parameters.json",
+   "rel": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json",
+   "sha256": "8e4f60470f0c182594a152949d76bf7327ed3b65c09cb034de19c7ce435490f7"
+  },
+  "port_profile": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\port_profile_v2\\port_profile.json",
+   "rel": "diagnostics/sdmpc_n31_20260924/port_profile_v2/port_profile.json",
+   "sha256": "de0b575f58a697345cc43bf36812362e57acefa2785fb1b2ecbb0b36651f2218"
+  },
+  "reference_protocol": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\cohort_dynamics_20260920\\transport_step1_exchange_off_v2\\protocol.json",
+   "rel": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2/protocol.json",
+   "sha256": "32bb2d6a682323a878f0b90a1d7c8afc8a375420b9534b60221db54b3ed01aea"
+  },
+  "runner_config": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\scenario\\lane_native_b110.vbs",
+   "rel": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
+   "sha256": "37c5021f05555ec8111ea5a3139873fe876d1047998c7cec90ea3dab28d6de59"
+  },
+  "sig_manifest": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\network\\sig_manifest.json",
+   "rel": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
+   "sha256": "5421dc93b290ad6361a729b1137a7e32f3ca5083eef837e39408dd95653e4661"
+  }
+ },
+ "membership": {
+  "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\scenario\\control_area_membership_213a5d.json",
+  "rel": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+  "sha256": "30abb1db4f549068cb7069971c60e7ade8205a882c7999a0d0f2ede4460e5f85"
+ },
+ "detectors": {
+  "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+  "rel": "diagnostics/sdmpc_n31_20260924/obs150/obs150_detectors_v2.csv",
+  "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+  "rows": 294
+ },
+ "sig_files": {
+  "개포동 test-bed10.sig": "87035a45dd35d87c49be0a7db06242ea5ccf438720ff9f112bb1a5a6e4c30714",
+  "개포동 test-bed1001_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+  "개포동 test-bed1002_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+  "개포동 test-bed1003_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+  "개포동 test-bed1004_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+  "개포동 test-bed1005_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+  "개포동 test-bed101_n4dr150.sig": "7bdca789b2749823f06cc271e70ab3a5b2def1b9174f3072427bf0aaf57aaf35",
+  "개포동 test-bed102.sig": "90ed7edfdb3d9355f49e0b3a3660efb1b8cf71e00df61bee095d73f98b4f89c0",
+  "개포동 test-bed103.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+  "개포동 test-bed104.sig": "f9c65a1d2b3aa46b8d1929cb406124cbe2465edfba46a2a473921c737c528382",
+  "개포동 test-bed105_n4dr150.sig": "f56a4b415ef20908aaf33b22c6d6336ae4940b1749141147a716982465e9a2e6",
+  "개포동 test-bed106.sig": "38f7853b93084e0be1fa7dd93fc759a156314e1e22f90593d5957c384fcaca4e",
+  "개포동 test-bed107_n4dr150.sig": "1407ecfb547117ab3ec6e9657d3e65afaa09419ca22c9ce5ccaf271a7a245e20",
+  "개포동 test-bed108_n4dr150.sig": "bc33304cf6913a96b5d417658a99c7050d1cf860b9ccd4b26d9bc4700e72afcb",
+  "개포동 test-bed109.sig": "76496662027f99c0de4eac499c86a603300ac83a1235a24ed1436537f8932a8d",
+  "개포동 test-bed109_n4dr150.sig": "1b63cc3309c8e7f9f1be6585a6ca88d01ec9966ae1e25abad9080200d9825010",
+  "개포동 test-bed11.sig": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae",
+  "개포동 test-bed12.sig": "59d6fc4914bb5b5408ee529137389419317575969b9e0755637e9b0a6e910804",
+  "개포동 test-bed13.sig": "d7936528c7658388d701ab87083a91f89bb4e037c777181acfc6118f1f162e23",
+  "개포동 test-bed14.sig": "3202fb02156a92f31d8fbb821bb1d669561f319d99fb677008b8ce8b531ce02d",
+  "개포동 test-bed15.sig": "ec1186eab22c3540581aab0181477ec4281b5c9646b2914576a48034ea7514b0",
+  "개포동 test-bed16.sig": "856fc001e2bf188d1979e446bff8f6b54d58a5a5d25ef518ba5da7f1c491569a",
+  "개포동 test-bed17.sig": "42905f5b22d3a99446d92bc9b40b9cc4886608976a54b2bfbdc579e4d6f4f625",
+  "개포동 test-bed18.sig": "bb6e2d7d55ee7fc0b19b49591234f5a047e9b8ccee603a9bc3c25a71fdc70ad5",
+  "개포동 test-bed19.sig": "eb1b5f1b90a7040b70427f109a545099cd8408f577f79893799175e8e9e69d74",
+  "개포동 test-bed1_n4dr150.sig": "ed5d12575bf2e4f96dc5856f1347417fb101302a0da1aebd061dcc71d28b4d57",
+  "개포동 test-bed2.sig": "29d00b55ed6eb4d41b9a6414a76baed5b337d18050b02890add263995d58a12c",
+  "개포동 test-bed2001.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+  "개포동 test-bed2002.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+  "개포동 test-bed2003.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+  "개포동 test-bed2004.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+  "개포동 test-bed2005.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+  "개포동 test-bed3_n4dr150.sig": "de309a138507870d0b0a7f8a5c01f655cab3fc412302dba80447c340a40a2588",
+  "개포동 test-bed4.sig": "a8ede77f498bc624c99d5e89aed088f705044d34f11f870405b0f5e1726eb59c",
+  "개포동 test-bed5_n4dr150.sig": "21c3954438eeaaa5155aa511b6a8921bbb3db51f640e40ca7d8a7084b8b206de",
+  "개포동 test-bed6.sig": "68b7f1a9acf9ce407f54247757f6711dc88b842626b112a400692dcccbe6c641",
+  "개포동 test-bed7_n4dr150.sig": "754c6b95c2bfd1e498936a244134f87a00e38ddeea90578b39358c24d298a297",
+  "개포동 test-bed8.sig": "64baf5e325e156874b8e1d8e7cdce7d86c5d7a7648c64fadc90eb7f0b66db1da",
+  "개포동 test-bed9001.sig": "696f69d509efefb94dfdb5cbb80232ab170a2625fe18f54ccd71b83ac83accde",
+  "개포동 test-bed9002.sig": "2f605d05e684807d7a0e00eb3ba1e84ca0418c950d53d682e3f537256857d51f",
+  "개포동 test-bed9003.sig": "b5bbe4c78d37a50e95f8fb9dae83e70728d580169c624a91157a530ee4c3dca1",
+  "개포동 test-bed9_n4dr150.sig": "daa795be3c99fcaf97eda4d0a81ef959e8d3a94d7db26240c66e4880fd8df7bd"
+ },
+ "sig_dir": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\network",
+ "runner_config": {
+  "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\scenario\\lane_native_b110.vbs",
+  "rel": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
+  "sha256": "37c5021f05555ec8111ea5a3139873fe876d1047998c7cec90ea3dab28d6de59"
+ },
+ "signal_group_plan": {
+  "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\scenario\\lane_native_b110_sgplan.vbs",
+  "sha256": "ec731cab90138e78efd8eefbec671e9f6bc377f078bd329457a8c272397eece9"
+ },
+ "runner_files": {
+  "DemandProfile": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\scenario\\profile.csv",
+   "rel": "diagnostics/sdmpc_n31_20260924/scenario/profile.csv",
+   "sha256": "7b23853c8a28b18bc2d159186c7caed86ce6918b384ca464737819f5541cbf9f"
+  },
+  "Mapping": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json",
+   "rel": "evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json",
+   "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+  },
+  "Calibration": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json",
+   "rel": "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json",
+   "sha256": "04612ec759c2407ee77ba5897b1c1843dcade92ea03bc62356e652d2f68b45ea"
+  },
+  "UrbanInputGateMap": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv",
+   "rel": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+   "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af"
+  },
+  "VehicleInputRoles": {
+   "path": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv",
+   "rel": "evaluation/real_world_modi_inventory/vehicle_input_roles.csv",
+   "sha256": "4778901c1a5f63c0ec50258490b44dd665422e11d9a011675cbb9c3451bd1db7"
+  }
+ },
+ "out_dir": "D:\\VISSIM_runs\\20261023_sdmpc31_k92\\_preflight\\sdmpc31_v3c3_k92pre_s31_20261023_083822",
+ "network_dir": "D:\\VISSIM_runs\\20261023_sdmpc31_k92\\_preflight\\sdmpc31_v3c3_k92pre_s31_20261023_083822\\network",
+ "network_file": "D:\\VISSIM_runs\\20261023_sdmpc31_k92\\_preflight\\sdmpc31_v3c3_k92pre_s31_20261023_083822\\network\\sdmpc31_sdmpc31_v3c3_k92pre_s31.inpx",
+ "watchdog": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+ "expected_env": {
+  "RW_SIGNAL_OBSERVATION": "0",
+  "RW_LANE_PLANT_OBSERVATION": "1",
+  "RW_VEHICLE_OBSERVATION_INTERVAL_SEC": "1",
+  "RW_QUEUE_WINDOW": "0",
+  "RW_OBSERVATION_CADENCE": "decision150",
+  "RW_STATE_LOG": "decision",
+  "RW_OBS150_DETECTORS": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+  "RW_OBS150_DETECTORS_SHA256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+  "RW_OBS150_EXPECTED_SIMRES": "10",
+  "RW_OBS150_VEHREC_SEC": "5",
+  "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception"
+ },
+ "warnings": []
+}

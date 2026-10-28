@@ -1,0 +1,1020 @@
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\area_follower_objective.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\area_follower_objective.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\area_follower_objective.py"
+index f3e3d6a..817acae 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\area_follower_objective.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\area_follower_objective.py"
+@@ -1321,7 +1321,7 @@ class FrozenJointContextError(ValueError):
+         return evidence
+ 
+ 
+-def joint_context_fingerprint(adapter):
++def joint_context_fingerprint(adapter, *, include_adapter_runtime=True):
+     """Same full SHA check, with failure-only evidence and no extra pickling."""
+     import hashlib
+     import pickle
+@@ -1330,7 +1330,7 @@ def joint_context_fingerprint(adapter):
+     def fingerprint(value):
+         nonlocal initial, initial_token
+         runtime = {k: v for k, v in vars(adapter).items()
+-                   if k.startswith('_') and k.isupper() and isinstance(v, (dict, list, set))}
++                   if include_adapter_runtime and k.startswith('_') and k.isupper() and isinstance(v, (dict, list, set))}
+         payload = pickle.dumps((value, runtime), protocol=5)
+         token = hashlib.sha256(payload).hexdigest()
+         if initial is None:
+@@ -1343,14 +1343,22 @@ def joint_context_fingerprint(adapter):
+ 
+ def _joint_runtime_callbacks(follower, state, forecast, historical, leader, mapping, sources, *,
+                              reference, total_budget, directional, tolerance, budget=None,
+-                             price_probe=False, progress=None, representative_neighbors=False):
++                             price_probe=False, progress=None, representative_neighbors=False, regional_mode=None):
+     from evaluation.controllers import vissim_stackelberg_adapter as adapter
+     from evaluation.controllers import area_meter_finalization as meters
+     from evaluation.controllers.joint_owner_neighbors import make_joint_neighbor_callbacks, interleave_realized_neighbors
+     from src.models.state import segment_vsl
+     cfg = follower.cfg
+-    with shared_query_runtime_scope():
+-        coupling = follower._wu._coupling(state.copy(), reference.copy(), forecast[0])
++    if regional_mode is not None:
++        if (regional_mode not in ('freeway_only', 'urban_only')
++                or getattr(state, 'regional_boundary', {}).get('mode') != regional_mode):
++            raise ValueError('Regional command callbacks require a matching cut state')
++        # S-DMPC uses the canonical command/move-box callbacks, not the legacy
++        # neighborhood predictor. No coupled traffic probe is needed to bind CSVs.
++        coupling = None
++    else:
++        with shared_query_runtime_scope():
++            coupling = follower._wu._coupling(state.copy(), reference.copy(), forecast[0])
+     plan = {'controllers': {signal[2:]: node for signal, node in cfg.network.signal_actuation_contract['nodes'].items()}}
+     actuation = cfg.network.control_area_meter_context['actuation']
+     context = {'follower': follower, 'state': state, 'forecast': forecast, 'previous': historical,
+@@ -1358,7 +1366,7 @@ def _joint_runtime_callbacks(follower, state, forecast, historical, leader, mapp
+         'selected_plan': plan, 'actuation': actuation, 'runtime_sources': sources,
+         'total_budget': total_budget, 'directional_budgets': directional,
+         'decision_anchor': historical, 'move_limits': joint_decision_move_limits(follower)}
+-    fingerprint = joint_context_fingerprint(adapter)
++    fingerprint = joint_context_fingerprint(adapter, include_adapter_runtime=regional_mode is None)
+     callbacks = make_joint_neighbor_callbacks(follower, state, coupling, forecast[0], leader,
+         historical, mapping, plan, actuation, {'controller_variant': 'wu-link'},
+         segment_vsl_func=segment_vsl, context=context, context_fingerprint=fingerprint,
+@@ -1458,10 +1466,19 @@ def validate_actual_decision_hold(follower, state, reference, item, *, callbacks
+         from evaluation.controllers.sdmpc_response_cache import validate_binding
+         validate_binding(reference, item)
+     owners = tuple(callbacks['ownership'].owners)
+-    if len(owners) != 19 or set(item.get('local_base_costs', {})) != set(owners):
+-        raise ValueError('Held response lacks the complete owner cost catalog')
+     sdmpc_policy = getattr(getattr(follower.cfg, 'network', None), 'sdmpc_options', {})
+-    quantities = shared_quantity_constraints(follower, reference, item['quantities'],
++    regional = sdmpc_policy.get('regional_prediction_prototype')
++    cost_owners = owners
++    if regional:
++        from evaluation.controllers.sdmpc_regional_contracts import active_owners, quantity_constraints
++        cost_owners = active_owners(follower.cfg)
++        if getattr(state, 'regional_boundary', {}).get('mode') != regional:
++            raise ValueError('Regional held command requires a matching cut state')
++    else:
++        quantity_constraints = shared_quantity_constraints
++    if len(owners) != 19 or set(item.get('local_base_costs', {})) != set(cost_owners):
++        raise ValueError('Held response lacks the complete active owner cost catalog')
++    quantities = quantity_constraints(follower, reference, item['quantities'],
+         start_sec=state.time_sec, horizon_steps=follower.cfg.mpc.horizon_steps,
+         np_mode='cap', target_np_veh=reference.N_P_star,
+         np_tolerance_veh=options['np_tolerance_veh'],
+@@ -1471,6 +1488,15 @@ def validate_actual_decision_hold(follower, state, reference, item, *, callbacks
+             if sdmpc_policy.get('budget_caps')
+             else options['nuf_tolerance_veh_h']))
+     commands = callbacks['command_evidence'](reference, context)
++    if regional:
++        from evaluation.controllers import sdmpc_actuator_scope, sdmpc_sequence
++        for block in sdmpc_sequence.actions(reference, 3):
++            sdmpc_actuator_scope.check(block, sdmpc_policy, follower.cfg)
++        block_commands = callbacks['sequence_command_evidence'](reference, context)
++        commands['regional_prediction_blocks'] = [
++            dict(block=k, ordered_row_count=len(proof['ordered_rows']),
++                 owner_physical_sha256=proof['owner_physical_sha256'])
++            for k, proof in enumerate(block_commands)]
+     if set(commands['owner_physical_sha256']) != set(owners):
+         raise ValueError('Held command lacks complete physical owner evidence')
+     physical = bool(getattr(getattr(follower.cfg, 'network', None), 'physical_ramp_branches', None))
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\joint_owner_neighbors.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\joint_owner_neighbors.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\joint_owner_neighbors.py"
+index 873f532..84c0cb8 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\joint_owner_neighbors.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\joint_owner_neighbors.py"
+@@ -1463,13 +1463,14 @@ def make_joint_neighbor_callbacks(
+     physical_fields = tuple(f for f in action_csv_schema.ACTION_CSV_FIELDS if f != 'metadata')
+     catalog = {(kind, identity): who for kind, identity, who, _ in ownership.writes}
+ 
+-    def uncached_command_evidence(action, query_context=context):
++    def uncached_command_evidence(action, query_context=context, *, command_move_box=None):
+         before = _key(vars(action))
+         with scoped(query_context):
+             private = deepcopy(action)
+             validate_action_addresses(ownership, private)
+             validate_nuf_semantics(private, nuf_semantics)
+-            if move_box is not None: move_box.validate(private)
++            checked_box = move_box if command_move_box is None else command_move_box
++            if checked_box is not None: checked_box.validate(private)
+             canonical_open_rates(private)
+             meters.assert_writer(private, cfg, require_scored=True)
+             for owner in net.signals:
+@@ -1582,6 +1583,21 @@ def make_joint_neighbor_callbacks(
+     def command_evidence(action, query_context=context):
+         return cached_command(action, query_context)
+ 
++    def sequence_command_evidence(action, query_context=context):
++        from evaluation.controllers import sdmpc_sequence as sequence
++        if move_box is None or cfg.network.sdmpc_options.get('control_blocks') != 3:
++            raise ValueError('Three-block command evidence requires the actual movement anchor')
++        previous = decision_anchor
++        proofs = []
++        for block in sequence.actions(action, 3):
++            # Future moves are relative to the preceding planned command. All
++            # canonical writer/physical address checks remain identical.
++            proof = uncached_command_evidence(block, query_context,
++                command_move_box=sequence.reanchor(move_box, previous))
++            proofs.append(proof)
++            previous = block
++        return proofs
++
+     def physical_rows(action, query_context=context):
+         return command_evidence(action, query_context)['physical_rows']
+ 
+@@ -1698,7 +1714,8 @@ def make_joint_neighbor_callbacks(
+ 
+     return {'ownership': ownership, 'neighbors': neighbors, 'neighbor_evidence': neighbor_evidence,
+             'physical_fingerprint': physical_fingerprint, 'physical_rows': physical_rows,
+-            'command_evidence': command_evidence, 'provenance': deepcopy(provenance),
++            'command_evidence': command_evidence, 'sequence_command_evidence': sequence_command_evidence,
++            'provenance': deepcopy(provenance),
+             'guard_physical_proofs': guard,
+             'move_box': move_box,
+             'fixed_meter_proofs': deepcopy(fixed_proofs),
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\runtime_setup.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\runtime_setup.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\runtime_setup.py"
+index e5c9437..2bc0bd0 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\runtime_setup.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\runtime_setup.py"
+@@ -80,8 +80,11 @@ def native_startup_without_prediction(tuning, state_json, controller_variant):
+     the first regular observation and every SDMPC decision use the full path.
+     """
+     obs=state_json.get('obs150',{})
+-    return (controller_variant=='no-control' and state_json.get('sim_sec')==1
+-            and obs.get('sim_sec')==1 and obs.get('k') is None and obs.get('window') is None
++    local = (tuning or {}).get('adapter', {}).get('sdmpc_information_scope')
++    regional_startup = controller_variant == 'wu-link' and local in ('freeway_only', 'urban_only')
++    now = state_json.get('sim_sec')
++    return ((controller_variant=='no-control' and now==1 or regional_startup and now in (0, 1))
++            and obs.get('sim_sec')==now and obs.get('k') is None and obs.get('window') is None
+             and (tuning or {}).get('freeway',{}).get('multirate_exchange_sec')==5
+             and type((tuning or {}).get('urban',{}).get('multirate_exchange_sec')) is int
+             and tuning['urban']['multirate_exchange_sec']==10)
+@@ -327,7 +330,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
+         # Native programs/DSD/RM are still written and checked normally. Do not
+         # relabel1s as0s, or publish a forecast from an unrebased calibration.
+         metadata['native_startup_without_prediction']=True
+-        metadata['prediction_runtime_unavailable_reason']='Initial1s no-control observation is outside the FW5/urban10 prediction grid'
++        metadata['prediction_runtime_unavailable_reason']='Startup has no closed observation window; legal native baseline held without prediction'
+         return state,detector_mapping,metadata
+     from evaluation.controllers import multirate_freeway
+     metadata.update(multirate_freeway.configure(cfg,tuning,state))
+@@ -338,6 +341,15 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
+     metadata.update(urban_metadata)
+     from evaluation.controllers import ramp_entry_receiving
+     metadata.update(ramp_entry_receiving.configure(cfg,tuning,state))
++    regional_mode = (tuning or {}).get('adapter', {}).get('sdmpc_information_scope')
++    if regional_mode is not None:
++        import copy
++        role = 'ramp_arrival' if regional_mode == 'freeway_only' else 'off_entry'
++        observed = state_json['obs150_derived']
++        state._regional_boundary_observation = {
++            'window': copy.deepcopy(observed['window']),
++            'boundaries': {k: copy.deepcopy(v) for k, v in observed['boundaries'].items()
++                           if v['role'] == role}}
+     return state, detector_mapping, metadata
+ 
+ 
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\sdmpc.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc.py"
+index 0522488..583640f 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc.py"
+@@ -100,8 +100,16 @@ def configure(tuning, cfg, controller='wu-link'):
+         return None
+     if mode not in ('proxlinear-v1', 'central-reuse-v2', 'central-pfo-cap-v3'):
+         raise ValueError('Unsupported adapter.sdmpc mode')
++    regional = tuning.get('adapter', {}).get('sdmpc_information_scope')
++    if regional is not None and regional not in ('freeway_only', 'urban_only'):
++        raise ValueError('Unsupported regional SDMPC information scope')
++    if regional is not None and mode != 'central-pfo-cap-v3':
++        raise ValueError('Regional information requires the existing PFO-cap policy')
+     from evaluation import parameters
+     options = parameters.section('sdmpc')
++    if regional is not None:
++        options['regional_prediction_prototype'] = regional
++        options['regional_context_required'] = True
+     if mode in ('central-reuse-v2', 'central-pfo-cap-v3'):
+         central_options = parameters.section('sdmpc_central')
+         for key in ('active_tolerance', 'stationarity_tolerance', 'zero_jacobian_tolerance', 'np_step_veh', 'nuf_step_veh_h'):
+@@ -221,7 +229,7 @@ def configure(tuning, cfg, controller='wu-link'):
+             or not options.get('fast_primitives') or not options.get('primal_audit')):
+         raise ValueError('sdmpc_prediction_hotpath requires continuous surrogate reuse and fast primal checks')
+     if options.get('central_multiplier') and (not options.get('surrogate_reuse')
+-            or not options.get('prediction_hotpath') or blocks != 3):
++            or (not regional and not options.get('prediction_hotpath')) or blocks != 3):
+         raise ValueError('central-reuse-v2 requires the qualified three-block continuous predictor')
+     if options.get('response_cap_cache') and (mode != 'central-pfo-cap-v3'
+             or not options.get('surrogate_reuse') or not tuning.get('freeway', {}).get('lane_plant')):
+@@ -253,6 +261,20 @@ def configure(tuning, cfg, controller='wu-link'):
+                 'dual_step', 'qp_tolerance', 'objective_tolerance'):
+         if type(options[key]) not in (int, float) or not math.isfinite(options[key]) or options[key] <= 0:
+             raise ValueError('SDMPC positive parameter required: '+key)
++    from evaluation.controllers import sdmpc_actuator_scope as actuator_scope
++    scope = actuator_scope.configure(tuning.get('adapter', {}).get('sdmpc_actuator_scope'), cfg)
++    if scope is not None:
++        options['actuator_scope'] = scope
++    if regional and (scope is None or scope['mode'] != regional):
++        raise ValueError('Regional information must match its fixed inactive actuator scope')
++    if regional and any(options.get(k) for k in (
++            'response_cap_cache', 'fast_primitives', 'prediction_hotpath',
++            'stock_geometry_hotpath', 'receiving_geometry_cache', 'prediction_cache',
++            'compact_audit', 'persistent_urban_fifo', 'array_urban_pipeline',
++            'array_transport', 'spatial_receiving', 'initial_shared_prediction',
++            'initial_derivative_overlap', 'trial_derivative_overlap',
++            'tangent_shared_primal', 'tangent_concurrent_primal')):
++        raise ValueError('Unqualified global hotpath in regional information policy')
+     fixed_vsl = tuning.get('adapter', {}).get('sdmpc_fixed_vsl')
+     if fixed_vsl is not None:
+         from evaluation.controllers.control_hold import validate_fixed_vsl
+@@ -314,6 +336,11 @@ def install_cost_ownership(cfg, detector_mapping):
+ def omega_costs(point, cfg):
+     """媛숈? ?곷텇 湲곕줉?먯꽌 廓 TTT瑜???踰덉뵫 ?⑹궛?쒕떎. ?몃? queue???뷀븯吏 ?딅뒗??"""
+     owners = tuple(cfg.network.signals) + tuple(cfg.network.freeway_links)
++    regional = (getattr(cfg.network, 'sdmpc_options', None) or {}).get('regional_prediction_prototype')
++    if regional:
++        from evaluation.controllers.sdmpc_regional_contracts import active_owners
++        from evaluation.controllers.sdmpc_regional_prototype import owns_stock
++        owners = active_owners(cfg)
+     pieces = {owner: [] for owner in (*owners, PASSIVE)}
+     passive = {}
+     table = cfg.network.sdmpc_cost_ownership
+@@ -324,6 +351,16 @@ def omega_costs(point, cfg):
+             if not math.isfinite(value) or value < -1e-10:
+                 raise ValueError('Invalid Omega residence')
+             owner = table.get(stock, PASSIVE)
++            if regional and not owns_stock(regional, stock):
++                if value != 0:
++                    raise ValueError('Remote stock entered regional merit: '+stock)
++                continue
++            if owner not in pieces:
++                if not regional:
++                    raise ValueError('Unknown cost owner: '+owner)
++                # An own stock whose historical mapping has no local actuator
++                # remains in the regional passive cost and its external gradient.
++                owner = PASSIVE
+             pieces[owner].append(value)
+             if owner == PASSIVE and value:
+                 passive[stock] = passive.get(stock, 0.) + value
+@@ -378,7 +415,10 @@ class Coordinates:
+             self.axes.append(dict(owner=owner, kind=kind, key=key, scale=scale, fd=step/scale))
+             self.bounds.append((lower/scale, upper/scale))
+             return len(self.axes)-1
++        from evaluation.controllers.sdmpc_actuator_scope import allows
+         for owner in net.signals:
++            if not allows(options, 'green'):
++                continue
+             cycle = float(net.signal_cycle_length(owner))
+             live = tuple(net.signal_live_phases(owner))
+             basis = signals.native_clock_basis(net, owner)
+@@ -404,6 +444,8 @@ class Coordinates:
+             _, limit, _ = self.limits['offsets', owner]
+             axis(owner, 'offset', owner, cycle, options['fd_offset_sec'], -limit, limit)
+         for ramp in net.ramps:
++            if not allows(options, 'meter'):
++                continue
+             from evaluation.controllers.physical_ramp_branches import operating_green_allowed
+             spec = net.physical_ramp_branches
+             a, limit, _ = self.limits['diagnostics', 'rw_meter_green_'+ramp]
+@@ -417,7 +459,7 @@ class Coordinates:
+             self.axes[j].update(allowed=allowed, reference_value=a)
+         for owner in net.freeway_links:
+             for zone in net.freeway_vsl_zone_free:
+-                if options.get('fixed_vsl') is not None:
++                if not allows(options, 'vsl') or options.get('fixed_vsl') is not None:
+                     continue  # Exogenous schedule, not an optimization coordinate.
+                 head = net.freeway_vsl_zone_heads[owner][zone]
+                 key = f'{owner}__seg{head}'
+@@ -435,6 +477,11 @@ class Coordinates:
+         self.ghi = np.array([r[2] for r in self.phase_rows])
+         self.lower, self.upper = np.array(self.bounds).T
+         self.owners = tuple(net.signals)+tuple(net.freeway_links)
++        if options.get('regional_prediction_prototype'):
++            from evaluation.controllers.sdmpc_regional_contracts import active_owners
++            self.owners = active_owners(cfg)
++            if any(axis['owner'] not in self.owners for axis in self.axes):
++                raise ValueError('Regional coordinates include a remote actuator')
+         from evaluation.controllers.urban_storage_guard import constrain
+         constrain(self)
+ 
+@@ -507,6 +554,8 @@ class Coordinates:
+             out, self.reference if previous is None else previous, self.cfg, greens)
+         signals.validate_control(out, self.cfg)
+         self.move_box.validate(out)
++        from evaluation.controllers.sdmpc_actuator_scope import check
++        check(out, getattr(self.cfg.network, 'sdmpc_options', {}) or {}, self.cfg)
+         return out
+ 
+     def stencil(self, z, j):
+@@ -781,7 +830,18 @@ def load_prices(previous_path, state, policy):
+             or int(lines[2]) != csv_path.stat().st_size or saved['schema'] != SCHEMA
+             or saved['sim_sec'] != float(lines[0]) or saved['policy_sha256'] != policy_token(policy)):
+         raise ValueError('SDMPC prior price/application context mismatch')
+-    prices = np.array(saved['next_prices_scaled'], dtype=float)
++    regional = policy.get('regional_prediction_prototype')
++    if regional:
++        from evaluation.controllers.sdmpc_regional_contracts import active_resources
++        mask = active_resources(regional)
++        if saved.get('regional_mode') != regional or saved.get('active_resources') != mask:
++            raise ValueError('Persisted prices belong to a different information scope')
++        raw_prices = saved['next_prices_scaled']
++        if not isinstance(raw_prices, list) or len(raw_prices) != 2:
++            raise ValueError('Invalid persisted regional price envelope')
++        prices = np.array([raw_prices[i] if mask[i] else 0. for i in range(2)], dtype=float)
++    else:
++        prices = np.array(saved['next_prices_scaled'], dtype=float)
+     if (prices.shape != (2,) or not np.all(np.isfinite(prices)) or prices[0] < 0
+             or (policy.get('budget_caps') and prices[1] < 0)):
+         raise ValueError('Invalid persisted SDMPC budget price')
+@@ -798,6 +858,34 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+     cfg, policy = follower.cfg, dict(follower.cfg.network.sdmpc_options)
+     central_mode = bool(policy.get('central_multiplier'))
+     cap_mode = bool(policy.get('budget_caps'))
++    regional = policy.get('regional_prediction_prototype')
++    resource_mask = None
++    if regional:
++        from evaluation.controllers.sdmpc_regional_contracts import active_resources
++        resource_mask = active_resources(regional)
++        if (getattr(state, 'regional_boundary', {}).get('mode') != regional
++                or not cap_mode or not central_mode or not policy.get('surrogate_reuse')):
++            raise ValueError('Regional SDMPC requires a cut state and the existing continuous PFO-cap policy')
++        if policy.get('regional_context_required') and getattr(state, 'regional_context', {}) != {
++                'schema': 'regional-decision-context/v1', 'mode': regional, 'complete': True}:
++            raise ValueError('Incomplete regional decision context')
++        from evaluation.controllers.sdmpc_regional_contracts import project_forecast
++        forecast = project_forecast(forecast, regional)
++        # Bind leader-domain generation to the very same cut state/configuration.
++        # Do not let the original controller retain a separate live config.
++        private_controller = copy.copy(controller)
++        private_controller.cfg = cfg
++        private_controller.nash_solver = follower
++        private_controller.leader = copy.deepcopy(controller.leader)
++        private_controller.leader.cfg = cfg
++        controller = private_controller
++        # Adapter dispatch still requires the independent audited input context.
++        # Do not project a full-information state implicitly inside the optimizer.
++        historical = historical.copy()
++        if regional == 'freeway_only':
++            historical.N_P_star = 0.
++        else:
++            historical.N_UF_star = 0.
+     if cap_mode:
+         options = dict(options, nuf_tolerance_veh_h=policy['pfo_cap_options']['nuf_tolerance_veh_h'])
+     if central_mode:
+@@ -813,10 +901,15 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+     prices, price_receipt = load_prices(previous_path, state, policy)
+     initial_central_dual = None
+     if central_mode:
+-        initial_central_dual = central.initialize_duals(prices, caps=cap_mode)
++        initial_central_dual = central.initialize_duals(prices, caps=cap_mode, active_resources=resource_mask)
+         if price_receipt['committed']:
+             saved = json.loads(Path(previous_path).read_text(encoding='utf-8-sig'))['metadata']['sdmpc_state']
+-            initial_central_dual = np.asarray(saved['next_central_duals_scaled'], dtype=float)
++            raw_duals = saved['next_central_duals_scaled']
++            if regional:
++                if not isinstance(raw_duals, list) or len(raw_duals) != 2:
++                    raise ValueError('Invalid regional central dual envelope')
++                raw_duals = [raw_duals[i] if resource_mask[i] else 0. for i in range(2)]
++            initial_central_dual = np.asarray(raw_duals, dtype=float)
+             if (initial_central_dual.shape != ((2,) if cap_mode else (3,)) or not np.isfinite(initial_central_dual).all()
+                     or np.any(initial_central_dual < 0)
+                     or not np.array_equal(central.signed_prices(initial_central_dual),prices)):
+@@ -825,7 +918,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+     source_token = token(runtime_sources)
+     reference = meters.prepare_held_actual_reference(historical, cfg)
+     from evaluation.controllers.physical_ramp_branches import configure_operating_bounds
+-    meter_operating_bounds = configure_operating_bounds(state, cfg, reference)
++    meter_operating_bounds = (dict(active=False, region=regional) if regional == 'urban_only'
++        else configure_operating_bounds(state, cfg, reference))
+     if policy.get('fixed_vsl') is not None:
+         from evaluation.controllers.control_hold import fixed_vsl_reference
+         reference = fixed_vsl_reference(reference, policy['fixed_vsl'],
+@@ -833,18 +927,23 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+             cfg.simulation.T_c_sec, policy.get('control_blocks', 1))
+         # historical remains the actual prior command for the writer/move box.
+         # The scheduled command is present in every prediction, including PFO.
++    from evaluation.controllers.sdmpc_actuator_scope import check as check_scope
++    check_scope(reference, policy, cfg)
+     scale = np.array([policy['budget_scale_np_veh'], policy['budget_scale_nuf_veh_h']])
+     with joint.shared_query_runtime_scope(), ExitStack() as derivative_tasks:
+         adapter._PHASE_VECTOR_FOLLOWER['ref'] = follower
+         callbacks, context, fingerprint = joint._joint_runtime_callbacks(follower, state, forecast,
+             historical, reference, mapping, runtime_sources, reference=reference, total_budget=None,
+-            directional={}, tolerance=options['nuf_tolerance_veh_h'], budget=budget, price_probe=False)
+-        query = joint.make_decision_shared_query(follower, state, reference, forecast,
+-            horizon_steps=cfg.mpc.horizon_steps, source_fingerprint=source_token,
+-            cache_enabled=True, check_budget=budget.check,
+-            parallel_workers=options['response_parallel_workers'], worker_bootstrap=worker_bootstrap,
+-            deadline_monotonic=None if budget.unlimited_time else budget.started+budget.seconds-budget.reserve_sec,
+-            unlimited_time=budget.unlimited_time)
++            directional={}, tolerance=options['nuf_tolerance_veh_h'], budget=budget, price_probe=False,
++            regional_mode=regional)
++        query = None
++        if not regional:
++            query = joint.make_decision_shared_query(follower, state, reference, forecast,
++                horizon_steps=cfg.mpc.horizon_steps, source_fingerprint=source_token,
++                cache_enabled=True, check_budget=budget.check,
++                parallel_workers=options['response_parallel_workers'], worker_bootstrap=worker_bootstrap,
++                deadline_monotonic=None if budget.unlimited_time else budget.started+budget.seconds-budget.reserve_sec,
++                unlimited_time=budget.unlimited_time)
+         budget.response_query = query
+         coordinate_type = sequence.SequenceCoordinates if policy.get('control_blocks') == 3 else Coordinates
+         coord = coordinate_type(cfg, reference, callbacks['move_box'], policy)
+@@ -866,7 +965,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+         if surrogate:
+             from evaluation.controllers.sdmpc_tangent_surrogate import Query, MODEL
+             from evaluation.controllers.sdmpc_tangent import prepare_request
+-            query.close()  # The ordinary worker pool has not been started.
++            if query is not None:
++                query.close()  # The ordinary worker pool has not been started.
+             query = Query(prepare_request(follower, state, forecast, reference, reference, coord, worker_bootstrap),
+                 budget.check, lambda stage, **kw: progress({'stage': stage, **kw}) if progress else None)
+             budget.response_query = query
+@@ -885,7 +985,11 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+                     raise ValueError('SDMPC shared response/action mismatch')
+             return answer
+         def quantity(action, item):
+-            return constraints.shared_quantity_constraints(follower, action, item['quantities'],
++            function = constraints.shared_quantity_constraints
++            if regional:
++                from evaluation.controllers.sdmpc_regional_contracts import quantity_constraints
++                function = quantity_constraints
++            return function(follower, action, item['quantities'],
+                 start_sec=state.time_sec, horizon_steps=cfg.mpc.horizon_steps,
+                 np_mode='cap', target_np_veh=action.N_P_star, np_tolerance_veh=options['np_tolerance_veh'],
+                 nuf_mode='cap' if cap_mode else 'equality', target_nuf_veh_h=action.N_UF_star,
+@@ -947,6 +1051,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+             raise ValueError('SDMPC NUF refresh changed physical commands')
+         hold_valid = feasible(anchor, held)
+         best = (anchor, held, None) if hold_valid else None
++        if regional == 'freeway_only':
++            domain = {'np_values':(0.,), 'scope':'Inactive absent NP; no NP proposal generator called'}
+         if domain is None:
+             domain = joint.prepare_joint_leader_candidates(controller, state, forecast, historical,
+                 budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check, np_only=True)
+@@ -1072,7 +1178,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+                 G = np.vstack((G, A[:, ix]))
+                 if central_mode:
+                     eps = np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale
+-                    resource_lo, resource_hi = central.qp_bounds(c, eps, caps=cap_mode)
++                    resource_lo, resource_hi = central.qp_bounds(c, eps, caps=cap_mode, active_resources=resource_mask)
+                     lo, hi = np.r_[lo, resource_lo], np.r_[hi, resource_hi]
+                 else:
+                     lo, hi = np.r_[lo, -np.inf, -c[1]], np.r_[hi, -c[0], -c[1]]
+@@ -1100,7 +1206,9 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+                 c = (vector(action, current)-target)/scale
+                 proposal = np.zeros(len(z))
+                 for owner in coord.owners:
+-                    ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner])
++                    ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner], dtype=int)
++                    if not len(ix):
++                        continue  # Retain its cost/externality, but no actuator QP.
+                     own = grad[costs_order.index(owner), ix]
+                     external = grad[:, ix].sum(axis=0)-own
+                     d, receipt = qp(z, np.zeros(len(ix)), own+external+(A.T@iteration_prices)[ix], policy['proximal'], ix=ix)
+@@ -1114,7 +1222,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+                     before_dual = candidate_dual.copy()
+                     candidate_dual = central.update_duals(candidate_dual,raw,
+                         np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale,
+-                        policy['dual_step'],caps=cap_mode)
++                        policy['dual_step'],caps=cap_mode,active_resources=resource_mask)
+                     dual_updates.append(dict(cap=cap,nuf_target=requested_nuf,iteration=iteration,
+                         before=before_dual.tolist(),after=candidate_dual.tolist(),
+                         prices_used=iteration_prices.tolist(),raw_residual_scaled=raw.tolist(),
+@@ -1198,7 +1306,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+                 recovery = central.recover((*reference_model,final_item['central_physical']),
+                     final_z,vector(final_action,final_item),target,scale,
+                     np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']]),
+-                    coord,policy['central_options'],candidate_best is not None,caps=cap_mode)
++                    coord,policy['central_options'],candidate_best is not None,caps=cap_mode,active_resources=resource_mask)
+                 if query.stats()['total_rollouts'] != before_rollouts:
+                     raise ValueError('Central recovery unexpectedly predicted traffic')
+                 recovery.update(np_cap=cap,nuf_target=requested_nuf)
+@@ -1210,7 +1318,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+                     limits = (sdmpc_budget.search_limits(targets[0],caps,cfg.network.total_ramp_capacity)
+                         if cap_mode else ([min(caps),0.],[max(caps),cfg.network.total_ramp_capacity]))
+                     new_target = central.next_budget(targets[0],recovery,targets,
+-                        limits,policy['central_options'])
++                        limits,policy['central_options'],active_resources=resource_mask)
+                     if new_target is not None:
+                         targets.append(tuple(new_target))
+             if candidate_best:
+@@ -1263,6 +1371,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+             'prices_scaled': prices.tolist(), 'next_prices_scaled': next_prices.tolist(),
+             'pending_native_application': True, 'price_update_signal': signal,
+             'previous_application': price_receipt}
++        if regional:
++            state_record.update(regional_mode=regional, active_resources=resource_mask)
+         if central_mode:
+             state_record.update(central_duals_scaled=initial_central_dual.tolist(),
+                 next_central_duals_scaled=signal['candidate_dual'] if signal is not None else initial_central_dual.tolist())
+@@ -1294,6 +1404,13 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
+                 nuf_definition='predicted_accepted_mainline_merge',
+                 nuf_target_policy='initial_hold_merge_then_leader_candidate_search',
+                 central_derivative_work=[row['central_physical']['derivative_work'] for row in derivative_receipts])
++        if regional:
++            metadata.update(regional_mode=regional,active_resources=resource_mask,
++                active_cost_owners=list(coord.owners),
++                nuf_definition='inactive_absent_resource' if regional == 'urban_only'
++                    else 'predicted_accepted_mainline_merge',
++                input_isolation_qualified=bool(policy.get('regional_context_required')),
++                input_context_schema=getattr(state, 'regional_context', {}).get('schema'))
+         if cap_mode:
+             metadata.pop('nuf_initialization'); metadata.pop('held_feasible')
+             metadata.update(algorithm='sdmpc-central-pfo-cap/v3',pfo_warm_start=pfo_receipt,
+
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_budget.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_budget.py"
+index 6339617..cb3d8f4 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_budget.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_budget.py"
+@@ -32,18 +32,32 @@ def initialize(follower, state, control, item, options):
+             or coverage.get('conditional_model_feasibility_witness') is not True
+             or item['resource_summary']['max_exceedance_veh'] > options['shared_tolerance']):
+         raise ValueError('PFO prediction lacks a complete feasible physical witness')
+-    q = shared_quantity_constraints(follower, control, item['quantities'],
++    regional = follower.cfg.network.sdmpc_options.get('regional_prediction_prototype')
++    if regional:
++        from evaluation.controllers.sdmpc_regional_contracts import quantity_constraints
++        if (coverage.get('schema') != 'regional-model-constraint-coverage/v1'
++                or coverage.get('region') != regional
++                or getattr(state, 'regional_boundary', {}).get('mode') != regional):
++            raise ValueError('Regional budget requires matching own physical coverage')
++    else:
++        quantity_constraints = shared_quantity_constraints
++    q = quantity_constraints(follower, control, item['quantities'],
+         start_sec=state.time_sec, horizon_steps=follower.cfg.mpc.horizon_steps,
+         np_mode='dual', target_np_veh=0., np_tolerance_veh=0.,
+         nuf_mode='dual', target_nuf_veh_h=0., nuf_tolerance_veh_h=0.)
+-    if q.get('nuf_definition') != 'predicted_accepted_mainline_merge':
++    if q.get('nuf_definition') != ('inactive_absent_resource' if regional == 'urban_only' else 'predicted_accepted_mainline_merge'):
+         raise ValueError('PFO budget must use actual accepted mainline merge')
+     np_margin, nuf_margin = margins(follower.cfg.network.sdmpc_options)
++    if regional == 'freeway_only':
++        np_margin = 0.
++    elif regional == 'urban_only':
++        nuf_margin = 0.
+     achieved_np, achieved_nuf = q['np']['actual'], q['nuf']['actual']
+     seed = copy.deepcopy(control)
+     # x + 0.0 is bitwise x unless x is -0.0; both come from math.fsum, never -0.0.
+     seed.N_P_star, seed.N_UF_star = achieved_np + np_margin, achieved_nuf + nuf_margin
+     return seed, dict(schema='decision-pfo-budget-initialization/v2',
++        **(dict(region=regional, active_resource=item['quantities']['active_resource']) if regional else {}),
+         start_sec=q['window']['start_sec'], end_sec=q['window']['end_sec'],
+         np_cap_veh=seed.N_P_star, nuf_cap_veh_h=seed.N_UF_star,
+         achieved_np_veh=achieved_np, achieved_nuf_veh_h=achieved_nuf,
+
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_central.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_central.py"
+index e076110..e0a8e7c 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_central.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_central.py"
+@@ -4,8 +4,19 @@ import numpy as np
+ from scipy.optimize import nnls
+ 
+ 
+-def initialize_duals(prices, *, caps=False):
+-    p = np.asarray(prices, dtype=float)
++def resource_mask(active_resources=None):
++    if active_resources is None:
++        return np.ones(2, dtype=bool)
++    mask = np.asarray(active_resources)
++    if mask.shape != (2,) or mask.dtype != np.dtype(bool) or not mask.any():
++        raise ValueError('Explicit nonempty two-resource boolean mask required')
++    return mask
++
++
++def initialize_duals(prices, *, caps=False, active_resources=None):
++    mask = resource_mask(active_resources)
++    p = np.asarray(prices, dtype=float).copy()
++    p[~mask] = 0.
+     if caps:
+         return np.maximum(0., p)
+     return np.array([max(0., p[0]), max(0., p[1]), max(0., -p[1])])
+@@ -24,16 +35,22 @@ def budget_rows(residual, tolerance, *, caps=False):
+     return np.array([r[0]-eps[0], r[1]-eps[1], -r[1]-eps[1]])
+ 
+ 
+-def update_duals(dual, raw_residual, tolerance, step, *, caps=False):
+-    return np.maximum(0., np.asarray(dual) + step*budget_rows(raw_residual, tolerance, caps=caps))
++def update_duals(dual, raw_residual, tolerance, step, *, caps=False, active_resources=None):
++    mask = resource_mask(active_resources)
++    result = np.maximum(0., np.asarray(dual) + step*budget_rows(raw_residual, tolerance, caps=caps))
++    result[~(mask if caps else np.array([mask[0], mask[1], mask[1]]))] = 0.
++    return result
+ 
+ 
+-def qp_bounds(residual, tolerance, *, caps=False):
++def qp_bounds(residual, tolerance, *, caps=False, active_resources=None):
+     c, eps = np.asarray(residual), np.asarray(tolerance)
+-    return np.array([-np.inf, -np.inf if caps else -eps[1]-c[1]]), eps-c
++    mask = resource_mask(active_resources)
++    lower, upper = np.array([-np.inf, -np.inf if caps else -eps[1]-c[1]]), eps-c
++    lower[~mask], upper[~mask] = -np.inf, np.inf
++    return lower, upper
+ 
+ 
+-def recover(reference, selected, final_quantities, target, scale, tolerance, coord, options, feasible, *, caps=False):
++def recover(reference, selected, final_quantities, target, scale, tolerance, coord, options, feasible, *, caps=False, active_resources=None):
+     """Final actual constraints, reused coefficients; no traffic prediction."""
+     started = time.perf_counter()
+     z0, G, A, physical, final_physical = reference
+@@ -42,6 +59,10 @@ def recover(reference, selected, final_quantities, target, scale, tolerance, coo
+     rows = [A[0], A[1]]
+     if not caps:
+         names.append('budget/NUF/lower'); rows.append(-A[1])
++    mask = resource_mask(active_resources)
++    keep = mask if caps else np.array([mask[0], mask[1], mask[1]])
++    names, h, rows = ([v for v, yes in zip(values, keep) if yes] for values in (names, h, rows))
++    budget_indices = {name: i for i, name in enumerate(names)}
+     n = len(selected)
+     eye = np.eye(n)
+     for j in range(n):
+@@ -82,12 +103,15 @@ def recover(reference, selected, final_quantities, target, scale, tolerance, coo
+     except (RuntimeError, ValueError) as exc:
+         fit, error = False, repr(exc)
+     residual = g+C.T@multipliers
+-    gradient = np.array([-multipliers[0]/scale[0],
+-        (-multipliers[1]+(0. if caps else multipliers[2]))/scale[1]])
++    def budget_multiplier(name):
++        return multipliers[budget_indices[name]] if name in budget_indices else 0.
++    gradient = np.array([-budget_multiplier('budget/NP/upper')/scale[0],
++        (-budget_multiplier('budget/NUF/upper')+budget_multiplier('budget/NUF/lower'))/scale[1]])
+     stationarity = float(np.max(abs(residual), initial=0.))
+     complementarity = float(np.max(abs(h*multipliers), initial=0.))
+     usable = bool(feasible and fit and np.isfinite(gradient).all())
+     return dict(schema='sdmpc-central-multiplier/v1', gradient_estimate=gradient.tolist(),
++        **(dict(active_resources=mask.tolist()) if active_resources is not None else {}),
+         accepted_for_leader_direction=usable, fit_success=fit, error=error,
+         leader_signal_kind='approximate_central_multiplier', optimality_certified=False,
+         stationarity_inf=stationarity, complementarity=complementarity,
+@@ -106,14 +130,18 @@ def recover(reference, selected, final_quantities, target, scale, tolerance, coo
+         additional_optimization_iterations=0, seconds=time.perf_counter()-started)
+ 
+ 
+-def next_budget(center, recovery, attempted, limits, options):
++def next_budget(center, recovery, attempted, limits, options, *, active_resources=None):
++    mask = resource_mask(active_resources)
+     gradient = recovery.get('gradient_estimate') if recovery.get('accepted_for_leader_direction') else None
+     direction = np.where(abs(np.asarray(gradient))>options['active_tolerance'],-np.sign(gradient),0.) if gradient is not None else np.zeros(2)
+     radius = np.array([options['np_step_veh'], options['nuf_step_veh_h']])
+     directions = ([direction, -direction] if np.any(direction) else [])
+     directions += [np.array([0.,-1.]), np.array([0.,1.]), np.array([-1.,0.]), np.array([1.,0.])]
+     for d in directions:
+-        trial = np.clip(np.asarray(center)+radius*d, limits[0], limits[1])
++        if not np.any(d*mask):
++            continue
++        trial = np.clip(np.asarray(center)+radius*d*mask, limits[0], limits[1])
++        trial[~mask] = np.asarray(center)[~mask]
+         if not any(np.array_equal(trial, old) for old in attempted):
+             # Hand back plain floats. The consumer stores these on the action as
+             # N_P_star / N_UF_star, and area_leader_objective._joint_number rejects on
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\sdmpc_pfo.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_pfo.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_pfo.py"
+index 8f2902e..4b0fce7 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_pfo.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_pfo.py"
+@@ -50,7 +50,9 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
+         iterations.append(dict(iteration=iteration,action_token=token(action)))
+         proposal = np.zeros(len(z))
+         for owner in coord.owners:
+-            ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner])
++            ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner], dtype=int)
++            if not len(ix):
++                continue  # Cost ownership remains in the complete Omega partition.
+             own = G[owners.index(owner),ix]
+             step, qr = qp(z,np.zeros(len(ix)),own,policy['proximal'],ix)
+             local_rows.append(dict(iteration=iteration,owner=owner,own_gradient=own.tolist(),
+@@ -99,7 +101,7 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
+         selected_owned_objective=merit(best[1]),prices_used=False,budget_constraints_used=False,
+         additional_native_runs=0,seconds=time.perf_counter()-started,
+         sensitivity_policy='Updated at each accepted PFO iterate; final prediction/Jacobian reused by SDMPC',
+-        line_search_merit='sum of 19 owned costs; passive-area cost excluded')
++        line_search_merit=f'sum of {len(coord.owners)} owned costs; passive-area cost excluded')
+     emit('sdmpc_pfo_done',max_iterations=cap,executed_iterations=len(iterations),
+         accepted_iterations=accepted,converged=False,seconds=metadata['seconds'])
+     return (*best,metadata,initial)
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\sdmpc_sequence.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_sequence.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_sequence.py"
+index cffd654..67451ea 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_sequence.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_sequence.py"
+@@ -192,6 +192,8 @@ class SequenceCoordinates:
+         from evaluation.controllers import signal_actuation_contract as signals, physical_ramp_branches as ramps
+         previous=self.reference
+         for c in actions(control,3):
++            from evaluation.controllers.sdmpc_actuator_scope import check
++            check(c, getattr(self.cfg.network, 'sdmpc_options', {}) or {}, self.cfg)
+             signals.validate_control(c,self.cfg)
+             ramps.prepare_control(c.copy(),self.cfg)
+             reanchor(self.move_box,previous).validate(c)
+
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent.py"
+index 80fd6e0..813eb82 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent.py"
+@@ -22,6 +22,26 @@ def prepare_request(follower, state, forecast, reference, action, coord, bootstr
+     from evaluation.controllers import vissim_stackelberg_adapter as adapter
+     if not bootstrap:
+         raise ValueError('Tangent prediction requires the canonical worker bootstrap')
++    regional = follower.cfg.network.sdmpc_options.get('regional_prediction_prototype')
++    if regional:
++        from types import SimpleNamespace
++        if (regional not in ('freeway_only', 'urban_only')
++                or getattr(state, 'regional_boundary', {}).get('mode') != regional):
++            raise ValueError('Regional request requires a matching cut state')
++        # Configuration provenance remains a separate caller obligation. The
++        # worker receives no legacy follower price/history caches.
++        from evaluation.controllers.sdmpc_regional_contracts import project_forecast
++        local_forecast = project_forecast(forecast, regional)
++        detector = bootstrap['detector_mapping']
++        local_bootstrap = dict(state_json={'network_path':bootstrap['state_json']['network_path']},
++            detector_mapping={'link_to_origins':copy.deepcopy(detector.get('link_to_origins', {})),
++                'link_partition':{'owned_link_legs':copy.deepcopy(
++                    detector.get('link_partition', {}).get('owned_link_legs', {}))}},
++            runtime_sources=copy.deepcopy(bootstrap['runtime_sources']))
++        return dict(owned=(SimpleNamespace(cfg=follower.cfg), state, reference, local_forecast),
++            runtime={'_PHASE_VECTOR_FOLLOWER':{}}, action=action, axes=coord.axes,
++            green_vectors=coord.green_vectors, horizon=follower.cfg.mpc.horizon_steps,
++            bootstrap=local_bootstrap, costs_order=(*coord.owners, 'PASSIVE_OMEGA'))
+     runtime = {k: v for k, v in vars(adapter).items()
+                if k.startswith('_') and k.isupper() and isinstance(v, (dict, list, set))}
+     memo = {id(follower): follower}
+
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent_constraints.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent_constraints.py"
+index 0e6e049..ca7f9ce 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent_constraints.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent_constraints.py"
+@@ -14,7 +14,10 @@ from evaluation.controllers import sdmpc_tangent_reverse as ad
+ 
+ 
+ class Registry:
+-    def __init__(self, endpoints):
++    def __init__(self, endpoints, *, region=None):
++        if region not in (None, 'freeway_only', 'urban_only'):
++            raise ValueError('Unknown state constraint region')
++        self.region = region
+         self.endpoints = set(endpoints)
+         self.rows = {}
+         self.visited = set()
+@@ -27,6 +30,8 @@ class Registry:
+         self.rows[name] = value
+ 
+     def bound(self, ledger, kind, resource, value, upper):
++        if self.region == 'freeway_only':
++            raise ValueError('Urban state bound entered the freeway registry')
+         stamp = ledger._response_stamp()
+         end = stamp['end_sec']
+         if end not in self.endpoints:
+@@ -36,11 +41,26 @@ class Registry:
+         self.add(name + '/lower', -value)
+         self.add(name + '/upper', value - upper)
+ 
+-    def finish(self, states, cfg):
+-        if {float(s.time_sec) for s in states} != self.endpoints or self.visited != self.endpoints:
++    def finish(self, states, cfg, *, coverage=None):
++        required_visits = set() if self.region == 'freeway_only' else self.endpoints
++        if {float(s.time_sec) for s in states} != self.endpoints or self.visited != required_visits:
+             raise ValueError('Missing horizon-end state bound coverage')
++        if self.region:
++            if (not coverage or coverage.get('schema') != 'regional-model-constraint-coverage/v1'
++                    or coverage.get('region') != self.region or coverage.get('complete') is not True
++                    or coverage.get('conditional_model_feasibility_witness') is not True
++                    or coverage.get('expected_visits', 0) <= 0
++                    or coverage['expected_visits'] != coverage.get('completed_visits')
++                    or coverage.get('missing_constraints') != []
++                    or any(getattr(s, 'regional_boundary', {}).get('mode') != self.region for s in states)):
++                raise ValueError('Regional state registry requires complete own allocator coverage')
+         fields = ('ramp_queue', 'urban_movement_queue', 'mainline_origin_queue',
+                   'freeway_density', 'freeway_buffer_up_density', 'freeway_buffer_down_density')
++        if self.region == 'freeway_only':
++            fields = ('ramp_queue', 'mainline_origin_queue', 'freeway_density',
++                      'freeway_buffer_up_density', 'freeway_buffer_down_density')
++        elif self.region == 'urban_only':
++            fields = ('urban_movement_queue',)
+         for state in states:
+             prefix = f'physical/{float(state.time_sec):g}'
+             for field in fields:
+@@ -48,12 +68,13 @@ class Registry:
+                     seq = values if isinstance(values, (list, tuple)) else [values]
+                     for j, value in enumerate(seq):
+                         self.add(f'{prefix}/{field}/{key}/{j}/lower', -value)
+-            for key, cap in sorted(cfg.network.urban_link_storage_veh.items()):
++            storage = {} if self.region == 'freeway_only' else cfg.network.urban_link_storage_veh
++            for key, cap in sorted(storage.items()):
+                 value = state.urban_link_storage.get(key, cap)
+                 self.add(f'{prefix}/storage/{key}/lower', -value)
+                 self.add(f'{prefix}/storage/{key}/upper', value-cap)
+             lane = getattr(state, 'lane_freeway_runtime', None)
+-            if lane is not None:
++            if lane is not None and self.region != 'urban_only':
+                 for road, plant in sorted(lane.lanes.items()):
+                     for i, groups in enumerate(plant.n):
+                         for j, value in enumerate(groups):
+@@ -63,9 +84,9 @@ class Registry:
+         return names, values
+ 
+ 
+-def install(finder, endpoints):
++def install(finder, endpoints, *, region=None):
+     from evaluation.controllers.control_area_objective import ModelAreaLedger
+-    registry = Registry(endpoints)
++    registry = Registry(endpoints, region=region)
+     original = ModelAreaLedger.record_state_upper_bound
+ 
+     def record(ledger, kind, resource, value_veh, upper_veh):
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\sdmpc_tangent_surrogate.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent_surrogate.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent_surrogate.py"
+index 915644d..bb91dd9 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent_surrogate.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent_surrogate.py"
+@@ -90,6 +90,14 @@ def validate_prediction(item, action, context_token):
+             raise ValueError('Invalid PFO budget margin')
+         expected = copy.deepcopy(source)
+         q = raw['quantities']
++        if q.get('schema') == 'regional-accepted-quantities/v1':
++            region = q['region']
++            if (region not in ('freeway_only', 'urban_only') or init.get('region') != region
++                    or init.get('active_resource') != q['active_resource']
++                    or (region == 'freeway_only' and (q['owners'] or np_margin != 0.))
++                    or (region == 'urban_only' and (q['predicted_ramp_merge']['active']
++                        or q['predicted_ramp_merge']['rate_veh_h_by_ramp'] or nuf_margin != 0.))):
++                raise ValueError('PFO binding contains an absent regional resource')
+         achieved_np = math.fsum(q['owners'][s]['net_inflow_veh'] for s in sorted(q['owners']))
+         achieved_nuf = math.fsum(q['predicted_ramp_merge']['rate_veh_h_by_ramp'].values())
+         expected.N_P_star, expected.N_UF_star = achieved_np+np_margin, achieved_nuf+nuf_margin
+@@ -183,7 +191,8 @@ class Query:
+         self.primal_tolerance = policy.get('tangent_primal_abs_tolerance', 1e-7)
+         if self.cap_cache and (not policy.get('budget_caps') or not policy.get('pfo_each_interval')
+                 or not policy.get('surrogate_reuse') or not policy.get('central_multiplier')
+-                or getattr(state, 'lane_freeway_runtime', None) is None
++                or (getattr(state, 'lane_freeway_runtime', None) is None
++                    and policy.get('regional_prediction_prototype') != 'urban_only')
+                 or not getattr(follower.cfg.network, 'physical_ramp_branches', None)
+                 or template['horizon'] != 3):
+             raise ValueError('NP/NUF cache requires the physical lane continuous cap-only predictor')
+@@ -206,7 +215,8 @@ class Query:
+         policy = follower.cfg.network.sdmpc_options
+         if (self.closed or self.warm_binding is not None or self.initial_binding is not None
+                 or not policy.get('pfo_each_interval') or not policy.get('budget_caps')
+-                or getattr(state, 'lane_freeway_runtime', None) is None):
++                or (getattr(state, 'lane_freeway_runtime', None) is None
++                    and policy.get('regional_prediction_prototype') != 'urban_only')):
+             raise ValueError('PFO binding requires this interval\'s enabled lane predictor')
+         stored, item, receipt = self.entries[physical_key(source)]
+         if token(stored) != token(source) or receipt is None:
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\sdmpc_tangent_worker.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent_worker.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent_worker.py"
+index e1ca8ba..ff1663f 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\sdmpc_tangent_worker.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\sdmpc_tangent_worker.py"
+@@ -207,7 +207,8 @@ def run(request, finder, progress):
+             raise ValueError('Central state sensitivities require the continuous candidate model')
+         from evaluation.controllers import sdmpc_tangent_constraints
+         central_registry = sdmpc_tangent_constraints.install(finder,
+-            [state.time_sec+(k+1)*cfg.simulation.T_c_sec for k in range(request['horizon'])])
++            [state.time_sec+(k+1)*cfg.simulation.T_c_sec for k in range(request['horizon'])],
++            region=cfg.network.sdmpc_options.get('regional_prediction_prototype'))
+     fifo_stats = None
+     if cfg.network.sdmpc_options.get('persistent_urban_fifo') or cfg.network.sdmpc_options.get('array_urban_pipeline'):
+         from evaluation.controllers import sdmpc_tangent_fifo,sdmpc_tangent_transport,sdmpc_tangent_spatial
+@@ -240,6 +241,11 @@ def run(request, finder, progress):
+     surrogate_prediction = None
+     central_names, central_values = None, None
+     surrogate_context = request.get('surrogate_context_sha256', hashlib.sha256(frozen).hexdigest())
++    regional = cfg.network.sdmpc_options.get('regional_prediction_prototype')
++    if regional:
++        if (regional not in ('freeway_only','urban_only')
++                or getattr(state,'regional_boundary',{}).get('mode') != regional):
++            raise ValueError('Regional prototype requires a matching cut state')
+ 
+     def predict(action):
+         nonlocal surrogate_prediction, central_names, central_values
+@@ -249,22 +255,30 @@ def run(request, finder, progress):
+         for name, value in runtime.items():
+             setattr(adapter, name, value)
+         plan_scope = nullcontext()
+-        if 'sdmpc_prediction_sequence' in action.diagnostics:
++        if 'sdmpc_prediction_sequence' in action.diagnostics and not regional:
+             from evaluation.controllers.sdmpc_sequence import prediction_scope
+             plan_scope = prediction_scope(action, cfg, state.time_sec, request['horizon'])
+         with joint.shared_query_runtime_scope(), joint.shared_response_gc_scope(True), plan_scope:
+-            point = rollout_endpoint.evaluate_price_point(state, action, forecast, (),
+-                rollout_endpoint.ObjectiveSpec(cfg, depth_override=request['horizon'],
+-                    box_walk=False, score_mode='raw'), capture_response=True)
++            if regional:
++                from evaluation.controllers import sdmpc_regional_prototype
++                point = sdmpc_regional_prototype.predict(state,cfg,forecast,action)
++            else:
++                point = rollout_endpoint.evaluate_price_point(state, action, forecast, (),
++                    rollout_endpoint.ObjectiveSpec(cfg, depth_override=request['horizon'],
++                        box_walk=False, score_mode='raw'), capture_response=True)
+             if point.aborted or len(point.states) != request['horizon']:
+                 raise ValueError('Incomplete tangent response')
+             local, partition = omega_costs(point, cfg)
+-            q = constraints.shared_urban_quantities(follower, point.control_area_response,
+-                start_sec=state.time_sec, horizon_steps=request['horizon'])
+-            resource = constraints.shared_quantity_constraints(follower, action, q,
+-                start_sec=state.time_sec, horizon_steps=request['horizon'],
+-                np_mode='cap', target_np_veh=action.N_P_star, np_tolerance_veh=0.,
+-                nuf_mode='equality', target_nuf_veh_h=action.N_UF_star, nuf_tolerance_veh_h=0.)
++            if regional:
++                q = sdmpc_regional_prototype.quantities(point,state,cfg)
++                resource = dict(np=dict(actual=q['np_actual']),nuf=dict(actual=q['nuf_actual']))
++            else:
++                q = constraints.shared_urban_quantities(follower, point.control_area_response,
++                    start_sec=state.time_sec, horizon_steps=request['horizon'])
++                resource = constraints.shared_quantity_constraints(follower, action, q,
++                    start_sec=state.time_sec, horizon_steps=request['horizon'],
++                    np_mode='cap', target_np_veh=action.N_P_star, np_tolerance_veh=0.,
++                    nuf_mode='equality', target_nuf_veh_h=action.N_UF_star, nuf_tolerance_veh_h=0.)
+         if surrogate_mode:
+             surrogate_prediction = sdmpc_tangent_surrogate.prediction(point, state, request['action'],
+                 local, partition, q, surrogate_context)
+@@ -281,11 +295,14 @@ def run(request, finder, progress):
+                 surrogate_prediction['diagnostic_stock_costs_veh_h'] = stock_costs
+                 surrogate_prediction['response_token'] = sdmpc_tangent_surrogate.token(surrogate_prediction)
+         if central_registry is not None:
+-            central_names, central_values = central_registry.finish(point.states, cfg)
++            central_names, central_values = central_registry.finish(point.states, cfg,
++                coverage=point.control_area_response.get('model_constraint_coverage'))
+             surrogate_prediction.pop('response_token')
+             surrogate_prediction['central_physical'] = dict(names=central_names,
+                 values=[ad.primal(v) for v in central_values],
+-                scope='Horizon-end queue/density/storage/lane inventory and recorded urban state bounds; all original stepwise dynamic audits retained')
++                scope=('Own-region horizon-end physical states and original own allocator checks; no remote stock rows'
++                    if regional else 'Horizon-end queue/density/storage/lane inventory and recorded urban state bounds; all original stepwise dynamic audits retained'),
++                **(dict(region=regional) if regional else {}))
+             surrogate_prediction['response_token'] = sdmpc_tangent_surrogate.token(surrogate_prediction)
+         costs = [partition['costs'][owner] for owner in request['costs_order']]
+         return point, costs, [resource['np']['actual'], resource['nuf']['actual']]
+
+warning: in the working copy of 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\evaluation\controllers\vissim_stackelberg_adapter.py', LF will be replaced by CRLF the next time Git touches it
+diff --git "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\vissim_stackelberg_adapter.py" "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\vissim_stackelberg_adapter.py"
+index 008fc9e..93a2f5e 100644
+--- "a/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\controllers\\vissim_stackelberg_adapter.py"
++++ "b/D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source\\evaluation\\controllers\\vissim_stackelberg_adapter.py"
+@@ -12678,9 +12678,21 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
+         if getattr(getattr(cfg, 'network', None), 'sdmpc_options', None) is not None:
+             import copy
+             from evaluation.controllers import sdmpc
+-            response, details = sdmpc.solve(controller, state, forecast, historical['previous'], mapping,
+-                options=options, runtime_sources=sources, worker_bootstrap=bootstrap, budget=budget,
+-                progress=progress, previous_path=previous_path)
++            if cfg.network.sdmpc_options.get('regional_context_required'):
++                from evaluation.controllers import sdmpc_regional_context
++                if not isinstance(worker_state_json, dict):
++                    raise ValueError('Regional decision requires its closed observation')
++                local = sdmpc_regional_context.prepare(controller, state, forecast,
++                    historical['previous'], mapping,
++                    derived=state._regional_boundary_observation, bootstrap=bootstrap)
++                report['regional_context'] = local.pop('evidence')
++                response, details = sdmpc.solve(**local,
++                    options=options, runtime_sources=sources, budget=budget,
++                    progress=progress, previous_path=previous_path)
++            else:
++                response, details = sdmpc.solve(controller, state, forecast, historical['previous'], mapping,
++                    options=options, runtime_sources=sources, worker_bootstrap=bootstrap, budget=budget,
++                    progress=progress, previous_path=previous_path)
+             report.update(schema='sdmpc-runtime-decision/v1', selection=details,
+                 leader_objective=response['final_score']['objective_veh_h'], completed=True)
+             result = DecisionResult(control=copy.deepcopy(response['control']), leader_objective=report['leader_objective'],
+@@ -13314,7 +13326,14 @@ def main() -> None:
+                 metadata["prediction_freeway_total_abs_error"] = float(freeway_error.get("abs_error", 0.0))
+     try:
+         controller = None
+-        if args.controller == "no-control":
++        if (runtime_patch_metadata.get('native_startup_without_prediction')
++                and sdmpc_options is not None and sdmpc_options.get('regional_context_required')):
++            control = _make_no_control(ControlAction, cfg)
++            from evaluation.controllers.sdmpc_actuator_scope import check as check_scope
++            check_scope(control, sdmpc_options, cfg)
++            control.diagnostics["no_control_active"] = 1.0
++            metadata['regional_startup_baseline'] = True
++        elif args.controller == "no-control":
+             control = _make_no_control(ControlAction, cfg)
+             control.diagnostics["no_control_active"] = 1.0
+         elif args.controller == "diagnostic-vsl-rm":

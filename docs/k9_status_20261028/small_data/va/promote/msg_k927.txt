@@ -1,0 +1,22 @@
+K9-2-7: GB-7' allowed list entry R2-12 (leg_ramp_split length keys; amendment 24 section 14.3, D-K9-38 (4); diagnostics only)
+
+K8 amendment 34 section 3.2 = amendment 24 section 14.3, applied before the V-A freeze (FRZ_K92).
+diagnostics/sdmpc_n31_20260924/k8_gates/gb7_allowed.py only:
+  - one A_K8 entry right after R2-11:
+    ('R2-12', 'R2', r'/diagnostics/leg_ramp_split_(?:len_[^/\[]*|length_fallback)', <reason>)
+    reason = the amendment 24 section 14.3 text verbatim (117 chars, UTF-8 sha256 7a51c150f6bc3cc4...)
+  - one module docstring line recording the post-result exception.
+  No other bytes changed (+3 lines, -0), LF, attr -text.
+New list sha256 a8148f3849fb5e26f09d8f0a095d442aa56da051d888df0b2f657dba089e7af1
+(= amendment 24 RG-9 expected value); V 7, A_K8 34 -> 35 (R1 16, R2 11 -> 12, R3 7).
+File sha256 c6f9ca1c...94c8 (blob 9fd7d519...) -> 61c70c222cf3bed2a0a299b539aa3fccad288c059b72be678cceda2c3dc6f319
+(11,780 B, blob 1ca72d81f6e63736fa835cd408c9c9d6b7563ffa).
+Judgement table of amendment 24 section 14.3 unchanged (len_SC1001_W_out, length_fallback -> R2-12;
+req_last_SC1001_W_out, u_on_last, len_SC1001_W_out/x -> outside; injected_RM_C10484 -> R2-11).
+The four E_K92 paths of amendment 34 section 5.2 stay outside A (which = None).
+This is a list supplement made after seeing replay output (D-K9-38 (4)); the D-K9-12 exception
+is not re-applied on FRZ_K92. Runtime impact none (only the gate tools import this module).
+Amendment 34 fixed sha256 a05592d48512a515fc254d70b8173360d448b0aa17afb3f63c98b52ef713205e.
+Not pushed.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

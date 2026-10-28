@@ -1,0 +1,2598 @@
+{
+ "meta": {
+  "tool": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/tools/fwe_synth.py",
+  "tool_sha256": "92904e95444b2b18e3745f5ba7d7b9e2dbc2a13064bcb3ad1e5680e244e97245",
+  "pre_fwe_sha256": "c7cc0e6cc629da156b3ada7278af0fd95a0be4bf80d86ac6532b09e21656ce94",
+  "inputs_sha256": {
+   "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/PRE_FWE.md": "c7cc0e6cc629da156b3ada7278af0fd95a0be4bf80d86ac6532b09e21656ce94",
+   "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/R1_nc.json": "d2dc870be1546d5518a2ab8e75415e1736cd5e21f8bbcf65bec3d846809537ac",
+   "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/R2_pairs.json": "c80860d217d3d77dafac807d97610a14b2a2a7adc63c437f869b62ce6fc4a12a",
+   "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/R2_after.json": "b25c30ad753dec7520ad7828f1cbba1703aa38317a6434a256c496307719ebb9",
+   "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/R3_meters.json": "e8e4d5db8c8e1423f88b09e6a1c06edff6e8fd16b2dbbc04102c197af554a8a1",
+   "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/R4_codex.json": "e85a5734036c2b443a1a5ef976c0c22550a7684f9850795795fd6dbd6eb67bc6",
+   "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/o1o4/work/tails.py": "cb6c0bd4407fbaad8b403ccc34fc2bcfb1f9b9af318a67ee963b120a8bfb5569"
+  },
+  "made_kst": "2026-10-27 17:31:45",
+  "thresholds": {
+   "tight": 0.3,
+   "dvph": -60.0,
+   "dz": -1.0,
+   "stock": -1.0,
+   "d1": -1.0,
+   "u1098": 1.0,
+   "vsl": 1
+  },
+  "checks": {
+   "RF9_NC3_equals_R1_s31": true,
+   "RF9_NC3_equals_R1_s41": true,
+   "RF9_NC3_equals_R1_s43": true,
+   "R3_tableC1_PB_s31_10639_1800": true,
+   "R3_tableR2_PB_s31_2700": true,
+   "R3_tableE1_PB_s43_total": true,
+   "R2_PBVA_d1_s41": true
+  },
+  "stops": [],
+  "seconds": 2.9
+ },
+ "attrib": {
+  "P-VA|v3c3-s31": {
+   "pair": "P-VA",
+   "net": "v3c3",
+   "seed": 31,
+   "role": "주",
+   "form_total": "ours_9000",
+   "d1_total": -12.3,
+   "d1_codex_8100": -21.5,
+   "d1_zones5_900_end": {
+    "U": 3.7,
+    "B1": -15.1,
+    "M": 2.5,
+    "B2": -2.5,
+    "D": -0.9
+   },
+   "d_entry": -15.7,
+   "d_exit": -23.5,
+   "d_u1098": 214.1,
+   "O701": -240.6,
+   "A4": -373.9,
+   "outa": -133.3,
+   "outb": 41.0,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    }
+   },
+   "G_inputs": {
+    "G_n": 10,
+    "RM_C10639_G_tight_frac": 0.0,
+    "merge_10639_G_vph_arm": 446.4,
+    "merge_10639_G_vph_base": 446.4,
+    "merge_10639_G_dvph": 0.0,
+    "d1_B1_G": -13.706,
+    "RM_C10681_G_tight_frac": 0.0,
+    "merge_10681_G_vph_arm": 1004.4,
+    "merge_10681_G_vph_base": 996.0,
+    "merge_10681_G_dvph": 8.4,
+    "RM_C10490_G_tight_frac": 0.0,
+    "merge_10490_G_vph_arm": 735.6,
+    "merge_10490_G_vph_base": 694.8,
+    "merge_10490_G_dvph": 40.8,
+    "d1_B2_G": -5.019,
+    "RM_C10484_G_tight_frac": 0.0,
+    "merge_10484_G_vph_arm": 476.4,
+    "merge_10484_G_vph_base": 483.6,
+    "merge_10484_G_dvph": -7.2,
+    "d_stock_10643_G": -9.626,
+    "d_stock_10481_G": -0.822,
+    "d1_U_B1_G": -21.258,
+    "d1_M_B2_G": -5.739,
+    "d1_U_G": -7.553,
+    "d_u1098_G": 91.474,
+    "vsl_lt110_decisions_overlapping_G": 6
+   },
+   "flags": {
+    "G_n": 10,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": true,
+    "C-VSL": true,
+    "vsl_overlap_value": 6,
+    "C-NONE": false
+   }
+  },
+  "P-B|v3c3-s31": {
+   "pair": "P-B",
+   "net": "v3c3",
+   "seed": 31,
+   "role": "주",
+   "form_total": "ours_9000",
+   "d1_total": -37.3,
+   "d1_codex_8100": -36.9,
+   "d1_zones5_900_end": {
+    "U": -1.2,
+    "B1": -21.4,
+    "M": 0.7,
+    "B2": -12.0,
+    "D": -3.4
+   },
+   "d_entry": 85.0,
+   "d_exit": -19.4,
+   "d_u1098": -25.5,
+   "O701": -157.0,
+   "A4": 175.1,
+   "outa": 332.1,
+   "outb": 28.7,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 735,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 780,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 705,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 780,
+     "n_cycles": 810,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 9,
+    "RM_C10639_G_tight_frac": 0.9444,
+    "merge_10639_G_vph_arm": 345.3,
+    "merge_10639_G_vph_base": 460.0,
+    "merge_10639_G_dvph": -114.7,
+    "d1_B1_G": -15.867,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 1010.7,
+    "merge_10681_G_vph_base": 1044.0,
+    "merge_10681_G_dvph": -33.3,
+    "RM_C10490_G_tight_frac": 0.8889,
+    "merge_10490_G_vph_arm": 662.7,
+    "merge_10490_G_vph_base": 710.7,
+    "merge_10490_G_dvph": -48.0,
+    "d1_B2_G": -13.821,
+    "RM_C10484_G_tight_frac": 0.9444,
+    "merge_10484_G_vph_arm": 490.7,
+    "merge_10484_G_vph_base": 504.0,
+    "merge_10484_G_dvph": -13.3,
+    "d_stock_10643_G": -8.457,
+    "d_stock_10481_G": 0.758,
+    "d1_U_B1_G": -21.497,
+    "d1_M_B2_G": -17.146,
+    "d1_U_G": -5.631,
+    "d_u1098_G": 7.623,
+    "vsl_lt110_decisions_overlapping_G": 0
+   },
+   "flags": {
+    "G_n": 9,
+    "C-RM": true,
+    "C-RM_meters": [
+     "10639"
+    ],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": true,
+    "C-VSL": false,
+    "vsl_overlap_value": 0,
+    "C-NONE": false
+   }
+  },
+  "P-VSL|v3c3-s31": {
+   "pair": "P-VSL",
+   "net": "v3c3",
+   "seed": 31,
+   "role": "주(VSL 단서)",
+   "form_total": "ours_9000",
+   "d1_total": 36.1,
+   "d1_codex_8100": 32.9,
+   "d1_zones5_900_end": {
+    "U": 0.4,
+    "B1": -13.7,
+    "M": 16.3,
+    "B2": 30.2,
+    "D": 2.9
+   },
+   "d_entry": 9.1,
+   "d_exit": 22.6,
+   "d_u1098": -2.3,
+   "O701": 70.3,
+   "A4": 10.6,
+   "outa": -59.8,
+   "outb": 16.0,
+   "meters_tight": {
+    "10639": {
+     "state": "state_none"
+    },
+    "10681": {
+     "state": "state_none"
+    },
+    "10490": {
+     "state": "state_none"
+    },
+    "10484": {
+     "state": "state_none"
+    }
+   },
+   "G_inputs": {
+    "G_n": 0
+   },
+   "flags": {
+    "G_n": 0,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": false,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": true,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "P-J1|v3c3-s31": {
+   "pair": "P-J1",
+   "net": "v3c3",
+   "seed": 31,
+   "role": "참고",
+   "form_total": "ours_9000",
+   "d1_total": 12.6,
+   "d1_codex_8100": 12.6,
+   "d1_zones5_900_end": {
+    "U": -2.2,
+    "B1": -1.8,
+    "M": 6.2,
+    "B2": 9.1,
+    "D": 1.3
+   },
+   "d_entry": -12.3,
+   "d_exit": -21.0,
+   "d_u1098": -73.2,
+   "O701": 349.5,
+   "A4": 101.6,
+   "outa": -247.9,
+   "outb": 16.4,
+   "meters_tight": {
+    "10639": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10681": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10490": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10484": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    }
+   },
+   "G_inputs": {
+    "G_n": 4,
+    "merge_10639_G_vph_arm": 372.0,
+    "merge_10639_G_vph_base": 372.0,
+    "merge_10639_G_dvph": 0.0,
+    "d1_B1_G": -2.354,
+    "merge_10681_G_vph_arm": 804.0,
+    "merge_10681_G_vph_base": 885.0,
+    "merge_10681_G_dvph": -81.0,
+    "merge_10490_G_vph_arm": 423.0,
+    "merge_10490_G_vph_base": 453.0,
+    "merge_10490_G_dvph": -30.0,
+    "d1_B2_G": -0.882,
+    "merge_10484_G_vph_arm": 393.0,
+    "merge_10484_G_vph_base": 423.0,
+    "merge_10484_G_dvph": -30.0,
+    "d_stock_10643_G": -3.14,
+    "d_stock_10481_G": -0.339,
+    "d1_U_B1_G": -8.483,
+    "d1_M_B2_G": -1.718,
+    "d1_U_G": -6.129,
+    "d_u1098_G": -6.451,
+    "vsl_lt110_decisions_overlapping_G": 0
+   },
+   "flags": {
+    "G_n": 4,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": null,
+    "vsl_overlap_value": 0,
+    "C-NONE": false
+   }
+  },
+  "P-VA|v3c3-s41": {
+   "pair": "P-VA",
+   "net": "v3c3",
+   "seed": 41,
+   "role": "주",
+   "form_total": "ours_9000",
+   "d1_total": -72.6,
+   "d1_codex_8100": -66.7,
+   "d1_zones5_900_end": {
+    "U": -49.5,
+    "B1": -7.2,
+    "M": -8.9,
+    "B2": -4.1,
+    "D": -2.9
+   },
+   "d_entry": -43.0,
+   "d_exit": -71.5,
+   "d_u1098": -0.9,
+   "O701": -421.7,
+   "A4": -506.2,
+   "outa": -84.5,
+   "outb": 21.1,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    }
+   },
+   "G_inputs": {
+    "G_n": 13,
+    "RM_C10639_G_tight_frac": 0.0,
+    "merge_10639_G_vph_arm": 338.8,
+    "merge_10639_G_vph_base": 368.3,
+    "merge_10639_G_dvph": -29.5,
+    "d1_B1_G": -16.135,
+    "RM_C10681_G_tight_frac": 0.0,
+    "merge_10681_G_vph_arm": 925.8,
+    "merge_10681_G_vph_base": 930.5,
+    "merge_10681_G_dvph": -4.6,
+    "RM_C10490_G_tight_frac": 0.0,
+    "merge_10490_G_vph_arm": 604.6,
+    "merge_10490_G_vph_base": 597.2,
+    "merge_10490_G_dvph": 7.4,
+    "d1_B2_G": -5.504,
+    "RM_C10484_G_tight_frac": 0.0,
+    "merge_10484_G_vph_arm": 398.8,
+    "merge_10484_G_vph_base": 420.0,
+    "merge_10484_G_dvph": -21.2,
+    "d_stock_10643_G": -39.399,
+    "d_stock_10481_G": -1.421,
+    "d1_U_B1_G": -65.76,
+    "d1_M_B2_G": -9.413,
+    "d1_U_G": -49.625,
+    "d_u1098_G": 8.485,
+    "vsl_lt110_decisions_overlapping_G": 4
+   },
+   "flags": {
+    "G_n": 13,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": true,
+    "C-ENT": true,
+    "C-VSL": true,
+    "vsl_overlap_value": 4,
+    "C-NONE": false
+   }
+  },
+  "P-B|v3c3-s41": {
+   "pair": "P-B",
+   "net": "v3c3",
+   "seed": 41,
+   "role": "주",
+   "form_total": "ours_9000",
+   "d1_total": -178.1,
+   "d1_codex_8100": -172.5,
+   "d1_zones5_900_end": {
+    "U": -51.3,
+    "B1": -32.5,
+    "M": -64.3,
+    "B2": -27.1,
+    "D": -2.9
+   },
+   "d_entry": -6.6,
+   "d_exit": -60.5,
+   "d_u1098": -19.3,
+   "O701": -523.4,
+   "A4": -230.6,
+   "outa": 292.9,
+   "outb": -25.2,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 705,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 765,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 585,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 750,
+     "n_cycles": 810,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 21,
+    "RM_C10639_G_tight_frac": 0.9048,
+    "merge_10639_G_vph_arm": 357.1,
+    "merge_10639_G_vph_base": 365.7,
+    "merge_10639_G_dvph": -8.6,
+    "d1_B1_G": -29.594,
+    "RM_C10681_G_tight_frac": 0.9286,
+    "merge_10681_G_vph_arm": 1028.0,
+    "merge_10681_G_vph_base": 985.7,
+    "merge_10681_G_dvph": 42.3,
+    "RM_C10490_G_tight_frac": 0.7381,
+    "merge_10490_G_vph_arm": 613.7,
+    "merge_10490_G_vph_base": 628.0,
+    "merge_10490_G_dvph": -14.3,
+    "d1_B2_G": -25.478,
+    "RM_C10484_G_tight_frac": 0.9524,
+    "merge_10484_G_vph_arm": 448.0,
+    "merge_10484_G_vph_base": 444.6,
+    "merge_10484_G_dvph": 3.4,
+    "d_stock_10643_G": -47.567,
+    "d_stock_10481_G": 1.319,
+    "d1_U_B1_G": -80.776,
+    "d1_M_B2_G": -89.547,
+    "d1_U_G": -51.182,
+    "d_u1098_G": -17.733,
+    "vsl_lt110_decisions_overlapping_G": 0
+   },
+   "flags": {
+    "G_n": 21,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": false,
+    "vsl_overlap_value": 0,
+    "C-NONE": false
+   }
+  },
+  "P-VSL|v3c3-s41": {
+   "pair": "P-VSL",
+   "net": "v3c3",
+   "seed": 41,
+   "role": "주(VSL 단서)",
+   "form_total": "ours_9000",
+   "d1_total": -126.1,
+   "d1_codex_8100": -123.9,
+   "d1_zones5_900_end": {
+    "U": -39.0,
+    "B1": -19.4,
+    "M": -62.9,
+    "B2": -4.0,
+    "D": -0.8
+   },
+   "d_entry": -27.8,
+   "d_exit": -30.0,
+   "d_u1098": 89.0,
+   "O701": -162.0,
+   "A4": 68.6,
+   "outa": 230.6,
+   "outb": 17.4,
+   "meters_tight": {
+    "10639": {
+     "state": "state_none"
+    },
+    "10681": {
+     "state": "state_none"
+    },
+    "10490": {
+     "state": "state_none"
+    },
+    "10484": {
+     "state": "state_none"
+    }
+   },
+   "G_inputs": {
+    "G_n": 17,
+    "RM_C10639_G_tight_frac": "state_none",
+    "merge_10639_G_vph_arm": 362.1,
+    "merge_10639_G_vph_base": 362.1,
+    "merge_10639_G_dvph": 0.0,
+    "d1_B1_G": -27.285,
+    "RM_C10681_G_tight_frac": "state_none",
+    "merge_10681_G_vph_arm": 1024.2,
+    "merge_10681_G_vph_base": 1010.1,
+    "merge_10681_G_dvph": 14.1,
+    "RM_C10490_G_tight_frac": "state_none",
+    "merge_10490_G_vph_arm": 633.9,
+    "merge_10490_G_vph_base": 648.7,
+    "merge_10490_G_dvph": -14.8,
+    "d1_B2_G": -8.832,
+    "RM_C10484_G_tight_frac": "state_none",
+    "merge_10484_G_vph_arm": 452.5,
+    "merge_10484_G_vph_base": 455.3,
+    "merge_10484_G_dvph": -2.8,
+    "d_stock_10643_G": -18.888,
+    "d_stock_10481_G": 0.61,
+    "d1_U_B1_G": -58.147,
+    "d1_M_B2_G": -73.374,
+    "d1_U_G": -30.863,
+    "d_u1098_G": 57.074
+   },
+   "flags": {
+    "G_n": 17,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": true,
+    "C-VSL": true,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "P-J1|v3c3-s41": {
+   "pair": "P-J1",
+   "net": "v3c3",
+   "seed": 41,
+   "role": "참고",
+   "form_total": "ours_9000",
+   "d1_total": -165.5,
+   "d1_codex_8100": -160.1,
+   "d1_zones5_900_end": {
+    "U": -50.2,
+    "B1": -17.8,
+    "M": -56.8,
+    "B2": -36.2,
+    "D": -4.5
+   },
+   "d_entry": -49.6,
+   "d_exit": -80.2,
+   "d_u1098": -37.0,
+   "O701": -480.0,
+   "A4": -533.4,
+   "outa": -53.4,
+   "outb": 81.1,
+   "meters_tight": {
+    "10639": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10681": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10490": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10484": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    }
+   },
+   "G_inputs": {
+    "G_n": 20,
+    "merge_10639_G_vph_arm": 357.0,
+    "merge_10639_G_vph_base": 369.6,
+    "merge_10639_G_dvph": -12.6,
+    "d1_B1_G": -20.486,
+    "merge_10681_G_vph_arm": 1011.6,
+    "merge_10681_G_vph_base": 989.4,
+    "merge_10681_G_dvph": 22.2,
+    "merge_10490_G_vph_arm": 616.2,
+    "merge_10490_G_vph_base": 633.6,
+    "merge_10490_G_dvph": -17.4,
+    "d1_B2_G": -34.225,
+    "merge_10484_G_vph_arm": 437.4,
+    "merge_10484_G_vph_base": 450.0,
+    "merge_10484_G_dvph": -12.6,
+    "d_stock_10643_G": -57.899,
+    "d_stock_10481_G": -2.663,
+    "d1_U_B1_G": -71.844,
+    "d1_M_B2_G": -91.222,
+    "d1_U_G": -51.358,
+    "d_u1098_G": -25.113,
+    "vsl_lt110_decisions_overlapping_G": 4
+   },
+   "flags": {
+    "G_n": 20,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": true,
+    "C-ENT": false,
+    "C-VSL": null,
+    "vsl_overlap_value": 4,
+    "C-NONE": false
+   }
+  },
+  "P-VA|v3c3-s43": {
+   "pair": "P-VA",
+   "net": "v3c3",
+   "seed": 43,
+   "role": "주",
+   "form_total": "ours_9000",
+   "d1_total": -5.3,
+   "d1_codex_8100": -6.9,
+   "d1_zones5_900_end": {
+    "U": -2.1,
+    "B1": -29.8,
+    "M": 29.1,
+    "B2": -4.0,
+    "D": 1.6
+   },
+   "d_entry": -30.4,
+   "d_exit": -56.9,
+   "d_u1098": 63.8,
+   "O701": -309.5,
+   "A4": -356.4,
+   "outa": -46.9,
+   "outb": 15.1,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 810,
+     "T_tight10": null
+    }
+   },
+   "G_inputs": {
+    "G_n": 8,
+    "RM_C10639_G_tight_frac": 0.0,
+    "merge_10639_G_vph_arm": 405.0,
+    "merge_10639_G_vph_base": 406.5,
+    "merge_10639_G_dvph": -1.5,
+    "d1_B1_G": -23.39,
+    "RM_C10681_G_tight_frac": 0.0,
+    "merge_10681_G_vph_arm": 915.0,
+    "merge_10681_G_vph_base": 924.0,
+    "merge_10681_G_dvph": -9.0,
+    "RM_C10490_G_tight_frac": 0.0,
+    "merge_10490_G_vph_arm": 574.5,
+    "merge_10490_G_vph_base": 597.0,
+    "merge_10490_G_dvph": -22.5,
+    "d1_B2_G": -3.96,
+    "RM_C10484_G_tight_frac": 0.0,
+    "merge_10484_G_vph_arm": 406.5,
+    "merge_10484_G_vph_base": 403.5,
+    "merge_10484_G_dvph": 3.0,
+    "d_stock_10643_G": -21.135,
+    "d_stock_10481_G": -1.067,
+    "d1_U_B1_G": -29.306,
+    "d1_M_B2_G": -6.185,
+    "d1_U_G": -5.915,
+    "d_u1098_G": 43.586,
+    "vsl_lt110_decisions_overlapping_G": 0
+   },
+   "flags": {
+    "G_n": 8,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": true,
+    "C-ENT": true,
+    "C-VSL": false,
+    "vsl_overlap_value": 0,
+    "C-NONE": false
+   }
+  },
+  "P-B|v3c3-s43": {
+   "pair": "P-B",
+   "net": "v3c3",
+   "seed": 43,
+   "role": "주",
+   "form_total": "ours_9000",
+   "d1_total": -88.9,
+   "d1_codex_8100": -89.6,
+   "d1_zones5_900_end": {
+    "U": -3.6,
+    "B1": -38.7,
+    "M": -12.4,
+    "B2": -31.1,
+    "D": -3.3
+   },
+   "d_entry": 106.6,
+   "d_exit": -52.3,
+   "d_u1098": -113.5,
+   "O701": -222.2,
+   "A4": -450.6,
+   "outa": -228.4,
+   "outb": 3.1,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 750,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 780,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 810,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 810,
+     "n_cycles": 810,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 15,
+    "RM_C10639_G_tight_frac": 1.0,
+    "merge_10639_G_vph_arm": 376.8,
+    "merge_10639_G_vph_base": 416.0,
+    "merge_10639_G_dvph": -39.2,
+    "d1_B1_G": -37.772,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 1044.8,
+    "merge_10681_G_vph_base": 1018.4,
+    "merge_10681_G_dvph": 26.4,
+    "RM_C10490_G_tight_frac": 0.9667,
+    "merge_10490_G_vph_arm": 652.8,
+    "merge_10490_G_vph_base": 661.6,
+    "merge_10490_G_dvph": -8.8,
+    "d1_B2_G": -26.172,
+    "RM_C10484_G_tight_frac": 1.0,
+    "merge_10484_G_vph_arm": 436.8,
+    "merge_10484_G_vph_base": 441.6,
+    "merge_10484_G_dvph": -4.8,
+    "d_stock_10643_G": -27.757,
+    "d_stock_10481_G": -0.857,
+    "d1_U_B1_G": -42.006,
+    "d1_M_B2_G": -38.503,
+    "d1_U_G": -4.233,
+    "d_u1098_G": -65.146,
+    "vsl_lt110_decisions_overlapping_G": 0
+   },
+   "flags": {
+    "G_n": 15,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": false,
+    "vsl_overlap_value": 0,
+    "C-NONE": false
+   }
+  },
+  "P-VSL|v3c3-s43": {
+   "pair": "P-VSL",
+   "net": "v3c3",
+   "seed": 43,
+   "role": "주(VSL 단서)",
+   "form_total": "ours_9000",
+   "d1_total": -8.0,
+   "d1_codex_8100": -10.7,
+   "d1_zones5_900_end": {
+    "U": -7.1,
+    "B1": -9.8,
+    "M": -1.0,
+    "B2": 6.9,
+    "D": 3.0
+   },
+   "d_entry": -11.6,
+   "d_exit": -25.6,
+   "d_u1098": -121.9,
+   "O701": -50.5,
+   "A4": -109.9,
+   "outa": -59.4,
+   "outb": -4.5,
+   "meters_tight": {
+    "10639": {
+     "state": "state_none"
+    },
+    "10681": {
+     "state": "state_none"
+    },
+    "10490": {
+     "state": "state_none"
+    },
+    "10484": {
+     "state": "state_none"
+    }
+   },
+   "G_inputs": {
+    "G_n": 8,
+    "RM_C10639_G_tight_frac": "state_none",
+    "merge_10639_G_vph_arm": 331.5,
+    "merge_10639_G_vph_base": 340.5,
+    "merge_10639_G_dvph": -9.0,
+    "d1_B1_G": -18.204,
+    "RM_C10681_G_tight_frac": "state_none",
+    "merge_10681_G_vph_arm": 933.0,
+    "merge_10681_G_vph_base": 930.0,
+    "merge_10681_G_dvph": 3.0,
+    "RM_C10490_G_tight_frac": "state_none",
+    "merge_10490_G_vph_arm": 519.0,
+    "merge_10490_G_vph_base": 528.0,
+    "merge_10490_G_dvph": -9.0,
+    "d1_B2_G": -0.144,
+    "RM_C10484_G_tight_frac": "state_none",
+    "merge_10484_G_vph_arm": 391.5,
+    "merge_10484_G_vph_base": 402.0,
+    "merge_10484_G_dvph": -10.5,
+    "d_stock_10643_G": -14.211,
+    "d_stock_10481_G": 0.151,
+    "d1_U_B1_G": -25.535,
+    "d1_M_B2_G": -2.479,
+    "d1_U_G": -7.331,
+    "d_u1098_G": -34.638
+   },
+   "flags": {
+    "G_n": 8,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": true,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "P-J1|v3c3-s43": {
+   "pair": "P-J1",
+   "net": "v3c3",
+   "seed": 43,
+   "role": "참고",
+   "form_total": "ours_9000",
+   "d1_total": -54.4,
+   "d1_codex_8100": -54.8,
+   "d1_zones5_900_end": {
+    "U": -4.5,
+    "B1": -32.0,
+    "M": -6.2,
+    "B2": -10.8,
+    "D": -0.9
+   },
+   "d_entry": -19.8,
+   "d_exit": -58.9,
+   "d_u1098": -58.5,
+   "O701": 178.9,
+   "A4": 193.6,
+   "outa": 14.7,
+   "outb": 24.3,
+   "meters_tight": {
+    "10639": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10681": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10490": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    },
+    "10484": {
+     "state": "read",
+     "note": "J1: 미터 LDP·readback 주기 표 없음. [읽음 SP/rmcause/METER_CAUSE.md:18] \"61결정 × 미터 8개 내내 녹색 10\""
+    }
+   },
+   "G_inputs": {
+    "G_n": 15,
+    "merge_10639_G_vph_arm": 395.2,
+    "merge_10639_G_vph_base": 406.4,
+    "merge_10639_G_dvph": -11.2,
+    "d1_B1_G": -30.686,
+    "merge_10681_G_vph_arm": 992.0,
+    "merge_10681_G_vph_base": 998.4,
+    "merge_10681_G_dvph": -6.4,
+    "merge_10490_G_vph_arm": 631.2,
+    "merge_10490_G_vph_base": 644.8,
+    "merge_10490_G_dvph": -13.6,
+    "d1_B2_G": -12.099,
+    "merge_10484_G_vph_arm": 424.8,
+    "merge_10484_G_vph_base": 414.4,
+    "merge_10484_G_dvph": 10.4,
+    "d_stock_10643_G": -32.922,
+    "d_stock_10481_G": -2.182,
+    "d1_U_B1_G": -35.797,
+    "d1_M_B2_G": -16.361,
+    "d1_U_G": -5.111,
+    "d_u1098_G": -29.467,
+    "vsl_lt110_decisions_overlapping_G": 0
+   },
+   "flags": {
+    "G_n": 15,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": true,
+    "C-ENT": false,
+    "C-VSL": null,
+    "vsl_overlap_value": 0,
+    "C-NONE": false
+   }
+  },
+  "Q-joint|64cf-s29": {
+   "pair": "Q-joint",
+   "net": "64cf",
+   "seed": 29,
+   "role": "64cf 주",
+   "form_total": "codex_8100",
+   "d1_total": -283.7,
+   "d1_codex_8100": -283.7,
+   "d1_zones5_900_end": {
+    "U": -33.7,
+    "B1": -128.5,
+    "M": -95.7,
+    "B2": -28.6,
+    "D": 2.8
+   },
+   "d_entry": 142.8,
+   "d_exit": -15.7,
+   "d_u1098": 97.0,
+   "O701": -494.7,
+   "A4": -670.3,
+   "outa": -175.6,
+   "outb": 45.7,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 705,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 630,
+     "n_cycles": 720,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 18,
+    "RM_C10639_G_tight_frac": 0.9722,
+    "merge_10639_G_vph_arm": 382.0,
+    "merge_10639_G_vph_base": 352.7,
+    "merge_10639_G_dvph": 29.3,
+    "d1_B1_G": -122.415,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 986.0,
+    "merge_10681_G_vph_base": 1048.0,
+    "merge_10681_G_dvph": -62.0,
+    "RM_C10490_G_tight_frac": 1.0,
+    "merge_10490_G_vph_arm": 643.3,
+    "merge_10490_G_vph_base": 635.3,
+    "merge_10490_G_dvph": 8.0,
+    "d1_B2_G": -28.493,
+    "RM_C10484_G_tight_frac": 0.9444,
+    "merge_10484_G_vph_arm": 508.0,
+    "merge_10484_G_vph_base": 481.3,
+    "merge_10484_G_dvph": 26.7,
+    "d_stock_10643_G": -14.346,
+    "d_stock_10481_G": 0.019,
+    "d1_U_B1_G": -158.664,
+    "d1_M_B2_G": -123.374,
+    "d1_U_G": -36.249,
+    "d_u1098_G": 95.42
+   },
+   "flags": {
+    "G_n": 18,
+    "C-RM": true,
+    "C-RM_meters": [
+     "10681"
+    ],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": true,
+    "C-VSL": null,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "Q-window|64cf-s29": {
+   "pair": "Q-window",
+   "net": "64cf",
+   "seed": 29,
+   "role": "64cf 주",
+   "form_total": "codex_8100",
+   "d1_total": -264.6,
+   "d1_codex_8100": -264.6,
+   "d1_zones5_900_end": {
+    "U": -36.7,
+    "B1": -119.6,
+    "M": -80.1,
+    "B2": -32.2,
+    "D": 4.1
+   },
+   "d_entry": 185.0,
+   "d_exit": -14.6,
+   "d_u1098": -18.4,
+   "O701": -368.7,
+   "A4": -638.3,
+   "outa": -269.6,
+   "outb": 43.3,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 510,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 660,
+     "n_cycles": 720,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 19,
+    "RM_C10639_G_tight_frac": 1.0,
+    "merge_10639_G_vph_arm": 373.3,
+    "merge_10639_G_vph_base": 351.8,
+    "merge_10639_G_dvph": 21.5,
+    "d1_B1_G": -118.024,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 957.5,
+    "merge_10681_G_vph_base": 1019.4,
+    "merge_10681_G_dvph": -61.9,
+    "RM_C10490_G_tight_frac": 0.6842,
+    "merge_10490_G_vph_arm": 627.2,
+    "merge_10490_G_vph_base": 624.6,
+    "merge_10490_G_dvph": 2.5,
+    "d1_B2_G": -30.775,
+    "RM_C10484_G_tight_frac": 0.9474,
+    "merge_10484_G_vph_arm": 552.0,
+    "merge_10484_G_vph_base": 471.8,
+    "merge_10484_G_dvph": 80.2,
+    "d_stock_10643_G": -13.451,
+    "d_stock_10481_G": 0.068,
+    "d1_U_B1_G": -155.042,
+    "d1_M_B2_G": -112.989,
+    "d1_U_G": -37.018,
+    "d_u1098_G": -18.958
+   },
+   "flags": {
+    "G_n": 19,
+    "C-RM": true,
+    "C-RM_meters": [
+     "10681"
+    ],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": null,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "Q-off|64cf-s29": {
+   "pair": "Q-off",
+   "net": "64cf",
+   "seed": 29,
+   "role": "64cf 주",
+   "form_total": "codex_8100",
+   "d1_total": -301.5,
+   "d1_codex_8100": -301.5,
+   "d1_zones5_900_end": {
+    "U": -35.4,
+    "B1": -131.4,
+    "M": -98.6,
+    "B2": -36.2,
+    "D": 0.1
+   },
+   "d_entry": 170.1,
+   "d_exit": -16.2,
+   "d_u1098": 55.7,
+   "O701": -394.3,
+   "A4": -536.7,
+   "outa": -142.4,
+   "outb": 49.4,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 675,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 690,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 18,
+    "RM_C10639_G_tight_frac": 1.0,
+    "merge_10639_G_vph_arm": 382.0,
+    "merge_10639_G_vph_base": 352.7,
+    "merge_10639_G_dvph": 29.3,
+    "d1_B1_G": -126.131,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 936.7,
+    "merge_10681_G_vph_base": 1048.0,
+    "merge_10681_G_dvph": -111.3,
+    "RM_C10490_G_tight_frac": 1.0,
+    "merge_10490_G_vph_arm": 636.0,
+    "merge_10490_G_vph_base": 635.3,
+    "merge_10490_G_dvph": 0.7,
+    "d1_B2_G": -36.044,
+    "RM_C10484_G_tight_frac": 1.0,
+    "merge_10484_G_vph_arm": 478.7,
+    "merge_10484_G_vph_base": 481.3,
+    "merge_10484_G_dvph": -2.7,
+    "d_stock_10643_G": -14.594,
+    "d_stock_10481_G": -0.072,
+    "d1_U_B1_G": -162.05,
+    "d1_M_B2_G": -134.15,
+    "d1_U_G": -35.919,
+    "d_u1098_G": 53.47
+   },
+   "flags": {
+    "G_n": 18,
+    "C-RM": true,
+    "C-RM_meters": [
+     "10681"
+    ],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": true,
+    "C-VSL": null,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "Q-fw|64cf-s29": {
+   "pair": "Q-fw",
+   "net": "64cf",
+   "seed": 29,
+   "role": "64cf 주",
+   "form_total": "codex_8100",
+   "d1_total": -351.8,
+   "d1_codex_8100": -351.8,
+   "d1_zones5_900_end": {
+    "U": -34.3,
+    "B1": -151.3,
+    "M": -102.4,
+    "B2": -54.4,
+    "D": -9.4
+   },
+   "d_entry": 230.5,
+   "d_exit": -8.8,
+   "d_u1098": -35.5,
+   "O701": 409.9,
+   "A4": 1275.7,
+   "outa": 865.8,
+   "outb": -25.1,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 22,
+    "RM_C10639_G_tight_frac": 1.0,
+    "merge_10639_G_vph_arm": 365.5,
+    "merge_10639_G_vph_base": 364.4,
+    "merge_10639_G_dvph": 1.1,
+    "d1_B1_G": -150.369,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 846.5,
+    "merge_10681_G_vph_base": 1020.5,
+    "merge_10681_G_dvph": -174.0,
+    "RM_C10490_G_tight_frac": 1.0,
+    "merge_10490_G_vph_arm": 625.1,
+    "merge_10490_G_vph_base": 639.8,
+    "merge_10490_G_dvph": -14.7,
+    "d1_B2_G": -53.033,
+    "RM_C10484_G_tight_frac": 1.0,
+    "merge_10484_G_vph_arm": 496.4,
+    "merge_10484_G_vph_base": 486.5,
+    "merge_10484_G_dvph": 9.8,
+    "d_stock_10643_G": -7.022,
+    "d_stock_10481_G": -0.096,
+    "d1_U_B1_G": -184.521,
+    "d1_M_B2_G": -156.053,
+    "d1_U_G": -34.151,
+    "d_u1098_G": -35.075
+   },
+   "flags": {
+    "G_n": 22,
+    "C-RM": true,
+    "C-RM_meters": [
+     "10681"
+    ],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": null,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "Q-urb|64cf-s29": {
+   "pair": "Q-urb",
+   "net": "64cf",
+   "seed": 29,
+   "role": "64cf 주",
+   "form_total": "codex_8100",
+   "d1_total": 721.4,
+   "d1_codex_8100": 721.4,
+   "d1_zones5_900_end": {
+    "U": 523.6,
+    "B1": 84.1,
+    "M": 73.4,
+    "B2": 34.1,
+    "D": 6.3
+   },
+   "d_entry": 23.4,
+   "d_exit": -11.1,
+   "d_u1098": -0.8,
+   "O701": 305.0,
+   "A4": 122.4,
+   "outa": -182.6,
+   "outb": 21.2,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 720,
+     "T_tight10": null
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 720,
+     "T_tight10": null
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 720,
+     "T_tight10": null
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 0,
+     "n_cycles": 720,
+     "T_tight10": null
+    }
+   },
+   "G_inputs": {
+    "G_n": 0
+   },
+   "flags": {
+    "G_n": 0,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": false,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": null,
+    "vsl_overlap_value": null,
+    "C-NONE": true
+   }
+  },
+  "Q-A1|64cf-s29": {
+   "pair": "Q-A1",
+   "net": "64cf",
+   "seed": 29,
+   "role": "참고(흔들림 잣대)",
+   "form_total": "codex_8100",
+   "d1_total": -251.1,
+   "d1_codex_8100": -251.1,
+   "d1_zones5_900_end": {
+    "U": -35.4,
+    "B1": -121.9,
+    "M": -68.4,
+    "B2": -24.3,
+    "D": -1.0
+   },
+   "d_entry": 81.4,
+   "d_exit": -12.2,
+   "d_u1098": 94.8,
+   "O701": -505.7,
+   "A4": -699.2,
+   "outa": -193.5,
+   "outb": 41.6,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 705,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 645,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 705,
+     "n_cycles": 720,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 21,
+    "RM_C10639_G_tight_frac": 0.9762,
+    "merge_10639_G_vph_arm": 370.3,
+    "merge_10639_G_vph_base": 356.0,
+    "merge_10639_G_dvph": 14.3,
+    "d1_B1_G": -119.939,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 952.0,
+    "merge_10681_G_vph_base": 1028.6,
+    "merge_10681_G_dvph": -76.6,
+    "RM_C10490_G_tight_frac": 0.881,
+    "merge_10490_G_vph_arm": 627.4,
+    "merge_10490_G_vph_base": 633.7,
+    "merge_10490_G_dvph": -6.3,
+    "d1_B2_G": -23.892,
+    "RM_C10484_G_tight_frac": 0.9762,
+    "merge_10484_G_vph_arm": 481.1,
+    "merge_10484_G_vph_base": 477.1,
+    "merge_10484_G_dvph": 4.0,
+    "d_stock_10643_G": -11.625,
+    "d_stock_10481_G": -0.04,
+    "d1_U_B1_G": -154.546,
+    "d1_M_B2_G": -92.557,
+    "d1_U_G": -34.607,
+    "d_u1098_G": 92.65
+   },
+   "flags": {
+    "G_n": 21,
+    "C-RM": true,
+    "C-RM_meters": [
+     "10681"
+    ],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": true,
+    "C-VSL": null,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  },
+  "Q-A1j|64cf-s29": {
+   "pair": "Q-A1j",
+   "net": "64cf",
+   "seed": 29,
+   "role": "참고(흔들림 잣대 A1 − joint)",
+   "form_total": "codex_8100",
+   "d1_total": 32.5,
+   "d1_codex_8100": 32.5,
+   "d1_zones5_900_end": {
+    "U": -1.8,
+    "B1": 6.6,
+    "M": 27.2,
+    "B2": 4.3,
+    "D": -3.9
+   },
+   "d_entry": -61.4,
+   "d_exit": 3.6,
+   "d_u1098": -2.1,
+   "O701": -11.0,
+   "A4": -28.9,
+   "outa": -17.9,
+   "outb": -4.1,
+   "meters_tight": {
+    "10639": {
+     "state": "ldp_or_readback",
+     "n_tight10": 705,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10681": {
+     "state": "ldp_or_readback",
+     "n_tight10": 720,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10490": {
+     "state": "ldp_or_readback",
+     "n_tight10": 645,
+     "n_cycles": 720,
+     "T_tight10": 900
+    },
+    "10484": {
+     "state": "ldp_or_readback",
+     "n_tight10": 705,
+     "n_cycles": 720,
+     "T_tight10": 900
+    }
+   },
+   "G_inputs": {
+    "G_n": 1,
+    "RM_C10639_G_tight_frac": 1.0,
+    "merge_10639_G_vph_arm": 216.0,
+    "merge_10639_G_vph_base": 216.0,
+    "merge_10639_G_dvph": 0.0,
+    "d1_B1_G": -0.764,
+    "RM_C10681_G_tight_frac": 1.0,
+    "merge_10681_G_vph_arm": 912.0,
+    "merge_10681_G_vph_base": 480.0,
+    "merge_10681_G_dvph": 432.0,
+    "RM_C10490_G_tight_frac": 1.0,
+    "merge_10490_G_vph_arm": 600.0,
+    "merge_10490_G_vph_base": 636.0,
+    "merge_10490_G_dvph": -36.0,
+    "d1_B2_G": -0.804,
+    "RM_C10484_G_tight_frac": 1.0,
+    "merge_10484_G_vph_arm": 528.0,
+    "merge_10484_G_vph_base": 504.0,
+    "merge_10484_G_dvph": 24.0,
+    "d_stock_10643_G": -0.033,
+    "d_stock_10481_G": 0.007,
+    "d1_U_B1_G": -3.078,
+    "d1_M_B2_G": -1.167,
+    "d1_U_G": -2.314,
+    "d_u1098_G": 0.0
+   },
+   "flags": {
+    "G_n": 1,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": false,
+    "C-OFF2": false,
+    "C-ENT": false,
+    "C-VSL": null,
+    "vsl_overlap_value": null,
+    "C-NONE": true
+   }
+  },
+  "Q-VSL64|64cf-s29": {
+   "pair": "Q-VSL64",
+   "net": "64cf",
+   "seed": 29,
+   "role": "참고(bin 꼴)",
+   "form_total": "bin_8100",
+   "d1_total": -139.2,
+   "d1_codex_8100": null,
+   "d1_zones5_900_end": {
+    "U": -32.6,
+    "B1": -81.8,
+    "M": -24.7,
+    "B2": -9.7,
+    "D": 9.7
+   },
+   "d_entry": -5.7,
+   "d_exit": -10.1,
+   "d_u1098": 73.9,
+   "O701": -165.2,
+   "A4": -77.6,
+   "outa": 87.6,
+   "outb": 8.0,
+   "meters_tight": {
+    "10639": {
+     "state": "state_none"
+    },
+    "10681": {
+     "state": "state_none"
+    },
+    "10490": {
+     "state": "state_none"
+    },
+    "10484": {
+     "state": "state_none"
+    }
+   },
+   "G_inputs": {
+    "G_n": 17,
+    "RM_C10639_G_tight_frac": "state_none",
+    "merge_10639_G_vph_arm": 362.8,
+    "merge_10639_G_vph_base": 362.8,
+    "merge_10639_G_dvph": 0.0,
+    "d1_B1_G": -82.183,
+    "RM_C10681_G_tight_frac": "state_none",
+    "merge_10681_G_vph_arm": 1038.4,
+    "merge_10681_G_vph_base": 1056.7,
+    "merge_10681_G_dvph": -18.4,
+    "RM_C10490_G_tight_frac": "state_none",
+    "merge_10490_G_vph_arm": 630.4,
+    "merge_10490_G_vph_base": 643.8,
+    "merge_10490_G_dvph": -13.4,
+    "d1_B2_G": -7.514,
+    "RM_C10484_G_tight_frac": "state_none",
+    "merge_10484_G_vph_arm": 482.1,
+    "merge_10484_G_vph_base": 485.6,
+    "merge_10484_G_dvph": -3.5,
+    "d_stock_10643_G": -10.379,
+    "d_stock_10481_G": 0.21,
+    "d1_U_B1_G": -119.733,
+    "d1_M_B2_G": -33.542,
+    "d1_U_G": -37.55,
+    "d_u1098_G": 71.378
+   },
+   "flags": {
+    "G_n": 17,
+    "C-RM": false,
+    "C-RM_meters": [],
+    "C-OFF1": true,
+    "C-OFF2": false,
+    "C-ENT": true,
+    "C-VSL": true,
+    "vsl_overlap_value": null,
+    "C-NONE": false
+   }
+  }
+ },
+ "spills_v3c3": {
+  "NC3-s31": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 0,
+   "b1_tail_min_m": 4600,
+   "b1_tail_min_at_s": 2520,
+   "b2_tail_min_m": 7000,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/nc_s31.json",
+   "cache_sha256": "352bddd3a28671575b7671ef1f013c816aa1c163ebd77bd320f452306abe00db",
+   "fzp_sha256": "f8476f83e2c70821f00e96ece09a08aeb98eb553363aa65501ed7e47bb12e52e"
+  },
+  "VA-s31": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 0,
+   "b1_tail_min_m": 4600,
+   "b1_tail_min_at_s": 2520,
+   "b2_tail_min_m": 6800,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/va_s31.json",
+   "cache_sha256": "d6f693aeaa6deb6784b955f547ff9f64fe9d429c6996af2fb6eada83c68f95a5",
+   "fzp_sha256": "d3a440aff8db8ee50175b9cc9c4f0f091eee0fe4a0f90d53f11b72c63d67f88e"
+  },
+  "B-s31": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 0,
+   "b1_tail_min_m": 4700,
+   "b1_tail_min_at_s": 4020,
+   "b2_tail_min_m": 7100,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/heavy/b_s31.json",
+   "cache_sha256": "dd7865a72839e26032f5f33989b5718659f248198ab4125835752463884cc65c",
+   "fzp_sha256": "5932e6e195bae4ee567020ebbe3b539c93793347c98b1a35697037122b1fe52f"
+  },
+  "VSL-s31": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 3,
+   "b1_tail_min_m": 4700,
+   "b1_tail_min_at_s": 1560,
+   "b2_tail_min_m": 6400,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/vsl_v3c3/out/phys/vsl_s31.json",
+   "cache_sha256": "3169172b88d4c2b4515d8840ade32e1933a2c061f98dd60d18689bb032bbdc40",
+   "fzp_sha256": "63a827fe47606bee0ae17fd2eefaff01067c54e9024436dd7a4d6e12ce9eea54"
+  },
+  "J1-s31": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 0,
+   "b1_tail_min_m": 4600,
+   "b1_tail_min_at_s": 3420,
+   "b2_tail_min_m": 6800,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/j1_s31.json",
+   "cache_sha256": "d9dcff28a59eb150a238bfb1ede70acb318d79c2f7eb531a95245c1385084820",
+   "fzp_sha256": "80c03a8d993b6a797dc39fb86965a31ae6a8b696c7b0bd235e503cc899b917d2"
+  },
+  "NC3-s41": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 12,
+   "b1_tail_min_m": 4500,
+   "b1_tail_min_at_s": 3960,
+   "b2_tail_min_m": 5600,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    6,
+    4,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/nc_s41.json",
+   "cache_sha256": "65051df07d65bbde5a287dc959481b2043a3e70f93104aad5b862dd32d811cd4",
+   "fzp_sha256": "f63f00807b27d692c11296ddd5700cd233a8af2915cb51db3909c53e4e26f546"
+  },
+  "VA-s41": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 7,
+   "b1_tail_min_m": 4500,
+   "b1_tail_min_at_s": 2700,
+   "b2_tail_min_m": 6300,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    3,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/va_s41.json",
+   "cache_sha256": "b2782698f83435e4ce7a0f7e601f2b749694df079b6be68b36d7fcf1ae633c1a",
+   "fzp_sha256": "eeea360784a1a9148c0349a45f4ee95a54c1e5c831d110218a5e8a4d398645c2"
+  },
+  "B-s41": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 2,
+   "b1_tail_min_m": 4600,
+   "b1_tail_min_at_s": 3780,
+   "b2_tail_min_m": 6600,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/heavy/b_s41.json",
+   "cache_sha256": "c4a0df26cf2f5005d09e0a47861432fb4b768436d14e73dd26c141e57e5ce1ff",
+   "fzp_sha256": "8ac58a253c6a5d87569dd9bf047be0cef743724153c240c178a097f962d4b159"
+  },
+  "VSL-s41": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 2,
+   "b1_tail_min_m": 4500,
+   "b1_tail_min_at_s": 6540,
+   "b2_tail_min_m": 6600,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/vsl_v3c3/out/phys/vsl_s41.json",
+   "cache_sha256": "c9fd195a637ccaec33a7e0e8a0cd89dea052d52e55fdaa52f55486140de09cc0",
+   "fzp_sha256": "ea91826e675e899bfbc889a713cc7400a1d75a6d4292bc5305a2f494a4d78177"
+  },
+  "J1-s41": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 1,
+   "b1_tail_min_m": 4500,
+   "b1_tail_min_at_s": 2760,
+   "b2_tail_min_m": 6700,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/j1_s41.json",
+   "cache_sha256": "d8ce1fe121079eb1ed9efe53fa6cb7a633cd605edf0d3e78f40085bc12490fed",
+   "fzp_sha256": "7785ab17a4b5eec9e00e5a3709a9d5b057f3b0bfa39e800720f7b4b68523a116"
+  },
+  "NC3-s43": {
+   "b1_spill_min_lt4500": 2,
+   "m_spill_min_lt6800": 3,
+   "b1_tail_min_m": 4400,
+   "b1_tail_min_at_s": 1500,
+   "b2_tail_min_m": 6600,
+   "b1_spill_min_900": [
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/nc_s43.json",
+   "cache_sha256": "7afd43e8ed482fa60ae5cf5736f4b6e38b07f9844fc3737ec22f372441b2a843",
+   "fzp_sha256": "048823b966f60a662872a14d1a2ec126a662fe0c51f9d7e3105dbf8c0f7863e0"
+  },
+  "VA-s43": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 3,
+   "b1_tail_min_m": 4500,
+   "b1_tail_min_at_s": 3720,
+   "b2_tail_min_m": 6200,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/va_s43.json",
+   "cache_sha256": "9035a75c7efc5ab8d02eaefa92c7b1ced5a4923757b85a600af128b34ccba23c",
+   "fzp_sha256": "a38437a45019fee5408acb6d22a9401b3dfa50e43e3f7ae9c4ece4019b9ad8ae"
+  },
+  "B-s43": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 0,
+   "b1_tail_min_m": 4500,
+   "b1_tail_min_at_s": 4620,
+   "b2_tail_min_m": 7200,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/fwe_decomp/out/heavy/b_s43.json",
+   "cache_sha256": "0aa431d2fede54685cdabbff1f2b8b85f08000d3a47cb977912152ab16412d3d",
+   "fzp_sha256": "2f7011a33ef6d5004c2b7a2dcfa951e9649bc2bd95fec33cc51d762222755514"
+  },
+  "VSL-s43": {
+   "b1_spill_min_lt4500": 4,
+   "m_spill_min_lt6800": 4,
+   "b1_tail_min_m": 4400,
+   "b1_tail_min_at_s": 1500,
+   "b2_tail_min_m": 6500,
+   "b1_spill_min_900": [
+    0,
+    2,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/vsl_v3c3/out/phys/vsl_s43.json",
+   "cache_sha256": "61526d641f9bf888e159a72642908d3e184c06c931561a2f172036265e0a5200",
+   "fzp_sha256": "5492358d78386b8bea1c32ea884bf6c073068b5205127ad4e4a7fa661387a3c8"
+  },
+  "J1-s43": {
+   "b1_spill_min_lt4500": 0,
+   "m_spill_min_lt6800": 0,
+   "b1_tail_min_m": 4500,
+   "b1_tail_min_at_s": 2640,
+   "b2_tail_min_m": 7000,
+   "b1_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "m_spill_min_900": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cache": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/rmcause/phys/scan/j1_s43.json",
+   "cache_sha256": "7af1f1444e3f20b1c7d6b85e3edfc7f971e6ad87d3beded4d781a540834c97a0",
+   "fzp_sha256": "1d1b20e42732d1d750e8abef34864e6973c6c1c9a90f043fdf90ae49cd23bc94"
+  }
+ },
+ "data_after_cell5_9": {
+  "label": "데이터 뒤 (S-12): 깃발·기준 줄에 쓰지 않음",
+  "source": "out/R2_after.json",
+  "pairs": {
+   "P-VA|v3c3-s31": {
+    "pair": "P-VA",
+    "x": "va_s31",
+    "y": "nc3_s31",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.749,
+     -0.667,
+     -0.51,
+     -0.74,
+     0.542,
+     -0.389,
+     -1.063,
+     2.362,
+     1.014
+    ],
+    "cells5_9_900_end": -0.199,
+    "d1_900_end": -12.3483,
+    "d1_rest": -12.149,
+    "link10643_900_end": -22.043
+   },
+   "P-B|v3c3-s31": {
+    "pair": "P-B",
+    "x": "b_s31",
+    "y": "nc3_s31",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.027,
+     -0.188,
+     -0.603,
+     0.582,
+     0.601,
+     0.817,
+     0.524,
+     -1.496,
+     -0.064
+    ],
+    "cells5_9_900_end": 0.147,
+    "d1_900_end": -37.3273,
+    "d1_rest": -37.474,
+    "link10643_900_end": -19.254
+   },
+   "P-VSL|v3c3-s31": {
+    "pair": "P-VSL",
+    "x": "vsl_s31",
+    "y": "nc3_s31",
+    "cells5_9_per_900s": [
+     0.0,
+     0.062,
+     -0.486,
+     -0.089,
+     -0.222,
+     1.364,
+     0.317,
+     -0.329,
+     -0.501,
+     -0.029
+    ],
+    "cells5_9_900_end": 0.086,
+    "d1_900_end": 36.1262,
+    "d1_rest": 36.04,
+    "link10643_900_end": 20.653
+   },
+   "P-J1|v3c3-s31": {
+    "pair": "P-J1",
+    "x": "j1_s31",
+    "y": "nc3_s31",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.192,
+     0.05,
+     0.457,
+     0.236,
+     1.019,
+     -0.254,
+     -0.247,
+     -1.158,
+     0.164
+    ],
+    "cells5_9_900_end": 0.075,
+    "d1_900_end": 12.5792,
+    "d1_rest": 12.504,
+    "link10643_900_end": -18.982
+   },
+   "P-VA|v3c3-s41": {
+    "pair": "P-VA",
+    "x": "va_s41",
+    "y": "nc3_s41",
+    "cells5_9_per_900s": [
+     0.0,
+     0.136,
+     0.41,
+     -0.968,
+     1.224,
+     -0.708,
+     -6.431,
+     -28.283,
+     -26.601,
+     -1.833
+    ],
+    "cells5_9_900_end": -63.055,
+    "d1_900_end": -72.5732,
+    "d1_rest": -9.518,
+    "link10643_900_end": -68.837
+   },
+   "P-B|v3c3-s41": {
+    "pair": "P-B",
+    "x": "b_s41",
+    "y": "nc3_s41",
+    "cells5_9_per_900s": [
+     0.0,
+     0.569,
+     -0.235,
+     -0.69,
+     0.56,
+     -0.426,
+     -6.344,
+     -27.261,
+     -27.714,
+     -1.843
+    ],
+    "cells5_9_900_end": -63.385,
+    "d1_900_end": -178.0779,
+    "d1_rest": -114.693,
+    "link10643_900_end": -60.8
+   },
+   "P-VSL|v3c3-s41": {
+    "pair": "P-VSL",
+    "x": "vsl_s41",
+    "y": "nc3_s41",
+    "cells5_9_per_900s": [
+     0.0,
+     0.293,
+     -0.278,
+     -1.432,
+     0.261,
+     -0.867,
+     3.108,
+     -24.525,
+     -24.743,
+     -1.808
+    ],
+    "cells5_9_900_end": -49.991,
+    "d1_900_end": -126.1457,
+    "d1_rest": -76.155,
+    "link10643_900_end": -30.96
+   },
+   "P-J1|v3c3-s41": {
+    "pair": "P-J1",
+    "x": "j1_s41",
+    "y": "nc3_s41",
+    "cells5_9_per_900s": [
+     0.0,
+     0.472,
+     0.381,
+     -0.794,
+     0.699,
+     -0.0,
+     -6.79,
+     -28.065,
+     -27.158,
+     -1.789
+    ],
+    "cells5_9_900_end": -63.046,
+    "d1_900_end": -165.5357,
+    "d1_rest": -102.49,
+    "link10643_900_end": -76.136
+   },
+   "P-VA|v3c3-s43": {
+    "pair": "P-VA",
+    "x": "va_s43",
+    "y": "nc3_s43",
+    "cells5_9_per_900s": [
+     0.0,
+     -1.439,
+     0.233,
+     0.239,
+     0.854,
+     -1.382,
+     -7.474,
+     -3.217,
+     -0.936,
+     0.085
+    ],
+    "cells5_9_900_end": -13.036,
+    "d1_900_end": -5.2431,
+    "d1_rest": 7.793,
+    "link10643_900_end": -53.486
+   },
+   "P-B|v3c3-s43": {
+    "pair": "P-B",
+    "x": "b_s43",
+    "y": "nc3_s43",
+    "cells5_9_per_900s": [
+     0.0,
+     0.032,
+     1.083,
+     -0.839,
+     1.324,
+     -0.694,
+     -7.279,
+     -3.386,
+     -3.142,
+     0.008
+    ],
+    "cells5_9_900_end": -12.893,
+    "d1_900_end": -88.9268,
+    "d1_rest": -76.034,
+    "link10643_900_end": -49.454
+   },
+   "P-VSL|v3c3-s43": {
+    "pair": "P-VSL",
+    "x": "vsl_s43",
+    "y": "nc3_s43",
+    "cells5_9_per_900s": [
+     0.0,
+     0.522,
+     0.607,
+     0.961,
+     0.118,
+     0.093,
+     -7.518,
+     -2.894,
+     -3.378,
+     0.0
+    ],
+    "cells5_9_900_end": -11.489,
+    "d1_900_end": -8.0166,
+    "d1_rest": 3.472,
+    "link10643_900_end": -26.862
+   },
+   "P-J1|v3c3-s43": {
+    "pair": "P-J1",
+    "x": "j1_s43",
+    "y": "nc3_s43",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.003,
+     0.515,
+     -0.436,
+     0.713,
+     -0.715,
+     -7.736,
+     -3.05,
+     -2.126,
+     -0.019
+    ],
+    "cells5_9_900_end": -12.858,
+    "d1_900_end": -54.3487,
+    "d1_rest": -41.491,
+    "link10643_900_end": -55.535
+   },
+   "Q-joint|64cf-s29": {
+    "pair": "Q-joint",
+    "x": "cx_joint",
+    "y": "nc64",
+    "cells5_9_per_900s": [
+     0.0,
+     0.117,
+     0.654,
+     -1.49,
+     -7.243,
+     -32.868,
+     -19.224,
+     -11.421,
+     1.336
+    ],
+    "cells5_9_900_end": -70.139,
+    "d1_900_end": -283.6307,
+    "d1_rest": -213.492,
+    "link10643_900_end": -14.996
+   },
+   "Q-window|64cf-s29": {
+    "pair": "Q-window",
+    "x": "cx_window",
+    "y": "nc64",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.028,
+     1.193,
+     -1.489,
+     -6.125,
+     -31.969,
+     -18.593,
+     -11.304,
+     -1.538
+    ],
+    "cells5_9_900_end": -69.853,
+    "d1_900_end": -264.5665,
+    "d1_rest": -194.714,
+    "link10643_900_end": -14.197
+   },
+   "Q-off|64cf-s29": {
+    "pair": "Q-off",
+    "x": "cx_off",
+    "y": "nc64",
+    "cells5_9_per_900s": [
+     0.0,
+     0.117,
+     1.3,
+     -0.751,
+     -7.687,
+     -32.44,
+     -19.018,
+     -12.387,
+     0.479
+    ],
+    "cells5_9_900_end": -70.388,
+    "d1_900_end": -301.451,
+    "d1_rest": -231.063,
+    "link10643_900_end": -15.232
+   },
+   "Q-fw|64cf-s29": {
+    "pair": "Q-fw",
+    "x": "cx_fw",
+    "y": "nc64",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.239,
+     0.918,
+     -1.178,
+     -7.36,
+     -32.044,
+     -17.318,
+     -10.819,
+     -2.761
+    ],
+    "cells5_9_900_end": -70.801,
+    "d1_900_end": -351.8254,
+    "d1_rest": -281.024,
+    "link10643_900_end": -7.414
+   },
+   "Q-urb|64cf-s29": {
+    "pair": "Q-urb",
+    "x": "cx_urb",
+    "y": "nc64",
+    "cells5_9_per_900s": [
+     0.0,
+     0.11,
+     1.457,
+     27.218,
+     91.829,
+     62.153,
+     47.557,
+     38.986,
+     35.87
+    ],
+    "cells5_9_900_end": 305.179,
+    "d1_900_end": 721.3598,
+    "d1_rest": 416.181,
+    "link10643_900_end": -14.279
+   },
+   "Q-A1|64cf-s29": {
+    "pair": "Q-A1",
+    "x": "a1",
+    "y": "lnc",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.422,
+     0.978,
+     1.315,
+     -6.338,
+     -32.281,
+     -17.501,
+     -10.549,
+     -0.965
+    ],
+    "cells5_9_900_end": -65.763,
+    "d1_900_end": -251.0875,
+    "d1_rest": -185.325,
+    "link10643_900_end": -12.232
+   },
+   "Q-A1j|64cf-s29": {
+    "pair": "Q-A1j",
+    "x": "a1",
+    "y": "cx_joint",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.539,
+     0.324,
+     2.805,
+     0.905,
+     0.588,
+     1.722,
+     0.872,
+     -2.301
+    ],
+    "cells5_9_900_end": 4.376,
+    "d1_900_end": 32.5429,
+    "d1_rest": 28.167,
+    "link10643_900_end": 2.764
+   },
+   "Q-VSL64|64cf-s29": {
+    "pair": "Q-VSL64",
+    "x": "vslr",
+    "y": "lnc",
+    "cells5_9_per_900s": [
+     0.0,
+     -0.346,
+     0.413,
+     -1.707,
+     -7.292,
+     -32.761,
+     -18.153,
+     -11.265,
+     0.472
+    ],
+    "cells5_9_900_end": -70.639,
+    "d1_900_end": -139.2391,
+    "d1_rest": -68.6,
+    "link10643_900_end": -10.513
+   }
+  }
+ }
+}

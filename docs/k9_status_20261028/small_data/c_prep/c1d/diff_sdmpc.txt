@@ -1,0 +1,451 @@
+27a28,51
+> def retain_feasible_held(reference, initial_cost, best, cap_action, tolerance,
+>                          evaluate, feasible):
+>     """PFO's own-cost warm start must not discard a better feasible Omega hold.
+> 
+>     Keep the selected budgets. Re-evaluate the supplied executable initial
+>     controls under them, using the same checks as every other candidate.
+>     This does not change the PFO merit or assert native control benefit.
+>     """
+>     proof = dict(evaluated=False, selected=False, original_held_objective=initial_cost,
+>                  budget_source='selected_candidate', additional_predictions=0)
+>     if best is not None and initial_cost >= best[1]['objective_veh_h']-tolerance:
+>         return best, proof
+>     held = reference.copy()
+>     held.N_P_star, held.N_UF_star = cap_action.N_P_star, cap_action.N_UF_star
+>     item = evaluate([held])[0]
+>     valid = feasible(held, item)
+>     proof.update(evaluated=True, feasible=valid, objective=item['objective_veh_h'],
+>                  np_cap=held.N_P_star, nuf_cap=held.N_UF_star, additional_predictions=1)
+>     if valid and (best is None or item['objective_veh_h'] < best[1]['objective_veh_h']-tolerance):
+>         best = (held, item, None)
+>         proof['selected'] = True
+>     return best, proof
+> 
+> 
+35c59
+<     def __init__(self):
+---
+>     def __init__(self, *, nuf_cap=False):
+37a62
+>         self.nuf_cap = nuf_cap
+41a67,68
+>         if self.nuf_cap:
+>             physical.N_UF_star = 0.
+50a78,79
+>                 if self.nuf_cap:
+>                     row['N_UF_star'] = 0.
+58c87,88
+<                            'anchor_costs_and_resources_exact': True})
+---
+>                            'anchor_costs_and_resources_exact': True,
+>                            'nuf_cap_reuse_enabled': self.nuf_cap})
+96,97c126,127
+<     for name in ('response_np_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
+<                  'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath'):
+---
+>     for name in ('response_np_cache', 'response_cap_cache', 'lazy_trial_derivatives', 'stock_geometry_hotpath', 'receiving_geometry_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
+>                  'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant', 'meter_neighbor_audit'):
+166a197,198
+>     if options.get('meter_neighbor_audit') and options.get('control_blocks') != 3:
+>         raise ValueError('Finite meter schedule audit requires three control blocks')
+193a226,233
+>     if options.get('response_cap_cache') and (mode != 'central-pfo-cap-v3'
+>             or not options.get('surrogate_reuse') or not tuning.get('freeway', {}).get('lane_plant')):
+>         raise ValueError('sdmpc_response_cap_cache requires the lane central-pfo-cap-v3 continuous predictor')
+>     if options.get('lazy_trial_derivatives') and not options.get('surrogate_reuse'):
+>         raise ValueError('sdmpc_lazy_trial_derivatives requires the continuous response cache')
+>     if (options.get('stock_geometry_hotpath') or options.get('receiving_geometry_cache')) and (not options.get('prediction_hotpath')
+>             or not options.get('compact_audit') or options.get('tangent_backend') != 'reverse-v1'):
+>         raise ValueError('SDMPC stock/receiving geometry cache requires reverse continuous hot path and compact primal checks')
+215a256,260
+>     fixed_vsl = tuning.get('adapter', {}).get('sdmpc_fixed_vsl')
+>     if fixed_vsl is not None:
+>         from evaluation.controllers.control_hold import validate_fixed_vsl
+>         validate_fixed_vsl(fixed_vsl, cfg.network.freeway_vsl_zone_heads)
+>         options['fixed_vsl'] = copy.deepcopy(fixed_vsl)
+216a262,269
+>     from evaluation.controllers import sdmpc_terminal
+>     sdmpc_terminal.configure(tuning, cfg)
+>     if getattr(cfg.network, 'sdmpc_terminal_cost', None) is not None:
+>         options['terminal_cost_sha256'] = sdmpc_terminal.specification_token(cfg.network.sdmpc_terminal_cost)
+>     from evaluation.controllers import omega_distance
+>     omega_distance.configure_reward(tuning,cfg)
+>     if getattr(cfg.network,'sdmpc_distance_reward',None) is not None:
+>         options['distance_reward_sha256']=omega_distance.reward_token(cfg.network.sdmpc_distance_reward)
+262,268c315
+<     """같은 적분 기록에서 Ω TTT를 한 번씩 합산한다. 외부 queue는 더하지 않는다.
+< 
+<     S1-OWN (K8-3, D-K8-2): a row's pre-head meter spill (meter_spill_veh) moves that
+<     part of its feeder's residence to the ramp's meter owner. The total and Omega are
+<     unchanged; meter_spill_veh_h (moved veh*h per ramp and feeder) only when nonempty.
+<     """
+<     from evaluation.controllers import meter_spill
+---
+>     """같은 적분 기록에서 Ω TTT를 한 번씩 합산한다. 외부 queue는 더하지 않는다."""
+272d318
+<     attributed = {}
+276d321
+<         moved = meter_spill.spill_inside(row) if 'meter_spill_veh' in row else {}
+282,283d326
+<             if stock in moved:
+<                 value = meter_spill.move(pieces, table, PASSIVE, moved[stock], dt, value, stock, attributed)
+295,296c338,364
+<     if attributed:
+<         partition['meter_spill_veh_h'] = attributed
+---
+>     if 'terminal_cost' in point.control_area:
+>         from evaluation.controllers import sdmpc_terminal
+>         sdmpc_terminal.validate_score(point.control_area, point.objective, cfg)
+>         terminal = point.control_area['terminal_cost']['cost_by_owner_veh_h']
+>         combined = {owner: costs[owner]+terminal[owner] for owner in costs}
+>         value = math.fsum(combined.values())
+>         if not math.isclose(value, point.objective, rel_tol=1e-10, abs_tol=1e-8):
+>             raise ValueError('Terminal ownership partition differs from endpoint objective')
+>         local = {owner: dict(cost=combined[owner], near_ttt_veh_h=costs[owner],
+>             terminal_cost_veh_h=terminal[owner], scope='disjoint_omega_residence_and_terminal') for owner in owners}
+>         partition.update(costs=combined, total_veh_h=value,
+>             residual_veh_h=value-point.objective, near_costs=costs,
+>             near_ttt_veh_h=total, terminal_costs=terminal,
+>             terminal_cost_veh_h=point.control_area['terminal_cost']['total_veh_h'])
+>     if 'distance_reward' in point.control_area:
+>         from evaluation.controllers import omega_distance
+>         omega_distance.validate_reward_score(point.control_area,point.objective,cfg)
+>         distance=point.control_area['distance_reward']['cost_by_owner_veh_h']
+>         combined={owner:costs[owner]+distance[owner] for owner in costs}
+>         value=math.fsum(combined.values())
+>         if not math.isclose(value,point.objective,rel_tol=1e-10,abs_tol=1e-8):
+>             raise ValueError('Distance ownership differs from endpoint objective')
+>         local={owner:dict(cost=combined[owner],near_ttt_veh_h=costs[owner],
+>             distance_cost_veh_h=distance[owner],scope='disjoint_omega_residence_and_distance') for owner in owners}
+>         partition.update(costs=combined,total_veh_h=value,residual_veh_h=value-point.objective,
+>             near_costs=costs,near_ttt_veh_h=total,distance_costs=distance,
+>             distance_cost_veh_h=point.control_area['distance_reward']['total_cost_veh_h'])
+338a407
+>             from evaluation.controllers.physical_ramp_branches import operating_green_allowed
+340a410
+>             floor = getattr(net, 'ramp_operating_green_floors', {}).get(ramp, 0.)
+342c412,414
+<                        if abs(int(g)-a) <= limit and (int(g) == 0 or int(g) >= spec['minimum_green_sec'])]
+---
+>                        if abs(int(g)-a) <= limit and int(g) >= floor and operating_green_allowed(spec,int(g))]
+>             if not allowed:
+>                 raise ValueError('No meter command satisfies operating bounds and actual-change limit: '+ramp)
+347a420,421
+>                 if options.get('fixed_vsl') is not None:
+>                     continue  # Exogenous schedule, not an optimization coordinate.
+363a438,439
+>         from evaluation.controllers.urban_storage_guard import constrain
+>         constrain(self)
+416a493,503
+>             values = {p: out.green_times.get(owner+'_'+p, 0.) for p in signals.PHASES}
+>             try:
+>                 signals.validate_vector(self.cfg.network, owner, values)
+>             except ValueError:
+>                 # Rounding independent greens can push the residual pivot 1 ms
+>                 # past a bound. Repair only that precision loss before scoring;
+>                 # the unchanged move box and sequence constraints still apply.
+>                 repaired = signals.project_vector(self.cfg.network, owner, values)
+>                 if max(abs(repaired[p]-values[p]) for p in signals.PHASES) > .002+1e-9:
+>                     raise
+>                 out.green_times.update({owner+'_'+p: v for p,v in repaired.items()})
+446a534,691
+> def vsl_activation_axes(coord,z,gradient,resources,maximum):
+>     """Probe legal VSL steps only when the inactive command has zero sensitivity.
+> 
+>     Endpoints retain the physical costs and nonlinear acceptance checks.
+>     This adds no activation reward and never forces a speed reduction.
+>     """
+>     return {j:'inactive_vsl_legal_step' for j,axis in enumerate(coord.axes)
+>             if axis['kind']=='vsl'
+>             and axis['reference_value']+z[j]*axis['scale']>=maximum-.5
+>             and not np.any(gradient[:,j]) and not np.any(resources[:,j])
+>             and any(v<maximum-.5 for v in axis['allowed'])}
+> 
+> 
+> def meter_activation_axes(coord, z, gradient, resources):
+>     """Bounded OPEN probes only when all local cost/resource derivatives vanish."""
+>     return {j: 'open_meter_legal_edge' for j, axis in enumerate(coord.axes)
+>             if axis['kind'] == 'meter'
+>             and abs(axis['reference_value'] + z[j]*axis['scale'] - axis['scale']) < 1e-9
+>             and not np.any(gradient[:, j]) and not np.any(resources[:, j])
+>             and any(value < axis['scale'] for value in axis['allowed'])}
+> 
+> 
+> def meter_neighbors(coord, action):
+>     """One bounded set of tighten/release profiles, anchored to actual controls.
+> 
+>     Include each ramp and each freeway's ramps together. Inspect finite legal
+>     commands across all blocks; a zero derivative at OPEN must not hide them.
+>     Signal/VSL controls and quantity caps stay fixed. No combinatorial search.
+>     """
+>     axes = {}
+>     owners = {}
+>     for j, axis in enumerate(coord.axes):
+>         if axis['kind'] == 'meter':
+>             axes.setdefault(axis['key'], []).append(j)
+>             owners.setdefault(axis['owner'], set()).add(axis['key'])
+>     groups = [(name, {name}) for name in axes]
+>     groups += [(owner, ramps) for owner, ramps in owners.items() if len(ramps) > 1]
+>     limits = {(field, key): limit for field, key, old, limit, cycle in coord.move_box.entries}
+>     start = coord.encode(action)
+>     seen = {tuple(start)}
+>     result = []
+>     for label, ramps in groups:
+>         for direction in (-1, 1):
+>             z = start.copy()
+>             for ramp in sorted(ramps):
+>                 indices = sorted(axes[ramp], key=lambda j: coord.axes[j].get('block', 0))
+>                 previous = coord.axes[indices[0]]['reference_value']
+>                 limit = limits['diagnostics', 'rw_meter_green_'+ramp]
+>                 for j in indices:
+>                     axis = coord.axes[j]
+>                     allowed = [g for g in axis['allowed'] if abs(g-previous) <= limit+1e-9]
+>                     if not allowed:
+>                         raise ValueError('No legal successive meter value')
+>                     value = min(allowed) if direction < 0 else max(allowed)
+>                     z[j] = (value-axis['reference_value'])/axis['scale']
+>                     previous = value
+>             if tuple(z) in seen:
+>                 continue
+>             candidate = coord.decode(z, action)
+>             coord.validate(candidate)
+>             actual = tuple(coord.encode(candidate))
+>             if actual in seen:
+>                 continue
+>             seen.add(actual)
+>             result.append((label+(':tighten' if direction < 0 else ':release'), candidate))
+>     return result
+> 
+> 
+> def audit_meter_neighbors(coord, best, tolerance, evaluate, feasible):
+>     """Check finite moves and one combination of beneficial disjoint RM moves.
+> 
+>     Combining separately beneficial moves is only a proposal: its full model
+>     cost and unchanged caps must pass again. At most one extra prediction.
+>     """
+>     baseline = best[1]['objective_veh_h']
+>     anchor = best[0]
+>     start = coord.encode(anchor)
+>     candidates = meter_neighbors(coord, best[0])
+>     items = evaluate([action for _, action in candidates]) if candidates else []
+>     if len(items) != len(candidates):
+>         raise ValueError('Incomplete finite meter evaluation')
+>     rows, selected, improvements = [], None, []
+>     for (label, action), item in zip(candidates, items):
+>         valid = feasible(action, item)
+>         rows.append(dict(candidate=label, objective=item['objective_veh_h'], feasible=valid,
+>                          delta_veh_h=item['objective_veh_h']-baseline))
+>         if valid and item['objective_veh_h'] < best[1]['objective_veh_h']-tolerance:
+>             best, selected = (action, item, None), label
+>         if valid and item['objective_veh_h'] < baseline-tolerance:
+>             z = coord.encode(action)
+>             changed = [j for j in range(len(z)) if abs(z[j]-start[j]) > 1e-12]
+>             if any(coord.axes[j]['kind'] != 'meter' for j in changed):
+>                 raise ValueError('Finite meter candidate changed another actuator')
+>             improvements.append((item['objective_veh_h'], z, label, set(changed)))
+>     additional = len(items)
+>     # Compose disjoint beneficial physical moves, including two ramps owned by
+>     # the same freeway. A bundled move may not overwrite another chosen move.
+>     components, used = [], set()
+>     for candidate in sorted(improvements, key=lambda row:(row[0],row[2])):
+>         if candidate[3] and not used.intersection(candidate[3]):
+>             components.append(candidate)
+>             used.update(candidate[3])
+>     if len(components) > 1:
+>         z = start.copy()
+>         for _, values, _, changed in components:
+>             for j in changed: z[j] = values[j]
+>         if coord.valid(z):
+>             action = coord.decode(z, anchor)
+>             coord.validate(action)
+>             seen = {tuple(start), *(tuple(coord.encode(a)) for _, a in candidates)}
+>             if tuple(coord.encode(action)) not in seen:
+>                 combined = evaluate([action])
+>                 if len(combined) != 1:
+>                     raise ValueError('Incomplete combined meter evaluation')
+>                 item = combined[0]
+>                 additional += 1
+>                 valid = feasible(action, item)
+>                 label = 'combined_meter_owners'
+>                 rows.append(dict(candidate=label, objective=item['objective_veh_h'], feasible=valid,
+>                     delta_veh_h=item['objective_veh_h']-baseline,
+>                     components=[row[2] for row in components]))
+>                 if valid and item['objective_veh_h'] < best[1]['objective_veh_h']-tolerance:
+>                     best, selected = (action, item, None), label
+>     return best, dict(baseline_objective=baseline, selected=selected, candidates=rows,
+>                      additional_predictions=additional, exhaustive=False)
+> 
+> 
+> def audit_meter_budget_candidates(coord, best, budget_candidates, tolerance, evaluate, feasible):
+>     """Audit discrete meters before discarding independently solved budgets.
+> 
+>     Equal continuous controls can have different feasible meter neighbors under
+>     different caps. Choosing a budget first hides those neighbors. Keep each
+>     already feasible budget's incumbent, without expanding any candidate cap.
+>     Work stays bounded by the solved budgets plus an optional held incumbent.
+>     """
+>     initial = best[1]['objective_veh_h']
+>     seen, audits, rows, selected, predictions = set(), [], [], None, 0
+>     for incumbent in (best, *budget_candidates):
+>         identity = token(incumbent[0])
+>         if identity in seen:
+>             continue
+>         seen.add(identity)
+>         if not feasible(incumbent[0], incumbent[1]):
+>             raise ValueError('Meter budget audit requires a feasible incumbent')
+>         candidate, audit = audit_meter_neighbors(coord, incumbent, tolerance, evaluate, feasible)
+>         context = dict(np_cap=incumbent[0].N_P_star, nuf_target=incumbent[0].N_UF_star,
+>                        incumbent_action_token=identity)
+>         audits.append(dict(audit, **context))
+>         rows.extend(dict(row, **context) for row in audit['candidates'])
+>         predictions += audit['additional_predictions']
+>         if candidate[1]['objective_veh_h'] < best[1]['objective_veh_h']-tolerance:
+>             best, selected = candidate, audit['selected']
+>     return best, dict(baseline_objective=initial, selected=selected, candidates=rows,
+>         additional_predictions=predictions, exhaustive=False, budget_audits=audits,
+>         distinct_budget_incumbents=len(audits),
+>         scope='Finite legal RM neighbors of every solved feasible budget; each cap remains fixed')
+> 
+> 
+512a758,767
+> def policy_token(policy):
+>     """A verified calculation cache does not change the dual-price policy.
+> 
+>     Keep every optimization/physics option in the identity. Only the new exact
+>     cap-response reuse switch is omitted, preserving legacy saved receipts.
+>     """
+>     return token({k:v for k,v in policy.items()
+>                   if k not in ('response_cap_cache', 'lazy_trial_derivatives', 'stock_geometry_hotpath', 'receiving_geometry_cache')})
+> 
+> 
+527c782
+<             or saved['sim_sec'] != float(lines[0]) or saved['policy_sha256'] != token(policy)):
+---
+>             or saved['sim_sec'] != float(lines[0]) or saved['policy_sha256'] != policy_token(policy)):
+571a827,835
+>     from evaluation.controllers.physical_ramp_branches import configure_operating_bounds
+>     meter_operating_bounds = configure_operating_bounds(state, cfg, reference)
+>     if policy.get('fixed_vsl') is not None:
+>         from evaluation.controllers.control_hold import fixed_vsl_reference
+>         reference = fixed_vsl_reference(reference, policy['fixed_vsl'],
+>             cfg.network.freeway_vsl_zone_heads, state.time_sec,
+>             cfg.simulation.T_c_sec, policy.get('control_blocks', 1))
+>         # historical remains the actual prior command for the writer/move box.
+>         # The scheduled command is present in every prediction, including PFO.
+586a851,864
+>         # A full reservoir may require opening relative to the last actual
+>         # command. Keep the actual anchor; only project the new warm start.
+>         if getattr(cfg.network, 'urban_storage_guard', None):
+>             from evaluation.controllers.urban_storage_guard import operating_seed as protected_seed
+>             operating_seed = protected_seed(coord, reference, policy)
+>         else:
+>             operating_seed = reference
+>             if not coord.valid(coord.encode(reference)):
+>                 seed_z = coord.encode(reference)
+>                 for j, axis in enumerate(coord.axes):
+>                     if axis['kind'] == 'meter':
+>                         seed_z[j] = np.clip(seed_z[j],coord.lower[j],coord.upper[j])
+>                 operating_seed = coord.decode(seed_z,reference)
+>                 coord.validate(operating_seed)
+620c898
+<             return (quantity(action, item)['feasible'] and item['conditional_model_feasibility_witness']
+---
+>             return (bool(coord.valid(coord.encode(action))) and quantity(action, item)['feasible'] and item['conditional_model_feasibility_witness']
+629c907
+<                 reference,coord,policy,options,evaluate,query.derivative,vector,budget.check,emit)
+---
+>                 operating_seed,coord,policy,options,evaluate,query.derivative,vector,budget.check,emit)
+641,642c919,920
+<             held_old = evaluate([reference], derivatives=shared_initial)[0]
+<             anchor, initialization = joint.initialize_decision_nuf(follower, state, reference, held_old)
+---
+>             held_old = evaluate([operating_seed], derivatives=shared_initial)[0]
+>             anchor, initialization = joint.initialize_decision_nuf(follower, state, operating_seed, held_old)
+644c922
+<                 query.bind_initial_target(reference, anchor)
+---
+>                 query.bind_initial_target(operating_seed, anchor)
+656c934
+<                 budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check)
+---
+>                 budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check, np_only=True)
+667c945
+<             == callbacks['command_evidence'](warm_action if cap_mode else reference, context)['owner_physical_sha256'])
+---
+>             == callbacks['command_evidence'](warm_action if cap_mode else operating_seed, context)['owner_physical_sha256'])
+674c952
+<                 budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check)
+---
+>                 budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check, np_only=True)
+684a963
+>         meter_budget_candidates = []
+689c968
+<         derivatives_cache = GradientCache()
+---
+>         derivatives_cache = GradientCache(nuf_cap=bool(policy.get('response_cap_cache')))
+734a1014,1017
+>             if policy.get('vsl_activation_secant'):
+>                 fallback.update(vsl_activation_axes(coord,z,grad,A,max(follower.cfg.freeway_follower.vsl_set)))
+>             if policy.get('meter_activation_secant'):
+>                 fallback.update(meter_activation_axes(coord, z, grad, A))
+868c1151,1152
+<                 values = evaluate(trial_actions, derivatives=surrogate and iteration+1 < policy['max_iterations'])
+---
+>                 values = evaluate(trial_actions, derivatives=surrogate
+>                     and not policy.get('lazy_trial_derivatives') and iteration+1 < policy['max_iterations'])
+932,933c1216,1230
+<             if candidate_best and (best is None or candidate_best[1]['objective_veh_h'] < best[1]['objective_veh_h']-policy['objective_tolerance']):
+<                 best = candidate_best
+---
+>             if candidate_best:
+>                 if policy.get('meter_neighbor_audit'):
+>                     meter_budget_candidates.append(candidate_best)
+>                 if best is None or candidate_best[1]['objective_veh_h'] < best[1]['objective_veh_h']-policy['objective_tolerance']:
+>                     best = candidate_best
+>         held_candidate = None
+>         # PFO evaluated operating_seed, which may project the actual reference
+>         # onto storage-protection bounds. Retain that same action/cost pair.
+>         if cap_mode and coord.valid(coord.encode(operating_seed)):
+>             best, held_candidate = retain_feasible_held(operating_seed, pfo_initial['objective_veh_h'],
+>                 best, best[0] if best is not None else anchor, policy['objective_tolerance'], evaluate, feasible)
+>         elif cap_mode:
+>             held_candidate = dict(evaluated=False,selected=False,reason='outside_current_operating_bounds')
+>         if cap_mode:
+>             held_candidate['reference_source'] = 'current_operating_seed'
+935a1233,1239
+>         meter_audit = None
+>         if policy.get('meter_neighbor_audit'):
+>             finish_trial_derivatives()
+>             emit('sdmpc_meter_neighbors_start')
+>             best, meter_audit = audit_meter_budget_candidates(coord, best, meter_budget_candidates,
+>                 policy['objective_tolerance'], evaluate, feasible)
+>             emit('sdmpc_meter_neighbors_done', **meter_audit)
+958c1262
+<         state_record = {'schema': SCHEMA, 'sim_sec': state.time_sec, 'policy_sha256': token(policy),
+---
+>         state_record = {'schema': SCHEMA, 'sim_sec': state.time_sec, 'policy_sha256': policy_token(policy),
+965a1270,1272
+>             'meter_operating_bounds': meter_operating_bounds,
+>             'urban_storage_guard': {'observation': getattr(cfg.network, 'urban_storage_guard', None),
+>                 'blocks': [b.urban_storage_receipt for b in getattr(coord, 'blocks', [coord])]},
+980c1287,1289
+<             'finite_neighbor_audit_performed': False, 'policy': policy}
+---
+>             'finite_neighbor_audit_performed': meter_audit is not None, 'policy': policy}
+>         if meter_audit is not None:
+>             metadata['meter_neighbor_audit'] = meter_audit
+990a1300
+>                 original_held_candidate=held_candidate,
+1002a1313,1323
+>         if 'terminal_cost' in item['control_area']:
+>             base = pfo_initial if cap_mode else held
+>             metadata.update(prediction_objective_reduction=base['objective_veh_h']-item['objective_veh_h'],
+>                 prediction_ttt_reduction=base['control_area']['ttt_veh_h']-item['control_area']['ttt_veh_h'],
+>                 prediction_terminal_reduction=base['control_area']['additional_cost_veh_h']-item['control_area']['additional_cost_veh_h'])
+>         if 'distance_reward' in item['control_area']:
+>             base = pfo_initial if cap_mode else held
+>             metadata.update(prediction_objective_reduction=base['objective_veh_h']-item['objective_veh_h'],
+>                 prediction_ttt_reduction=base['control_area']['ttt_veh_h']-item['control_area']['ttt_veh_h'],
+>                 prediction_distance_increase_veh_km=item['control_area']['distance_reward']['shifted_tvd_veh_km']-base['control_area']['distance_reward']['shifted_tvd_veh_km'],
+>                 prediction_distance_cost_reduction=base['control_area']['additional_cost_veh_h']-item['control_area']['additional_cost_veh_h'])

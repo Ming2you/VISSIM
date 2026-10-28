@@ -1,0 +1,107 @@
+# 메모리 색인 (이 묶음에 든 프로젝트 메모리만)
+
+원본 MEMORY.md 에서 이 묶음 memory/ 에 복사한 파일을 가리키는 줄만 골랐습니다. 다른 개인 메모 줄은 뺐습니다.
+
+- [VISSIM execution gotcha](vissim-execution-gotcha.md) — launch Vissim COM via PowerShell only (Korean path breaks Git Bash); license/install/runner facts
+- [VISSIM watchdog policy](vissim-watchdog-policy.md) - 장기 런 5분 무진행 시 kill+재실행 (사용자 지시, 2026-07-15)
+- [VISSIM 커넥터 삭제가 경로를 깬다](vissim-connector-delete-breaks-routes.md) — 커넥터 지우면 정적 경로 미완성 → 시뮬 시작 안 됨 → 램프 COM 실패로 오인. 망 편집 후 .err 의 Error 델타부터 봐라
+- [VISSIM workstation state](vissim-workstation-state.md) — plant-fidelity-v2-1 현황(2026-08-20): wu-link 가격 병렬화 2.71배 검증 완료, 유효 기준선 TTT 176.144/해시 0ef928fe, 다음=현시가격 OFF 대조군
+- [차로수 차원 오류와 그 역설](vissim-lane-delay-dimension-bug.md) — plant 지연이 거리를 차로수(2.7배)만큼 과대. 상쇄하면 예측 스텝3 54.3→47.7% 개선인데 폐루프 J 는 +0.2~0.4% 악화 → 기본 꺼짐
+- [plant 충실도는 해상도마다 다르다](vissim-plant-fidelity-three-layers.md) — 집계 3% / 세그먼트 15% / 구간 52%. 집계만 쓰면 과장. 원인=투영이 release 버퍼를 잃음, warm-start 가 ~11pt 걷어냄
+- [VISSIM 런 발사 함정 넷](vissim-parent-run-launch-traps.md) — 게이트맵 미지정=13.8% 조용한 오염 / StallSec 300 이 수요 스케일링 중 kill / ControlStartSec -1 은 warmup 없음 / RW_ADAPTER_MODE 누출
+- [토폴로지 재생성 core17legs4](vissim-topology-rebuild-core17.md) — 2026-08-18 4방위·중복게이트·midblock 정리 끝. **player 권역 배정이 틀렸다(미해결)** 가 다음 시작점
+- [player 권역 정본 (재유도 금지)](vissim-player-territory-canonical.md) — outputs/urban_player_territory_v1_20260819.json 을 읽어서 쓴다. 자동 규칙은 link 21·SC1_N_SC11 등에서 틀린다
+- [보호망 경계 판정 정본](vissim-pn-boundary-canonical.md) — leg 구역+전이표+정지선 커넥터, 통제 가능 경계 74 / 상수 부하 3,920 veh/h, 규칙 5개 되돌리기 금지
+- [작업 전 해석기 먼저](vissim-resolve-live-controller-first.md) — 구성을 추론하지 마라; scripts/resolve_live_controller.py (2026-08-20 하루 6번 오독 후 합의)
+- [동서축 관측 실명 (근본원인)](vissim-ew-axis-observation-blind.md) — 검지 매핑이 동서 접근로를 못 봐 p3·p4 가 영구히 큐 0 → 컨트롤러가 동서를 green_min 으로 굶김. 2026-08-22 수정
+- [평평한 local → 꼭짓점 래칫](vissim-flat-local-cost-vertex.md) — 정련 채점기가 항등 0 이라 목적함수가 순수 선형. 가격 OFF 는 균등 뭉갬이라 답 아님. 수정=local_cost_model:phased
+- [실측 용량 온라인 갱신](vissim-measured-capacity-online.md) — 5초 스캔 링크이탈로 방류율 측정, 플랜트 씨앗+감쇠 러닝맥스. 회계 단위는 **접근로**(링크 하나=접근로 하나)
+- [균등 beta 결함](vissim-uniform-beta-defect.md) — 회전분율 474개가 전부 1/n 이었다. **정본은 .inpx 정적 경로결정**(.knr 은 내생이라 폐기, 현시 굶김 유발). relFlow 빈 값=1
+- [movement = leg 교차곱](vissim-movement-leg-crossproduct.md) — urban_movements 474 = L×(L−1). SC1 4갈래인데 56개. 정지선 커넥터로 재유도 + 병합 규칙 A/B. link_to_movements 는 dict 리스트다
+- [무제어 시드 분산](vissim-seed-variance.md) — 5시드 σ=50.7 veh·h(1.06%). 비짝지은 1% 급 판정 불가, 같은 시드 짝지음만 유효. 완주 확인 후 적분해라
+- [왜 제어가 못 이기나](vissim-why-control-loses.md) — offset 0 잠금 vs 협조 기준선(1~149s)이 구조 핸디캡. 가드 기각 0/33(옛 사건), 리더 층 분해능 없음. 분리실험=스플릿을 .sig 로 고정
+- [native-fixed 주기 팽창](vissim-nativefixed-cycle-inflation.md) — 동시현시 SC 는 합성 주기가 늘어난다(SC5 240s·SC7 213s). +201 을 offset 비용으로 읽지 마라. 단 제어가 native 분할보다 170 좋다
+- [가격 국소항이 배수 모형](vissim-price-local-term-drain.md) — 도착 0 이라 63.5% 현시에서 국소미분=0 → 가격이 외부효과 아닌 전역 한계값 전체. 2026-08-22 수정은 정련만 갔고 가격은 빠졌다
+- [큐 투영: 합계는 맞고 분포가 틀렸다](vissim-queue-projection-fixed-fraction.md) — 이중계상 없음. 고정분율 0.35/0.50 이 SC7 −32pt ~ SC1004 +48pt. 큰 신호에서 큐는 실제로 구속한다
+- [녹색상한 78 벽](vissim-green-max-78-wall.md) — GNE 후보 생성기가 신호별 green_max(SC108=101)를 못 읽고 전역 78 로 훑는다. 주현시만. SC108_p1 정련전 정확히 78.00 → 정련이 98 로 기어 나옴
+- [미드블록이 계획을 오염시킨다](vissim-midblock-plan-pollution.md) — 계획이 미드블록 SG를 현시에 넣어 본선 배달이 0.44배. narrowaxis·subwin 실패의 진짜 원인. 상충 판정은 '안 겹쳤다' 추론일 뿐
+- [새 default 스택 (2026-08-25)](vissim-default-stack-20260825.md) — default_20260825 가 merge 를 대체. 정본 어댑터 8290행 승격, 스위치 config 키, 러너 기본 계획도 본선 전용. mainline 4723.9 (−84.2)
+- [레버 활성화 로드맵](vissim-lever-activation-roadmap.md) — green 을 살려낸 6항목 진단서를 offset·metering·VSL 에 적용하고 통합. 순서: default → offset → metering·VSL → 통합
+- [offset 은 거부된다, 죽은 게 아니다](vissim-offset-rejected-not-dead.md) — 35.7% 슬롯에서 0 아닌 값 선택, 최종 유지 0. 관문 둘(keep_margin 0.005 하드코딩 · 승격 잠금). 과거 연동 A/B 는 전부 무효 대조군
+- [offset 은 τ 를 고쳐도 안 산다](vissim-offset-hurts-guard-was-right.md) — τ+offset 이 τ 단독보다 +90.3 악화, churn 은 204→318 로 증가. 네이티브 연동(1~138s)을 0 으로 뭉개는 것도 사실. 다음=슬루 제한
+- [듀얼은 고쳐도 안 는다](vissim-leader-np-erased-by-projection.md) — gain 0.25 를 고쳐 λ 가 실제 거래해도 TTT −2.7(잡음). 벽은 리더 목적함수 평평함(8e-7). 듀얼 추가 튜닝 금지
+- [τ 수정이 신기록](vissim-tau-fix-record.md) — 이동차 속도+차로 보정으로 4688.4(−119.7). 세 지표 전부 같은 방향. offset 과는 분리해서 승격
+- [plant 롤아웃이 발산한다](vissim-plant-rollout-diverges.md) — tau 무상한이 주범(스텝6 92.5→70.3%). 속도·용량·유입은 전부 0 효과. 남은 벽은 _out·in_·램프큐의 위상 구멍
+- [무제어 스텝별 하네스](vissim-nocontrol-stepwise-harness.md) — -ForceStepwise 는 러너 인자여야 한다(env 는 덮인다). 무제어는 도시신호 COM 0종 = 진짜 네이티브
+- [승격하면 구버전은 격리, 플래그로 남기지 마라](vissim-supersede-dont-flag.md) — 어댑터 19벌·함수 17개 분기·far 실런 0회의 근본 원인. 정본은 한 벌, 끄는 건 config 키 하나
+- [팔 혼동은 whose_code.py 로 막는다](vissim-arm-confusion-whose-code.md) — vendor 컨트롤러 27개가 팔 구분 없이 남아 있다. grep 말고 클래스 단위 LIVE/DEAD 판정을 먼저 받아라
+- [far 배수율은 실측이다](vissim-far-rates-measured.md) — 링크평가 150초로 G·g_fw·merge 온라인 갱신(g_fw 300 은 실측 612 의 절반이었다). 공용 ramp_capacity 는 건드리지 마라
+- [on-ramp 결합 정본 승격](vissim-onramp-coupling-promoted.md) — 램프 저수지에 유입 경로가 아예 없었다. 주입+관측+beta 세 조각이 함께여야 −483.8 (2026-09-03)
+- [게이트가 config 밖이면 죽은 코드다](vissim-gate-outside-config-is-dead.md) — 필드 없는 getattr·env 전용 게이트로 한 번도 안 돈 기능 다섯 건 (2026-09-04)
+- [새 정본 canon_default_20260904](vissim-default-stack-20260904.md) — 도시 큐/접근 분리 재배선. 제어 적자 +386.5 소멸(8339.0→7946.2). arrival buffer 가 한 번도 안 쓰였던 게 핵심
+- [현시가격 꼭짓점은 결함이 아니다](vissim-phase-price-surrogate-leak.md) — 모델의 참 최적점. 채점 1.47배 과대·부호오류 27.5% 이지만 순효과는 이득, 손실 ~10 veh·h 로 σ 아래
+- [가격 롤아웃 예산 173회](vissim-price-rollout-budget.md) — 디스크 진단 43은 4배 축소 오보(워커 계수 유실). green은 p1 스칼라라 34, 현시가격은 단측 64. 미터 가격이 green의 1/1000
+- [has_ramps 가 drain 폴백을 만든다](vissim-has-ramps-drain-fallback.md) — 꼭짓점 래칫 근본원인. SC1001·SC1004 만 phased 국소항 건너뜀. 그리고 가격 롤아웃은 팔로워를 재해하지 않는다(편미분)
+- [결합은 살아있고 가격이 우회한다](vissim-gne-coupling-is-live-price-bypasses-it.md) — u_on 은 녹색에 반응하고 Jacobi 로 수렴한다. 고장은 현시가격 채점이 램프 물리를 우회하는 것뿐. whose_code 는 합성을 못 본다
+- [in_gne demand 인자 버그](vissim-ingne-demand-kwarg-bug.md) — kwargs 로만 읽는데 호출부는 위치. 17신호 전부 drain 채점 → 꼭짓점. in_gne 두 팔(+728/+2750)이 진 진짜 이유
+- [램프 cap 수정이 듀얼로 증폭된다](vissim-ramp-cap-dual-amplification.md) — 4팔 분해: cap +1432(28σ)가 손실 100%, 램프국소·in_gne 는 잡음. nin 유출항→λ_P→17신호 전역 전파
+- [램프를 닫는 건 density_penalty 다](vissim-density-penalty-closes-ramps.md) — far/램프큐 아님. TTT 나빠지는데 채택되고, 막을 가드 관문 min_ttt_gain_frac 이 0 으로 꺼져 있다
+- [나쁜 체제 = SC5·SC6 꼭짓점](vissim-sc5-sc6-vertex-gridlock.md) — p1 상한/나머지 하한, 굶은 현시의 접근로 7개가 잠긴다. 손실 80%가 링크 12개. SC5 b2 가격 124배 폭주
+- [접근로 실명 전수조사](vissim-approach-blind-audit-20260905.md) — origin 엔 차량 있는데 movement 수신 0 이 6신호 30개, 전부 p3/p4. 외래 귀속 33.5%
+- [모형은 평평, plant 는 가파름](vissim-model-flat-where-plant-steep.md) — 세 가설 검정. 전파속도·슬루 아님. 국소비용이 후보를 0.5% 안에서 못 가르는데 plant 는 6/6 반응. 양극 체제의 통합 원인
+- [곡률 체제에서 blindfix 가 실효한다](vissim-blindfix-load-bearing-under-curvature.md) — 평평 체제의 중립(+1) 판정은 무효. uni1800 t=1500 SC5 유령 p2 191 vs 실제 p3/p4 190. 평평 체제에서 기각된 관측 수정은 전부 재판정
+- [미드블록 SG COM 적색 env 누출](vissim-midblock-sg-com-red-env-leak.md) — RW_MAINLINE_SG_ONLY 는 큐 스크립트 env. 09-04 16:31 이후 Bash 체인 런 전부 SG 9+ 적색 = 나쁜 유역의 정체. 런로그 SKIPS>0 확인 필수
+- [정본 canon_default_20260905 + 관문 체인](vissim-canon-20260905.md) — 기준선+매핑 v2 정본, 옛 것 격리, 러너가 env 세움, 관문 체인 기준→B→uni1800→cap/λ
+- [B1: W_out 재고를 τ 로 편다](vissim-legsplit-B1-stock-tau.md) — B 의 u_on 26~58배 과대 원인(재고/10 s)과 B1 수정, B2 후보(실측 램프 분율)
+- [off-ramp 저장고 적체](vissim-offramp-reservoir-blockage.md) — W_out 유입 60% 결손의 진짜 원인: off-ramp 차량이 저장고에 쌓임(출구=신호 movement 207/차로, W_out 직행 beta 0.167 vs 실측 0.47, 관측 0). 녹색 아님. B3 후보
+- [off-ramp 배수는 잔여-pool 분율](vissim-offramp-drain-share-semantics.md) — B3 실패 기구: 무신호 출구가 저장고를 통째로 비워 p3 무가치 → SC1001 꼭짓점 → 링크 32 잠김 → off-ramp 본선 역류 +1002. 착지 분할은 유입 함수에서(B4a)
+- [lcd1000 환경·구조 판정](vissim-env-structural-20260906.md) — 미삽입 0 / SC5→SC101→SC1002 회랑은 무제어도 포화(SC1002 E 좌회전 71%%·1차로·24 s, 제어로 불가) / 링크 420 적체는 SC105 p1 양수가격이 만든 제어 손실(~190 veh·h) / B 램프 유입 0.4~0.56×(F_W peel 누락)
+- [관측 역압 현시가격](vissim-phase-price-backpressure.md) — 롤아웃 가격은 ΔG≡0 이라 −0.75·ΔL 세금. 대체 = 관측 Vickrey e_d−e_o (β×차로 s_m, 램프 저수지 off, 불감대 0.005). h2 = h_bp_20260906 (2026-09-06 12:16)
+- [가격이 항상 양수인 이유](vissim-price-sign-is-negative-local.md) — ΔG≡0 이라 price=−0.75·ΔL/δ. 녹색 늘리면 감쇠하나 0 못 넘음. 정련은 곡률 잔차만 보고 자기 최소도 못 찾음(p1 70 이 더 좋은데 34 선택)
+- [B 사다리 + 계보 정리 (2026-09-07)](vissim-b-ladder-20260907.md) — canon_0905 는 B 아님(B 는 기각 팔). 0단 B0 → +METER→+SAT/SAT2→+PW25→+B5 누적. QB 는 B5 와 충돌, SAT 는 링크 32 안 건드림
+- [lcd200↔lcd1000 계보](vissim-lcd-lineage-20260907.md) — 유일한 차이 = 미터 커넥터 8개 lnChgDist 200↔1000, 원래 망이 1000. 무제어 7952.4(200)/8082.3(1000), 제어 −210 → +547 뒤집힘. fzp 는 런마다 있음
+- [lcd1000 램프 역류·플랜트 실명 (fzp 진단)](vissim-lcd1000-ramp-spillback-blindspot.md) — 미터 폐쇄→커넥터 만차→lnChgDist 1 km 사전정렬 L1 역류가 링크 32/69 를 잠금. 저수지는 커넥터만 셈(142 vs 262), 역류는 SC1001 접근큐로 오귀속→p3 상한. lcd200 은 큐가 200 m 에 국지화. 제거(diffusion)는 동일
+- [VISSIM 동시 실행은 된다 (정정)](vissim-single-instance-license.md) — 동시 상한 4개(5번째는 COM 생성 거부). 러너에 -AllowConcurrent 추가. :174 완료판정이 동시실행 오진 유발 (2026-09-22 정정)
+- [21셀 결정 OOM = VSL 곱 폭발](vissim-n21-vsl-product-oom.md) — 셀 8→21 이면 VSL 시퀀스 후보가 10^3→10^8. k-best 로 수선, 21 GB→0.05 GB
+- [VSL 은 표지판 구역이다](vissim-vsl-sign-zones.md) — 방향당 표지판 8개(셀 0·2·5·7·10·13·15·18)에만 써진다. 셀 자유도는 허구. 구역 4개(머리 0/5/10/15)로 묶음
+- [ver2 매핑 signals 결함](vissim-ver2-mapping-signals-defect.md) — signals 가 인터페이스 1개뿐이라 제어런이 조용히 무제어. DECISIONS_FAILED 요약행을 봐라. 8셀 ver2 는 아직 미수정
+- [미터 지렛대는 구조적으로 죽어 있었다](vissim-metering-lever-structurally-dead.md) — 미터 가격이 정확히 0(작동점=cap, 탐침 반경이 수요를 못 가로지름) + capacity drop φ 꺼짐. φ 켜도 vsl_fd_two_branch 없으면 VSL payoff 는 절반
+- [동측 미터링 격자 사각지대](vissim-metering-grid-blindspot.md) — FW_E 후보 7개가 전부 available 위라 롤아웃 비트동일, 승자는 격자 순서. δ·가격·FD 어느 수정도 여기 못 닿는다
+- [capdrop 기각 · 합류항은 구조 문제](vissim-capdrop-refuted-merge-structural.md) — φ=0.85 는 +128.8 기각(FW_E 는 t=1200 까지 임계 미달). δ=0.3 은 격자 경계 인공물이고 셀별 v_free 가 합류 감속을 이미 흡수
+- [FW_E 붕괴는 off-ramp 차로1 이다](vissim-fwe-collapse-is-offramp-lane1.md) — on-ramp도 하류 spillback도 아님. 셀8에서 시작해 상류로만, 차로1만 20kph인데 차로3·4는 126kph. 무제어도 동일
+- [off-ramp 차로폐쇄는 방아쇠가 굶었다](vissim-offramp-lane-closure-trigger-starved.md) — λ_eff 구현·기본ON·식 맞음. 저장고 점유 관측이 39/39 전부 0이라 미발동. landing_storage 로 커넥터 재차를 심으면 켜진다
+- [본선을 조이면 도시가 좋아진다](vissim-freeway-constraint-shifts-effort-urban.md) — 세 개입 재현. two-branch 는 VSL 권한(ρ_c 15.16→21.83)은 줬지만 붕괴 창에선 여전히 120 — 권한과 방아쇠는 다른 문제
+- [prepared 폴더의 남의 PC 절대경로](vissim-prepared-folder-absolute-paths.md) — rule_runtime.txt 때문에 제어 팔만 ControlStartSec 에서 정확히 죽는다
+- [SDMPC native 폐루프 현황](vissim-sdmpc-native-state-20260923.md) — 발사 레시피·결함 6개·505 s·푸시. ⚠ SDMPC 런은 전부 21셀 lane plant 시나리오(100%·seed13·SimRes1)였지 FW80/U90·31셀이 아니다
+- [sdmpc_* 플래그는 기각된 것이다](vissim-sdmpc-flags-rejected-not-unpromoted.md) — config 에 없는 고속경로 5개는 미승격이 아니라 속도 기각. numba 스레드도 안 막혀 있다. 제안 전 diagnostics/ 기각 영수증부터
+- [옛 워치독 Kill-Vissim 은 PC 전체를 죽인다](vissim-legacy-watchdog-global-kill.md) — 이름으로 모든 VISSIM·cscript kill. 테스트 한 번이 동시 런 3개를 날렸다. -NoGlobalKill·소유 PID 만
+- [긴 VISSIM 런은 세션과 분리해 띄운다](vissim-launch-detached-from-session.md) — run_in_background 발사는 세션 종료 때 같이 죽는다(11:10 3런). WMI Win32_Process.Create 로 발사
+- [SDMPC-31 obs150 현황 (09-24)](vissim-sdmpc31-obs150-state-20260924.md) — V5b 완료(Ω +417), VSL 모형 75f0151, v3b 재핀 cd06a39(램프 RM_C 키·beta 명시 배정), RM: Ω 에선 미터 안 함이 맞다
+- [VSL 인계 실험 재현 (09-24)](vissim-vsl-handoff-repro-20260924.md) — seed29 VSL90 native 비트 재현 완료; 우리 fix90 은 별도 실험(seed·수요·진입구성·110곡선·DSD 범위 다름), 지표 4종 구분
+- [V5b 도시 손실 진단 (09-25)](vissim-v5b-urban-loss-diagnosis-20260925.md) — plant 가 SDMPC 계획을 native 보다 좋게 봄(VISSIM 반대), SC1001 가짜 외부항, offset 변경 시 현시 재시작 결함; 9% 런은 짝 비교 불가
+- [묶음 1·RM 보정·S0e/S1 (09-27)](vissim-urban-batch1-and-rmcal-20260926.md) — S0e Ω −55(FW_E +314 = VSL 중 B1 큐 연장), S1 Ω +53(SC109 p3 20 s 굶김 link 174 +252); RM 1~4라운드 선택 실패 → FW_E 구조 수정안
+- [경계 movement 용량 206.53 결함](vissim-boundary-movement-capacity-206.md) — boundary_out/in 용량이 정규화 상수에 남아 실측 1/9(헤드 하한은 internal 만). S1 SC109 굶김 근본원인, 50:50 분할은 무효, 교차 재생상 U1 탓 아님=경로 의존 (09-27)
+- [FW_E plant 구조 진단 (09-27)](vissim-fwe-plant-structure-20260927.md) — B1 결손 80%=셀12 속도 인공물, 붕괴 기원=10681 합류 차로2(차로1 기각), 배포 plant 엔 B1 방류 제약 없음, VSL 이득=Carlson 허구, FW_E 판정은 3시드 짝만
+- [망 v3c 결정 (09-27)](vissim-network-v3c-20260927.md) — 무경로 D형 V1–V7 을 코호트별 새 결정점+NC 실측 분율로, V8·V9 보류, V7 재개, 병행+표준안, 다시드 폐루프·RM 5R 은 v3c 에서만
+- [SDMPC-31 LIVE 판정: 해석기 둘은 못 본다](vissim-sdmpc31-live-check-tools-blind.md) — resolve_live_controller·whose_code 는 21셀·wu-link 만 봄(effective_lane_profile 거짓 음성). 코드 추적+T4/T5 훅 계수+배포 메타로
+- [VSL 단일값 준수 (09-28)](vissim-vsl-fixed-dsd-20260928.md) — 주 준수 모형을 단일값으로 교체 결정, SDMPC 망 교체는 N1F(c90f·c90r 8런) 결과 뒤. N1 조화는 이미 컸는데 방류 0
+- [하이브리드 시험 종료 (09-30)](vissim-hybrid-rulefw-sdmpc-urban-20260930.md) — Carlson+ALINEA×도시 SDMPC s31: Ω −2.6%(오프램프·FW_W), FW_E +3.4%(VSL S4 상류 대기), 도시 +6%(link 174). 사용자가 확장 중단
+- [도시 묶음 2 C3 불합격 (09-30)](vissim-urban-batch2-c3-20260930.md) — U4+U5 가 A1·SC1001 W 악화, G-SC109 는 통과(보존 대상). 확정+원인 분해→C3 v2, C2 는 그 뒤
+- [codex expanded036 검토 (09-30)](codex-expanded036-review-20260930.md) — 사용자 codex 동측 159계수: 값은 얹지 않음(망·κ·VSL 다름, 구조결함 보상), 31셀 분할만 동일. 우리 잠복 결함 3건(10490 비유일 서비스표 등)
+- [고속도로 입구 DSD40 결함 (09-30)](vissim-freeway-entry-dsd40-defect-20260930.md) — 1098·1099 가 도시 기본구성(40 km/h)으로 투입, 입구 대기 상시. 64cf 는 구성 14 DSD110. v3c2 로 수정 중
+- [plant 수정 뒤 보정 로드맵 (09-30)](calibration-roadmap-after-plant-fix-20260930.md) — 구조 먼저 → 묶음별 오프라인 선택 점검 → N2 같은 상태 VISSIM 짝 비교(위약·봉인 블라인드·소수 파라미터) → 폐루프. 사용자 동의
+- [terminal cost·F10/F11 결과 (10-01)](vissim-terminal-cost-and-f10f11-20261001.md) — 종단비용은 선택 거의 불변(판단 불가, RM 이득 기구 없음), F10-E·F11 FAIL(입구 속도 단독은 통과, FW_W 는 구조 문제), plant FW_W 장기 적체 VISSIM 3배
+- [v3c3 재핀 (10-01)](vissim-repin-v3c3-20261001.md) — v3c2+DSD 81/91/101, 단일값 VSL(어댑터 사상·L2 3차)·10490 일반화·결함 K1–K6, 권장안 일괄 승인. 진행 중
+- [FW_W 가짜 적체 = 오프램프 배수 206.53 (10-01)](vissim-fww-offramp-drain-206-20261001.md) — 10491 배수 219 vs VISSIM ~900, 매 결정 만차→단면 FIFO. SC1001 EB 공동 항목으로 v3c3 에서 먼저, 망이 정답
+- [VSL 정지 감소 가설 기각 (10-04)](vissim-vsl-stop-reduction-refuted-20261004.md) — 지지 0/7: c80f 정지 −16 이지만 자유주행 시간 증가가 3.6배로 덮음, 합류·진출·방류 증가 없음 (v3b N1/N1F)
+- [새 VISSIM 런 최소화 (10-01 피드백)](feedback-minimize-new-vissim-runs.md) — 보정은 기존 FZP/R-obs 먼저, 새 런은 망 변경·반응 측정·폐루프만, 증명용 런 최소, 망 변경은 모아서
+- [고속도로 plant 실측 현황 (10-04)](freeway-plant-status-20261004.md) — 배포 K7: 방류 제약 없음, φ 3.0 살아 있음(F2 미구현), FW_W VSL legacy, 고속도로 206.53 은 10491·10481(SA)뿐, 축 휴면
+- [codex 85e3454b 검토·K8 결정 (10-04)](codex-85e3454b-review-k8-20261004.md) — 64cf 도 RM/VSL 이득 미자격, 206.53 동일, 공통 결함 6건 우리에게도; J1 은 결함 수정 뒤, 선별 이식, 안 1 B1 차로 FIFO
+- [codex 355 인계 대조 (10-13)](codex-355-handoff-compare-20261013.md) — 64cf 망(1099 2.14배)이라 숫자 비교 불가·통째 병합 불가, K8 SC1002 W 우회전 모순, K9-2 후보 6개
+- [J1 K8 폐루프 첫 결과 (10-15)](vissim-j1-k8-results-20261015.md) — Ω 3/3 감소(CI 0 포함)지만 Ω 밖 3/3 증가 → "대기 이전", 링크 174·입력 1083 적체, 미터 내내 고정
+- [미터는 요청된 적이 없다 (10-24)](vissim-meter-never-asked-20261024.md) — 여섯 런 내내 녹색 10, 원인 결정층(부호·0.5 문턱·이웃 검사 없음), NUF 무반응 결함 후보; codex 10 % 는 ALINEA/이웃검사+붕괴 기준선
+- [K9-3 묶음 2 D1·D2 (10-24)](vissim-k93-bundle2-d1d2-20261024.md) — 1135 분할 0.167→0.6, SC1004 서쪽행 206.53→1807.4/1850, 결정 12개 권장안, 워크플로는 codex 인계 검토로 첫 단계에서 멈춤(10-24 밤)
+- [codex 인계 RM·TSC (10-24~27)](codex-handoff-rmtsc-20261024.md) — a49981ff 재현됨(A1), v3c3 이식 B: 미터는 움직이나 ④ 는 시드마다 갈림(FW_W 입구 1099 대기↑), 통째 교체 근거 없음 → 묶음별 이식(C) 권장
+- [C 이식 준비·C1 설계 (10-27)](c-port-bundle1-20261027.md) — 미터 실행 확인, 1099 대기=SC1001 EBT 사슬(미터 아님), plant 는 VSL 을 손해로 봄, C1 고정 a98580dd + RV-1·2, Ω701 은 plant 초기 상태도 바꿈(커넥터 29), 129·10491 보호 추가 설계 중
+- [Ω701·FW_E 우선 지시 (10-27)](omega701-fwe-priority-20261027.md) — 목적·보고 = Ω701, 도시도로 = codex 분할, 개선 주 목표 = FW_E(FW_W 는 악화 감시만), 1099 수요로 격차 설명 금지
+- [FW_E 분해·FO 팔 (10-27~28)](fwe-decomp-20261027.md) — V-A 미터 0회=FW_E 실질 0; FO(codex 미터만) ① 이 B 의 0.86–1.06배, ④ 3/3 음수; codex 도시 제어가 1099 대기를 만듦 → 우리 도시 + codex 미터(C1) 방향

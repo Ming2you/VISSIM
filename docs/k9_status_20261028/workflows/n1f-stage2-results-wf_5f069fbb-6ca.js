@@ -1,0 +1,25 @@
+export const meta = {
+  name: 'n1f-stage2-results',
+  description: 'Write N1F stage-2 ladder results (c100f/c80f: D1-D6 incl. fixed-regime plant law across 80/90/100) from the frozen analysis outputs, then adversarially verify (independent D1/D6 recomputation, freeze integrity, G0-G4)',
+  phases: [
+    { title: 'Report', detail: 'N1F_STAGE2_RESULTS.md' },
+    { title: 'Verify', detail: 'independent recomputation' },
+  ],
+}
+const S2 = 'D:/VISSIM_runs/20260928_n1f_vsl_stage2'
+const S1 = 'D:/VISSIM_runs/20260928_n1f_vsl'
+const REV = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/vsl-fixed-dsd'
+const COMMON = `
+CONTEXT (absolute paths). Korean prose; mark [실행]/[읽음]/[추론]; cite file:line. Write only ${S2}/reports/N1F_STAGE2_RESULTS.md and files under ${S2}/reports/verify/ (create). If the Write tool refuses a file, write it with Bash. Do not modify anything else under ${S2} (frozen tools, plan, run folders), nor ${S1} or the N1 tree D:/VISSIM_runs/20260927_n1_vsl.
+- N1F stage 2 (user-approved ladder): c100f (DSD 101 = 100-102) and c80f (DSD 81 = 80-82, two-step via 91) x seeds 41/43/47/53, 8/8 runs passed G0/G1/G2; analysis ran with the frozen tools: per-arm extract/fzp_pass (g4.json)/moments/harmonise, D5 (reports/d5/, d5_console.txt), fit (reports/fit_results.json, fit_summary.txt). Plan ${S2}/plan/n1f_plan_stage2_v1.json, PREDECLARATION.md, analysis_freeze.json (6267ba5e), README.md. Stage 1 results (pinned): ${S1}/reports/N1F_RESULTS.md, fit_results.json. Review: ${REV}/VSL_FIXED_DSD_REVIEW.md.
+- Headline from fit_summary.txt: D1 100 and 80 'undetermined (primary and interior disagree)' (c100f-c100 primary -0.87 % [-3.52, +1.78], interior -0.60 % [-4.28, +3.08]; c80f-c80 primary -0.01 % [-2.44, +2.42], interior -0.08 % [-3.17, +3.00]); pre-run disclosure: level 80 could never yield 'no gain' because of the interior half-width. D3 predictions held (c100f -11.09, c80f -30.97 km/h). D2 harmonisation strong. D6 ladder selected L2 (A 1.33, E 0.87, level scaling {100: 0.901, 90: 0.812, 80: 0.723}), LOSO+LOLO loss 152.2 vs L1 185.5 (L1 refit 1.46/0.68), L1_N1 570.1.
+- User context: the VSL compliance main model will be replaced by single-value desired speeds; SDMPC network/pins stay unchanged until N1F is complete; the fixed-regime law from this ladder is the candidate for the plant. DATA DISCIPLINE: never open seed 37 outputs, RM arms or sealed seeds. Keep CPU modest (BELOW_NORMAL, one process at a time; a VISSIM hybrid run may start soon).
+`
+phase('Report')
+const rep = await agent(`${COMMON}
+TASK: write ${S2}/reports/N1F_STAGE2_RESULTS.md (Korean, plain summary first): §0 한 줄 결론 + 사용자가 정할 것; §1 유효성 (G0-G4 incl. the V5-restricted G4-D/G4-T counts, freeze integrity, pairing, exposure); §2 D1 per level with primary/interior, per-seed, the pre-run operating characteristic, and the three-level picture together with stage-1 90 (no combined verdict per plan); §3 D2 harmonisation (levels and pair contrasts, WC/WA Z0); §4 D3 free-flow speeds vs predictions; §5 D5 four metrics (pair 1, pair 2) vs stage-0 half-widths; §6 D6 fixed-regime law across 80/90/100: all fits, selection rule, selected L2 parameters and what they mean physically (capacity multiplier per level, free-flow shape), formal rejection status of the Carlson family, comparison with the distribution-regime law L1_N1, and what the plant would need to adopt it (vsl_fd_response form L2 = per-level scaling — does the plant code support L2 or only Carlson A/E? check the repo D:/VISSIM-merge/sim3-n31-v3c1 read-only: freeway_fd.py, make_reference_config.py); §7 implications for the user's single-value decision and for SDMPC adoption steps; §8 files and shas.`, { label: 'report', phase: 'Report', schema: { type: 'object', properties: { summary_ko: { type: 'string' }, questions_ko: { type: 'array', items: { type: 'string' } } }, required: ['summary_ko'] } })
+phase('Verify')
+const v = await agent(`${COMMON}
+Draft: ${JSON.stringify(rep)}
+TASK (adversarial verifier; scripts under ${S2}/reports/verify/): (1) freeze integrity: rehash plan + every tool/input in analysis_freeze.json; tool mtimes before the queue start (04:34:45); (2) recompute D1 for both levels independently from moments.json and the pinned references with the plan's estimator (no import of n1f_fit); (3) recompute the D6 L1 and L2 fits (chi2 at the reported parameters, and a coarse grid search) from the frozen moment inputs and check the selection (LOSO+LOLO); (4) check G4 counts vs the declared minimums; (5) check the report's numbers and its claim about plant support for L2; fix wrong statements in place (append '검증' section). Return blocking issues left and a Korean note.`, { label: 'verify', phase: 'Verify', schema: { type: 'object', properties: { blocking: { type: 'array', items: { type: 'string' } }, fixed: { type: 'array', items: { type: 'string' } }, notes_ko: { type: 'string' } }, required: ['blocking', 'notes_ko'] } })
+return { rep, v }

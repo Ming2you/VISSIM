@@ -1,0 +1,35 @@
+--- k8b_orig/gh5_launch.ps1	2026-10-14 19:07:39.960060800 +0900
++++ gh5_launch.ps1	2026-10-23 08:52:54.680554800 +0900
+@@ -1,15 +1,25 @@
+-# G-H5 preflight (amendment 21 section 7.5 / amendment 22 section 9.3): run_sdmpc_n31.ps1 -PreflightOnly WITHOUT -Freeze,
+-# CurrentDirectory = FRZ_K8', WMI detached, BelowNormal, PYTHONHASHSEED=0.  No VISSIM is started by -PreflightOnly.
++# G-H5' preflight (amendment 34 section 5.1 row 5; form of amendment 21 section 7.5 / amendment 22 section 9.3):
++# run_sdmpc_n31.ps1 -PreflightOnly WITHOUT -Freeze, CurrentDirectory = FRZ_K92, WMI detached, BelowNormal,
++# PYTHONHASHSEED=0.  No VISSIM is started by -PreflightOnly.  Copy of the K8b tool SP/j1/fix/gates/gh5_launch.ps1
++# (15d3abb0...) with expected values only: FRZ_K92, RunsRoot RVA, run name sdmpc31_v3c3_k92va_s<Seed>, seed, output in
++# OUTVA\gh5.  Called once per seed by the driver's G-H5' stage.
++param([Parameter(Mandatory=$true)][ValidateSet(31, 41, 43)][int]$Seed)
+ $ErrorActionPreference = 'Stop'
+ $here = $PSScriptRoot
+-$frz = 'D:\VISSIM-merge\frozen\sdmpc31_b9734abe_202610141821'
+-$out = Join-Path $here 'gh5_preflight_k8j1r_s31.out'
++$frz = 'D:\VISSIM-merge\frozen\sdmpc31_c20aff1d_202610230833'
++$rva = 'D:\VISSIM_runs\20261023_sdmpc31_k92'
++$name = 'sdmpc31_v3c3_k92va_s{0}' -f $Seed
++$outDir = 'D:\VISSIM_runs\20261001_v3c3\reports\k8\k92_va\offline_gates\gh5'
++New-Item -ItemType Directory -Force -Path $outDir | Out-Null
++$out = Join-Path $outDir ('gh5_preflight_k92va_s{0}.out' -f $Seed)
+ if (Test-Path -LiteralPath $out) { throw "output exists (never reused): $out" }
+-if (Test-Path -LiteralPath 'D:\VISSIM_runs\20261004_sdmpc31_k8\sdmpc31_v3c3_k8j1r_s31') { throw 'rerun name folder already exists: STOP' }
++if (Test-Path -LiteralPath (Join-Path $rva $name)) { throw "run name folder already exists: STOP ($name)" }
+ $vissimNow = @(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like 'VISSIM*' }).Count
+-$cmd = 'cmd.exe /c set "PYTHONHASHSEED=0" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\VISSIM-merge\tools\run_sdmpc_n31.ps1 -PreflightOnly -Tuning diagnostics\sdmpc_n31_20260924\config_n31_v2.json -SimPeriod 9000 -Seed 31 -Controller wu-link -RunsRoot D:\VISSIM_runs\20261004_sdmpc31_k8 -Name sdmpc31_v3c3_k8j1r_s31 > "{0}" 2>&1' -f $out
++$cmd = 'cmd.exe /c set "PYTHONHASHSEED=0" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\VISSIM-merge\tools\run_sdmpc_n31.ps1 -PreflightOnly -Tuning diagnostics\sdmpc_n31_20260924\config_n31_v2.json -SimPeriod 9000 -Seed {1} -Controller wu-link -RunsRoot {2} -Name {3} > "{0}" 2>&1' -f $out, $Seed, $rva, $name
+ $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ PriorityClass = [uint32]16384 }
+ $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $cmd; CurrentDirectory = $frz; ProcessStartupInformation = $startup }
+-$line = '{0}  gh5_preflight_s31  RV={1} PID={2} VISSIM_before={3} prio=BelowNormal cwd={4} | {5}' -f (Get-Date -Format o), $r.ReturnValue, $r.ProcessId, $vissimNow, $frz, $cmd
++$line = '{0}  gh5_preflight_s{6}  RV={1} PID={2} VISSIM_before={3} prio=BelowNormal cwd={4} | {5}' -f (Get-Date -Format o), $r.ReturnValue, $r.ProcessId, $vissimNow, $frz, $cmd, $Seed
+ Add-Content -LiteralPath (Join-Path $here 'wmi_launch_lines.txt') -Value $line -Encoding UTF8
++Add-Content -LiteralPath (Join-Path $outDir 'wmi_launch_lines.txt') -Value $line -Encoding UTF8
+ Write-Output $line
++Write-Output ('GH5_LAUNCH seed={0} RV={1} PID={2} OUT={3}' -f $Seed, $r.ReturnValue, $r.ProcessId, $out)

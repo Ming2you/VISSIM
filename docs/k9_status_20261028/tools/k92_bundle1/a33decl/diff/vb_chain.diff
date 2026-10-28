@@ -1,0 +1,504 @@
+--- k92_vb/vb_chain.py	2026-10-22 11:17:06.064037100 +0900
++++ k92_vb2/vb_chain.py	2026-10-22 14:36:37.829910500 +0900
+@@ -1,14 +1,18 @@
+ """K9-2 V-B chain driver (K8_PREDECLARATION_AMENDMENT_32 section 4; amendment 24 section 14.1 as changed by
+ amendments 27 section 6.2, 29 section 6.2, 31 section 4.4 and 32).  Scratch tool, never committed.
+-
+-    python -B vb_chain.py selftest     synthetic self-tests, no child process -> KV/selftest/vb_selftest.json
+-    python -B vb_chain.py chain        V0 .. V10 (one detached run: KI/launch.ps1 -Tag vb_chain)
+-
+-Writes only (guard()): VBR = OK2/vb, TK/vb_e27ceac8 and TK/vb_e27ceac8.build.json (V1 only), KV, KB/LOG.md (append),
+-OK2/snap/s38-s41_vb_*.json (snapshot child), OK2/logs/vb_* (launcher).  Read only: RR, FRZ_K8 / FRZ_K8b, GWT8 (git
+-read only), AD32, KI.  No VISSIM, no COM, no runner, no commit / push.  The adapter children write their own tangent
+-cache under VBT/evaluation/controllers/__tangentcache__ (as every earlier TK-tree replay) and obs150/derived_<T>.json
+-in their prepared folder (VBR).
++Amendment 33 (D-K9-65) rerun copy: the same driver with new places (VBR = OK2/vb2, VBT = TK/vb2_e27ceac8, KV2 =
++KB/k92_vb2), the amendment-33 hook (AD33/vbhook), the amendment-33 pins and V0 / V10 checks, and the earlier V-B
++places (OK2/vb, TK/vb_e27ceac8, KV) kept read-only as an archive.  Every rule of amendment 32 section 4 is unchanged.
++
++    python -B vb_chain.py selftest     synthetic self-tests, no child process -> KV2/selftest/vb_selftest.json
++    python -B vb_chain.py chain        V0 .. V10 (one detached run: KI/launch.ps1 -Tag vb2_chain)
++
++Writes only (guard()): VBR = OK2/vb2, TK/vb2_e27ceac8 and TK/vb2_e27ceac8.build.json (V1 only), KV2, KB/LOG.md
++(append), OK2/snap/s43-s46_vb2_*.json (snapshot child), OK2/logs/vb2_* (launcher).  Read only: RR, FRZ_K8 / FRZ_K8b,
++GWT8 (git read only), AD32, AD33, KI and the archive (OK2/vb, TK/vb_e27ceac8 + build record, KV).  No VISSIM, no COM,
++no runner, no commit / push.  The adapter children write their own tangent cache under
++VBT/evaluation/controllers/__tangentcache__ (as every earlier TK-tree replay) and obs150/derived_<T>.json in their
++prepared folder (VBR).
+ Launch rule (section 4.3): the argument list / order, the environment and the working folder of k92_replay.py
+ (blob 822dd78f, VBT copy) -- differences only: the output paths and, for chained decisions, the previous action.
+ Stdout of this driver: stage names, verdict words, counts and sha only (metric values go to VBR/judge files)."""
+@@ -30,19 +34,24 @@
+           r'491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8')
+ KB = SP / 'k92' / 'bundle1'
+ KV = KB / 'k92_vb'
++KV2 = KB / 'k92_vb2'
+ KI = KB / 'impl'
+ AD32 = KB / 'a32decl'
+-HOOKDIR = AD32 / 'vbhook'
++AD33 = KB / 'a33decl'
++HOOKDIR = AD33 / 'vbhook'
+ sys.path.insert(0, str(KI))
+ import k92lib as L  # noqa: E402
+ import cglib as G  # noqa: E402
+ 
+ TK = Path(r'D:/VISSIM-merge/k8_gate_trees/k92b1')
+-VBT_NAME = 'vb_e27ceac8'
++VBT_NAME = 'vb2_e27ceac8'
+ VBT = TK / VBT_NAME
+ VBT_BUILD = TK / (VBT_NAME + '.build.json')
+ OK2 = Path(r'D:/VISSIM_runs/20261001_v3c3/reports/k8/k92_b1')
+-VBR = OK2 / 'vb'
++VBR = OK2 / 'vb2'
++OLD_VBT = TK / 'vb_e27ceac8'                        # archive (amendment 33 section 5): read only
++OLD_VBT_BUILD = TK / 'vb_e27ceac8.build.json'
++OLD_VBR = OK2 / 'vb'
+ RR = Path(r'D:/VISSIM_runs/20261004_sdmpc31_k8')
+ FRZ7 = Path(r'D:/VISSIM-merge/frozen')
+ FRZ8 = Path(r'D:/VISSIM-merge/frozen/sdmpc31_74cd495f_202610131824')
+@@ -76,7 +85,8 @@
+          28: '9881eb40c1129af0cdff48026dc8656b4235d43f0eb80566e4be9b66d9ac345e',
+          29: '4bd6dc8de8b0a4a4ab0b8703c07d7a73d244c4a622b81585f06dc69d6d83599d',
+          30: 'ba556227a6356b1733bfa8125b334cfef180c1eed97e8d69ae4ba53a3106a56a',
+-         31: '8541ccb7fa6c951b4affcca67d57e25be09b061c3ae3dd006d050c9c6413e304'}
++         31: '8541ccb7fa6c951b4affcca67d57e25be09b061c3ae3dd006d050c9c6413e304',
++         32: '7f25c21e72fc2599022c72adb1976257413a8486f4898ffcec61f3c6b01423e7'}
+ F_SHA = {24: 'fbc3d59fe2e47fec00d87262d624aa9a163ed02e113609b06173841397df101a',
+          25: 'd1338fbc40a2efaf6997667f59e7bd709951e1fd3f2b1a8a0a0881794c3d24ed',
+          26: '6edc55acd5aa0976701456d956e33f33c52ae0853535f6a4d8cb8bf26a354581',
+@@ -84,25 +94,35 @@
+          28: '14451cf4d46c5c0095bc896134112148ba5700ee70b2ed78b8ee38d0e62e20e5',
+          29: '3ba1d0bdaab8a0189f903d10fc1024baed770080542cbd841f79d3a56df58e43',
+          30: 'ad3fafadd59985b3b71f33d5523ceb2324aa8267395d7280039228669cb83e9c',
+-         31: '605ccbd2cb392ac2ed0a6da1d27c20e93aa68fcac50ec6d99c4393236f98a053'}
+-A32 = SP / 'K8_PREDECLARATION_AMENDMENT_32.md'
+-A32_SHA = '7f25c21e72fc2599022c72adb1976257413a8486f4898ffcec61f3c6b01423e7'
+-A32_DECLARE_SHA = '176ded8997b53206b320b15efb3c92b79de2b256ee8293acbd41c1dabbd36e52'
+-FIXED32 = KB / 'AMENDMENT32_FIXED.md'
+-FIXED32_SHA = 'b59088ab44683f5990f2a44038c688aec59a21fcb5207e72b0bc7ee5782ddef4'
++         31: '605ccbd2cb392ac2ed0a6da1d27c20e93aa68fcac50ec6d99c4393236f98a053',
++         32: 'b59088ab44683f5990f2a44038c688aec59a21fcb5207e72b0bc7ee5782ddef4'}
++# amendment 33: its own sha and the expected pin-list sha are not constants here (the pin list holds this file's sha);
++# they are read from the fixation record, whose sha the V-B stage writes into KB/LOG.md before the launch (V0 C2).
++A33 = SP / 'K8_PREDECLARATION_AMENDMENT_33.md'
++A33_SHA_FILE = SP / 'K8_PREDECLARATION_AMENDMENT_33.md.sha256'
++A33_R1 = SP / 'K8_PREDECLARATION_AMENDMENT_33_r1.md'
++FIXED33 = KB / 'AMENDMENT33_FIXED.md'
+ NOTES = SP / 'K9_1_J1_NOTES_20261013.md'
+-NOTES_204_SHA = '402eaf59aa738bef1dcb27f41d51eba873a8cb6abdbfde7707dfc6b146cfbd3b'
+-EXPECTED_PINS = AD32 / 'a32_pins.expected.sha256'
+-EXPECTED_PINS_SHA = '9e4dc5925e36fcc092f1b4ace4c3e86600d8f96422f3720653fe7d72d4514fcb'
+-A32_PINS = KB / 'a32_pins.sha256'
+-VB_PINS = KV / 'vb_pins.sha256'
++NOTES_N = 214
++NOTES_N_SHA = '187242343570f1fe4e22d644509139e87ff59f76c70458b58160c1cde5387109'
++EXPECTED_PINS = AD33 / 'a33_pins.expected.sha256'
++A33_PINS = KB / 'a33_pins.sha256'
+ A31_PINS = KB / 'a31_pins.sha256'
++# archive of the stopped amendment-32 V-B run (amendment 33 section 5): must stay byte / listing identical
++OLD_HOOK_SHA = '4d7e0375116c3f805aa223651da0dc1c0c04b7d3315062e98e21137ba60aa321'
++A32_PINS = KB / 'a32_pins.sha256'
++A32_PINS_SHA = '9e4dc5925e36fcc092f1b4ace4c3e86600d8f96422f3720653fe7d72d4514fcb'
++OLD_VB_PINS = KV / 'vb_pins.sha256'
++OLD_VB_PINS_SHA = '6bed354112b93b65d6ffe59bbc8b1472c5e3911683e0d0fcc31964e44514f366'
++STOP_R1_SHA = 'd7bf44f3e309aa4ae8e5084b0db238f9baeb2870b6d75b4bea7b6d854427ea00'
++STOP_R1_COPIES = (KV / 'K92_VB_REPORT_stop_r1.md', KB / 'VB_REPORT_stop_r1.md', OLD_VBR / 'K92_VB_REPORT.md')
++OLD_VBT_BUILD_SHA = '2ace33638b30a4daccb63544d55e668608e2f51e140a6f93706e79c0514bab0e'
+ GATES_REC = {KB / 'GATES_K92B1_A31.md': 'e2b301837feb35d652d0db088d634e07449676abd01cb0e8b2dfef6eff232885',
+              KB / 'VERIFY_GATES_K92B1_r3.md': '6fb66ac5b8de8bbd00df420bc3b1bf5364e5f95148574dd2834204e3df3ac189',
+              KB / 'vgates4' / 'out' / 'vg4_result.json':
+                  '0b7654eca9e1165fad42ebe59b28bde91598d0b183f0cf694a21ba09a398b603'}
+ GATES_MD_NOW = '449b361e96d047156e63f73bcdae905ec61408b9a5f9be047629092d3ab0a792'
+-HOOK_SHA = '4d7e0375116c3f805aa223651da0dc1c0c04b7d3315062e98e21137ba60aa321'
++HOOK_SHA = '691fe8100e38d3222f3508f3f682b84b225535d1d3f7cca57f08a671708e365c'
+ SELECT_SHA = '33adfd5033c277a3ad640f745a69efb2a929b27c1ff2a88d794dfa69b489e9cc'
+ LIB_SHA = '504999a196a9e08582f303d4ad38d4cc661fcfc765df62d11bc4cc7c05ddc75f'
+ CLOSED_SHA = 'b800be45ae3e4e5030ed31ecd221e6288d52c2a287bdeaa5efee243e3cc2f426'
+@@ -204,13 +224,16 @@
+     return a == b or a.startswith(b + '\\')
+ 
+ 
+-DENY = (RR, FRZ7, GWT8, REPO, K92ATTRIB, DA, V4, OUTH, OUTK, SEALED, AD32, KI)
++DENY = (RR, FRZ7, GWT8, REPO, K92ATTRIB, DA, V4, OUTH, OUTK, SEALED, AD32, AD33, KI, OLD_VBR, OLD_VBT, OLD_VBT_BUILD,
++        KV)
++SNAP_RE = r's(43|44|45|46)_vb2_[a-z0-9_]+\.json'
++LOG_PREFIX = 'vb2_'
+ 
+ 
+ def allowed(p, v1=False):
+     if any(_inside(p, d) for d in DENY):
+         return False
+-    if _inside(p, VBR) or _inside(p, KV):
++    if _inside(p, VBR) or _inside(p, KV2):
+         return True
+     if _inside(p, VBT) or _n(p) == _n(VBT_BUILD):
+         return bool(v1)
+@@ -218,9 +241,9 @@
+         return True
+     q = Path(os.path.abspath(str(p)))
+     if _n(q.parent) == _n(OK2 / 'snap'):
+-        return re.fullmatch(r's(38|39|40|41)_vb_[a-z0-9_]+\.json', q.name) is not None
++        return re.fullmatch(SNAP_RE, q.name) is not None
+     if _n(q.parent) == _n(OK2 / 'logs'):
+-        return q.name.startswith('vb_')
++        return q.name.startswith(LOG_PREFIX)
+     return False
+ 
+ 
+@@ -646,7 +669,7 @@
+             got = sha(p)
+         except OSError:
+             got = None
+-        rows.append({'path': p, 'ok': got == h})
++        rows.append({'path': p, 'ok': got == h, 'sha': h})
+     return rows
+ 
+ 
+@@ -696,18 +719,19 @@
+ 
+ 
+ def ok2_listing():
+-    """OK2 outside VBR (sealed root never entered); the snapshot / log files this stage may add are left out."""
++    """OK2 outside VBR (sealed root never entered); the snapshot / log files this stage may add are left out.  The
++    archive OK2/vb (amendment 33 section 5) is inside this listing, so any change to it shows at V10."""
+     rows = []
+     root = L.lp(OK2)
+     for base, dirs, names in os.walk(root):
+         if _n(base) == _n(root):
+-            dirs[:] = [x for x in dirs if x not in ('sealed_s47', 'vb')]
++            dirs[:] = [x for x in dirs if x not in ('sealed_s47', VBR.name)]
+         dirs.sort()
+         rel_base = os.path.relpath(base, root).replace('\\', '/')
+         for n in sorted(names):
+-            if rel_base == 'snap' and re.fullmatch(r's(38|39|40|41)_vb_[a-z0-9_]+\.json', n):
++            if rel_base == 'snap' and re.fullmatch(SNAP_RE, n):
+                 continue
+-            if rel_base == 'logs' and n.startswith('vb_'):
++            if rel_base == 'logs' and n.startswith(LOG_PREFIX):
+                 continue
+             p = os.path.join(base, n)
+             st = os.stat(p)
+@@ -715,6 +739,38 @@
+     return {'files': len(rows), 'sha256': hashlib.sha256(json.dumps(rows).encode()).hexdigest()}
+ 
+ 
++def archive_listing():
++    """Names, sizes and mtimes of the archived V-B tree TK/vb_e27ceac8 and its build record (amendment 33 section
++    5); TK is outside the read-only snapshot roots, so V0 / V10 compare this listing."""
++    rows = []
++    root = L.lp(OLD_VBT)
++    for base, dirs, names in os.walk(root):
++        dirs.sort()
++        rel_base = os.path.relpath(base, root).replace('\\', '/')
++        for n in sorted(names):
++            st = os.stat(os.path.join(base, n))
++            rows.append([rel_base + '/' + n, st.st_size, round(st.st_mtime, 6)])
++    st = os.stat(L.lp(OLD_VBT_BUILD))
++    rows.append(['../vb_e27ceac8.build.json', st.st_size, round(st.st_mtime, 6)])
++    return {'files': len(rows), 'sha256': hashlib.sha256(json.dumps(rows).encode()).hexdigest()}
++
++
++def archive_bytes():
++    """Byte checks of the archive (amendment 33 section 5): the stopped run's pin lists, the old hook and the three
++    STOP r1 report copies."""
++    a32 = pins_check(A32_PINS) if A32_PINS.is_file() else []
++    old_vb = pins_check(OLD_VB_PINS) if OLD_VB_PINS.is_file() else []
++    c = {'a32_pins_file': A32_PINS.is_file() and sha(A32_PINS) == A32_PINS_SHA,
++         'a32_pins_51_ok': len(a32) == 51 and all(r['ok'] for r in a32),
++         'old_vb_pins_file': OLD_VB_PINS.is_file() and sha(OLD_VB_PINS) == OLD_VB_PINS_SHA,
++         'old_vb_pins_4_ok': len(old_vb) == 4 and all(r['ok'] for r in old_vb),
++         'old_hook': sha(AD32 / 'vbhook' / 'sitecustomize.py') == OLD_HOOK_SHA,
++         'old_vbt_build': OLD_VBT_BUILD.is_file() and sha(OLD_VBT_BUILD) == OLD_VBT_BUILD_SHA,
++         'old_vbr_dir': OLD_VBR.is_dir(), 'old_vbt_dir': OLD_VBT.is_dir(),
++         'stop_r1_copies': all(p.is_file() and sha(p) == STOP_R1_SHA for p in STOP_R1_COPIES)}
++    return {'ok': all(c.values()), 'checks': c}
++
++
+ def phase_mode(path):
+     doc = json.loads(Path(path).read_text(encoding='utf-8-sig'))
+     sec = doc.get('phase_price') if isinstance(doc.get('phase_price'), dict) else {}
+@@ -722,32 +778,46 @@
+             'ok': sec.get('mode') != 'observed_backpressure'}
+ 
+ 
++HEX64 = r'(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])'
++
++
++def pin_line_ok(rows, path, want):
++    """True when the pin list holds `path` (normalised) once, with sha `want`, and the line checks OK."""
++    hits = [r for r in rows if _n(r['path']) == _n(path)]
++    return len(hits) == 1 and hits[0]['ok'] and hits[0]['sha'] == want
++
++
+ def v0(resume):
+     c = {}
+     c['C1'] = {n: {'amend': sha(SP / ('K8_PREDECLARATION_AMENDMENT_%d.md' % n)) == A_SHA[n]
+                    and (SP / ('K8_PREDECLARATION_AMENDMENT_%d.md.sha256' % n)).read_text(encoding='utf-8')[:64]
+                    == A_SHA[n],
+-                   'fixed': sha(KB / ('AMENDMENT%d_FIXED.md' % n)) == F_SHA[n]} for n in range(24, 32)}
++                   'fixed': sha(KB / ('AMENDMENT%d_FIXED.md' % n)) == F_SHA[n]} for n in range(24, 33)}
+     c1 = all(v['amend'] and v['fixed'] for v in c['C1'].values())
+-    fixed_text = FIXED32.read_text(encoding='utf-8')
+-    toks = set(re.findall(r'(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])', fixed_text))
+-    c['C2'] = {'a32': sha(A32) == A32_SHA,
+-               'a32_sha256_file': (SP / 'K8_PREDECLARATION_AMENDMENT_32.md.sha256').read_text(encoding='utf-8')[:64]
+-               == A32_SHA,
+-               'in_fixed': A32_SHA in toks, 'declare_not_64': A32_DECLARE_SHA not in toks,
+-               'fixed_file': sha(FIXED32) == FIXED32_SHA}
+-    c['C3'] = {'notes_204': first_lines_sha(NOTES, 204) == NOTES_204_SHA}
+-    c['C4'] = git_state()
+-    exp = EXPECTED_PINS.read_bytes()
+-    a32rows = pins_check(A32_PINS) if A32_PINS.is_file() else []
+-    vbrows = pins_check(VB_PINS) if VB_PINS.is_file() else []
+     logtext = (KB / 'LOG.md').read_text(encoding='utf-8')
+-    c['C5'] = {'a32_pins_bytes': A32_PINS.is_file() and A32_PINS.read_bytes() == exp and sha(EXPECTED_PINS) ==
+-               EXPECTED_PINS_SHA, 'a32_pins_ok': len(a32rows) == 51 and all(r['ok'] for r in a32rows),
+-               'vb_pins_ok': bool(vbrows) and all(r['ok'] for r in vbrows), 'vb_pins_n': len(vbrows),
+-               'vb_pins_sha_in_log': VB_PINS.is_file() and sha(VB_PINS) in logtext,
+-               'driver_sha_in_log': sha(__file__) in logtext,
+-               'recalc_sha_in_log': (KV / 'vb_recalc.py').is_file() and sha(KV / 'vb_recalc.py') in logtext}
++    fixed_text = FIXED33.read_text(encoding='utf-8') if FIXED33.is_file() else ''
++    toks = set(re.findall(HEX64, fixed_text))
++    a33 = sha(A33) if A33.is_file() else None
++    r1 = sha(A33_R1) if A33_R1.is_file() else None
++    c['C2'] = {'a33_present': a33 is not None,
++               'a33_sha256_file': A33_SHA_FILE.is_file() and A33_SHA_FILE.read_text(encoding='utf-8')[:64] == a33,
++               'a33_in_fixed': a33 in toks, 'declare_not_64': r1 is None or r1 == a33 or r1 not in toks,
++               'fixed_sha_in_log': FIXED33.is_file() and sha(FIXED33) in set(re.findall(HEX64, logtext)),
++               'expected_pins_in_fixed': EXPECTED_PINS.is_file() and sha(EXPECTED_PINS) in toks}
++    c['C3'] = {'notes_first': first_lines_sha(NOTES, NOTES_N) == NOTES_N_SHA}
++    c['C4'] = git_state()
++    exp = EXPECTED_PINS.read_bytes() if EXPECTED_PINS.is_file() else None
++    rows = pins_check(A33_PINS) if A33_PINS.is_file() else []
++    me, rc = sha(__file__), (sha(KV2 / 'vb_recalc.py') if (KV2 / 'vb_recalc.py').is_file() else None)
++    c['C5'] = {'a33_pins_bytes': A33_PINS.is_file() and exp is not None and A33_PINS.read_bytes() == exp,
++               'a33_pins_ok': bool(rows) and all(r['ok'] for r in rows), 'a33_pins_n': len(rows),
++               'driver_line': pin_line_ok(rows, __file__, me), 'recalc_line': pin_line_ok(rows, KV2 / 'vb_recalc.py', rc),
++               'hook_line': pin_line_ok(rows, HOOKDIR / 'sitecustomize.py', HOOK_SHA),
++               'select_line': pin_line_ok(rows, AD32 / 'vb_select.py', SELECT_SHA),
++               'lib_line': pin_line_ok(rows, AD32 / 'vb_lib32.py', LIB_SHA),
++               'closed_line': pin_line_ok(rows, AD32 / 'vb_closed_leaves.json', CLOSED_SHA),
++               'a33_pins_sha_in_log': A33_PINS.is_file() and sha(A33_PINS) in logtext,
++               'driver_sha_in_log': me in logtext, 'recalc_sha_in_log': rc is not None and rc in logtext}
+     a31 = pins_check(A31_PINS)
+     bad = [i + 1 for i, r in enumerate(a31) if not r['ok']]
+     c['C6'] = {'lines': len(a31), 'bad_lines': bad,
+@@ -770,12 +840,15 @@
+     for rel, want in ((CFG_REL, CFG_SHA), (SAFK91_REL, SAFK91_SHA), (CFGB1_REL, CFGB1_SHA)):
+         c12[rel] = dict(phase_mode(GWT8 / rel), sha_ok=sha(GWT8 / rel) == want)
+     c['C12'] = c12
+-    c['ok_by'] = {'C1': c1, 'C2': all(c['C2'].values()), 'C3': c['C3']['notes_204'], 'C4': c['C4']['ok'],
+-                  'C5': all(v for k, v in c['C5'].items() if k != 'vb_pins_n'), 'C6': c['C6']['ok'],
++    c['C13'] = archive_bytes()
++    c['ok_by'] = {'C1': c1, 'C2': all(c['C2'].values()), 'C3': c['C3']['notes_first'], 'C4': c['C4']['ok'],
++                  'C5': all(v for k, v in c['C5'].items() if k != 'a33_pins_n'), 'C6': c['C6']['ok'],
+                   'C7': all(c['C7'].values()), 'C8': c8, 'C10': c['C10']['vissim_any'] == 0 and c['C10']['foreign'] == 0,
+-                  'C11': c['C11']['ok'], 'C12': all(v['ok'] and v['sha_ok'] for v in c12.values())}
++                  'C11': c['C11']['ok'], 'C12': all(v['ok'] and v['sha_ok'] for v in c12.values()),
++                  'C13': c['C13']['ok']}
+     c['ok'] = all(c['ok_by'].values())
+     c['ok2_outside_vb'] = ok2_listing()
++    c['archive_tree'] = archive_listing()
+     return c
+ 
+ 
+@@ -834,9 +907,9 @@
+         wjson(VBR / 'stages' / 'V1_failed.json', doc)
+         stop('V1', 'S-K15', 'V-B tree checks false', {'sha_ok': shas, 'cr_form': forms})
+     stage_pass('V1', doc)
+-    logmd('V1 트리 `TK/vb_e27ceac8` (git archive e27ceac8 + CR 고침, 형태 %s, cr_pair 둘 참, RS·SHO·튜닝·REC·KC·'
++    logmd('V1 트리 `TK/%s` (git archive e27ceac8 + CR 고침, 형태 %s, cr_pair 둘 참, RS·SHO·튜닝·REC·KC·'
+           'k92_replay sha 기대값), 빌드 기록 sha256 `%s`; GWT8 작업 트리 대비 바이트 다름 %d·VBT만 %d·GWT8만 %d(보고만)'
+-          % (forms, doc['build_sha256'], len(d['changed']), len(d['only_a']), len(d['only_b'])))
++          % (VBT_NAME, forms, doc['build_sha256'], len(d['changed']), len(d['only_a']), len(d['only_b'])))
+     return doc
+ 
+ 
+@@ -1472,8 +1545,8 @@
+         stop('V9', 'S-K54', 'recalc output exists')
+     mkdir(dest.parent)
+     pre = L.vissim_count()
+-    rc, sec = child([PY, '-B', KV / 'vb_recalc.py', 'run', '--vbr', VBR, '--dest', dest], VBR / 'logs' / 'v9_recalc.txt',
+-                    KV, clean_env())
++    rc, sec = child([PY, '-B', KV2 / 'vb_recalc.py', 'run', '--vbr', VBR, '--dest', dest], VBR / 'logs' / 'v9_recalc.txt',
++                    KV2, clean_env())
+     step_line('V9_recalc', rc, sec, pre, L.vissim_count())
+     r = read_json(dest) or {}
+     if rc != 0 or r.get('equal') is not True:
+@@ -1488,23 +1561,29 @@
+     rec = stage_rec('V10')
+     if rec:
+         return rec
+-    a32 = pins_check(A32_PINS)
+-    vbp = pins_check(VB_PINS)
++    a33 = pins_check(A33_PINS)
+     gs = git_state()
+     rr = rr_listing()
+     ok2 = ok2_listing()
+-    doc = {'a32_pins_ok': len(a32) == 51 and all(x['ok'] for x in a32) and A32_PINS.read_bytes() ==
+-           EXPECTED_PINS.read_bytes(), 'vb_pins_ok': bool(vbp) and all(x['ok'] for x in vbp), 'git': gs,
++    arch = archive_listing()
++    arch_b = archive_bytes()
++    doc = {'a33_pins_ok': bool(a33) and all(x['ok'] for x in a33) and A33_PINS.read_bytes() ==
++           EXPECTED_PINS.read_bytes(), 'git': gs,
+            'rr_same': rr == v0doc['C9'], 'ok2_outside_vb_same': ok2 == v0doc['ok2_outside_vb'],
+-           'rr': rr, 'ok2_outside_vb': ok2, 'vissim': L.vissim_count(), 'free_gb': L.free_space_gb()}
+-    doc['ok'] = doc['a32_pins_ok'] and doc['vb_pins_ok'] and gs['ok'] and doc['rr_same'] and doc['ok2_outside_vb_same']
++           'archive_tree_same': arch == v0doc['archive_tree'], 'archive_bytes_ok': arch_b['ok'],
++           'rr': rr, 'ok2_outside_vb': ok2, 'archive_tree': arch, 'archive_bytes': arch_b,
++           'vissim': L.vissim_count(), 'free_gb': L.free_space_gb()}
++    doc['ok'] = doc['a33_pins_ok'] and gs['ok'] and doc['rr_same'] and doc['ok2_outside_vb_same'] and \
++        doc['archive_tree_same'] and doc['archive_bytes_ok']
+     if not doc['ok']:
+         wjson(VBR / 'stages' / 'V10_failed.json', doc)
+-        stop('V10', 'S-K53', 'end comparison false', {k: doc[k] for k in ('a32_pins_ok', 'vb_pins_ok', 'rr_same',
+-                                                                       'ok2_outside_vb_same')})
++        rule = 'S-K57' if not (doc['archive_tree_same'] and doc['archive_bytes_ok']) else 'S-K53'
++        stop('V10', rule, 'end comparison false', {k: doc[k] for k in ('a33_pins_ok', 'rr_same', 'ok2_outside_vb_same',
++                                                                    'archive_tree_same', 'archive_bytes_ok')})
+     stage_pass('V10', doc)
+-    logmd('V10 끝 대조 OK: a32 고정 51/51·V-B 고정 목록 OK, GWT8 head `e27ceac8`·status 0·K8 `b9734abe`·원격 k92 0, '
+-          'RR 목록 sha = V0, OK2 의 vb 밖 = 스냅숏·로그뿐')
++    logmd('V10 끝 대조 OK: a33 고정 %d/%d, GWT8 head `e27ceac8`·status 0·K8 `b9734abe`·원격 k92 0, '
++          'RR 목록 sha = V0, OK2 의 vb2 밖(보관 OK2/vb 포함) = V0, 보관 TK/vb_e27ceac8 목록 = V0, 보관 바이트 참'
++          % (len(a33), len(a33)))
+     return doc
+ 
+ 
+@@ -1521,7 +1600,7 @@
+                 wjson(VBR / 'check_v0.json', v0doc)
+             except Exception:  # noqa: BLE001
+                 pass
+-        stop('V0', 'S-K53', 'precheck false', v0doc['ok_by'])
++        stop('V0', 'S-K57' if not v0doc['ok_by'].get('C13', True) else 'S-K53', 'precheck false', v0doc['ok_by'])
+     mkdir(VBR)
+     name = 'check_v0.json' if not resume else 'check_v0_resume_%s.json' % time.strftime('%Y%m%d_%H%M%S')
+     h0 = wjson(VBR / name, v0doc)
+@@ -1531,30 +1610,31 @@
+     else:
+         stage_pass('V0', dict(v0doc, check_file=name, check_sha256=h0))
+         v0first = read_json(VBR / 'stages' / 'V0.json')
+-    logmd('V0 사전 점검 %s 참(C1–C12), `%s` sha256 `%s`, 구동기 `%s`, 재계산기 `%s`' % (
+-        'resume' if resume else 'first', name, h0, sha(__file__), sha(KV / 'vb_recalc.py')))
++    logmd('V0 사전 점검 %s 참(C1–C13), `%s` sha256 `%s`, 구동기 `%s`, 재계산기 `%s`' % (
++        'resume' if resume else 'first', name, h0, sha(__file__), sha(KV2 / 'vb_recalc.py')))
+     CTX.lib = load_pinned(AD32 / 'vb_lib32.py', LIB_SHA, 'vb_lib32')
+     CTX.sel = load_pinned(AD32 / 'vb_select.py', SELECT_SHA, 'vb_select')
+-    if sha(AD32 / 'vb_closed_leaves.json') != CLOSED_SHA or sha(HOOKDIR / 'sitecustomize.py') != HOOK_SHA:
++    if sha(AD32 / 'vb_closed_leaves.json') != CLOSED_SHA or sha(HOOKDIR / 'sitecustomize.py') != HOOK_SHA \
++            or HOOK_SHA == OLD_HOOK_SHA or sorted(p.name for p in HOOKDIR.iterdir()) != ['sitecustomize.py']:
+         stop('V0', 'S-K53', 'closed list / hook bytes differ')
+     CTX.closed = CTX.lib.load_closed(AD32 / 'vb_closed_leaves.json')
+     if sha(K92_VALUES) != K92_VALUES_SHA:
+         stop('V0', 'S-K53', 'K92_VALUES.json differs')
+     CTX.floor_keys = json.loads(K92_VALUES.read_text(encoding='utf-8'))['p0_2']['f_expected_floor_keys']
+     CTX.base = base_env()
+-    snapshot('s38_vb_v0')
++    snapshot('s43_vb2_v0')
+     v1()
+     CTX.kc = load_pinned(VBT / SA_REL / 'k92_compare.py', KC_SHA, 'k92_compare_vb')
+     CTX.a27 = load_pinned(VBT / SA_REL / 'k92_a27.py', A27M_SHA, 'k92_a27_vb')
+     v2()
+     v3()
+-    snapshot('s39_vb_zi')
++    snapshot('s44_vb2_zi')
+     if not stage_rec('V4'):
+         run_chain('off')
+         stage_pass('V4', {'n': 14})
+         logmd('V4 OFF 사슬 14결정 끝(종료 0)')
+     v5()
+-    snapshot('s40_vb_off')
++    snapshot('s45_vb2_off')
+     if not stage_rec('V6'):
+         run_chain('b1')
+         stage_pass('V6', {'n': 41})
+@@ -1562,7 +1642,7 @@
+     v7()
+     v8()
+     v9()
+-    snapshot('s41_vb_end')
++    snapshot('s46_vb2_end')
+     v10(v0first)
+     CTX.log('CHAIN END all stages PASS')
+     print('VB_CHAIN_DONE', flush=True)
+@@ -1570,7 +1650,7 @@
+ 
+ 
+ # ================================================================================================ self-tests (4.5)
+-ST = KV / 'selftest'
++ST = KV2 / 'selftest'
+ SYN = ST / 'syn'
+ 
+ 
+@@ -1742,17 +1822,24 @@
+ 
+ def st_guard():
+     ok_paths = [(VBR / 'chain' / 'x.json', False), (VBT / 'evaluation' / 'x.py', True), (VBT_BUILD, True),
+-                (KV / 'selftest' / 'x.json', False), (KB / 'LOG.md', False), (OK2 / 'snap' / 's38_vb_v0.json', False),
+-                (OK2 / 'snap' / 's41_vb_end.json', False), (OK2 / 'logs' / 'vb_chain.txt', False)]
++                (KV2 / 'selftest' / 'x.json', False), (KB / 'LOG.md', False), (OK2 / 'snap' / 's43_vb2_v0.json', False),
++                (OK2 / 'snap' / 's46_vb2_end.json', False), (OK2 / 'logs' / 'vb2_chain.txt', False)]
+     bad_paths = [(VBT / 'evaluation' / 'x.py', False), (VBT_BUILD, False),
+                  (RR / 'sdmpc31_v3c3_k8j1_s41' / 'x.json', True), (FRZ8 / 'x.py', True), (FRZ8B / 'x.py', True),
+                  (Path(r'D:/VISSIM-merge/frozen/sdmpc31_6c4c7400_202610011831/x'), True), (GWT8 / 'x.py', True),
+                  (GWT8 / '.git', True), (REPO / '.git' / 'worktrees' / 'x', True), (K92ATTRIB / 'x', True),
+                  (DA / 'x', True), (V4 / 'x', True), (OUTH / 'x', True), (OUTK / 'x', True), (SEALED / 'x', True),
+                  (OK2 / 'commit' / 'x', True), (OK2 / 'snap' / 's02_after_probe_stop.json', True),
+-                 (OK2 / 'snap' / 's42_vb_x.json', True), (OK2 / 'logs' / 'other.txt', True), (OK2 / 'x.json', True),
++                 (OK2 / 'snap' / 's42_vb2_x.json', True), (OK2 / 'logs' / 'other.txt', True), (OK2 / 'x.json', True),
+                  (KB / 'other.md', True), (AD32 / 'vb_lib32.py', True), (HOOKDIR / 'x.py', True), (KI / 'x.py', True),
+-                 (TK / 'other' / 'x', True), (TK / 'vb_e27ceac8_interrupted_1' / 'x', True), (SP / 'x.md', True)]
++                 (TK / 'other' / 'x', True), (TK / 'vb2_e27ceac8_interrupted_1' / 'x', True), (SP / 'x.md', True),
++                 # amendment 33 archive (section 5) and the earlier V-B names
++                 (OLD_VBR / 'chain' / 'x.json', True), (OLD_VBR / 'K92_VB_REPORT.md', True), (OLD_VBT / 'x.py', True),
++                 (OLD_VBT_BUILD, True), (KV / 'vb_chain.py', True), (KV / 'K92_VB_REPORT.md', True),
++                 (KV / 'selftest' / 'x.json', True), (AD33 / 'vbhook' / 'sitecustomize.py', True),
++                 (AD33 / 'a33_pins.expected.sha256', True), (OK2 / 'snap' / 's38_vb_v0.json', True),
++                 (OK2 / 'snap' / 's41_vb_end.json', True), (OK2 / 'logs' / 'vb_chain.txt', True),
++                 (KB / 'VB_REPORT.md', True), (KB / 'a33_pins.sha256', True)]
+     a = [allowed(p, v) for p, v in ok_paths]
+     b = [not allowed(p, v) for p, v in bad_paths]
+     raised = False
+@@ -1857,6 +1944,18 @@
+     r['i7_status_hook_error'] = hook(S / 'h6', status='hook_error') is False
+     r['i7_no_select'] = hook(S / 'h7', status=None) is False
+     r['i7_no_candidate_ok'] = hook(S / 'h8', cands=0, status='no_candidate') is True
++    # amendment 33 names: <prefix>_<pid>_<time_ns>_<16 hex>; two worker processes that got the same pid 4242
++    h9, rc9 = S / 'h9' / 'hook', S / 'h9' / 'rec'
++    _w(h9 / 'loaded_100_1761111111111111111_00112233aabbccdd.json', {'argv0': ADAPTER, 'recorder_ok': True})
++    for tok in ('4242_1761111111222222222_0123456789abcdef', '4242_1761111111333333333_fedcba9876543210'):
++        _w(h9 / ('loaded_%s.json' % tok), {'argv0': 'sdmpc_tangent_worker.py', 'recorder_ok': True})
++        _w(h9 / ('c_%s_0001' % tok) / 'cand.json', {})
++        _w(h9 / ('c_%s_0001' % tok) / 'k92_record.json', {})
++    _w(rc9 / 'k92_select.json', {'status': 'selected'})
++    v9 = vbi7(h9, rc9)
++    r['i7_pid_reuse_names'] = v9['ok'] is True and v9['n_loaded'] == 3 and v9['n_candidates'] == 2
++    _w(h9 / 'hook_error_4242_1761111111333333333_fedcba9876543210.txt', 'x')
++    r['i7_pid_reuse_error_seen'] = vbi7(h9, rc9)['ok'] is False
+     return {'ok': all(r.values()), 'cases': r}
+ 
+ 
+@@ -1903,14 +2002,20 @@
+ 
+ 
+ def st_ad32():
++    """Amendment 33: select / lib / closed list = the amendment-32 pinned bytes (KB/a32_pins.sha256 lines 2, 3, 5);
++    the hook = the amendment-33 hook (not the amendment-32 one, line 1); the pin-list lines of the amendment-33 list
++    are checked at V0 C5 (the list holds this driver's sha, so it exists only after this self-test)."""
+     pins = {}
+-    for line in A32_PINS.read_text(encoding='utf-8').splitlines()[:3]:
++    for line in A32_PINS.read_text(encoding='utf-8').splitlines()[:5]:
+         h, p = line.split(' *', 1)
+         pins[Path(p).name] = h
+     lib = load_pinned(AD32 / 'vb_lib32.py', LIB_SHA, 'vb_lib32_st')
+     sel = load_pinned(AD32 / 'vb_select.py', SELECT_SHA, 'vb_select_st')
+-    r = {'pins_lines_1_3': pins == {'sitecustomize.py': HOOK_SHA, 'vb_select.py': SELECT_SHA,
+-                                    'vb_lib32.py': LIB_SHA},
++    r = {'a32_pins_lines_2_3_5': (pins.get('vb_select.py'), pins.get('vb_lib32.py'),
++                                  pins.get('vb_closed_leaves.json')) == (SELECT_SHA, LIB_SHA, CLOSED_SHA),
++         'a32_pins_line_1_is_old_hook': pins.get('sitecustomize.py') == OLD_HOOK_SHA != HOOK_SHA,
++         'hookdir_is_ad33': _n(HOOKDIR) == _n(AD33 / 'vbhook')
++         and sorted(p.name for p in HOOKDIR.iterdir()) == ['sitecustomize.py'],
+          'lib_loaded_from_ad32': Path(lib.__file__).resolve() == (AD32 / 'vb_lib32.py').resolve(),
+          'select_loaded_from_ad32': Path(sel.__file__).resolve() == (AD32 / 'vb_select.py').resolve(),
+          'lib_sha': lib.__pinned_sha256__ == LIB_SHA, 'select_sha': sel.__pinned_sha256__ == SELECT_SHA,

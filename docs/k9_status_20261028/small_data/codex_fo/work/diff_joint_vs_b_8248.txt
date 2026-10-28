@@ -1,0 +1,106 @@
+A=D:\VISSIM_handoff\20261024\code\diagnostics\repin_v3c3_review_20261001\urban_rm269\aggregate270\native413_adopted355\optimized_config.json
+B=D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410\diagnostics\b0_v3c3\config_b0_v3c3.json
+n_diff=53
+ONLY_B adapter.sdmpc_fixed_vsl = {"base_kmh": 110, "start_sec": 0, "zone_kmh": {}}
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10480 = 220.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10482 = 2353.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10484 = 600.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10490 = 850.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10639 = 551.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10644 = 545.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10646 = 413.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.RM_C10681 = 1262.0
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.R_D_E = 1079.0
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.R_D_W = 865.0
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.R_F_E = 638.0
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp.R_F_W = 1394.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10480 = 17.4
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10482 = 43.0
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10484 = 44.6
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10490 = 33.1
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10639 = 38.6
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10644 = 88.4
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10646 = 31.1
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.RM_C10681 = 154.3
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.R_D_E = 30.7
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.R_D_W = 33.5
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.R_F_E = 6.5
+ONLY_JOINT calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp.R_F_W = 77.2
+ONLY_B calibration_override.prediction.local_ramp_arrival_forecast.strict_ramp_keys = true
+DIFF control_area_objective.membership_path
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/membership.json"
+  B: "diagnostics/b0_v3c3/omega701/membership.json"
+DIFF control_area_objective.route_contract_path
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/route_contract.json"
+  B: "diagnostics/b0_v3c3/omega701/route_contract.json"
+DIFF freeway.lane_plant
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/candidate_manifest.json"
+  B: "diagnostics/b0_v3c3/lane_plant/candidate_manifest.json"
+DIFF freeway.offramp_route_inventory
+  JOINT: "diagnostics/repin_v3c3_review_20261001/unrouted10646/route_contract.json"
+  B: "diagnostics/b0_v3c3/repin_v3c3_review_20261001/unrouted10646/route_contract.json"
+DIFF name
+  JOINT: "native348_FW5_U10_optimized"
+  B: "native348_FW5_U10_optimized_b0v3c3"
+DIFF observation.physical_branch_projection.source.network.path
+  JOINT: "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/network/native_seed29.inpx"
+  B: "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx"
+DIFF observation.physical_branch_projection.source.network.sha256
+  JOINT: "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc"
+  B: "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+DIFF observation.physical_support_repair
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/physical_projection_support_635_proposal_ec2393.json"
+  B: "diagnostics/b0_v3c3/evidence/physical_projection_support_635_proposal_ec2393.json"
+DIFF runtime.decision_error_policy
+  JOINT: "hold_previous"
+  B: "hold_previous_on_exception"
+ONLY_JOINT runtime.decision_timeout_sec = 1800
+DIFF urban.arrival.kinematic_contract
+  JOINT: "diagnostics\\repin_v3c3_review_20261001\\urban66_u7\\contract.json"
+  B: "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban66_u7/contract.json"
+ONLY_JOINT urban.calibrated_aggregate = {"path": "diagnostics/repin_v3c3_review_20261001/urban_rm269/aggregate270/native348/calibration.json", "sha256": "be929a1db8f0b0117412b32ce013b8eaaff80bfd3a2e2946baa1148efcb75d17"}
+DIFF urban.capacity.head_free_service
+  JOINT: "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/head_free_service_10565_v1_71c2bf.json"
+  B: "diagnostics/sdmpc_n31_20260924/scenario/head_free_service_10565_v1_71c2bf.json"
+DIFF urban.capacity.head_resource_contract
+  JOINT: "diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\sc6_queue\\head_resources.json"
+  B: "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban_rm269/sc6_queue/head_resources.json"
+DIFF urban.capacity.regular_alias_pool
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_rm269/sc1_supply/contract.json"
+  B: "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban_rm269/sc1_supply/contract.json"
+DIFF urban.known_wout_route_evidence.path
+  JOINT: "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/known_wout_routes_ver2_proposal_a424b4.json"
+  B: "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json"
+DIFF urban.known_wout_route_evidence.sha256
+  JOINT: "805adc91d5fad344e5a4b697cc1f640549d99c2a0f729545ff5fe118c36422a6"
+  B: "a120dd7412c5eace23dbf50e7dc13face651622b64f35fd983dea97917d17e5f"
+DIFF urban.movements.dynamic_physical_route_topology
+  JOINT: "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/dynamic_area_routes_ver2_dbaf86.json"
+  B: "diagnostics/sdmpc_n31_20260924/scenario/dynamic_area_routes_ver2_dbaf86.json"
+DIFF urban.movements.native_input_signal_authority
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/native_input_1083_signal_authority_ver2_022a16.json"
+  B: "diagnostics/b0_v3c3/evidence/native_input_1083_signal_authority_ver2_022a16.json"
+DIFF urban.movements.physical_phase_authority
+  JOINT: "diagnostics/repin_v3c3_review_20261001/goal8_265/head47_right/authority.json"
+  B: "diagnostics/b0_v3c3/goal8_265/authority.json"
+DIFF urban.movements.physical_route_topology
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_rm269/native_beta/physical_routes.json"
+  B: "diagnostics/b0_v3c3/native_beta/physical_routes.json"
+DIFF urban.native_internal_inputs
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/native_internal_inputs_c92673.json"
+  B: "diagnostics/b0_v3c3/evidence/native_internal_inputs_c92673.json"
+DIFF urban.physical_ramp_branches
+  JOINT: "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/topology_routes_v2_8ac6fd.json"
+  B: "diagnostics/sdmpc_n31_20260924/scenario/topology_routes_v2_8ac6fd.json"
+DIFF urban.queue.head_lane_contract
+  JOINT: "diagnostics\\repin_v3c3_review_20261001\\urban_rm269\\sc6_queue\\head_lane_support.json"
+  B: "diagnostics/b0_v3c3/repin_v3c3_review_20261001/urban_rm269/sc6_queue/head_lane_support.json"
+DIFF urban.route_choice_corridor.evidence_paths
+  JOINT: ["diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/route_choice_corridor_sc1004_calibrated_9e6354.json", "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/route_choice_corridor_1128_ver2_0fd58c.json", "diagnostics/repin_v3c3_review_20261001/u...<530 chars>
+  B: ["diagnostics/b0_v3c3/evidence/route_choice_corridor_sc1004_calibrated_9e6354.json", "diagnostics/b0_v3c3/evidence/route_choice_corridor_1128_ver2_0fd58c.json", "diagnostics/b0_v3c3/evidence/route_choice_corridor_1099_sc15_calibrated_e02d01.json", "diagnostics/b0_v3c3/evidence/route_choice_corridor_...<334 chars>
+DIFF urban.sc2001_corridor
+  JOINT: "diagnostics/repin_v3c3_review_20261001/urban_area263/approaches_only/evidence/sc2001_corridor_nc13_2d0c62.json"
+  B: "diagnostics/b0_v3c3/evidence/sc2001_corridor_nc13_2d0c62.json"
+DIFF urban.shared_approach
+  JOINT: "diagnostics/sdmpc_n31_20260924/integration_20260926/selected/scenario/shared_approach_f34fb1.json"
+  B: "diagnostics/sdmpc_n31_20260924/scenario/shared_approach_f34fb1.json"

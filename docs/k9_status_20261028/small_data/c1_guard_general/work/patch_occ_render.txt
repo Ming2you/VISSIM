@@ -1,0 +1,109 @@
+    # ---------------- occupancy (data after)
+    O = {s['id']: s for s in occ['segments']}
+    runs = occ['runs']
+    RL = {'VA_s31': 'V-A v3c3-s31', 'VA_s41': 'V-A v3c3-s41', 'VA_s43': 'V-A v3c3-s43',
+          'B_s31': 'B v3c3-s31', 'B_s41': 'B v3c3-s41', 'B_s43': 'B v3c3-s43'}
+    runs = [r for r in ('VA_s31', 'VA_s41', 'VA_s43', 'B_s31', 'B_s41', 'B_s43') if r in runs]
+    hdr = ' | '.join(RL[r] for r in runs)
+    t1 = ['| 구간 | 길이 m | 용량 대 (6 m / 중앙 / 평균) | ' + hdr + ' |', '|---|---:|---|' + '---|' * len(runs)]
+    t2 = ['| 구간 | ' + hdr + ' |', '|---|' + '---|' * len(runs)]
+    for sid, lab in KEY_SEGMENTS:
+        s = O.get(sid)
+        if s is None:
+            continue
+        c1, c2 = [], []
+        for r in runs:
+            e = s['runs'][r]
+            c1.append('%d · %s / %s / %s' % (e['max_veh'], f1(e.get('max_fill_6m'), 2), f1(e.get('max_fill_fzp_mean'), 2), f1(e.get('max_fill_len'), 2)))
+            c2.append('%d/%d/%d/%d · %d' % (e.get('n_ge_1.0_6m', 0), e.get('n_ge_1.0_fzp', 0), e.get('n_ge_1.0_fzp_mean', 0),
+                                            e.get('n_ge_1.0_len', 0), e.get('n_ge_0.9_6m', 0)))
+        t1.append('| %s `%s` | %s | %s / %s / %s | %s |' % (lab, sid, f1(s['len_m']), f1(s['cap_veh']['6m']), f1(s['cap_veh']['fzp']),
+                                                         f1(s['cap_veh']['fzp_mean']), ' | '.join(c1)))
+        t2.append('| %s | %s |' % (lab, ' | '.join(c2)))
+    tables['occ_key'] = '\n'.join(t1)
+    tables['occ_key_counts'] = '\n'.join(t2)
+    G = occ['groups']
+    t = ['| 묶음(링크 단위) | 용량 대 (6 m / 중앙 / 평균) | ' + hdr + ' |', '|---|---|' + '---|' * len(runs)]
+    for gid, lab in [('SC1001:127', '127 (SC1001 동쪽행, 3차로)'), ('SC1004:71', '71 (SC1004 서쪽 접근, 5차로)'), ('F:124', '124 (3차로)'),
+                     ('F:121', '121 (4차로)'), ('F:126', '126 (2차로)'), ('F:129', '129 (3차로)'), ('F:70', '70 (2차로)'), ('F:31', '31 (3차로)'),
+                     ('F:68', '68 (4차로)')]:
+        g = G.get(gid)
+        if g is None:
+            continue
+        cells = []
+        for r in runs:
+            e = g['runs'][r]
+            cells.append('%d · %s / %s · ≥1.0: %d/%d/%d' % (e['max_veh'], f1(e.get('max_fill_6m'), 2), f1(e.get('max_fill_len'), 2),
+                                                        e.get('n_ge_1.0_6m', 0), e.get('n_ge_1.0_fzp_mean', 0), e.get('n_ge_1.0_len', 0)))
+        t.append('| %s | %s / %s / %s | %s |' % (lab, f1(g['cap_veh']['6m']), f1(g['cap_veh']['fzp']), f1(g['cap_veh']['fzp_mean']), ' | '.join(cells)))
+    tables['occ_groups'] = '\n'.join(t)
+    # decisions with any >= 1.0, by rule, excluding segments shorter than 2 vehicles (FZP median)
+    raw = occ['raw_counts']
+    rawu = occ['raw_used_m']
+    ids = occ['segment_ids']
+    segs = {s['id']: s for s in occ['segments']}
+    capf = {i: segs[i]['cap_veh']['fzp'] for i in ids}
+    lens = {i: segs[i]['len_m'] for i in ids}
+    kind = {i: segs[i]['kind'] for i in ids}
+    sp6, spm, spa = occ['spacings']['6m'], occ['spacings']['fzp'], occ['spacings']['fzp_mean']
+    short = [s for s in occ['segments'] if s['cap_veh']['fzp'] is not None and s['cap_veh']['fzp'] < 2.0]
+    vals['n_short_segments'] = len(short)
+    vals['n_short_approach'] = sum(1 for s in short if s['kind'] == 'approach_lane')
+    t = ['| 팔·시드 | 결정 수 | 머리 차로 (6 m / 중앙 / 평균 / 길이) | 공급 차로 (같은 순서) | 미터 머리 앞 (같은 순서) | 미터 접근 (같은 순서) |', '|---|---:|---|---|---|---|']
+    dec_out = {}
+    for r in runs:
+        rows = raw[r]
+        urows = {row[0]: row[1:] for row in rawu[r]}
+
+        def n_any(kd):
+            out = []
+            for rule in ('6m', 'fzp', 'fzp_mean', 'len'):
+                n = 0
+                for row in rows:
+                    T, c = row[0], row[1:]
+                    u = urows[T]
+                    hit = False
+                    for j, i in enumerate(ids):
+                        if kind[i] != kd or capf[i] is None or capf[i] < 2.0 or lens[i] <= 0:
+                            continue
+                        if rule == 'len':
+                            f = u[j] / lens[i]
+                        else:
+                            f = c[j] / (lens[i] / {'6m': sp6, 'fzp': spm, 'fzp_mean': spa}[rule])
+                        if f >= 1.0 - 1e-9:
+                            hit = True
+                            break
+                    n += hit
+                out.append(n)
+            return out
+        a, f_, m_, ma = n_any('approach_lane'), n_any('feeder_lane'), n_any('meter_prehead_lane'), n_any('meter_approach_lane')
+        dec_out[r] = dict(decisions=len(rows), approach=a, feeder=f_, meter_prehead=m_, meter_approach=ma)
+        t.append('| %s | %d | %s | %s | %s | %s |' % (RL[r], len(rows), '/'.join(map(str, a)), '/'.join(map(str, f_)), '/'.join(map(str, m_)), '/'.join(map(str, ma))))
+    tables['occ_decisions'] = '\n'.join(t)
+    # which segments (cap >= 2) reach >= 1.0 under the length rule, counts over 6 runs
+    t = ['| 구간 | 종류 | 길이 m | ≥ 1.0 결정 수 6런 합 (6 m / 중앙 / 평균 / 길이) | 최대 점유 (길이) |', '|---|---|---:|---|---:|']
+    rows_ = []
+    for s in occ['segments']:
+        if s['cap_veh']['fzp'] is None or s['cap_veh']['fzp'] < 2.0:
+            continue
+        tot = [sum(s['runs'][r].get('n_ge_1.0_' + k, 0) for r in runs) for k in ('6m', 'fzp', 'fzp_mean', 'len')]
+        if any(tot):
+            rows_.append((tot[3], tot, s))
+    rows_.sort(key=lambda x: (-x[0], -x[1][2]))
+    vals['n_long_hit_len'] = sum(1 for x in rows_ if x[1][3] > 0)
+    vals['n_long_hit_6m'] = sum(1 for x in rows_ if x[1][0] > 0)
+    for _, tot, s in rows_[:25]:
+        t.append('| `%s` | %s | %s | %s | %s |' % (s['id'], s['kind'], f1(s['len_m']), '/'.join(map(str, tot)),
+                                               f1(max(s['runs'][r].get('max_fill_len', 0) for r in runs), 2)))
+    tables['occ_long_hits'] = '\n'.join(t)
+    t = ['| 구간 | 길이 m | 용량 대 (중앙) | 6런 합 ≥ 1.0 결정 수 (중앙) |', '|---|---:|---:|---:|']
+    for s in sorted(short, key=lambda s: -sum(s['runs'][r].get('n_ge_1.0_fzp', 0) for r in runs))[:15]:
+        t.append('| `%s` | %s | %s | %d |' % (s['id'], f1(s['len_m']), f1(s['cap_veh']['fzp'], 2), sum(s['runs'][r].get('n_ge_1.0_fzp', 0) for r in runs)))
+    tables['occ_short'] = '\n'.join(t)
+    k127 = O['A:127:1:2']['runs']
+    vals['b127_max'] = ' / '.join('%d대 · %s / %s / %s' % (k127[r]['max_veh'], f1(k127[r]['max_fill_6m'], 2), f1(k127[r]['max_fill_fzp_mean'], 2),
+                                                          f1(k127[r]['max_fill_len'], 2)) for r in ('B_s31', 'B_s41', 'B_s43'))
+    vals['gap_m'] = f1(occ['length_rule']['gap_m'], 2)
+    vals['spacing_mean'] = f1(spa, 2)
+    vals['spacing_mean_ratio'] = f1(sp6 / spa, 3)
+

@@ -1,0 +1,51 @@
+--- k92_vb/vb_recalc.py	2026-10-22 11:21:33.522671100 +0900
++++ k92_vb2/vb_recalc.py	2026-10-22 14:26:54.769010700 +0900
+@@ -1,9 +1,10 @@
+ """K9-2 V-B independent recalculation, VB-I5 (K8_PREDECLARATION_AMENDMENT_32 section 4.6; amendment 24 section 14.1).
+-Scratch tool, never committed.  Imports the standard library and numpy only: never the V-B driver, the AD32 tools
++Scratch tool, never committed.  Amendment 33 rerun copy: the V-B tree is TK/vb2_e27ceac8 (the only change besides this
++note and one self-test case for the amendment-33 hook names <prefix>_<pid>_<time_ns>_<16 hex>).  Imports the standard library and numpy only: never the V-B driver, the AD32 tools
+ (vb_lib32, vb_select, the hook), KI, the harness (sa_*, k92_*) or any VBT / GWT8 module.  The rules are written again
+ here from the text of amendments 24 section 14.1 and 32 sections 2.4, 2.5, 3.4, 3.6; the closed leaf list is not used.
+ 
+-    python -B vb_recalc.py run --vbr <OK2/vb> --dest <file>     recompute and compare with the driver's judge files
++    python -B vb_recalc.py run --vbr <OK2/vb2> --dest <file>    recompute and compare with the driver's judge files
+     python -B vb_recalc.py selftest                             synthetic self-test, no child process
+ 
+ What is recomputed from the raw files (decision JSON / CSV, run records, hook folders, record folders, arm files,
+@@ -24,7 +25,7 @@
+ 
+ sys.dont_write_bytecode = True
+ RR = Path(r'D:/VISSIM_runs/20261004_sdmpc31_k8')
+-TK_VBT = Path(r'D:/VISSIM-merge/k8_gate_trees/k92b1/vb_e27ceac8')
++TK_VBT = Path(r'D:/VISSIM-merge/k8_gate_trees/k92b1/vb2_e27ceac8')
+ KB = Path(r'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/'
+           r'491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/k92/bundle1')
+ VALUES = KB / 'k92_probe_a25' / 'K92_VALUES.json'
+@@ -714,6 +715,26 @@
+                                                              t1doc))['ok'] is True
+     checks['i2_warm_exception_false'] = i2_of(t150, [], 150, 0, 0, ('head_discharge_floor_173_p4_301ceabb95f116fa',
+                                                                    act(1, 30.0)))['ok'] is False
++    # amendment 33 hook names: two worker processes with the same pid 4242 (one decision), both candidates match with
++    # the same record -> selected, the earlier time_ns first; VB-I7 true; an error file of one of them -> hook_error
++    hp = root / 'pidreuse' / 'hook'
++    put(hp / 'loaded_100_1761111111111111111_00112233aabbccdd.json', {'argv0': ADAPTER_NAME, 'recorder_ok': True})
++    toks = ('4242_1761111111333333333_fedcba9876543210', '4242_1761111111222222222_0123456789abcdef')
++    for i, tok in enumerate(toks):
++        put(hp / ('loaded_%s.json' % tok), {'argv0': 'sdmpc_tangent_worker.py', 'recorder_ok': True})
++        c = hp / ('c_%s_0001' % tok)
++        put(c / 'cand.json', {'seq': 1, 'pid': 4242, 'is_ad': False, 'time_ns': 2000 - i, 'first_row_start_sec': 3000.0,
++                              'dt_sec': 150.0, 'n_residence_rows': 9, 'n_states': 3, 'signature': {
++                                  'green_times': {'SC109_p2': 20.0, 'SC109_p3': 25.0, 'SC109_p4': 15.0},
++                                  'offsets': {'SC109': 0.0}, 'future_green_times': [{'SC109_p3': 26.0}]}})
++        put(c / 'k92_record.json', {'blocks': [{'chain_sum': 1.0}], 'horizon': {'m1_chain_T450': 12.0}})
++    put(root / 'pidreuse' / 'rec' / 'k92_select.json', {'status': 'selected'})
++    sp = reselect(hp, act(3000, 25.0), 3000)
++    checks['pid_reuse_selected'] = (sp['status'], sp['n_candidates'], sp['n_match'], sp['chosen']) == (
++        'selected', 2, 2, 'c_4242_1761111111222222222_0123456789abcdef_0001')
++    checks['pid_reuse_i7'] = i7_of(hp, root / 'pidreuse' / 'rec')['ok'] is True
++    put(hp / ('hook_error_%s.txt' % toks[0]), b'x')
++    checks['pid_reuse_error_seen'] = reselect(hp, act(3000, 25.0), 3000)['status'] == 'hook_error' and         i7_of(hp, root / 'pidreuse' / 'rec')['ok'] is False
+     checks['no_import_of_driver'] = not any(m in sys.modules for m in ('vb_chain', 'vb_lib32', 'vb_select', 'k92lib',
+                                                                       'cglib', 'k92_compare', 'k92_record'))
+     ok = all(v is True for v in checks.values())

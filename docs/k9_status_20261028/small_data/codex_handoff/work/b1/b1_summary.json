@@ -1,0 +1,307 @@
+{
+ "frz_b1": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/frozen/sdmpc31_a49981ff_202610261410",
+ "freeze_b1": {
+  "sha256": "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+  "file_count": 7989,
+  "total_bytes": 495607946,
+  "tree_sha256": "8373fa997fe3360a6c10607508cafb277952df566d68015f8bc92fb682d6bba5",
+  "git_head": "a49981ffb258707c9a5e837d56f8cad829dab0ac",
+  "git_status_entries": 3653,
+  "git_status_sha256": "558ddef801c9ddb810fda30b4c6e4494d3a21b0e1cc5d2511d98ec37d86aded4",
+  "source": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\source"
+ },
+ "freeze_b0": {
+  "sha256": "853d1c4fb97ed3de4cf62a409b06b9001648ce56171e2ed826236bdddb1506c6",
+  "file_count": 7989,
+  "total_bytes": 495607788,
+  "git_status_sha256": "558ddef801c9ddb810fda30b4c6e4494d3a21b0e1cc5d2511d98ec37d86aded4"
+ },
+ "tree_checks": {
+  "frz_b0_sha_unchanged": true,
+  "source_preedit_equals_frz_b0": true,
+  "source_postedit_only_runner": true,
+  "frz_b1_only_runner_vs_frz_b0": true,
+  "runner_b0_sha": true,
+  "runner_b1_sha_is_edited": true,
+  "git_same_head_branch_status": true,
+  "file_count_same": true,
+  "freeze_ok_in_log": true,
+  "freeze_verified_before_preflights": true,
+  "freeze_verified_after_preflights": true,
+  "seat_logic_0to3_allowed_4to6_refused": true,
+  "seat_test_on_b1_runner": true
+ },
+ "runner": {
+  "sha256_b0": "8b2da855da5bdf237d2555fdd08ecb3f41f08dc56b4e8aa0187aa0a1b21bde6e",
+  "sha256_b1": "6ff68b385a4bf6dab23a26bea5a6015641a77808230bfc8366bbc5d2554b38f7",
+  "lines_b0": 194,
+  "lines_b1": 195
+ },
+ "preflights": [
+  {
+   "label": "s31",
+   "seed": 31,
+   "runner_exit": 0,
+   "wall_sec": 17.5,
+   "wrapper_error": null,
+   "freeze_verified_line": "FREEZE_VERIFIED path=D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\FREEZE.json sha256=558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+   "runner_err_log_bytes": 0,
+   "status_stage": "preflight_complete",
+   "watchdog_cmdline": "\"C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -NoProfile -File D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1 -Name sdmpc31_sdmpc9000_s31 -Network D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\runner_preflight\\s31\\sdmpc\\network\\sdmpc31_sdmpc9000_s31.inpx -OutDir D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\runner_preflight\\s31\\sdmpc\\preflight -SimPeriod 9000 -ControlIntervalSec 150 -Seed 31 -Controller wu-link -ControlStartSec 900 -WarmupController no-control -StateLogIntervalSec 150 -DemandScale 1 -DemandProfile D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\profile.csv -VehicleInputRoles D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv -UrbanInputGateMap D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv -Calibration D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json -Mapping D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json -Tuning D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\b0_v3c3\\config_b0_v3c3.json -VbsConfig D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs -NoGlobalKill -MaxAttempts 1 -StartupStallSec 300 -StallSec 3600 -PreflightOnly",
+   "stall_in_watchdog_cmdline": [
+    "3600"
+   ],
+   "stall_in_status_arguments": [
+    "3600"
+   ],
+   "provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/runner_preflight/s31/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s31.json",
+   "provenance_sha256": "0d3ec1c35612f2204b746ec10828fabf4d2010cbdf7741b57e482556b8bac227",
+   "env_empty_values": [
+    "RW_OBS150_GT"
+   ],
+   "hold_env": {
+    "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+    "RW_DECISION_HOLD_PREVIOUS": "1",
+    "RW_DECISION_TIMEOUT_SEC": "0"
+   },
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+   "freeze_pin": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\FREEZE.json",
+    "sha256": "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1"
+   },
+   "plant_manifest": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\b0_v3c3\\lane_plant\\candidate_manifest.json",
+    "sha256": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c"
+   },
+   "detectors": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+    "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "rows": 294
+   },
+   "seed_in_provenance": 31,
+   "sim_period_sec": 9000,
+   "controller": "wu-link",
+   "workspace_root": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410",
+   "startup_stall_sec": 300,
+   "checks": {
+    "exit0": true,
+    "freeze_verified_frz_b1": true,
+    "network_sha": true,
+    "hold_policy_env": true,
+    "tuning_sha": true,
+    "freeze_pin_frz_b1": true,
+    "plant_manifest_pin": true,
+    "detector_pin": true,
+    "controller_wu_link": true,
+    "seed": true,
+    "sim_period_9000": true,
+    "workspace_root_frz_b1": true,
+    "no_empty_rw_value": true,
+    "stall_3600_watchdog_cmdline": true,
+    "stall_3600_status_arguments": true,
+    "status_preflight_complete": true
+   },
+   "pass": true,
+   "vs_gate1": {
+    "gate1_provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/gate1/runner_preflight/s31/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s31.json",
+    "gate1_sha256": "f734ebcbbf8f79b5ab0297e15430f60d4a6c81a47c8af36033e6d80711f3deac",
+    "leaves_a": 601,
+    "leaves_b": 601,
+    "only_gate1": [],
+    "only_b1": [],
+    "differing": {
+     "/created_at": [
+      "2026-10-26T11:12:40.2869903+09:00",
+      "2026-10-26T14:13:19.1806780+09:00"
+     ],
+     "/observation/freeze/sha256": [
+      "853d1c4fb97ed3de4cf62a409b06b9001648ce56171e2ed826236bdddb1506c6",
+      "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1"
+     ],
+     "/run_id": [
+      "cd2de5c4bc544a51988df7b1b1afdd97",
+      "ba6481418d5d4c98aa76c2699ae70548"
+     ]
+    }
+   }
+  },
+  {
+   "label": "s41",
+   "seed": 41,
+   "runner_exit": 0,
+   "wall_sec": 14.8,
+   "wrapper_error": null,
+   "freeze_verified_line": "FREEZE_VERIFIED path=D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\FREEZE.json sha256=558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+   "runner_err_log_bytes": 0,
+   "status_stage": "preflight_complete",
+   "watchdog_cmdline": "\"C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -NoProfile -File D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1 -Name sdmpc31_sdmpc9000_s41 -Network D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\runner_preflight\\s41\\sdmpc\\network\\sdmpc31_sdmpc9000_s41.inpx -OutDir D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\runner_preflight\\s41\\sdmpc\\preflight -SimPeriod 9000 -ControlIntervalSec 150 -Seed 41 -Controller wu-link -ControlStartSec 900 -WarmupController no-control -StateLogIntervalSec 150 -DemandScale 1 -DemandProfile D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\profile.csv -VehicleInputRoles D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv -UrbanInputGateMap D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv -Calibration D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json -Mapping D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json -Tuning D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\b0_v3c3\\config_b0_v3c3.json -VbsConfig D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs -NoGlobalKill -MaxAttempts 1 -StartupStallSec 300 -StallSec 3600 -PreflightOnly",
+   "stall_in_watchdog_cmdline": [
+    "3600"
+   ],
+   "stall_in_status_arguments": [
+    "3600"
+   ],
+   "provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/runner_preflight/s41/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s41.json",
+   "provenance_sha256": "86ae6e5d468029c44c9873f43517f5433fe5eb96a0fe72e08141cec1f54006b8",
+   "env_empty_values": [
+    "RW_OBS150_GT"
+   ],
+   "hold_env": {
+    "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+    "RW_DECISION_HOLD_PREVIOUS": "1",
+    "RW_DECISION_TIMEOUT_SEC": "0"
+   },
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+   "freeze_pin": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\FREEZE.json",
+    "sha256": "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1"
+   },
+   "plant_manifest": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\b0_v3c3\\lane_plant\\candidate_manifest.json",
+    "sha256": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c"
+   },
+   "detectors": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+    "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "rows": 294
+   },
+   "seed_in_provenance": 41,
+   "sim_period_sec": 9000,
+   "controller": "wu-link",
+   "workspace_root": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410",
+   "startup_stall_sec": 300,
+   "checks": {
+    "exit0": true,
+    "freeze_verified_frz_b1": true,
+    "network_sha": true,
+    "hold_policy_env": true,
+    "tuning_sha": true,
+    "freeze_pin_frz_b1": true,
+    "plant_manifest_pin": true,
+    "detector_pin": true,
+    "controller_wu_link": true,
+    "seed": true,
+    "sim_period_9000": true,
+    "workspace_root_frz_b1": true,
+    "no_empty_rw_value": true,
+    "stall_3600_watchdog_cmdline": true,
+    "stall_3600_status_arguments": true,
+    "status_preflight_complete": true
+   },
+   "pass": true,
+   "vs_gate1": {
+    "gate1_provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/gate1/runner_preflight/s41/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s41.json",
+    "gate1_sha256": "9b10552766ef5df5f7fec3b19c14dd3456c835c0dff613769bb33d5414f61905",
+    "leaves_a": 601,
+    "leaves_b": 601,
+    "only_gate1": [],
+    "only_b1": [],
+    "differing": {
+     "/created_at": [
+      "2026-10-26T11:12:56.7235345+09:00",
+      "2026-10-26T14:13:35.8378223+09:00"
+     ],
+     "/observation/freeze/sha256": [
+      "853d1c4fb97ed3de4cf62a409b06b9001648ce56171e2ed826236bdddb1506c6",
+      "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1"
+     ],
+     "/run_id": [
+      "a712abea4d7e49a9a615fa440727ac91",
+      "d48e87ef27b1459982d2d642585b3bd2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "s43",
+   "seed": 43,
+   "runner_exit": 0,
+   "wall_sec": 14.2,
+   "wrapper_error": null,
+   "freeze_verified_line": "FREEZE_VERIFIED path=D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\FREEZE.json sha256=558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+   "runner_err_log_bytes": 0,
+   "status_stage": "preflight_complete",
+   "watchdog_cmdline": "\"C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -NoProfile -File D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1 -Name sdmpc31_sdmpc9000_s43 -Network D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\runner_preflight\\s43\\sdmpc\\network\\sdmpc31_sdmpc9000_s43.inpx -OutDir D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\runner_preflight\\s43\\sdmpc\\preflight -SimPeriod 9000 -ControlIntervalSec 150 -Seed 43 -Controller wu-link -ControlStartSec 900 -WarmupController no-control -StateLogIntervalSec 150 -DemandScale 1 -DemandProfile D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\profile.csv -VehicleInputRoles D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv -UrbanInputGateMap D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv -Calibration D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json -Mapping D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json -Tuning D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\b0_v3c3\\config_b0_v3c3.json -VbsConfig D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs -NoGlobalKill -MaxAttempts 1 -StartupStallSec 300 -StallSec 3600 -PreflightOnly",
+   "stall_in_watchdog_cmdline": [
+    "3600"
+   ],
+   "stall_in_status_arguments": [
+    "3600"
+   ],
+   "provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/runner_preflight/s43/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s43.json",
+   "provenance_sha256": "d8e6ea3fb078371e4dd0f887795049a725135bbe07ed92bc21788c17802cc7dc",
+   "env_empty_values": [
+    "RW_OBS150_GT"
+   ],
+   "hold_env": {
+    "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+    "RW_DECISION_HOLD_PREVIOUS": "1",
+    "RW_DECISION_TIMEOUT_SEC": "0"
+   },
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+   "freeze_pin": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\FREEZE.json",
+    "sha256": "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1"
+   },
+   "plant_manifest": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\b0_v3c3\\lane_plant\\candidate_manifest.json",
+    "sha256": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c"
+   },
+   "detectors": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+    "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "rows": 294
+   },
+   "seed_in_provenance": 43,
+   "sim_period_sec": 9000,
+   "controller": "wu-link",
+   "workspace_root": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\b1\\frozen\\sdmpc31_a49981ff_202610261410",
+   "startup_stall_sec": 300,
+   "checks": {
+    "exit0": true,
+    "freeze_verified_frz_b1": true,
+    "network_sha": true,
+    "hold_policy_env": true,
+    "tuning_sha": true,
+    "freeze_pin_frz_b1": true,
+    "plant_manifest_pin": true,
+    "detector_pin": true,
+    "controller_wu_link": true,
+    "seed": true,
+    "sim_period_9000": true,
+    "workspace_root_frz_b1": true,
+    "no_empty_rw_value": true,
+    "stall_3600_watchdog_cmdline": true,
+    "stall_3600_status_arguments": true,
+    "status_preflight_complete": true
+   },
+   "pass": true,
+   "vs_gate1": {
+    "gate1_provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/gate1/runner_preflight/s43/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s43.json",
+    "gate1_sha256": "19aa70671cf7ab0be27706245aadee51ee28e5c9d7ffac5a127d4f8760e1242a",
+    "leaves_a": 601,
+    "leaves_b": 601,
+    "only_gate1": [],
+    "only_b1": [],
+    "differing": {
+     "/created_at": [
+      "2026-10-26T11:13:15.0543450+09:00",
+      "2026-10-26T14:13:52.0209607+09:00"
+     ],
+     "/observation/freeze/sha256": [
+      "853d1c4fb97ed3de4cf62a409b06b9001648ce56171e2ed826236bdddb1506c6",
+      "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1"
+     ],
+     "/run_id": [
+      "ecf42be125b24c30958e22e7e24f28e0",
+      "bbd6ef019d254d298ca1754cd118c723"
+     ]
+    }
+   }
+  }
+ ],
+ "pass": true
+}

@@ -1,0 +1,36 @@
+export const meta = {
+  name: 'urban-batch2-stages1-2-resume',
+  description: 'Resume of urban batch 2 after a session-limit abort: finish stage 1 (U4-0 bit-identical cleanup, code already edited, G-ID chain partly run), then stage 2 (C6 starvation monitor), independent verify + fix; no commits, no VISSIM',
+  phases: [
+    { title: 'U4-0', detail: 'finish stage 1' },
+    { title: 'C6', detail: 'stage 2 starvation monitor' },
+    { title: 'Verify', detail: 'independent review + fix' },
+  ],
+}
+const R = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad'
+const B = R + '/urban-b2'
+const WT = 'D:/VISSIM-merge/sim3-n31-urban-b2'
+const COMMON = `
+CONTEXT (absolute paths). Korean prose in reports; mark [실행]/[읽음]/[추론]; cite file:line.
+- The approved plan is ${B}/BATCH2_PLAN.md (read §0-§7 fully, esp. §2 common rules, §3 worktree plan, §4.0-4.2, §5, §6.1, §6.2, §6.9, §8, §10). Data artefacts: ${B}/u4_saturation_table.json, u5_contract_draft.json, u6_diagnosis.md, code_map.md, c6_dryrun.py/json.
+- USER DECISIONS (binding): batch 2 = C3 (U4+U5+U6, all-or-nothing) + C2 (U2) + C6; U5 covers ALL overcounted groups (v3b: 53) AND native groups (Q1); Q2 = fix the SC105/SC1 shared left-lane phase authority to p3 with an evidence file and statically reduce SC7's serial-head group (interim static reduction until the evidence file exists); Q3 = no v3b closed-loop run; the plan's §10 author choices stand unless a verifier finds a defect. Development on the v3b-pinned trees; tables re-derived on v3c1 later (the v3c1 re-pin is now committed as 5323faa on claude/repin-v3c1-20260928 with beta source keys routing_v3c1/routing_v3c1_2 — do not touch that branch or D:/VISSIM-merge/sim3-n31-v3c1).
+- Worktree ${WT} (branch claude/urban-batch2-20260928 at cf3ce37). Do NOT commit, push, rebase or touch other branches/worktrees; leave changes uncommitted. Never modify D:/VISSIM-merge/frozen/*, D:/VISSIM-merge/sim3-n31, D:/VISSIM-merge/sim3-n31-urban, D:/VISSIM-merge/sim3-n31-v3c1 or any run folder under D:/VISSIM_runs.
+- Stage 0 is DONE: ${B}/impl/STAGE0.md (stop=false; baselines reproduced bit-identically; G-ID references: default tuning 61/61 and U1+U3 61/61 IDENTICAL captures; suites: diagnostics 5 files and 'extra' fail on every cf3ce37 checkout for missing historical run inputs -> read "all suites pass" as "no new failure vs S0/tests and S0/fixtures summaries"; 4 tests rewrite tracked files, the harness reverts them — check cleanliness).
+- Replays: offline only (make_replay_state_v2.py prepare + replay_decision_n31.ps1 -Root ${WT} or ${R}/xreplay/alt_replay.ps1), ONE at a time, BELOW_NORMAL, NUMBA_CACHE_DIR=C:/Users/TRLAB/AppData/Local/Temp/nbc_b2i. Never start/kill VISSIM or cscript; never run watchdog/cscript/ps1 *tests* (test_b1a_watchdog_attempt_launch.py, run_plant_fidelity_matrix, test_runner_ps1_obs150.py, test_native_vbs_clock.py, test_tools_launch.py, test_tools_replay.py, real_watchdog). Four VISSIM runs (N1F queue) and a P10 verification workflow run concurrently: keep CPU modest. Never open seed 37, RM arms or sealed seeds.
+- Every new switch is a config key (absent = bit-identical); no env/getattr gates; superseded code isolated, not flagged. Harness scripts live under ${B}/harness (parametrised by tree path). Reports under ${B}/impl/.
+`
+const S = { type: 'object', properties: { summary_ko: { type: 'string' }, gates_ko: { type: 'string' }, changed_files: { type: 'array', items: { type: 'string' } }, stop: { type: 'boolean' }, open_issues_ko: { type: 'string' } }, required: ['summary_ko', 'gates_ko', 'stop'] }
+phase('U4-0')
+const s1 = await agent(`${COMMON}
+TASK FINISH STAGE 1 (plan §4.1, §6.1 G-ID (a)(b)(c)). RESUME: stage 1 was started at 16:01 and aborted by a session limit at ~18:05. State left behind: (i) code edits in ${WT} (git status: 14 modified + 2 new files: evaluation/controllers/u40_former_defaults.py, tests/test_n31_urban_batch2.py; three configs regenerated d4327cbf/ae8f4940/f137f711) — defaults lifted to required keys, install_lane_group_membership split, dead keys removed from configs (15), dead-branch isolation NOT done (condition unmet), plus an unplanned converter name_former_defaults for sha-pinned old tunings; (ii) ${B}/impl/STAGE1.md drafted (§0 conclusion is the placeholder @@CONCLUSION@@; §5 G-ID may be incomplete); (iii) the G-ID chain ${B}/impl/stage1/chain.log stopped after b2_u1u3 T7200 (18:05). First review the existing edits critically against the plan (the converter in particular: is it confined to deliberate old-tuning replays, and does it not hide a missing key on the live path?), fix defects, then finish G-ID: default tuning replay 61/61 IDENTICAL on R-obs-b states, U1+U3 61/61, and the S1/S0e SDMPC decision replays identical incl. deterministic counters (reuse chain results only with correct provenance: tree ${WT}, the current dirty diff sha, tuning shas). Complete STAGE1.md (fill §0 and §5). stop=true on any G-ID failure.`, { label: 'stage1', phase: 'U4-0', schema: S })
+if (!s1 || s1.stop) return { s1, aborted_at: 'stage1' }
+phase('C6')
+const s2 = await agent(`${COMMON}\nStage 1 report: ${JSON.stringify(s1)} (also ${B}/impl/STAGE0.md, STAGE1.md)\nTASK STAGE 2 (plan §4.2, §6.9 G-C6-0..4): implement evaluation/controllers/starvation_monitor.py (read-only, called at the end of the decision between A:13981 and :13991 — re-locate these lines in the edited adapter, output metadata['starvation_monitor'] + one stdout line 'starvation' capped at 512 bytes, VBS unchanged), config key urban.diagnostics.starvation_monitor {floor_tol_s, min_stopped_per_lane, n_consecutive, boundary_capacity_bound_k} with the §10-10 initial values, unit tests (settings validation, synthetic prior streak, error capture, name collision, stdout cap, state immutability), the previous-action reader static audit and two-decision chain tool (G-C6-4), and check on S1 states that it flags SC109 p3 in the lock-in window while actions stay bit-identical. Write ${B}/impl/STAGE2.md; stop=true on failure.`, { label: 'stage2', phase: 'C6', schema: S })
+if (!s2 || s2.stop) return { s1, s2, aborted_at: 'stage2' }
+phase('Verify')
+let v = await agent(`${COMMON}\nReports: ${JSON.stringify([s1, s2])} (and ${B}/impl/STAGE0.md, STAGE1.md, STAGE2.md)\nTASK (independent verifier): review the diff in ${WT} (git diff against cf3ce37 + untracked) for behaviour changes when keys are absent, env/getattr gates, dead-code removal that is actually live (trace call paths; the whose_code/resolve tools cannot judge SDMPC-31), the former-defaults converter scope, and C6 paths that can touch actions; re-run G-ID on a sample (10 R-obs-b states + one S1 SDMPC decision) and the C6 unit tests yourself. Report blocking issues.`, { label: 'verify', phase: 'Verify', schema: { type: 'object', properties: { blocking: { type: 'array', items: { type: 'string' } }, notes_ko: { type: 'string' } }, required: ['blocking', 'notes_ko'] } })
+let fix = null
+if (v && v.blocking && v.blocking.length) {
+  fix = await agent(`${COMMON}\nVerifier blocking issues: ${JSON.stringify(v.blocking)}\nTASK: fix what is real in ${WT}, re-run the affected gates, explain rejected ones. Write ${B}/impl/STAGE0-2_FIX.md.`, { label: 'fix', phase: 'Verify', schema: S })
+}
+return { s1, s2, v, fix }

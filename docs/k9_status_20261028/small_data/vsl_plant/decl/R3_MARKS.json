@@ -1,0 +1,44 @@
+{
+ "schema": "vp-r3-marks/1",
+ "kst": "2026-10-27 18:16:21 KST",
+ "basis": "PRE_VP_R3 (data-after amendment r3); user decisions D-K9-108 and D-K9-109 (decision notes sha256 64f202943502971c686de485c903c4d5ca2d58d0f2d5153fbd8a4de9827c1753, lines 361-367)",
+ "marks": [
+  {
+   "job": "A_v3c3-s31_T003450",
+   "label": "v3c3-s31",
+   "T": 3450,
+   "role": "probe A state A2 (VSL 101 decision)",
+   "mark": "started after STOP_VP: STOP_VP written 17:49:46 KST, this job took the LOCK 17:50:05 KST (+19 s); kept and used, D-K9-109 (1)",
+   "mark_ko": "STOP_VP 뒤 시작(+19 s), D-K9-109 (1) 로 씀",
+   "job_exit": 0,
+   "jobcheck_hits": 0,
+   "probe_sha256": "866ab2153032d04e02be7f8868316ea10f4abdba104f149622776c5037f23e14",
+   "job_summary_sha256": "1e9e280d70f806e0c02d810f364b91543fc77473000e8daee713c603f98dcb06",
+   "jobcheck_sha256": "e9e913f6ac189f64b61cf3aee8fddd02e3a6900ab6fe64ca052544d646a33608",
+   "stop_vp_sha256": "ebd85663fc92e5871df172898f7a86e7e7c3264c3cfad151e8ddde51408c7a02"
+  }
+ ],
+ "kept_without_mark": [
+  {
+   "job": "A_v3c3-s31_T003300",
+   "label": "v3c3-s31",
+   "T": 3300,
+   "role": "probe A state A1 (VSL 110 decision)",
+   "note": "finished 17:45:42 KST, before STOP_VP; kept (D-K9-109 resume note)",
+   "job_exit": 0,
+   "probe_sha256": "f8dc7daccbdf6cb04b3abaa65d1be81618e744db48634dcecc583e88d122b2fd",
+   "job_summary_sha256": "e562397f9687dcd0c45f8eabd85566bb347bbe23b05d1989bf88b4b2cf9ba748",
+   "jobcheck_sha256": "c2c9904740c7db7567a19689f6a12a3bdb8d7ecfd1b2c9a7162ac2c3f0b79d58"
+  }
+ ],
+ "rerun": [
+  {
+   "job": "P_v3c3-s31_T001800",
+   "label": "v3c3-s31",
+   "T": 1800,
+   "note": "stopped by S-R1 under r2 (objective +1.137e-13 veh*h, 2 ULP); folder, .done, .out.txt and .check.txt are moved to *_interrupted_* after the r3 pins, then rerun from this state by the next run (D-K9-108)",
+   "stopped_probe_sha256": "46e85a2fa899ee8807270f9e31fcbb2111f4c5c023b456df17bb1b323f497a30",
+   "stopped_jobcheck_sha256": "97187314cc615e6b259ee1cf0547f69bab5115a0ca229388fd0cb897713984ea"
+  }
+ ]
+}

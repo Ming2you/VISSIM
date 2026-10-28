@@ -1,0 +1,420 @@
+"""V-A OfflineGates driver on FRZ_K92 (amendment 34 section 5.1 order, one heavy job at a time, BELOW_NORMAL, python -B).
+
+Copy of the K8b driver SP/j1/fix/gates/g_driver.py (4d4131e5...).  Differences = amendment 34 section 5.0 R4 closed list:
+  item 1  expected values: FRZ_K92 / K9-2-7 / tuning c8e3ee2c... / FRZ_K92 list / OUTVA; guard documents = amendment 34
+          (+ its fixing point) and the decision record at their fixed sha, amendments 21/22/23 and OG_METHOD as fixed in
+          amendment 34 section 0; guard also checks the E_K92 judge sha (S-A34-11).
+  item 5  stages guard -> FG -> A (GB-7') -> H (hash A/B) -> B (GB-9') -> S -> GH5 (G-H5' three seeds), then 'after'
+          (amendment 34 5.0 Root rule: move new GWT8 tangent-cache files, final snapshot).  K8b stages D, GH1, R1, R2 and
+          the G-H2a-c comparisons are not here.
+  item 6  read-only watch after every stage: FRZ_K92 (caches incl.), FRZ_K8b, frozen/ top entries, R-obs3, the four J1
+          run folders, RR top, RVA top and RVA\\_preflight (unchanged before GH5; after GH5 exactly one new folder per
+          preflighted run name), GWT8 HEAD.  Any other change stops the driver.
+python -B g_driver.py [stage ...]     default: guard FG A H B S GH5 after
+  guard  sha of the fixed documents, FRZ_K92 FREEZE sha/head, FRZ_K8b FREEZE sha, replay tool sha (FRZ_K92 = FRZ_K8b),
+         gb7_allowed list (FRZ_K92), FRZ_K92 tuning sha, E_K92 judge sha, GWT8 aim check; 'before' snapshot
+  FG     FG-1 git diff --name-status K9-2-5..K9-2-7 = {M tuning, M gb7_allowed.py}; FG-2 git diff K9-2-5..K9-2-7 --
+         evaluation vendor plant scripts empty; FG-3 amendment 34 4.2-10 recomputed (FRZ_K92 vs FRZ_K8b file tables =
+         git diff b9734abe..K9-2-7 M/A/D, 12/21/0, 33 FRZ blobs = ls-tree blobs, FRZ sha = table sha); FG-4 replay tools
+  A      GB-7' 61 no-control replays (Root = FRZ_K92)               -> judge GB-7' (condition 7 = A or E_K92)
+  H      hash A/B 9 (Root = FRZ_K92)                                 -> judge hash A/B
+  B      GB-9' 4 SDMPC (Root = GWT8 @ K9-2-7, tools = FRZ_K92)      -> judge GB-9'
+  S      standing gate S over the 74 replays
+  GH5    G-H5' preflight per seed 31, 41, 43 (gh5_launch.ps1 -> WMI, wait, gh5_check) + condition 8 (no RVA run folder)
+  after  move new GWT8 tangent-cache files to OUTVA/moved_tangentcache_gwt8, final snapshots
+A gate that is not PASS stops the driver (S-A34-4).  Judges are fixed before any gate data.
+BLIND: nothing prints objective / prediction values."""
+import ctypes
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from ctypes import wintypes
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import gcommon as c  # noqa: E402
+import greplay  # noqa: E402
+
+J = c.OUTV / 'judge'
+SNAP = c.OUTV / 'snap'
+LOGF = c.OUTV / 'logs' / 'g_driver.log'
+SP = c.HERE.parents[2]
+DOCS = {'amendment34': (SP / 'K8_PREDECLARATION_AMENDMENT_34.md',
+                        'a05592d48512a515fc254d70b8173360d448b0aa17afb3f63c98b52ef713205e'),
+        'amendment34_fixed_point': (SP / 'k92' / 'va' / 'AMENDMENT34_FIXED.md',
+                                    'fef58eca53240e6026a78e19729a699be5fa7e965a2d1648f185e551afc3c167'),
+        'amendment21': (SP / 'K8_PREDECLARATION_AMENDMENT_21.md',
+                        'ca369954977fc5f98e19b84d08932202847d37e36e26f243caa25df2d135d176'),
+        'amendment22': (SP / 'K8_PREDECLARATION_AMENDMENT_22.md',
+                        '81cba5ae85e8d17e0b8bcd7c2f2e522c86a8bc2f2b4e19f4de3bb9de36bb459d'),
+        'amendment23': (SP / 'K8_PREDECLARATION_AMENDMENT_23.md',
+                        '336cb9e7cce4c40fcae79f9e947aa759107e698d11089fc899ed55d9a66d9b97'),
+        'og_method': (SP / 'j1' / 'og' / 'OG_METHOD.md',
+                      '8edf86736c88b796dcc542538dadf228589fc996533379d71090c026fc2d475d'),
+        'decisions': (SP / 'K9_1_J1_NOTES_20261013.md',
+                      '6b76cc09cc0bc0ea568f219dce16900799e3b1095b0d850ecc1d442720e6af88')}
+SEEDS = (31, 41, 43)
+PRE = c.RVA / '_preflight'
+SYNCHRONIZE = 0x00100000
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+
+
+def log(msg):
+    line = time.strftime('%Y-%m-%dT%H:%M:%S ') + msg
+    LOGF.parent.mkdir(parents=True, exist_ok=True)
+    with open(LOGF, 'a', encoding='utf-8') as f:
+        f.write(line + '\n')
+    print(line, flush=True)
+
+
+def stop(stage, why, extra=None):
+    rec = {'stage': stage, 'why': why, 'when': time.strftime('%Y-%m-%dT%H:%M:%S'), 'extra': extra}
+    c.write_json(J / ('STOP_%s.json' % stage), rec)
+    log('STOP stage=%s why=%s' % (stage, why))
+    print('G_DRIVER_STOP', stage, why)
+    sys.exit(3)
+
+
+def record_stage(stage, statuses):
+    p = J / 'stages.json'
+    doc = c.read_json(p) if p.is_file() else {}
+    doc[stage] = {'statuses': statuses, 'when': time.strftime('%Y-%m-%dT%H:%M:%S')}
+    c.write_json(p, doc)
+
+
+def dir_names(p):
+    return sorted(os.listdir(p)) if Path(p).is_dir() else None
+
+
+def snapshot():
+    return {'when': time.strftime('%Y-%m-%dT%H:%M:%S'), 'frzn': c.listing(c.FRZN), 'frz8': c.listing(c.FRZ8),
+            'frozen_entries': c.frozen_entries(), 'robs3': c.listing(c.ROBS3),
+            'j1': {k: c.listing(p) for k, p in c.J1.items()},
+            'runs_top': sorted(os.listdir(c.RUNS)), 'rva_top': dir_names(c.RVA), 'rva_preflight': dir_names(PRE),
+            'gwt8_tangentcache': c.tangentcache_names(c.WT), 'gwt8_head': c.git('rev-parse', 'HEAD').strip(),
+            'gwt8_status_ignored': c.git('status', '--porcelain', '--ignored').splitlines(), 'free_gb': c.free_space_gb()}
+
+
+def brief(s):
+    return {'frzn': c.listing_brief(s['frzn']), 'frz8': c.listing_brief(s['frz8']), 'robs3': c.listing_brief(s['robs3']),
+            'j1': {k: c.listing_brief(v) for k, v in s['j1'].items()}, 'frozen_entries': len(s['frozen_entries']),
+            'runs_top': s['runs_top'], 'rva_top': s['rva_top'], 'rva_preflight': s['rva_preflight'],
+            'gwt8_tangentcache': len(s['gwt8_tangentcache']), 'gwt8_head': s['gwt8_head'],
+            'gwt8_status_ignored': s['gwt8_status_ignored'], 'free_gb': s['free_gb'], 'when': s['when']}
+
+
+def preflight_rule(before_list, now_list, done_seeds):
+    """RVA\\_preflight: no entry removed; the added entries are exactly one '<run name>_<8 digits>_<6 digits>' folder
+    per seed in done_seeds (G-H5' only)."""
+    b, n = set(before_list or []), set(now_list or [])
+    added, removed = sorted(n - b), sorted(b - n)
+    per = {}
+    for s in done_seeds:
+        pat = re.compile(r'sdmpc31_v3c3_k92va_s%d_\d{8}_\d{6}' % s)
+        per[s] = [a for a in added if pat.fullmatch(a)]
+    ok = (not removed and all(len(v) == 1 for v in per.values())
+          and len(added) == len(done_seeds) and all((PRE / v[0]).is_dir() for v in per.values() if v))
+    return ok, {'added': added, 'removed': removed, 'per_seed': per}
+
+
+def check_snap(stage, done_seeds=()):
+    before = c.read_json(SNAP / 'before.json')
+    now = snapshot()
+    res = {}
+    for k in ('frzn', 'frz8', 'robs3'):
+        same, d = c.listing_same(before[k], now[k], include_cache=True)
+        res[k] = {'same': same, 'delta': {p: {kk: vv[:5] for kk, vv in x.items() if vv} for p, x in d.items()}}
+    for s in c.J1:
+        same, d = c.listing_same(before['j1'][s], now['j1'][s], include_cache=True)
+        res['j1_' + s] = {'same': same, 'delta': {p: {kk: vv[:5] for kk, vv in x.items() if vv} for p, x in d.items()}}
+    res['frozen_entries'] = {'same': before['frozen_entries'] == now['frozen_entries']}
+    res['runs_top'] = {'same': before['runs_top'] == now['runs_top']}
+    res['rva_top'] = {'same': before['rva_top'] == now['rva_top'], 'now': now['rva_top']}
+    ok_pre, det = preflight_rule(before['rva_preflight'], now['rva_preflight'], done_seeds)
+    res['rva_preflight'] = {'same': ok_pre, 'detail': det}
+    res['gwt8_head'] = {'same': before['gwt8_head'] == now['gwt8_head']}
+    c.write_json(SNAP / ('after_%s.json' % stage), {'brief': brief(now), 'compare': res})
+    bad = [k for k, v in res.items() if not v['same']]
+    log('SNAP_CHECK %s bad=%s frzn_cache=%d gwt8_tcache=%d preflight_added=%d free=%s' % (
+        stage, bad, now['frzn']['cache_files'], len(now['gwt8_tangentcache']), len(det['added']), now['free_gb']))
+    if bad:
+        stop(stage, 'read-only target changed: %s' % bad, res)
+    if any(v < 8.0 for v in now['free_gb'].values()):
+        stop(stage, 'free space below 8 GB %s' % now['free_gb'])
+
+
+# ------------------------------------------------------------------------------------------------ stages
+def stage_guard():
+    c.require_space(log)
+    J.mkdir(parents=True, exist_ok=True)
+    SNAP.mkdir(parents=True, exist_ok=True)
+    docs = {k: {'path': str(p), 'sha256': c.sha256_file(p), 'expected': e} for k, (p, e) in DOCS.items()}
+    bad = [k for k, v in docs.items() if v['sha256'] != v['expected']]
+    rec = {'docs': docs, 'docs_ok': not bad}
+    rec['freeze_sha256'] = c.sha256_file(c.FRZN / 'FREEZE.json')
+    fd = c.freeze_doc()
+    rec['freeze_head'] = fd['git']['head']
+    rec['freeze8_sha256'] = c.sha256_file(c.FRZ8 / 'FREEZE.json')
+    rec['tools'] = c.tools_check()
+    _m, rec['allowed_list'] = c.load_allowed()
+    rec['frzn_tuning_sha256'] = c.sha256_file(c.FRZN / c.TUNING_REL)
+    rec['ek92_sha256'] = c.sha256_file(c.HERE / 'gb7_k92decl.py')
+    rec['aim_gwt8'] = c.aim_gwt8(log)
+    rec['census'] = c.census()
+    ok = (rec['docs_ok'] and rec['freeze_sha256'] == c.FREEZE_SHA and rec['freeze_head'] == c.HEAD
+          and rec['freeze8_sha256'] == c.FREEZE_K8B_SHA and rec['tools']['ok'] and rec['frzn_tuning_sha256'] == c.TUNING_SHA
+          and rec['ek92_sha256'] == c.EK92_SHA and rec['aim_gwt8']['ok'])
+    rec['ok'] = ok
+    c.write_json(J / ('guard_%s.json' % time.strftime('%Y%m%d_%H%M%S')), rec)
+    log('GUARD ok=%s docs_bad=%s freeze=%s head=%s tools=%s list=%s ek92=%s vissim=%s' % (
+        ok, bad, rec['freeze_sha256'][:8], rec['freeze_head'][:8], rec['tools']['ok'],
+        rec['allowed_list']['list_sha256'][:8], rec['ek92_sha256'][:8], rec['census']['vissim_any']))
+    if not ok:
+        stop('guard', 'guard failed', rec)
+    if not (SNAP / 'before.json').is_file():
+        s = snapshot()
+        c.write_json(SNAP / 'before.json', s)
+        c.write_json(SNAP / 'before_brief.json', brief(s))
+        log('SNAP_BEFORE %s' % json.dumps({k: v for k, v in brief(s).items() if k in ('frzn', 'frz8', 'robs3')})[:600])
+    else:
+        log('SNAP_BEFORE exists (kept)')
+
+
+def entry_sha(v):
+    return v if isinstance(v, str) else (v or {}).get('sha256')
+
+
+def stage_FG():
+    rec = {'when': time.strftime('%Y-%m-%dT%H:%M:%S')}
+    ns = sorted(tuple(l.split('\t', 1)) for l in c.git('diff', '--name-status', '--no-renames', c.HEAD_K925,
+                                                     c.HEAD).splitlines() if l.strip())
+    rec['fg1_name_status'] = [list(x) for x in ns]
+    rec['FG-1'] = ns == sorted([('M', c.TUNING_REL), ('M', c.GB7_REL)])
+    rt = subprocess.run(['git', '-C', str(c.WT), 'diff', c.HEAD_K925, c.HEAD, '--', 'evaluation', 'vendor', 'plant',
+                         'scripts'], capture_output=True)
+    rec['fg2_exit'] = rt.returncode
+    rec['fg2_stdout_bytes'] = len(rt.stdout)
+    rec['FG-2'] = rt.returncode == 0 and rt.stdout == b''
+    fn = {k: entry_sha(v) for k, v in c.freeze_doc(c.FRZN)['files'].items()}
+    fo = {k: entry_sha(v) for k, v in c.freeze_doc(c.FRZ8)['files'].items()}
+    changed = sorted(k for k in fn.keys() & fo.keys() if fn[k] != fo[k])
+    added = sorted(fn.keys() - fo.keys())
+    removed = sorted(fo.keys() - fn.keys())
+    gd = {'M': set(), 'A': set(), 'D': set(), 'other': set()}
+    for line in c.git('diff', '--name-status', '--no-renames', c.HEAD_K8B, c.HEAD).splitlines():
+        if line.strip():
+            st, path = line.split('\t', 1)
+            gd.get(st, gd['other']).add(path)
+    rows, blobs_ok, incomplete = [], True, False
+    for p in sorted(gd['M'] | gd['A']):
+        lt = c.git('ls-tree', c.HEAD, '--', p).split()
+        fpath = c.FRZN / Path(p)
+        ho = c.git('hash-object', '--no-filters', str(fpath)).strip()
+        s = c.sha256_file(fpath) if fpath.is_file() else None
+        if not ho or len(lt) < 3:
+            incomplete = True
+        ok = len(lt) >= 3 and lt[2] == ho and s == fn.get(p)
+        blobs_ok = blobs_ok and ok
+        rows.append({'path': p, 'ls_tree': lt[2] if len(lt) >= 3 else None, 'frz_blob': ho, 'frz_sha256': s,
+                     'table_sha256': fn.get(p), 'ok': ok})
+    rec['fg3'] = {'changed': changed, 'added': added, 'removed': removed,
+                  'git': {k: sorted(v) for k, v in gd.items()}, 'counts': [len(changed), len(added), len(removed)],
+                  'blob_rows': rows}
+    rec['FG-3'] = (set(changed) == gd['M'] and set(added) == gd['A'] and set(removed) == gd['D'] and not gd['other']
+                   and (len(changed), len(added), len(removed)) == (12, 21, 0) and len(rows) == 33 and blobs_ok)
+    rec['tools'] = c.tools_check()
+    rec['FG-4'] = rec['tools']['ok']
+    if incomplete:
+        status = 'INCOMPLETE'
+    else:
+        status = 'PASS' if all(rec[k] is True for k in ('FG-1', 'FG-2', 'FG-3', 'FG-4')) else 'FAIL'
+    rec['status'] = status
+    c.write_json(J / 'fg_result.json', rec)
+    log('JUDGE FG=%s FG-1=%s FG-2=%s FG-3=%s (M/A/D=%s blobs=%d) FG-4=%s' % (
+        status, rec['FG-1'], rec['FG-2'], rec['FG-3'], rec['fg3']['counts'], len(rows), rec['FG-4']))
+    check_snap('FG')
+    record_stage('FG', {'FG': status})
+    if status != 'PASS':
+        stop('FG', 'FG %s' % status)
+
+
+def stage_A():
+    import gjudge as gj
+    group = c.OUTV / 'gb7' / 'A'
+    log('STAGE_A start n=61')
+    for T in gj.TIMES:
+        greplay.one_replay(group, 'T%06d' % T, T, '0', c.FRZN, c.ROBS3_DEC, log)
+    check_snap('A')
+    gb7 = gj.judge_gb7(gj.PROFILE_NEW)
+    c.write_json(J / 'gb7_result.json', gb7)
+    log("JUDGE GB-7' status=%s pass=%s/61 fails=%s controls=%s/61 c7_declared_A=%s/61 cond=%s" % (
+        gb7['status'], gb7['pass_count'], gb7['fails'], gb7['control_fields_equal_count'], gb7['c7_declared_A_count'],
+        gb7['cond_true_counts']))
+    record_stage('A', {"GB-7'": gb7['status']})
+    if gb7['status'] != 'PASS':
+        stop('A', "GB-7' %s" % gb7['status'])
+
+
+def stage_H():
+    import gjudge as gj
+    group = c.OUTV / 'gb7' / 'H'
+    log('STAGE_H start')
+    for T in (4050, 4500, 9000):
+        for seed in ('unset', '0', '2'):
+            greplay.one_replay(group, 'T%06d_h%s_r1' % (T, seed), T, seed, c.FRZN, c.ROBS3_DEC, log)
+    check_snap('H')
+    h = gj.judge_hash(gj.PROFILE_NEW)
+    c.write_json(J / 'hash_result.json', h)
+    log('JUDGE hash=%s missing=%s' % (h['status'], h['missing']))
+    record_stage('H', {'hash A/B': h['status']})
+    if h['status'] != 'PASS':
+        stop('H', 'hash A/B %s' % h['status'])
+
+
+def stage_B():
+    import gjudge as gj
+    group = c.OUTV / 'gb9' / 'B'
+    log('STAGE_B start')
+    for T in (900, 2700, 4950, 6300):
+        tag = 'T%06d_r1' % T
+        if not (group / (tag + '.summary.json')).exists():
+            aim = c.aim_gwt8(log)
+            c.write_json(group / (tag + '.aim_gwt8.json'), aim)
+            if not aim['ok']:
+                stop('B', 'GWT8 aim check failed before %s' % tag, aim)
+        greplay.one_replay(group, tag, T, '0', c.WT, c.ROBS3_DEC, log, controller='wu-link')
+    check_snap('B')
+    g9 = gj.judge_gb9(gj.PROFILE_NEW)
+    c.write_json(J / 'gb9_result.json', g9)
+    log("JUDGE GB-9'=%s fails=%s walls=%s" % (
+        g9['status'], g9['fails'], [(r['T'], r['wall']['replay_run_wall_sec'], r['wall']['decision_wall_sec'])
+                                    for r in g9['rows']]))
+    record_stage('B', {"GB-9'": g9['status']})
+    if g9['status'] != 'PASS':
+        stop('B', "GB-9' %s" % g9['status'])
+
+
+def stage_S():
+    import gjudge as gj
+    gb7 = c.read_json(J / 'gb7_result.json')
+    h = c.read_json(J / 'hash_result.json')
+    g9 = c.read_json(J / 'gb9_result.json')
+    s = gj.judge_s(gb7, h, g9)
+    c.write_json(J / 's_result.json', s)
+    log('JUDGE S=%s n=%s bad=%s' % (s['status'], s['n'], s['bad']))
+    record_stage('S', {'S': s['status']})
+    if s['status'] != 'PASS':
+        stop('S', 'S %s' % s['status'])
+
+
+def open_process(pid):
+    k32 = ctypes.WinDLL('kernel32', use_last_error=True)
+    k32.OpenProcess.restype = wintypes.HANDLE
+    k32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    h = k32.OpenProcess(SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    return k32, h
+
+
+def process_done(k32, h):
+    """True once the process behind the handle (held since launch, so no PID reuse) has ended."""
+    if not h:
+        return True
+    k32.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+    k32.WaitForSingleObject.restype = wintypes.DWORD
+    return k32.WaitForSingleObject(h, 0) == 0
+
+
+def exit_line(out, name):
+    if not out.is_file():
+        return []
+    return [l for l in out.read_text(encoding='utf-8-sig', errors='replace').splitlines()
+            if re.search(r'\bEXIT %s code=' % re.escape(name), l)]
+
+
+def stage_GH5():
+    import gh5_check
+    statuses, done = {}, []
+    for seed in SEEDS:
+        name = gh5_check.run_name(seed)
+        out = c.OUTV / 'gh5' / ('gh5_preflight_k92va_s%d.out' % seed)
+        resp = J / ('gh5_s%d_result.json' % seed)
+        if resp.is_file():
+            log('GH5 s%d result exists (kept)' % seed)
+        else:
+            if (c.RVA / name).exists():
+                record_stage('GH5', {"G-H5'": 'FAIL', 'seed': seed})
+                stop('GH5', 'run name folder exists before the preflight: %s' % name)
+            if out.exists():
+                record_stage('GH5', {"G-H5'": 'INCOMPLETE', 'seed': seed})
+                stop('GH5', 'preflight output already exists without a result (interrupted?): %s' % out)
+            c.require_space(log)
+            lp = subprocess.run([c.PS, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                                 str(c.HERE / 'gh5_launch.ps1'), '-Seed', str(seed)],
+                                capture_output=True, text=True, encoding='utf-8', errors='replace')
+            m = re.search(r'GH5_LAUNCH seed=%d RV=(\d+) PID=(\d+)' % seed, lp.stdout or '')
+            log('GH5_LAUNCH s%d exit=%s line=%s' % (seed, lp.returncode, m.group(0) if m else None))
+            if lp.returncode != 0 or not m or m.group(1) != '0':
+                record_stage('GH5', {"G-H5'": 'INCOMPLETE', 'seed': seed})
+                stop('GH5', 'preflight launch failed for s%d' % seed, {'stdout': (lp.stdout or '')[-2000:],
+                                                                      'stderr': (lp.stderr or '')[-2000:]})
+            pid = int(m.group(2))
+            k32, h = open_process(pid)
+            t0 = time.perf_counter()
+            while True:
+                if exit_line(out, name) and process_done(k32, h):
+                    break
+                if time.perf_counter() - t0 > 1800:
+                    record_stage('GH5', {"G-H5'": 'INCOMPLETE', 'seed': seed})
+                    stop('GH5', 'preflight s%d did not end within 1800 s (nothing killed)' % seed, {'pid': pid})
+                time.sleep(10)
+            log('GH5_PREFLIGHT_END s%d pid=%d wall=%.1f exit_lines=%d' % (seed, pid, time.perf_counter() - t0,
+                                                                          len(exit_line(out, name))))
+            gh5_check.main(str(out), str(resp), seed)
+        r = c.read_json(resp)
+        cond8 = (r.get('report') or {}).get('run_name_folder_exists') is False
+        st = 'PASS' if (r.get('status') == 'PASS' and cond8) else 'FAIL'
+        statuses[str(seed)] = {'status': st, 'conditions_1_7': r.get('status'), 'cond8_no_run_folder': cond8}
+        done.append(seed)
+        log("JUDGE G-H5' s%d=%s conditions1-7=%s cond8=%s" % (seed, st, r.get('status'), cond8))
+        check_snap('GH5_s%d' % seed, done_seeds=tuple(done))
+        c.write_json(J / 'gh5_result.json', {'gate': "G-H5'", 'seeds': statuses,
+                                             'status': 'PASS' if len(statuses) == 3 and all(
+                                                 v['status'] == 'PASS' for v in statuses.values()) else
+                                             ('FAIL' if any(v['status'] != 'PASS' for v in statuses.values())
+                                              else 'INCOMPLETE')})
+        if st != 'PASS':
+            record_stage('GH5', {"G-H5'": 'FAIL', 'seed': seed})
+            stop('GH5', "G-H5' s%d FAIL" % seed)
+    record_stage('GH5', {"G-H5'": 'PASS', 'seeds': list(SEEDS)})
+
+
+def stage_after():
+    before = c.read_json(SNAP / 'before.json')
+    rows = c.move_new_tangentcache(before['gwt8_tangentcache'], 'gates', log)
+    aim = c.aim_gwt8(log)
+    s = snapshot()
+    c.write_json(SNAP / 'final_brief.json', {'brief': brief(s), 'moved_tangentcache': len(rows), 'aim': aim})
+    check_snap('after', done_seeds=SEEDS)
+    log('AFTER moved_tcache=%d aim=%s gwt8_tcache_now=%d' % (len(rows), aim['ok'], len(s['gwt8_tangentcache'])))
+
+
+STAGES = {'guard': stage_guard, 'FG': stage_FG, 'A': stage_A, 'H': stage_H, 'B': stage_B, 'S': stage_S,
+          'GH5': stage_GH5, 'after': stage_after}
+
+if __name__ == '__main__':
+    c.set_below_normal()
+    todo = sys.argv[1:] or ['guard', 'FG', 'A', 'H', 'B', 'S', 'GH5', 'after']
+    bad = [s for s in todo if s not in STAGES]
+    if bad:
+        raise SystemExit('unknown stage(s) %s' % bad)
+    log('G_DRIVER start pid=%d stages=%s env_hashseed=%s' % (os.getpid(), todo, os.environ.get('PYTHONHASHSEED')))
+    if todo[0] != 'guard':
+        stage_guard()
+    for st in todo:
+        STAGES[st]()
+    log('G_DRIVER end')
+    print('G_DRIVER_DONE')

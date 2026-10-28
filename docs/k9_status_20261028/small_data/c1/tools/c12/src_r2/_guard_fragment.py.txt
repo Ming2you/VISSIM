@@ -1,0 +1,263 @@
+
+
+# ================================================================================================ amendment C1-2 guard
+# E29: the general storage-capacity guard (section 5).  Every line below runs only when the tuning holds
+# c1_port.storage_capacity_guard (RS E23 -> cfg.network.c1_storage_capacity_guard -> SD E24-E27, C1P E28).
+import bisect  # noqa: E402
+from collections import deque  # noqa: E402
+
+import numpy as np  # noqa: E402  (the two codex functions use np, CX urban_storage_guard.py:10)
+
+GUARD_SCHEMA = 'c1g-storage-segments/v1'
+GUARD_OBSERVED_SCHEMA = 'c1g-observed-lane-storage/v1'
+GUARD_SPILL = {'top_window_m': 12.0, 'stop_speed_kph': 5.0, 'max_clear_gap_m': 20.0,
+               'bottom_reach': 'max(20.0, 0.2 * length_m)', 'short_length_m': 12.0}
+GUARD_METERS = ('RM_C10480', 'RM_C10482', 'RM_C10484', 'RM_C10490', 'RM_C10639', 'RM_C10644', 'RM_C10646', 'RM_C10681')
+_GUARD_CACHE = {}
+
+
+def guard_index(doc):
+    """Lookup tables of one evidence document (no network read; section 5.9-5.10)."""
+    seg = {s['id']: s for s in doc['segments']}
+    lanes = {}
+    for s in doc['segments']:
+        lanes.setdefault((str(s['link']), int(s['lane'])), []).append((float(s['start_m']), float(s['end_m']), s['id']))
+    for v in lanes.values():
+        v.sort()
+    cells = {c['id']: c for c in doc['cells']}
+    attr = {}
+    for e in doc['attribution']:
+        adj = {}
+        for u, v in e['edges']:
+            adj.setdefault(u, []).append(v)
+        attr.setdefault(e['segment'], []).append((e, adj))
+    return {'_index': True, 'doc': doc, 'seg': seg, 'lanes': lanes, 'cells': cells, 'attr': attr,
+            'groups': doc.get('overlap_groups') or {}, 'meters': doc['meters']}
+
+
+def load_segments(section, cfg=None):
+    """Evidence by name + sha256, schema, network, spacing, spill constants, short threshold (section 5.10)."""
+    check_value('storage_capacity_guard', section)
+    key = (section['segments_name'], section['segments_sha256'])
+    ev = _GUARD_CACHE.get(key)
+    if ev is None:
+        ev = guard_index(load_named('c1', section['segments_name'], section['segments_sha256'], GUARD_SCHEMA))
+        _GUARD_CACHE[key] = ev
+    doc = ev['doc']
+    if doc.get('network_sha256') != NETWORK_SHA256:
+        raise ValueError('C1G evidence belongs to another network')
+    if doc.get('spill_rule') != GUARD_SPILL:
+        raise ValueError('C1G evidence spill constants differ from the code constants')
+    if doc.get('min_source_capacity_veh') != section['min_source_capacity_veh']:
+        raise ValueError('C1G evidence short threshold differs from c1_port.storage_capacity_guard')
+    if cfg is not None and float(cfg.network.urban_avg_vehicle_length_m) != doc.get('spacing_m'):
+        raise ValueError('C1G evidence spacing differs from cfg.network.urban_avg_vehicle_length_m')
+    return ev
+
+
+def _guard_spill(sub, start, end, lengths):
+    """S of one segment (section 5.2): sub = [(position, veh_no, speed)] sorted, all inside [start, end]."""
+    j0 = -1
+    zone_end = start + GUARD_SPILL['top_window_m']
+    for j, (p, _veh, speed) in enumerate(sub):
+        if p > zone_end:
+            break
+        if speed < GUARD_SPILL['stop_speed_kph']:
+            j0 = j
+            break
+    if j0 < 0:
+        return False
+    length = end - start
+    if length <= GUARD_SPILL['short_length_m']:
+        return True
+    cur = sub[j0]
+    for nxt in sub[j0 + 1:]:
+        if nxt[0] - lengths[nxt[1]] - cur[0] <= GUARD_SPILL['max_clear_gap_m']:
+            cur = nxt
+        else:
+            break
+    return cur[0] >= end - max(GUARD_SPILL['max_clear_gap_m'], 0.2 * length)
+
+
+def storage_capacity_core(records, frame_lengths, evidence, live_phases, meter_names, capacity_threshold=1.0):
+    """Pure function (section 5.2-5.7): counts, spill, full, cell full, receivers, attribution, overlap max, phase
+    weights (equal live-phase weights zeroed), meter triggers.  records = complete vehicle records, frame_lengths =
+    {veh_no: length_m} of the same-time lane frame, live_phases = {signal: live phases} in cfg.network.signals order."""
+    ix = evidence if evidence.get('_index') else guard_index(evidence)
+    seg, cells = ix['seg'], ix['cells']
+    by_lane = {}
+    for r in records:
+        by_lane.setdefault((str(r['link_no']), int(r['lane_no'])), []).append(
+            (float(r['position_m']), int(r['veh_no']), float(r['speed_kph'])))
+    for v in by_lane.values():
+        v.sort()
+    count, spill, full = {}, {}, {}
+    for key, rows in ix['lanes'].items():
+        vs = by_lane.get(key, [])
+        pos = [v[0] for v in vs]
+        for start, end, sid in rows:
+            sub = vs[bisect.bisect_left(pos, start):bisect.bisect_right(pos, end)]
+            for v in sub:
+                if v[1] not in frame_lengths:
+                    raise ValueError('C1G lane frame lacks the length of a counted vehicle')
+            s = seg[sid]
+            count[sid] = len(sub)
+            spill[sid] = _guard_spill(sub, start, end, frame_lengths)
+            by_count = len(sub) / s['capacity_veh'] >= capacity_threshold
+            full[sid] = by_count if (s['kind'] == 'R' and s['short']) else (by_count or spill[sid])
+
+    def cell_ok(cid):
+        c = cells[cid]
+        return bool(c['short'] or (c['judge'] is not None and full[c['judge']]))
+    all_full = {sid: bool(s['receivers']) and all(full[r] for r in s['receivers'])
+                for sid, s in seg.items() if s['kind'] == 'A'}
+    scores, minus_one, attributed = {}, [], {}
+    meters = {m: [] for m in meter_names}
+    for sid in sorted(all_full):
+        s = seg[sid]
+        if not s['source']:
+            continue
+        if all_full[sid]:
+            score = -1.
+            minus_one.append(sid)
+        elif full[sid] and s['receivers']:
+            score = max(1., count[sid] / s['capacity_veh'])
+        else:
+            score = 0.
+        for srv in s['servers']:
+            scores.setdefault(srv, []).append((sid, score))
+    cells_seen = set()
+    for sid in sorted(ix['attr']):
+        s = seg[sid]
+        if not s['source'] or not full[sid]:
+            continue
+        reached = {}
+        for e, adj in ix['attr'][sid]:
+            cells_seen.update(e['cells'])
+            start, head = e['start_cell'], e['head_cell']
+            if not cell_ok(start):
+                continue
+            seen, q, hit = {start}, deque([start]), start == head
+            while q and not hit:
+                u = q.popleft()
+                for v in adj.get(u, ()):
+                    if v not in seen and cell_ok(v):
+                        if v == head:
+                            hit = True
+                            break
+                        seen.add(v)
+                        q.append(v)
+            if hit:
+                reached.setdefault(e['server'], set()).add(e['head_lane_segment'])
+        for srv in sorted(reached):
+            attributed.setdefault(sid, []).append(srv)
+            if srv in meters:
+                meters[srv].append(sid)
+                continue
+            heads = reached[srv]
+            score = 0. if all(all_full.get(h, False) for h in heads) else max(1., count[sid] / s['capacity_veh'])
+            scores.setdefault(srv, []).append((sid, score))
+    weights, dropped = {}, []
+    for srv, items in sorted(scores.items()):
+        member = {}
+        for gi, g in enumerate(ix['groups'].get(srv, [])):
+            for m in g:
+                member[m] = gi
+        best, negative = {}, []
+        for sid, score in sorted(items):
+            if score < 0:
+                negative.append(score)
+            elif score > 0:
+                k = ('g', member[sid]) if sid in member else ('s', sid)
+                best.setdefault(k, []).append((score, sid))
+        kept = []
+        for k in sorted(best):
+            rows = sorted(best[k], key=lambda x: (-x[0], x[1]))
+            kept.append(rows[0][0])
+            dropped.extend([srv, sid] for _score, sid in rows[1:])
+        weights[srv] = math.fsum(kept + negative)
+    signals, zeroed = {}, []
+    for owner, live in live_phases.items():
+        w = {owner + '_' + p: weights.get(owner + '_' + p, 0.) for p in live}
+        vals = list(w.values())
+        if vals and max(vals) - min(vals) <= 1e-12:
+            if any(v != 0. for v in vals):
+                zeroed.append(owner)
+            w = {k: 0. for k in w}
+        signals[owner] = w
+    full_ids = sorted(k for k, v in full.items() if v)
+    by_kind = {}
+    for k in full_ids:
+        by_kind[seg[k]['kind']] = by_kind.get(seg[k]['kind'], 0) + 1
+    return {'signals': signals,
+            'meters': {m: {'triggered': bool(meters[m]), 'sources': sorted(meters[m])} for m in meter_names},
+            'full': full_ids, 'full_by_kind': by_kind, 'minus_one_lanes': minus_one, 'equal_weights_zeroed': zeroed,
+            'overlap_dropped': sorted(dropped), 'short_segment_count': sum(1 for s in seg.values() if s['short']),
+            'detail': {'counts': {k: v for k, v in sorted(count.items()) if v},
+                       'spill': sorted(k for k, v in spill.items() if v),
+                       'cells_full': sorted(c for c in cells_seen if not cells[c]['short'] and cell_ok(c)),
+                       'attributed': {k: v for k, v in sorted(attributed.items())},
+                       'scores': {k: [[sid, sc] for sid, sc in sorted(v)] for k, v in sorted(scores.items())},
+                       'weights_before_equal_zero': {k: v for k, v in sorted(weights.items())}}}
+
+
+def observe_storage_capacity(cfg, tuning, state_json):
+    """E23 (RS, after the physical ramp configuration): observe the guard at the decision time, from the state's
+    complete vehicle records and the same-time lane frame; sets cfg.network.c1_storage_capacity_guard (None first, as
+    CX USG:15) and returns the RS metadata block (section 5.11).  Reads state_json only."""
+    cfg.network.c1_storage_capacity_guard = None
+    section = ((tuning or {}).get('c1_port') or {})['storage_capacity_guard']
+    ev = load_segments(section, cfg)
+    from evaluation.controllers.projection_support import complete_records
+    from evaluation.controllers import obs150_contract
+    records = complete_records(state_json)
+    obs = state_json['obs150']
+    current = obs['frames']['current']
+    frame = obs150_contract.load_frame(obs150_contract.resolve(obs, current['path']), current['sha256'],
+                                       state_json['sim_sec'])
+    lengths = {int(row[0]): float(row[5]) for row in frame['vehicles']}
+    live = {owner: tuple(cfg.network.signal_live_phases(owner)) for owner in cfg.network.signals}
+    meters = tuple(cfg.network.physical_ramp_branches['ramps'])
+    if sorted(meters) != sorted(GUARD_METERS) or sorted(ev['meters']) != sorted(GUARD_METERS):
+        raise ValueError('C1G meters differ from the eight physical ramp meters')
+    core = storage_capacity_core(records, lengths, ev, live, meters, capacity_threshold=section['capacity_threshold'])
+    cfg.network.c1_storage_capacity_guard = {'schema': GUARD_OBSERVED_SCHEMA, 'policy': copy.deepcopy(section),
+                                             'signals': core['signals'], 'meters': core['meters'],
+                                             'observed_sec': float(state_json['sim_sec'])}
+    return {'evidence_sha256': section['segments_sha256'], 'observed_sec': float(state_json['sim_sec']),
+            'frame_sha256': current['sha256'], 'full_segments': core['full'], 'full_by_kind': core['full_by_kind'],
+            'signals': core['signals'], 'meters': core['meters'], 'minus_one_lanes': core['minus_one_lanes'],
+            'equal_weights_zeroed': core['equal_weights_zeroed'], 'overlap_dropped': core['overlap_dropped'],
+            'short_segment_count': core['short_segment_count'], 'detail': core['detail']}
+
+
+def _guard_num(x):
+    x = float(x)
+    return x if math.isfinite(x) else ('+inf' if x > 0 else '-inf' if x < 0 else 'nan')
+
+
+def storage_capacity_meta(coord, seed_projected):
+    """E27 decision metadata (section 5.11): block receipts, LP inputs per receipt signal (phase rows only, before the
+    guard rows), seed projection, block-0 reference inside the phase rows (stop 9)."""
+    blocks = list(getattr(coord, 'blocks', [coord]))
+    out = {'blocks': [], 'lp_inputs': [], 'seed_projected': bool(seed_projected), 'reference_in_phase_limits': {}}
+    for k, b in enumerate(blocks):
+        receipts = copy.deepcopy(getattr(b, 'c1_storage_capacity_receipt', []))
+        out['blocks'].append(receipts)
+        rows = {}
+        n_phase = len(b.phase_rows)
+        for r in receipts:
+            owner = r['signal']
+            ix = [j for j, a in enumerate(b.axes) if a['owner'] == owner and a['kind'] == 'green']
+            G = b.G[:n_phase][:, ix]
+            mask = np.any(G != 0, axis=1)
+            lo, hi = b.glo[:n_phase][mask], b.ghi[:n_phase][mask]
+            rows[owner] = {'axes': ix, 'green_vectors': [dict(b.green_vectors[j]) for j in ix],
+                           'axis_scale': [float(b.axes[j]['scale']) for j in ix],
+                           'G': [[float(x) for x in row] for row in G[mask]], 'glo': [_guard_num(x) for x in lo],
+                           'ghi': [_guard_num(x) for x in hi], 'lower': [_guard_num(b.lower[j]) for j in ix],
+                           'upper': [_guard_num(b.upper[j]) for j in ix]}
+            if k == 0:
+                out['reference_in_phase_limits'][owner] = bool(np.all(lo <= 0.) and np.all(hi >= 0.))
+        out['lp_inputs'].append(rows)
+    return out

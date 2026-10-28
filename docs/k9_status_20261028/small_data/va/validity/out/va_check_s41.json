@@ -1,0 +1,6907 @@
+{
+ "tool": "va_j1a.py check",
+ "tool_sha256": "968891df5b19627bf7743b8b39a871704509b8d4f3e6643d35cbec25d6ac88c6",
+ "profile": "va",
+ "seed": "41",
+ "name": "sdmpc31_v3c3_k92va_s41",
+ "run_dir": "D:\\VISSIM_runs\\20261023_sdmpc31_k92\\sdmpc31_v3c3_k92va_s41",
+ "policy_on_definition": true,
+ "priority": "0x4000",
+ "started": "2026-10-24T08:08:04+09:00",
+ "runlog_counters": {
+  "DECISIONS_OK": [
+   "61"
+  ],
+  "DECISIONS_FAILED": [
+   "0"
+  ],
+  "DECISIONS_HELD_ON_EXCEPTION": [
+   "0"
+  ],
+  "DECISION_ERROR_POLICY": [
+   "hold_previous_on_exception"
+  ],
+  "STAGE": [
+   "COM_CREATED",
+   "NET_LOADED",
+   "SIM_DONE"
+  ],
+  "SIM_SEC": [
+   "9000"
+  ],
+  "OBSERVATION_FAILURES": [
+   "0"
+  ],
+  "SIGNAL_FAILURES": [
+   "0"
+  ],
+  "ACTION_FORMAT_FAILURES": [
+   "0"
+  ],
+  "COM_FAILURES": [
+   "0"
+  ],
+  "SIGNAL_NAME_RULE_FALLBACKS": [
+   "0"
+  ],
+  "SIGNAL_MIDBLOCK_COM_SKIPS": [
+   "1320"
+  ],
+  "SIGNAL_MIDBLOCK_PLAN_SKIPS": [
+   "24"
+  ],
+  "SIGNAL_WRITE_ATTEMPTS": [
+   "20916"
+  ],
+  "SIGNAL_READBACK_OK": [
+   "20916"
+  ],
+  "SIGNAL_PERSISTENCE_CHECKS": [
+   "28441"
+  ],
+  "SIGNAL_PERSISTENCE_OK": [
+   "28441"
+  ],
+  "OBS150_BUNDLES": [
+   "61"
+  ],
+  "SIGNAL_COGREEN_BLOCKS": [
+   "0"
+  ],
+  "OPTIONAL_ATT_SKIPS": [
+   "2"
+  ],
+  "SIGNAL_SG_PLAN_ENABLED": [
+   "1"
+  ]
+ },
+ "runlog_error_lines": [],
+ "runlog_warn_lines": [
+  "WARN=SKIPPED_OPTIONAL_EVALUATION_ATT att=DatabaseConnection why=database module inactive means no DB output is possible err=put_AttValue failed - module not active",
+  "WARN=SKIPPED_OPTIONAL_ATT att=SimSpeed value=0 why=UseMaxSimSpeed=True already guarantees max speed err=AttValue failed: Value 0 is lower than minimum value of attribute Simulation speed (Min: 0)."
+ ],
+ "runlog_policy_lines": [
+  "DECISION_ERROR_POLICY=hold_previous_on_exception"
+ ],
+ "runlog_held_summary_lines": [
+  "DECISIONS_HELD_ON_EXCEPTION=0"
+ ],
+ "runlog_hold_attempt_T": [],
+ "runlog_held_T": [],
+ "runlog_hold_failed_lines": [],
+ "controller_decision_exit_wall": {
+  "1": [
+   0,
+   19.0
+  ],
+  "150": [
+   0,
+   19.13
+  ],
+  "300": [
+   0,
+   21.53
+  ],
+  "450": [
+   0,
+   21.55
+  ],
+  "600": [
+   0,
+   21.8
+  ],
+  "750": [
+   0,
+   22.11
+  ],
+  "900": [
+   0,
+   579.3
+  ],
+  "1050": [
+   0,
+   496.38
+  ],
+  "1200": [
+   0,
+   539.08
+  ],
+  "1350": [
+   0,
+   568.1
+  ],
+  "1500": [
+   0,
+   559.38
+  ],
+  "1650": [
+   0,
+   528.91
+  ],
+  "1800": [
+   0,
+   286.2
+  ],
+  "1950": [
+   0,
+   600.22
+  ],
+  "2100": [
+   0,
+   438.76
+  ],
+  "2250": [
+   0,
+   421.73
+  ],
+  "2400": [
+   0,
+   673.89
+  ],
+  "2550": [
+   0,
+   571.34
+  ],
+  "2700": [
+   0,
+   697.39
+  ],
+  "2850": [
+   0,
+   629.2
+  ],
+  "3000": [
+   0,
+   694.61
+  ],
+  "3150": [
+   0,
+   798.32
+  ],
+  "3300": [
+   0,
+   774.32
+  ],
+  "3450": [
+   0,
+   818.56
+  ],
+  "3600": [
+   0,
+   703.47
+  ],
+  "3750": [
+   0,
+   706.51
+  ],
+  "3900": [
+   0,
+   612.26
+  ],
+  "4050": [
+   0,
+   689.36
+  ],
+  "4200": [
+   0,
+   506.59
+  ],
+  "4350": [
+   0,
+   340.34
+  ],
+  "4500": [
+   0,
+   403.35
+  ],
+  "4650": [
+   0,
+   186.83
+  ],
+  "4800": [
+   0,
+   328.53
+  ],
+  "4950": [
+   0,
+   340.66
+  ],
+  "5100": [
+   0,
+   456.03
+  ],
+  "5250": [
+   0,
+   625.86
+  ],
+  "5400": [
+   0,
+   437.59
+  ],
+  "5550": [
+   0,
+   482.45
+  ],
+  "5700": [
+   0,
+   587.52
+  ],
+  "5850": [
+   0,
+   607.97
+  ],
+  "6000": [
+   0,
+   602.78
+  ],
+  "6150": [
+   0,
+   616.93
+  ],
+  "6300": [
+   0,
+   559.2
+  ],
+  "6450": [
+   0,
+   606.99
+  ],
+  "6600": [
+   0,
+   631.57
+  ],
+  "6750": [
+   0,
+   423.91
+  ],
+  "6900": [
+   0,
+   414.48
+  ],
+  "7050": [
+   0,
+   438.98
+  ],
+  "7200": [
+   0,
+   630.68
+  ],
+  "7350": [
+   0,
+   397.59
+  ],
+  "7500": [
+   0,
+   386.48
+  ],
+  "7650": [
+   0,
+   570.73
+  ],
+  "7800": [
+   0,
+   403.37
+  ],
+  "7950": [
+   0,
+   548.07
+  ],
+  "8100": [
+   0,
+   565.83
+  ],
+  "8250": [
+   0,
+   562.3
+  ],
+  "8400": [
+   0,
+   518.22
+  ],
+  "8550": [
+   0,
+   538.95
+  ],
+  "8700": [
+   0,
+   571.41
+  ],
+  "8850": [
+   0,
+   465.39
+  ],
+  "9000": [
+   0,
+   510.21
+  ]
+ },
+ "warmup_controller_T": [
+  1,
+  150,
+  300,
+  450,
+  600,
+  750
+ ],
+ "warmup_controller_names": [
+  "no-control"
+ ],
+ "run_mode": [
+  "RUN_MODE=CONTINUOUS_EVENT_OBS150 controller=wu-link warmup_controller=no-control control_start_sec=900"
+ ],
+ "launch_exit": [
+  "2026-10-23 23:03:01  EXIT sdmpc31_v3c3_k92va_s41 code=0"
+ ],
+ "wmi_exit": [
+  "2026-10-23 23:03:01  EXIT sdmpc31_v3c3_k92va_s41 code=0"
+ ],
+ "watchdog_exit": [
+  "2026-10-23 23:03:00  WATCHDOG_EXIT code=0 wall_sec=37583"
+ ],
+ "watchdog_ok_fail": [
+  "2026-10-23 23:03:00  WD 10-23 23:03:00  OK sdmpc31_v3c3_k92va_s41 attempt=1 elapsed=37581s"
+ ],
+ "freeze_verified": [
+  "2026-10-23 12:36:32  FREEZE FREEZE_VERIFIED path=D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833\\FREEZE.json sha256=011f5be253fd31a5fb8342859b2b571375e49b4bbbbb42ea8f3ca93657b68476 files=10569 head=c20aff1d7bf0c432cb4f20e2922bd406d857aa5d"
+ ],
+ "plan_detail": [
+  "2026-10-23 12:36:33  PLAN LAUNCH_PLAN_DETAIL sha256=180850b4ad3d0e017cbe0ca8a668145924cfa8d0a0bfcfa0e0ecc40090a089d2 root=D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833 manifest=diagnostics/sdmpc_n31_20260924/plant_n31_v2.json network_sha=3de889f0 detectors=294 controller=wu-link sim_period=9000 seed=41 gt=-"
+ ],
+ "netcopy": [
+  "2026-10-23 12:36:34  NETCOPY NETWORK_COPY_OK inpx=D:\\VISSIM_runs\\20261023_sdmpc31_k92\\sdmpc31_v3c3_k92va_s41\\network\\sdmpc31_sdmpc31_v3c3_k92va_s41.inpx sha256=3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e sig=42 verify_only=0"
+ ],
+ "network_ok": [
+  "2026-10-23 12:36:34  NETWORK NETWORK_OK file=D:\\VISSIM_runs\\20261023_sdmpc31_k92\\sdmpc31_v3c3_k92va_s41\\network\\sdmpc31_sdmpc31_v3c3_k92va_s41.inpx sha256=3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e sig=42"
+ ],
+ "provenance_ok_lines": [
+  "2026-10-23 12:36:37  PREFLIGHT PROVENANCE_OK path=D:\\VISSIM_runs\\20261023_sdmpc31_k92\\sdmpc31_v3c3_k92va_s41\\preflight\\run_provenance_sdmpc31_v3c3_k92va_s41.json run_id=4dc4f9ca66954141b048305dea942366 freeze=011f5be253fd31a5fb8342859b2b571375e49b4bbbbb42ea8f3ca93657b68476",
+  "2026-10-23 23:03:01  PROVENANCE PROVENANCE_OK path=D:\\VISSIM_runs\\20261023_sdmpc31_k92\\sdmpc31_v3c3_k92va_s41\\run_provenance_sdmpc31_v3c3_k92va_s41.json run_id=6055430c6dfd47738fa299f781c2750f freeze=011f5be253fd31a5fb8342859b2b571375e49b4bbbbb42ea8f3ca93657b68476"
+ ],
+ "wd_policy_lines": [
+  "2026-10-23 12:36:35  WD RW_DECISION_ERROR_POLICY=hold_previous_on_exception (runtime.decision_error_policy)",
+  "2026-10-23 12:36:38  WD RW_DECISION_ERROR_POLICY=hold_previous_on_exception (runtime.decision_error_policy)"
+ ],
+ "wd_failfast_lines": [
+  "2026-10-23 12:36:35  WD RW_DECISION_FAIL_FAST=1 (control_area_objective.enabled)",
+  "2026-10-23 12:36:38  WD RW_DECISION_FAIL_FAST=1 (control_area_objective.enabled)"
+ ],
+ "refused_or_not_launched_lines": [],
+ "start_lines": [
+  "2026-10-23 12:36:37  START sdmpc31_v3c3_k92va_s41 out_dir=D:\\VISSIM_runs\\20261023_sdmpc31_k92\\sdmpc31_v3c3_k92va_s41"
+ ],
+ "attempt_dirs": [],
+ "not_launched_files": [],
+ "error_files": [],
+ "hold_error_files": [],
+ "hold_receipt_T": [],
+ "hold_capture_files": [],
+ "failed_decision_files": [],
+ "decision_json_T": [
+  1,
+  150,
+  300,
+  450,
+  600,
+  750,
+  900,
+  1050,
+  1200,
+  1350,
+  1500,
+  1650,
+  1800,
+  1950,
+  2100,
+  2250,
+  2400,
+  2550,
+  2700,
+  2850,
+  3000,
+  3150,
+  3300,
+  3450,
+  3600,
+  3750,
+  3900,
+  4050,
+  4200,
+  4350,
+  4500,
+  4650,
+  4800,
+  4950,
+  5100,
+  5250,
+  5400,
+  5550,
+  5700,
+  5850,
+  6000,
+  6150,
+  6300,
+  6450,
+  6600,
+  6750,
+  6900,
+  7050,
+  7200,
+  7350,
+  7500,
+  7650,
+  7800,
+  7950,
+  8100,
+  8250,
+  8400,
+  8550,
+  8700,
+  8850,
+  9000
+ ],
+ "n_json": 61,
+ "n_warmup_json": 6,
+ "n_sdmpc_json": 55,
+ "missing_expected_T": [],
+ "unexpected_T": [],
+ "other_file_kinds": {
+  "vsl_readback.csv": 1,
+  "lane_observations": 1,
+  "obsN": 1,
+  "signal_readback.csv": 1
+ },
+ "decision_failed_counts_logs": {
+  "runlog": 0,
+  "runlog.err": 0,
+  "launch": 0,
+  "wmi": 0,
+  "WATCHDOG_PROGRESS.txt": 0,
+  "vissim_simulation_001.err": 0,
+  "vissim_network.err": 0,
+  "network/sdmpc31_<run>.err": 0,
+  "network/sdmpc31_<run>_001.err": 0,
+  "network/VISSIG_Controller.dll.err": 0
+ },
+ "decision_failed_counts_captures": {},
+ "provenance": {
+  "plan_freeze_head": "c20aff1d7bf0c432cb4f20e2922bd406d857aa5d",
+  "plan_freeze_sha256": "011f5be253fd31a5fb8342859b2b571375e49b4bbbbb42ea8f3ca93657b68476",
+  "frz_FREEZE_json_git_head": "c20aff1d7bf0c432cb4f20e2922bd406d857aa5d",
+  "frz_FREEZE_json_file_sha256": "011f5be253fd31a5fb8342859b2b571375e49b4bbbbb42ea8f3ca93657b68476",
+  "plan_tuning_sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866",
+  "prov_files_tuning_sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866",
+  "prov_env_tuning_sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866",
+  "frz_tuning_file_sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866",
+  "prov_files_network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+  "network_copy_file_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+  "prov_seed": 41,
+  "plan_seed": 41,
+  "prov_controller": "wu-link",
+  "prov_workspace_root": "D:\\VISSIM-merge\\frozen\\sdmpc31_c20aff1d_202610230833",
+  "prov_workspace_git_commit": "",
+  "prov_env_RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+  "prov_env_RW_DECISION_FAIL_FAST": "1",
+  "plan_expected_env_policy": "hold_previous_on_exception",
+  "plan_controller": [
+   "wu-link",
+   "no-control",
+   900,
+   150,
+   9000
+  ],
+  "plan_warnings": [],
+  "prov_vbs_sha256": "bffb59f88440ec819551461bcca0ec103c52433e7cd6209d94bb7f396765ccbf",
+  "prov_wd_sha256": "83c363010584f91c9b88578e1be15e61677769fd1420bdff294a3cd708eb7869",
+  "prov_cao_sha256": "2c21cd8cdeab50cba81a21321abccdcbdb1ea4c5f8f27977ecb61e589f52ad60",
+  "frz_vbs_sha256": "bffb59f88440ec819551461bcca0ec103c52433e7cd6209d94bb7f396765ccbf",
+  "frz_wd_sha256": "83c363010584f91c9b88578e1be15e61677769fd1420bdff294a3cd708eb7869",
+  "frz_cao_sha256": "2c21cd8cdeab50cba81a21321abccdcbdb1ea4c5f8f27977ecb61e589f52ad60",
+  "frz_decision_hold_sha256": "69e7a0a95fd5cabb73f060ff35facfa7f520ef20e3e38947c6a7d53f798452f7",
+  "preflight_prov_env_policy": "hold_previous_on_exception",
+  "preflight_prov_tuning_sha256": "c8e3ee2c99b66c255b2279f0aa18eaafc18d4c7689e59e260109fac3b7d71866"
+ },
+ "prov_checks": {
+  "PROV1_reading_A": true,
+  "PROV1_reading_B_run_provenance_workspace_git_commit_eq_head (report only, amendment 34 sec.7.1)": false,
+  "PROV2": true,
+  "PROV3": true,
+  "FREEZE": true,
+  "ENV": true,
+  "RUNLOG_policy_line_1": true,
+  "RUNLOG_held_summary_1": true,
+  "SEED": true,
+  "plan_warnings_empty (report)": true,
+  "controller_wu_link (report)": true
+ },
+ "hold_T_sets": {
+  "receipts": [],
+  "runlog_DECISION_HOLD_ATTEMPT": [],
+  "runlog_DECISION_HELD_ON_EXCEPTION": [],
+  "error_txt": [],
+  "json_controller_status_hold": []
+ },
+ "hold_metadata_key_T": [],
+ "n_hold": 0,
+ "hold_T": [],
+ "s6_missing_T": [],
+ "sdmpc_applied_or_pending_missing_T": [],
+ "signal_readback": {
+  "rows": 49357,
+  "sg_no_ge_9": 0,
+  "not_ok": 0,
+  "mismatch_req_rb": 0,
+  "stages": {
+   "immediate": 20916,
+   "post_step": 28441
+  },
+  "max_sg_no": 8,
+  "times": 4681,
+  "last_sim_sec": 9000
+ },
+ "action_log": {
+  "rows": 12159,
+  "header_ok": true,
+  "times": 61
+ },
+ "meter_K3": {
+  "RM_C10490_green_3_rows": 0,
+  "RM_C10490_rows": 61,
+  "adapter_csv_RM_C10490_green_3_decisions": 0
+ },
+ "vsl_box": {
+  "pairs": 60,
+  "violations": [],
+  "max_abs_step": 10.0,
+  "keys_n": [
+   2,
+   44
+  ],
+  "hold_T_vsl_delta_nonzero": [],
+  "block0_allowed_sets": {
+   "(80.0, 90.0, 100.0, 110.0)": 330
+  },
+  "block0_bad": [],
+  "block0_coords_per_decision": [
+   6
+  ],
+  "n_violations": 0
+ },
+ "u9a": {
+  "rows_vsl_readback": 16104,
+  "expected_rows": 16104,
+  "mismatch": [],
+  "n_rows_checked": 4026,
+  "below110_rows": 80,
+  "below110_T_count": 10,
+  "csv_speed_forbidden_rows": 0,
+  "vr_not_ok": 0,
+  "vr_stages": {
+   "immediate": 16104
+  },
+  "vr_classes": [
+   "10",
+   "20",
+   "30",
+   "70"
+  ],
+  "seg_fallback_rows": 396,
+  "below110_by_road_cmd": {
+   "FW_E 100.0->101.0": 80
+  },
+  "below110_T": [
+   2550,
+   2850,
+   3000,
+   3150,
+   3300,
+   3450,
+   3600,
+   3750,
+   3900,
+   4050
+  ],
+  "vsl_readback_extra_keys": 0,
+  "n_mismatch": 0,
+  "error_lines": [],
+  "hold_T_rows_present": true
+ },
+ "state_csv": {
+  "rows": 61,
+  "status": {
+   "ok": 61
+  }
+ },
+ "comparator_selftest": {
+  "HA6_runner_log_eq_adapter_csv_nonhold": {
+   "n": 61,
+   "equal": 61,
+   "not_equal_T": []
+  },
+  "HA4_next_pin_eq_prev_json_nonhold": {
+   "n_with_pin": 60,
+   "equal": 60,
+   "not_equal_T": [],
+   "next_without_pin_T": []
+  }
+ },
+ "items": {
+  "S1": true,
+  "S2": true,
+  "S3": true,
+  "S4": true,
+  "S5": true,
+  "S6": true,
+  "K8": true,
+  "SIG1": true,
+  "SIG2": true,
+  "DEC1": true,
+  "DEC2": true,
+  "DEC3": true,
+  "DEC4": true,
+  "DEC5": true,
+  "PROV1": true,
+  "PROV2": true,
+  "PROV3": true,
+  "PROV_freeze": true,
+  "PROV_env": true,
+  "PROV_runlog_policy_line": true,
+  "PROV_seed": true,
+  "VSL1": true,
+  "VSL2": true,
+  "MTR": true,
+  "K8a": true,
+  "K8b": true,
+  "U9a": true
+ },
+ "n_items_counted": 27,
+ "failed_items": [],
+ "hold_audit": {
+  "n_hold_T": 0,
+  "per_T": {},
+  "violations": [],
+  "incomplete": [],
+  "question_points_HA9": [],
+  "note": "vacuous (no hold T)",
+  "absence_evidence": {
+   "receipts": 0,
+   "hold_capture_files": 0,
+   "hold_error_files": 0,
+   "failed_decision_files": 0,
+   "error_txt": 0,
+   "runlog_DECISION_HOLD_ATTEMPT": 0,
+   "runlog_DECISION_HELD_ON_EXCEPTION": 0,
+   "runlog_DECISION_HOLD_FAILED": 0,
+   "json_controller_status_hold": 0,
+   "json_metadata_hold_key": 0,
+   "summary_DECISIONS_HELD_ON_EXCEPTION": 0,
+   "controller_status_values": {
+    "ok": 61
+   },
+   "state_csv_status": {
+    "ok": 61
+   }
+  }
+ },
+ "report": {
+  "sdmpc_wall_sec": {
+   "n": 55,
+   "min": 186.83,
+   "median": 559.38,
+   "median_upper_index": 559.38,
+   "max": 818.56,
+   "sum": 29655.1,
+   "mean": 539.2,
+   "gt_900_T": [],
+   "gt_2400_T": []
+  },
+  "warmup_wall_sec": {
+   "min": 19.0,
+   "max": 22.11,
+   "sum": 125.1
+  },
+  "watchdog_wall_sec": 37583,
+  "k92": {
+   "n_nonhold_decisions": 61,
+   "n_nonhold_sdmpc": 55,
+   "k92_w_present_all": 61,
+   "k92_hb_present_all": 61,
+   "k92_w_present_sdmpc": 55,
+   "k92_hb_present_sdmpc": 55,
+   "k92_w_after_repr_5209_8": 61,
+   "one_floor_key": 61,
+   "floor_key_name_sets": [
+    [
+     "head_discharge_floor_173_p4_d53f3bddee47d38c"
+    ]
+   ],
+   "missing_k92_T": []
+  },
+  "prior_discarded": {
+   "T150_eq_1": true,
+   "T_list_eq_1": [
+    150
+   ],
+   "n_present": 61
+  },
+  "after_exit": {
+   "exit_line_time": "2026-10-23 23:03:01",
+   "files": 1015,
+   "modified_after_exit_plus_60s": [],
+   "n_modified_after_exit_plus_60s": 0,
+   "last_mtime": "2026-10-23 23:03:03"
+  },
+  "err_files": {
+   "vissim_simulation_001.err": {
+    "bytes": 311296,
+    "sha256": "5c70644a300611e6a5db49bd98e202c8dbb7fae7e667785a0f2dcfe327430621",
+    "mtime": "2026-10-23 22:44:09"
+   },
+   "network/sdmpc31_<run>_001.err": {
+    "bytes": 316153,
+    "sha256": "e7eb32e8e97b72e4e9f8f9e2b1ca3b31a8e8e9d57563596196b707ab021f6253",
+    "mtime": "2026-10-23 23:03:03"
+   },
+   "vissim_network.err": {
+    "bytes": 200,
+    "sha256": "d1ee825cc378d0bd972d0345512d40d2831c0d2fdfd2b68411ac09bcb8f78620",
+    "mtime": "2026-10-23 12:37:31"
+   },
+   "network/sdmpc31_<run>.err": {
+    "bytes": 200,
+    "sha256": "d1ee825cc378d0bd972d0345512d40d2831c0d2fdfd2b68411ac09bcb8f78620",
+    "mtime": "2026-10-23 12:37:31"
+   }
+  },
+  "runlog_err_bytes": 0,
+  "s6_stderr_nonempty": 55,
+  "fzp": {
+   "bytes": 1145992810,
+   "last_frame_sec": 8995.1
+  },
+  "csv_meta_not_ok_total": 0,
+  "sim_sec_md_matches_T": true,
+  "csv_header_ok_all": true
+ },
+ "run_valid_by_tool": true,
+ "per_decision": {
+  "1": {
+   "T": 1,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": false,
+   "has.json.sdmpc_pending": false,
+   "has.joint.json": false,
+   "has.joint_written.json": false,
+   "has.joint.progress.jsonl": false,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+   "controller": "NoControl",
+   "controller_status": "ok",
+   "sim_sec_md": 1.0,
+   "has_hold_key": false,
+   "sdmpc_active": null,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ]
+  },
+  "150": {
+   "T": 150,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": false,
+   "has.json.sdmpc_pending": false,
+   "has.joint.json": false,
+   "has.joint_written.json": false,
+   "has.joint.progress.jsonl": false,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+   "controller": "NoControl",
+   "controller_status": "ok",
+   "sim_sec_md": 150.0,
+   "has_hold_key": false,
+   "sdmpc_active": null,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ]
+  },
+  "300": {
+   "T": 300,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": false,
+   "has.json.sdmpc_pending": false,
+   "has.joint.json": false,
+   "has.joint_written.json": false,
+   "has.joint.progress.jsonl": false,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+   "controller": "NoControl",
+   "controller_status": "ok",
+   "sim_sec_md": 300.0,
+   "has_hold_key": false,
+   "sdmpc_active": null,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ]
+  },
+  "450": {
+   "T": 450,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": false,
+   "has.json.sdmpc_pending": false,
+   "has.joint.json": false,
+   "has.joint_written.json": false,
+   "has.joint.progress.jsonl": false,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+   "controller": "NoControl",
+   "controller_status": "ok",
+   "sim_sec_md": 450.0,
+   "has_hold_key": false,
+   "sdmpc_active": null,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ]
+  },
+  "600": {
+   "T": 600,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": false,
+   "has.json.sdmpc_pending": false,
+   "has.joint.json": false,
+   "has.joint_written.json": false,
+   "has.joint.progress.jsonl": false,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+   "controller": "NoControl",
+   "controller_status": "ok",
+   "sim_sec_md": 600.0,
+   "has_hold_key": false,
+   "sdmpc_active": null,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ]
+  },
+  "750": {
+   "T": 750,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": false,
+   "has.json.sdmpc_pending": false,
+   "has.joint.json": false,
+   "has.joint_written.json": false,
+   "has.joint.progress.jsonl": false,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "4796faece0a4ee3b416854a6fe5ac99d562e8faf2cb88cccc1ef31315cec8985",
+   "controller": "NoControl",
+   "controller_status": "ok",
+   "sim_sec_md": 750.0,
+   "has_hold_key": false,
+   "sdmpc_active": null,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ]
+  },
+  "900": {
+   "T": 900,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "a4d471df28323934511550b4e06c11aa3dd9a26972d2e7cd26787ba9b85cd4f4",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 900.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "1050": {
+   "T": 1050,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "7d6a49df9dec0eb7821234f5bf2a469c35aa3dce040ca42a43c2cd85fb0ab8db",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 1050.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "1200": {
+   "T": 1200,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "501bfef07ab60547bb62c678614addd7108f1648d2dbaf48fae2ef12dac4645a",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 1200.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "1350": {
+   "T": 1350,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "2aae8b17a51ad5006a85bf0d22b46b30938e0487d2f86c708ae94d8a0568ea1d",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 1350.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "1500": {
+   "T": 1500,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "5f32c1809f7befc712cba72051c67ff322dd61a85c7b07476ffc68d2bbc76f28",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 1500.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "1650": {
+   "T": 1650,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "79e20fcd02e3c2013ff17cb3ea3f420e5fd4dc3741d1786dce017f2005451f72",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 1650.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "1800": {
+   "T": 1800,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "9642ebb2c6d6d5cfe18e33642d80ee111a29ae84fea300d14a01cfa2af240f6a",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 1800.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "1950": {
+   "T": 1950,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "e1456f36e63311846ece4dfc094e6522c86b262bbe4e3ad6b5c69f58ada6a4c8",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 1950.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "2100": {
+   "T": 2100,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "038a6f344ade62b6a454696e111e5bc407df05c9160398e4d6f87f345f819c7f",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 2100.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "2250": {
+   "T": 2250,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "2551fdc04e05611154c79ead77ac4593e955a8c4dc63f7a95841831781a0d577",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 2250.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "2400": {
+   "T": 2400,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "375e5665c98d64830c72b4342070a942072265b886b7d88791ed5a35a4749ae2",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 2400.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "2550": {
+   "T": 2550,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "0b41a80c74e0eeb6ff2f3971e776e98046b9b82d014f02beacab275cdaaf5bf6",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 2550.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "2700": {
+   "T": 2700,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "79497f21604d52a64223e8a3ad8384871384cf70393d15c3cb2aab795331cb0a",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 2700.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "2850": {
+   "T": 2850,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "bdf2d453436db2cf5ba5ce106e937f4fd15d00dca8af209d9de8169da7a2a130",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 2850.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "3000": {
+   "T": 3000,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "9c483d95234bf8155a1ad4545bc7f299873a61d545c136b00e012e979a121dc1",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 3000.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "3150": {
+   "T": 3150,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "bb94ef71164f07de3032a51bbccfdad7d01f87aeb75f0180fb20e8b66a7ee44c",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 3150.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "3300": {
+   "T": 3300,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "34326c1c5fa1f8715bc64bcf6050b718499cfc798413f815383dad24e6fe0d1e",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 3300.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "3450": {
+   "T": 3450,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "f17244a4ffb95b61965bd1e2c697fbcdba37091e32d769663ab0dccb08fe41b6",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 3450.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "3600": {
+   "T": 3600,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "da5b2275ee4993bd3457eac5cf2c016794a6fe3c7f0c0eea9e9a7ad577297f13",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 3600.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "3750": {
+   "T": 3750,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "2f7061798a0fc9cc7dbab71af3a809372574c2e84225dfa38d5714c34e404df6",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 3750.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "3900": {
+   "T": 3900,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "c2ac43b861979dd999046e2653fbd816384dc35d62dfc685265cbb233acea093",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 3900.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "4050": {
+   "T": 4050,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "4a6c51cac4f51321cd6e063210e66c66d69a1b578b5417a7f9b22bcb3c2d64b0",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 4050.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "4200": {
+   "T": 4200,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "39aa5cd8f1fd82896d55c0c009512868c80cc81a98d0a4c7aea606a65f598c57",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 4200.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "4350": {
+   "T": 4350,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "39aa5cd8f1fd82896d55c0c009512868c80cc81a98d0a4c7aea606a65f598c57",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 4350.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "4500": {
+   "T": 4500,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "a3d83758e3339ccee360343fd34e3762cc58caf5d06e7704d96c87da07409675",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 4500.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "4650": {
+   "T": 4650,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "a3d83758e3339ccee360343fd34e3762cc58caf5d06e7704d96c87da07409675",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 4650.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "4800": {
+   "T": 4800,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "a3d83758e3339ccee360343fd34e3762cc58caf5d06e7704d96c87da07409675",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 4800.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "4950": {
+   "T": 4950,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "d145e09b9dd654ac416e9234ce236f709c59361ec3287c2b4c4225d17141f3f7",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 4950.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "5100": {
+   "T": 5100,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "df274ef33c4b4ec8009c552e43d07841be7e593081e0f9f36cc0b4bcad0786cb",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 5100.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "5250": {
+   "T": 5250,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "f69a4fabe9525819e6d43fd5c58b71721d32a4636edc7572e1924df07216424e",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 5250.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "5400": {
+   "T": 5400,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "66928f9dec0ec87c158fb4f709e30755686e3d316818788e7a6184854f689da4",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 5400.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "5550": {
+   "T": 5550,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "99a2b64ceb2126ca141ac87eec812ae57292bf6032d327ce5d70dbc784a2da6b",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 5550.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "5700": {
+   "T": 5700,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "2ca93f849505c85a180387f52582b1f0f1bb954fd500d383f792ec6a919c34f5",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 5700.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "5850": {
+   "T": 5850,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "e824afe07527b8c5acb26ec292aa2b42708d6ad27feede7a5626e18a3a451008",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 5850.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "6000": {
+   "T": 6000,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "36d5d81cdfbbd320d86aa508e0a21cd29b6b4d44d7efd542b05865213924daff",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 6000.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "6150": {
+   "T": 6150,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "0f80a6e73867eb057057e032a48e92fb24ebcb4c513bcc1a89f1fe81b8158fae",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 6150.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "6300": {
+   "T": 6300,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "81b5483fbb8b232ed6a239a8224ef62cfa737a71fab0fb5abebc989f9b051578",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 6300.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "6450": {
+   "T": 6450,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "d1ed2eae619fbb24650d679a56473be9e83667b2506deea89adc8729348de740",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 6450.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "6600": {
+   "T": 6600,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "d50f21d475ed097bfd7483304dff6ffd2867bd73bd9c3dfe5dd0e266a6c996ac",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 6600.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "6750": {
+   "T": 6750,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "bcf38b14df95b8ff8f07e8b325e71bc70b2f945b43b75a85b3869e017c8f1d18",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 6750.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "6900": {
+   "T": 6900,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "2cac7d568264b286b5cfe9f6d2403fd2d8470662ae2659d90613bd8299160b56",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 6900.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "7050": {
+   "T": 7050,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "dbbd26102bf32e781256ca7123579b7721f36293b22168f873c0749184ea812d",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 7050.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "7200": {
+   "T": 7200,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "824d42935ecc7a93831ad4843faf702f2877cbfd756c10bb26cb5c18dbe7a6a3",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 7200.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "7350": {
+   "T": 7350,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "0fdfd3a37326d08947037c211045a7c132debd99ea2db919b9a8ac2b35a10b33",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 7350.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "7500": {
+   "T": 7500,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "492bcd96676a628315fd3fa06bd7d27d3a96f342f8e712291ba6c3f1449491fe",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 7500.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "7650": {
+   "T": 7650,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "a2fd9be646867efe8df0e0fa055d46fa9e249f8f36a1b3a486dd250e8b97f958",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 7650.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "7800": {
+   "T": 7800,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "db95b3bbd894af286036dc1f155ba586d4e86674201169b2e95cf72449fe2ba3",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 7800.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "7950": {
+   "T": 7950,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "51cd2db886e0fd4b0892c6cf947eaf068f0316ac34bfc3b97bd623bf3aba2656",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 7950.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "8100": {
+   "T": 8100,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "d235089f9ac41140edea608b85a22ccf266589b1a2e22addfb3289c51ddd94c7",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 8100.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "8250": {
+   "T": 8250,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "64942bd6e141618582514ebef75a280faeffa7af71fdf81542c2fc88ef372075",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 8250.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "8400": {
+   "T": 8400,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "54ab5393c160f118015a3c248768e685523232d4e810a0a10548dcddc06c5bd9",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 8400.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "8550": {
+   "T": 8550,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "86482afc8adc48cf9eb989aad613513a1d773b8e40d73567e23a542564f28cc6",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 8550.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "8700": {
+   "T": 8700,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "7bf7d8b420e53a409fea6096faad9b6ae480b42d9286109341fce0801e58a9be",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 8700.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "8850": {
+   "T": 8850,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "2b12eab750940d24db7a8df4193fd11aab012775631d6a55299700c88ecb0e69",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 8850.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  },
+  "9000": {
+   "T": 9000,
+   "has.json": true,
+   "has.csv": true,
+   "has.decision_budget.json": true,
+   "has.stdout.txt": true,
+   "has.stderr.txt": true,
+   "has.error.txt": false,
+   "has.json.applied": true,
+   "has.json.sdmpc_pending": true,
+   "has.joint.json": true,
+   "has.joint_written.json": true,
+   "has.joint.progress.jsonl": true,
+   "has.hold.json": false,
+   "has.hold.stdout.txt": false,
+   "has.hold.stderr.txt": false,
+   "has.hold_error.txt": false,
+   "budget": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "budget_has_expired_key": true,
+   "csv_header_ok": true,
+   "csv_kinds": {
+    "vsl": 66,
+    "signal": 17,
+    "signal_sg": 122,
+    "ramp_meter": 8
+   },
+   "csv_meta_not_ok": 0,
+   "csv_sha256": "7cf86805eb699edc7c72744cefdb3e316d57e631cfb1f98c635b5520f85c02a5",
+   "controller": "WuDistributedController",
+   "controller_status": "ok",
+   "sim_sec_md": 9000.0,
+   "has_hold_key": false,
+   "sdmpc_active": true,
+   "install_check_present": true,
+   "install_check_passed": true,
+   "phys7_present": [
+    "N_P_star",
+    "N_UF_star",
+    "ramp_metering",
+    "vsl",
+    "green_times",
+    "offsets",
+    "inflow_outflow_allocation"
+   ],
+   "vsl_coords_block0": [
+    [
+     "FW_W__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_W__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg0",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg5",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ],
+    [
+     "FW_E__seg10",
+     [
+      80.0,
+      90.0,
+      100.0,
+      110.0
+     ]
+    ]
+   ]
+  }
+ },
+ "elapsed_sec": 91.0
+}

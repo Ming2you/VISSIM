@@ -1,0 +1,256 @@
+--- b/b_launcher.ps1
++++ fo/fo_launcher.ps1
+@@ -1 +1,3 @@
+-# B launcher (2026-10-26 KST, user decision D-K9-90; rules PRE_B_CONCURRENT.md 3d21dddd... s5-s7). Windows PowerShell 5.1.
++# [FO copy 2026-10-27 KST, PRE_FO s5: copy of codex_handoff/b/b_launcher.ps1 (sha256 cb657ecbe0aa01fb810137422646fdba3c652191db7cc070c040058ae692d463) with names changed and the declared FO
++# additions; full diff in codex_handoff/fo/work/run/launcher_b_to_fo.diff. The original header follows.]
++# FO launcher (2026-10-27 KST, user decision D-K9-113; rules PRE_FO.md s5-s7; copy of the B launcher cb657ecb... with names changed). Windows PowerShell 5.1.
+@@ -7 +9 @@
+-#     (PRE_B_CONCURRENT s6-4): the same seed/attempt is tried again (try+1, same results root) when a seat is free.
++#     (PRE_FO s6-4): the same seed/attempt is tried again (try+1, same results root) when a seat is free.
+@@ -12 +14 @@
+-#   * Launch = PRE_B s1 on FRZ_B1 via b_wrapper_b1.ps1 (RW_* cleared, env_hsw, PYTHONHASHSEED=0) under codex pwsh 7,
++#   * Launch = PRE_B s1 on FRZ_FO with the FO config via fo_wrapper.ps1 (RW_* cleared, env_hsw, PYTHONHASHSEED=0) under codex pwsh 7,
+@@ -18 +20 @@
+-#     (<root>/STOP_B_LAUNCHER or <root>/STOP), any launched run ending abnormally (runner/wrapper exit != 0 other than a
++#     (<root>/STOP_FO_LAUNCHER or <root>/STOP), any launched run ending abnormally (runner/wrapper exit != 0 other than a
+@@ -32 +34 @@
+-  [string]$Root = 'D:\VISSIM_runs\20261026_codex_b_v3c3',
++  [string]$Root = 'D:\VISSIM_runs\20261028_codex_fo_v3c3',
+@@ -38 +40,9 @@
+-  [double]$GiveUpHours = 72
++  [double]$GiveUpHours = 72,
++  [string]$PreFile = '',
++  [string]$PreSha = '',
++  [string]$RuleFile = '',
++  [string]$RuleSha = '',
++  [string]$PinsFile = '',
++  [string]$PinsSha = '',
++  [string]$GateFile = '',
++  [string]$GateSha = ''
+@@ -44,2 +54,2 @@
+-$SPB = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\b'
+-$REAL_ROOT = 'D:\VISSIM_runs\20261026_codex_b_v3c3'
++$SPB = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\fo'
++$REAL_ROOT = 'D:\VISSIM_runs\20261028_codex_fo_v3c3'
+@@ -47 +57 @@
+-$FRZ = 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410'
++$FRZ = 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\fo\frozen\sdmpc31_a49981ff_202610271954'
+@@ -49 +59 @@
+-$WRAPPER = Join-Path $SPB 'b_wrapper_b1.ps1'
++$WRAPPER = Join-Path $SPB 'fo_wrapper.ps1'
+@@ -55,5 +65,2 @@
+-$FIXED[(Join-Path $SPB 'COMPARE_RULE_B.md')] = 'f902f7f0013bed0a0eb5dec27818e2bda4851995eae235130b7cb241e8b28f0c'
+-$FIXED[(Join-Path $SPB 'PINS_B.sha256')] = '5e8ffbc5cc192c25a15a07c11dda5036c7005b73c342aa16d1f7d6ed5e67d804'
+-$FIXED[(Join-Path $SPB 'PRE_B_CONCURRENT.md')] = '3d21dddd5cf4c75ba02dc826f6ea15370d21cf26062e7a328efbb5d15a243fef'
+-$FIXED[(Join-Path $FRZ 'FREEZE.json')] = '558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1'
+-$FIXED[(Join-Path $FRZ 'diagnostics\b0_v3c3\config_b0_v3c3.json')] = '729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983'
++$FIXED[(Join-Path $FRZ 'FREEZE.json')] = 'd7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373'
++$FIXED[(Join-Path $FRZ 'diagnostics\b0_v3c3\config_fo_v3c3.json')] = '80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3'
+@@ -62 +69,11 @@
+-$FIXED[$WRAPPER] = '93814842ae7a504e714c309a58caf77621aba153db36fa953258db72db5a1185'
++$FIXED[$WRAPPER] = (Get-FileHash -LiteralPath $WRAPPER -Algorithm SHA256).Hash.ToLowerInvariant()   # FO: the start script checks it against -WrapperSha
++# FO additions (PRE_FO s5): PRE_FO, COMPARE_RULE_FO, PINS_FO and the gate summary join the FIXED list (sha given at start)
++$PAIRS4 = @(@('PreFile', $PreFile, $PreSha, 'PRE_FO.md'), @('RuleFile', $RuleFile, $RuleSha, 'COMPARE_RULE_FO.md'),
++            @('PinsFile', $PinsFile, $PinsSha, 'PINS_FO.sha256'), @('GateFile', $GateFile, $GateSha, 'work\gate\fog_summary.json'))
++foreach ($q in $PAIRS4) {
++  $qf = [string]$q[1]; if (-not $qf) { $qf = Join-Path $SPB $q[3] }
++  if ([string]$q[2] -notmatch '^[0-9a-f]{64}$') { throw ($q[0] + ' sha (64 hex) is required') }
++  if ($script:LMODE -eq 'run' -and [IO.Path]::GetFullPath($qf) -ne (Join-Path $SPB $q[3])) { throw ('run mode ' + $q[0] + ' must be ' + (Join-Path $SPB $q[3])) }
++  $FIXED[[IO.Path]::GetFullPath($qf)] = [string]$q[2]
++  if ($q[0] -eq 'GateFile') { $GATE_PATH = [IO.Path]::GetFullPath($qf) }
++}
+@@ -67 +84 @@
+-  if (-not $Log) { $Log = Join-Path $SPB 'b_launcher.log' }
++  if (-not $Log) { $Log = Join-Path $SPB 'fo_launcher.log' }
+@@ -173 +190 @@
+-  $bl = Join-Path (Get-Res $t.seed $t.attempt) 'b_launch'
++  $bl = Join-Path (Get-Res $t.seed $t.attempt) 'fo_launch'
+@@ -183 +200 @@
+-  $want = '*b_wrapper_b1.ps1" -Seed ' + $t.seed + ' -Attempt ' + $t.attempt + ' -Try ' + $t.try + '*'
++  $want = '*fo_wrapper.ps1" -Seed ' + $t.seed + ' -Attempt ' + $t.attempt + ' -Try ' + $t.try + '*'
+@@ -202 +219 @@
+-    if ($t.attempt -eq 1) { return (Save-TryEnd $t 'stalled_handled' 'stall record by the monitor (PRE_B_CONCURRENT s7)') }
++    if ($t.attempt -eq 1) { return (Save-TryEnd $t 'stalled_handled' 'stall record by the monitor (PRE_FO s7)') }
+@@ -207 +224 @@
+-  $bl = Join-Path $res 'b_launch'
++  $bl = Join-Path $res 'fo_launch'
+@@ -292 +309 @@
+-  foreach ($sf in @('STOP_B_LAUNCHER', 'STOP')) { $p = Join-Path $Root $sf; if (Test-Path -LiteralPath $p) { return $p } }
++  foreach ($sf in @('STOP_FO_LAUNCHER', 'STOP')) { $p = Join-Path $Root $sf; if (Test-Path -LiteralPath $p) { return $p } }
+@@ -325 +342 @@
+-  New-Item -ItemType Directory -Force -Path (Join-Path $res 'b_launch') | Out-Null
++  New-Item -ItemType Directory -Force -Path (Join-Path $res 'fo_launch') | Out-Null
+@@ -337 +354 @@
+-    $sd = Join-Path $res 'sdmpc'; $bl = Join-Path $res 'b_launch'
++    $sd = Join-Path $res 'sdmpc'; $bl = Join-Path $res 'fo_launch'
+@@ -353 +370 @@
+-  Save-Json (Join-Path $res ('b_launch\wmi_launch_' + $tmode + '.json')) $rc
++  Save-Json (Join-Path $res ('fo_launch\wmi_launch_' + $tmode + '.json')) $rc
+@@ -383 +400,6 @@
+-  's seatwait=' + $SeatWaitHours + 'h giveup=' + $GiveUpHours + 'h first_start=' + (Read-Json $fsPath).time + ' stop=' + (Get-StopReason) + ' ps=' + $PSVersionTable.PSVersion.ToString())
++  's seatwait=' + $SeatWaitHours + 'h giveup=' + $GiveUpHours + 'h first_start=' + (Read-Json $fsPath).time + ' stop=' + (Get-StopReason) + ' ps=' + $PSVersionTable.PSVersion.ToString() +
++  ' pre=' + $PreSha + ' rule=' + $RuleSha + ' pins=' + $PinsSha + ' gate=' + $GateSha)
++# FO addition (PRE_FO s5): no launch unless the T=900 gate summary says pass = true (its sha is in FIXED as well)
++$gj = Read-Json $GATE_PATH
++if (-not $gj -or $gj.pass -ne $true) { Set-Stop 'GATE_NOT_PASSED' ('gate summary pass is not true: ' + $GATE_PATH) }
++$bad0 = Test-Fixed; if ($bad0) { Set-Stop 'SHA_MISMATCH' $bad0 }
+
+--- b/b_wrapper_b1.ps1
++++ fo/fo_wrapper.ps1
+@@ -0,0 +1,2 @@
++# [FO copy 2026-10-27 KST, PRE_FO s5: copy of codex_handoff/b/b_wrapper_b1.ps1 (sha256 93814842ae7a504e714c309a58caf77621aba153db36fa953258db72db5a1185) with names changed and the declared FO
++# additions; full diff in codex_handoff/fo/work/run/launcher_b_to_fo.diff. The original header follows.]
+@@ -2 +4 @@
+-# started detached by WMI from b_launcher.ps1 only. Derived from work/b/b_wrapper.ps1 (43348294...), itself the A1 wrapper v2
++# started detached by WMI from fo_launcher.ps1 only. Derived from work/b/b_wrapper.ps1 (43348294...), itself the A1 wrapper v2
+@@ -9 +11 @@
+-#      A runner refusal at the 4-seat cap is a failed launch try, not a run (PRE_B_CONCURRENT s6-4), so each try has its own
++#      A runner refusal at the 4-seat cap is a failed launch try, not a run (PRE_FO s6-4), so each try has its own
+@@ -13 +15 @@
+-# usage (pwsh 7): b_wrapper_b1.ps1 -Seed 31 -Attempt 1 -Try 1
++# usage (pwsh 7): fo_wrapper.ps1 -Seed 31 -Attempt 1 -Try 1
+@@ -18,2 +20,2 @@
+-$FRZ  = 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\b1\frozen\sdmpc31_a49981ff_202610261410'
+-$RES  = 'D:\VISSIM_runs\20261026_codex_b_v3c3\s' + $Seed
++$FRZ  = 'D:\VISSIM-merge\k8_gate_trees\codexhandoff\fo\frozen\sdmpc31_a49981ff_202610271954'
++$RES  = 'D:\VISSIM_runs\20261028_codex_fo_v3c3\s' + $Seed
+@@ -23 +25 @@
+-$TUN  = 'diagnostics/b0_v3c3/config_b0_v3c3.json'
++$TUN  = 'diagnostics/b0_v3c3/config_fo_v3c3.json'
+@@ -28 +30 @@
+-$rec = Join-Path $RES 'b_launch'
++$rec = Join-Path $RES 'fo_launch'
+
+--- b/b_status.ps1
++++ fo/fo_status.ps1
+@@ -1 +1,3 @@
+-# B run status (2026-10-26). Read-only: writes nothing, starts nothing, stops nothing. Windows PowerShell 5.1, ASCII only.
++# [FO copy 2026-10-27 KST, PRE_FO s5: copy of codex_handoff/b/b_status.ps1 (sha256 f07a8f6b9621f457b904e53cda83b422338bb1407ca0c9b6cf6b41528e2d3c37) with names changed and the declared FO
++# additions; full diff in codex_handoff/fo/work/run/launcher_b_to_fo.diff. The original header follows.]
++# FO run status (2026-10-27; copy of the B status script f07a8f6b... with names changed). Read-only: writes nothing, starts nothing, stops nothing. Windows PowerShell 5.1, ASCII only.
+@@ -8 +10 @@
+-# (LOG 2026-10-26 11:58; IDLE flag when > -IdleLimit = 499 s, PRE_B_CONCURRENT s7-1), CPU seconds of the run's process tree
++# (LOG 2026-10-26 11:58; IDLE flag when > -IdleLimit = 499 s, PRE_FO s7-1), CPU seconds of the run's process tree
+@@ -11,2 +13,2 @@
+-param([string]$Root = 'D:\VISSIM_runs\20261026_codex_b_v3c3', [int]$IdleLimit = 499,
+-      [string]$LauncherLog = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\b\b_launcher.log')
++param([string]$Root = 'D:\VISSIM_runs\20261028_codex_fo_v3c3', [int]$IdleLimit = 499,
++      [string]$LauncherLog = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\fo\fo_launcher.log')
+@@ -60 +62 @@
+-$launchers = @($procs | Where-Object { $_.Name -match '^powershell' -and [string]$_.CommandLine -like '*b_launcher.ps1*' -and [string]$_.CommandLine -notlike '*dryrun*' })
++$launchers = @($procs | Where-Object { $_.Name -match '^powershell' -and [string]$_.CommandLine -like '*fo_launcher.ps1*' -and [string]$_.CommandLine -notlike '*dryrun*' })
+@@ -65 +67 @@
+-$stopFiles = @(@('STOP_B_LAUNCHER', 'STOP') | Where-Object { Test-Path -LiteralPath (Join-Path $Root $_) })
++$stopFiles = @(@('STOP_FO_LAUNCHER', 'STOP') | Where-Object { Test-Path -LiteralPath (Join-Path $Root $_) })
+@@ -67 +69 @@
+-[void]$out.Add(('B_STATUS ' + $now.ToString('yyyy-MM-dd HH:mm:ss') + ' KST root=' + $Root + ' root_exists=' + (Test-Path -LiteralPath $Root)))
++[void]$out.Add(('FO_STATUS ' + $now.ToString('yyyy-MM-dd HH:mm:ss') + ' KST root=' + $Root + ' root_exists=' + (Test-Path -LiteralPath $Root)))
+@@ -89 +91 @@
+-      if ([string]$p.CommandLine -like '*b_wrapper_b1.ps1*' -and (-not $rc.wrapper_creation_ticks -or [string]$p.CreationDate.ToUniversalTime().Ticks -eq [string]$rc.wrapper_creation_ticks)) { $st = 'wrapper_alive' } else { $st = 'wrapper_pid_reused?' }
++      if ([string]$p.CommandLine -like '*fo_wrapper.ps1*' -and (-not $rc.wrapper_creation_ticks -or [string]$p.CreationDate.ToUniversalTime().Ticks -eq [string]$rc.wrapper_creation_ticks)) { $st = 'wrapper_alive' } else { $st = 'wrapper_pid_reused?' }
+@@ -96 +98 @@
+-  $sd = Join-Path $res 'sdmpc'; $dec = Join-Path $sd ('decisions_' + $name); $bl = Join-Path $res 'b_launch'
++  $sd = Join-Path $res 'sdmpc'; $dec = Join-Path $sd ('decisions_' + $name); $bl = Join-Path $res 'fo_launch'
+@@ -101 +103 @@
+-  if ($wpid -and $byPid.ContainsKey($wpid)) { $p = $byPid[$wpid]; $walive = ([string]$p.CommandLine -like '*b_wrapper_b1.ps1*') -and (-not $rc.wrapper_creation_ticks -or [string]$p.CreationDate.ToUniversalTime().Ticks -eq [string]$rc.wrapper_creation_ticks) }
++  if ($wpid -and $byPid.ContainsKey($wpid)) { $p = $byPid[$wpid]; $walive = ([string]$p.CommandLine -like '*fo_wrapper.ps1*') -and (-not $rc.wrapper_creation_ticks -or [string]$p.CreationDate.ToUniversalTime().Ticks -eq [string]$rc.wrapper_creation_ticks) }
+
+--- b/b_launcher_start.ps1
++++ fo/fo_launcher_start.ps1
+@@ -1,4 +1,8 @@
+-# Start b_launcher.ps1 -Mode run detached via WMI (Win32_Process.Create), Windows PowerShell 5.1, Normal priority (32), hidden.
+-# Refuses when a run-mode launcher process already exists (command line contains b_launcher.ps1 and not dryrun) or when the
+-# launcher / wrapper sha differs from the value given. Writes b/b_launcher_start_receipts.log (one line per start). ASCII only.
+-param([Parameter(Mandatory = $true)][string]$LauncherSha, [Parameter(Mandatory = $true)][string]$WrapperSha)
++# [FO copy 2026-10-27 KST, PRE_FO s5: copy of codex_handoff/b/b_launcher_start.ps1 (sha256 9c818f1f4d5e6aadd338060e52e84b25f400e5741204cb41963cdf547b635c23) with names changed and the declared FO
++# additions; full diff in codex_handoff/fo/work/run/launcher_b_to_fo.diff. The original header follows.]
++# Start fo_launcher.ps1 -Mode run detached via WMI (Win32_Process.Create), Windows PowerShell 5.1, Normal priority (32), hidden.
++# Refuses when a run-mode launcher process already exists (command line contains fo_launcher.ps1 and not dryrun) or when the
++# launcher / wrapper sha differs from the value given. Writes fo/fo_launcher_start_receipts.log (one line per start). ASCII only.
++param([Parameter(Mandatory = $true)][string]$LauncherSha, [Parameter(Mandatory = $true)][string]$WrapperSha,
++      [Parameter(Mandatory = $true)][string]$PreSha, [Parameter(Mandatory = $true)][string]$RuleSha,
++      [Parameter(Mandatory = $true)][string]$PinsSha, [Parameter(Mandatory = $true)][string]$GateSha)
+@@ -6,2 +10,2 @@
+-$SPB = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\b'
+-$L = Join-Path $SPB 'b_launcher.ps1'
++$SPB = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\fo'
++$L = Join-Path $SPB 'fo_launcher.ps1'
+@@ -9,2 +13,7 @@
+-$hw = (Get-FileHash -LiteralPath (Join-Path $SPB 'b_wrapper_b1.ps1') -Algorithm SHA256).Hash.ToLowerInvariant(); if ($hw -ne $WrapperSha) { throw "wrapper sha $hw != $WrapperSha" }
+-$running = @(Get-CimInstance Win32_Process | Where-Object { [string]$_.CommandLine -like '*b_launcher.ps1*' -and [string]$_.CommandLine -notlike '*dryrun*' -and $_.ProcessId -ne $PID -and [string]$_.CommandLine -notlike '*b_launcher_start.ps1*' })
++$hw = (Get-FileHash -LiteralPath (Join-Path $SPB 'fo_wrapper.ps1') -Algorithm SHA256).Hash.ToLowerInvariant(); if ($hw -ne $WrapperSha) { throw "wrapper sha $hw != $WrapperSha" }
++foreach ($q in @(@('PRE_FO.md', $PreSha), @('COMPARE_RULE_FO.md', $RuleSha), @('PINS_FO.sha256', $PinsSha), @('work\gate\fog_summary.json', $GateSha))) {
++  $hq = (Get-FileHash -LiteralPath (Join-Path $SPB $q[0]) -Algorithm SHA256).Hash.ToLowerInvariant(); if ($hq -ne $q[1]) { throw ($q[0] + ' sha ' + $hq + ' != ' + $q[1]) }
++}
++$gate = Get-Content -LiteralPath (Join-Path $SPB 'work\gate\fog_summary.json') -Raw -Encoding UTF8 | ConvertFrom-Json
++if ($gate.pass -ne $true) { throw 'the T=900 gate summary does not say pass = true; no start (PRE_FO s4)' }
++$running = @(Get-CimInstance Win32_Process | Where-Object { [string]$_.CommandLine -like '*fo_launcher.ps1*' -and [string]$_.CommandLine -notlike '*dryrun*' -and $_.ProcessId -ne $PID -and [string]$_.CommandLine -notlike '*fo_launcher_start.ps1*' })
+@@ -12 +21 @@
+-$cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $L + '" -Mode run'
++$cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $L + '" -Mode run -PreSha ' + $PreSha + ' -RuleSha ' + $RuleSha + ' -PinsSha ' + $PinsSha + ' -GateSha ' + $GateSha
+@@ -17 +26 @@
+-[IO.File]::AppendAllText((Join-Path $SPB 'b_launcher_start_receipts.log'), $line + "`r`n", (New-Object System.Text.UTF8Encoding $false))
++[IO.File]::AppendAllText((Join-Path $SPB 'fo_launcher_start_receipts.log'), $line + "`r`n", (New-Object System.Text.UTF8Encoding $false))
+
+--- b/b_launcher_dryrun.ps1
++++ fo/fo_launcher_dryrun.ps1
+@@ -1 +1,3 @@
+-# Dry run of b_launcher.ps1 (2026-10-26). Windows PowerShell 5.1. No WMI, no process start, no VISSIM: the launcher runs
++# [FO copy 2026-10-27 KST, PRE_FO s5: copy of codex_handoff/b/b_launcher_dryrun.ps1 (sha256 fa5652b59f56e1e3613b9ed5a482f45e9056aaf7b30d81b36e7339ab8ee6e7d1) with names changed and the declared FO
++# additions; full diff in codex_handoff/fo/work/run/launcher_b_to_fo.diff. The original header follows.]
++# Dry run of fo_launcher.ps1 (2026-10-27; copy of the B dry-run harness fa5652b5... with names changed + FO cases). Windows PowerShell 5.1. No WMI, no process start, no VISSIM: the launcher runs
+@@ -4 +6 @@
+-# and every case's launcher log are appended to b/b_launcher_dryrun.log. ASCII only.
++# and every case's launcher log are appended to fo/fo_launcher_dryrun.log. ASCII only.
+@@ -6,3 +8,3 @@
+-$SPB = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\b'
+-$L = Join-Path $SPB 'b_launcher.ps1'
+-$OUT = Join-Path $SPB 'b_launcher_dryrun.log'
++$SPB = 'C:\Users\TRLAB\AppData\Local\Temp\claude\C--Users-TRLAB-Desktop----\491ef689-f002-4605-9dc5-e6d363495788\scratchpad\k8\codex_handoff\fo'
++$L = Join-Path $SPB 'fo_launcher.ps1'
++$OUT = Join-Path $SPB 'fo_launcher_dryrun.log'
+@@ -13,3 +15,3 @@
+-$done31 = @(@{ path = 's31\b_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":0}' }, @{ path = 's31\sdmpc\runlog_sdmpc31_sdmpc9000_s31.txt'; text = "STAGE=SIM_DONE`r`nSIM_SEC=9000`r`n" })
+-$done41 = @(@{ path = 's41\b_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":0}' }, @{ path = 's41\sdmpc\runlog_sdmpc31_sdmpc9000_s41.txt'; text = "STAGE=SIM_DONE`r`nSIM_SEC=9000`r`n" })
+-$done43 = @(@{ path = 's43\b_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":0}' }, @{ path = 's43\sdmpc\runlog_sdmpc31_sdmpc9000_s43.txt'; text = "STAGE=SIM_DONE`r`nSIM_SEC=9000`r`n" })
++$done31 = @(@{ path = 's31\fo_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":0}' }, @{ path = 's31\sdmpc\runlog_sdmpc31_sdmpc9000_s31.txt'; text = "STAGE=SIM_DONE`r`nSIM_SEC=9000`r`n" })
++$done41 = @(@{ path = 's41\fo_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":0}' }, @{ path = 's41\sdmpc\runlog_sdmpc31_sdmpc9000_s41.txt'; text = "STAGE=SIM_DONE`r`nSIM_SEC=9000`r`n" })
++$done43 = @(@{ path = 's43\fo_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":0}' }, @{ path = 's43\sdmpc\runlog_sdmpc31_sdmpc9000_s43.txt'; text = "STAGE=SIM_DONE`r`nSIM_SEC=9000`r`n" })
+@@ -25 +27 @@
+-      @{ vissim = 1; note = 'STOP_B_LAUNCHER present'; write = @(@{ path = 'STOP_B_LAUNCHER'; text = 'stop' }) }, @{ vissim = 0; note = 'free' });
++      @{ vissim = 1; note = 'STOP_FO_LAUNCHER present'; write = @(@{ path = 'STOP_FO_LAUNCHER'; text = 'stop' }) }, @{ vissim = 0; note = 'free' });
+@@ -28 +30 @@
+-      @{ vissim = 1; note = 'free -> s31' }, @{ vissim = 2; note = 'STOP appears'; write = @(@{ path = 'STOP_B_LAUNCHER'; text = 'stop' }) },
++      @{ vissim = 1; note = 'free -> s31' }, @{ vissim = 2; note = 'STOP appears'; write = @(@{ path = 'STOP_FO_LAUNCHER'; text = 'stop' }) },
+@@ -37 +39 @@
+-      @{ vissim = 2; note = 's31 runner exit 1 after watchdog started'; write = @(@{ path = 's31\b_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":1}' }, @{ path = 's31\sdmpc\launch.log'; text = 'FAIL' }) },
++      @{ vissim = 2; note = 's31 runner exit 1 after watchdog started'; write = @(@{ path = 's31\fo_launch\wrapper_run1_try1_end.json'; text = '{"runner_exit":1}' }, @{ path = 's31\sdmpc\launch.log'; text = 'FAIL' }) },
+@@ -67,0 +70,6 @@
++  @{ name = 'M_gate_not_passed'; gate = '{"pass": false}'; outcomes = @{}; steps = @(@{ vissim = 0; note = 'gate pass false: must not launch' }, @{ vissim = 0; note = 'free' });
++    expect_launched = @(); expect_stop = 'GATE_NOT_PASSED'; expect_exit = 0; expect_tryend = @{}; expect_log = @('LAUNCH_STOPPED reason=GATE_NOT_PASSED', 'LAUNCHER_EXIT launching stopped') },
++  @{ name = 'N_pre_changed_after_s31'; outcomes = @{}; steps = @(
++      @{ vissim = 1; note = 'free -> s31' }, @{ vissim = 2; note = 'PRE file changed on disk'; write = @(@{ path = '_fixed\PRE_FO.md'; text = 'changed' }) },
++      @{ vissim = 2; note = 'still changed' }, @{ vissim = 1; note = 's31 completes'; write = $done31 });
++    expect_launched = @('s31_run1_try1'); expect_stop = 'SHA_MISMATCH'; expect_exit = 0; expect_tryend = @{ s31_run1_try1 = 'completed' }; expect_log = @('LAUNCH_STOPPED reason=SHA_MISMATCH') },
+@@ -72,2 +80,11 @@
+-function Invoke-Launcher([string]$root, [string]$log, [string]$scen) {
+-  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $L -Mode dryrun -Root $root -Log $log -Scenario $scen -PollSec 0 -VissimUpWaitSec 3 | Out-Null
++# FO addition: every dry-run root gets its own PRE / rule / pins / gate files (_fixed\...) and passes their shas.
++function Invoke-Launcher([string]$root, [string]$log, [string]$scen, [string]$gateText = '{"pass": true}') {
++  $fx = Join-Path $root '_fixed'; New-Item -ItemType Directory -Force -Path $fx | Out-Null
++  $files = [ordered]@{ Pre = 'PRE_FO.md'; Rule = 'COMPARE_RULE_FO.md'; Pins = 'PINS_FO.sha256'; Gate = 'fog_summary.json' }
++  $a = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $L, '-Mode', 'dryrun', '-Root', $root, '-Log', $log, '-Scenario', $scen, '-PollSec', '0', '-VissimUpWaitSec', '3')
++  foreach ($k in $files.Keys) {
++    $p = Join-Path $fx $files[$k]
++    if (-not (Test-Path -LiteralPath $p)) { $body = 'dryrun ' + $k; if ($k -eq 'Gate') { $body = $gateText }; [IO.File]::WriteAllText($p, $body, $UTF8) }
++    $a += @(('-' + $k + 'File'), $p, ('-' + $k + 'Sha'), (Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash.ToLowerInvariant())
++  }
++  & powershell.exe @a | Out-Null
+@@ -98 +115 @@
+-$realRoot = 'D:\VISSIM_runs\20261026_codex_b_v3c3'
++$realRoot = 'D:\VISSIM_runs\20261028_codex_fo_v3c3'
+@@ -109 +126,2 @@
+-  $code = Invoke-Launcher $root $log $scen
++  $gt = '{"pass": true}'; if ($c.ContainsKey('gate')) { $gt = [string]$c.gate }
++  $code = Invoke-Launcher $root $log $scen $gt

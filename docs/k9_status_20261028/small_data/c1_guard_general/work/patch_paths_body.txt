@@ -1,0 +1,77 @@
+    # ------------------------------------------------------------------ path distances to servers (lane-blind)
+    import heapq
+
+    def server_label_of(h):
+        return srv_name(h)
+
+    def dist_to_servers(link, pos, limit=6000.0):
+        """Shortest along-road distance from (link, pos) to each first stop line met downstream.
+        Lane-blind: vehicles may change lanes on a link. A head on the link at or after pos ends that branch;
+        a connector that departs a lane after that lane's head is served by the head (not followed)."""
+        best = {}
+        pq = [(0.0, link, pos)]
+        done = set()
+        while pq:
+            cost, x, p = heapq.heappop(pq)
+            if (x, round(p, 3)) in done or cost > limit:
+                continue
+            done.add((x, round(p, 3)))
+            lane_head = {}
+            for ln in range(1, L[x]['lanes'] + 1):
+                hs = [h for h in hb.get((x, ln), []) if h['pos'] >= p - EPS]
+                if hs:
+                    lane_head[ln] = hs[0]
+            for ln, h in lane_head.items():
+                lab = server_label_of(h)
+                c2 = cost + h['pos'] - p
+                if lab not in best or c2 < best[lab]:
+                    best[lab] = c2
+            for ln in range(1, L[x]['lanes'] + 1):
+                for t in out_c.get((x, ln), []):
+                    if t['source_pos'] < p - EPS:
+                        continue
+                    h = lane_head.get(ln)
+                    if h is not None and t['source_pos'] >= h['pos'] - EPS:
+                        continue
+                    c = t['connector']
+                    c1 = cost + t['source_pos'] - p
+                    ch = [hh for i in range(1, L[c]['lanes'] + 1) for hh in hb.get((c, i), [])]
+                    if ch:
+                        hh = min(ch, key=lambda z: z['pos'])
+                        lab = server_label_of(hh)
+                        c2 = c1 + hh['pos']
+                        if lab not in best or c2 < best[lab]:
+                            best[lab] = c2
+                        continue
+                    if t['link'] in fwe or t['link'] in fww:
+                        lab = 'freeway_merge:' + ('FW_E' if t['link'] in fwe else 'FW_W')
+                        c2 = c1 + L[c]['length_m']
+                        if lab not in best or c2 < best[lab]:
+                            best[lab] = c2
+                        continue
+                    heapq.heappush(pq, (c1 + L[c]['length_m'], t['link'], t['position']))
+        return best
+
+    def route_servers_chained(link):
+        """Routes passing `link`; a route that ends before any head is continued by the routing decisions
+        placed on its destination link at or after the destination point (product of shares)."""
+        rows = []
+
+        def follow(r, i, chain, share, depth):
+            srv = route_server(r['seq'], i)
+            if srv['kind'] == 'route_end_no_head' and depth < 4:
+                dl, dp = r['seq'][-1], r['dest_pos']
+                nexts = [d for d in nf['routing_static'] if d['link'] == dl and d['pos'] >= dp - 1.0]
+                if nexts:
+                    for d in nexts:
+                        for r2 in [x for x in routes if x['decision'] == d['no']]:
+                            follow(r2, 0, chain + ['%s:%s' % (r2['decision'], r2['route'])],
+                                   (share or 0) * (r2['share'] or 0), depth + 1)
+                    return
+            rows.append(dict(chain=chain, share_product=share, server=srv))
+
+        for r in routes:
+            if link in r['seq']:
+                follow(r, r['seq'].index(link), ['%s:%s' % (r['decision'], r['route'])], r['share'], 0)
+        return rows
+

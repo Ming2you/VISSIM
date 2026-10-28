@@ -1,0 +1,40 @@
+{
+  "c1_port": {
+    "omega701": {
+      "bundle_name": "omega701_v3c3_bundle.json",
+      "bundle_sha256": "40f4a84b547bf9a9a2d1fa44980da5e0d5b3d026c80c55edaa5e5aa6d15ee42e"
+    },
+    "meter_neighbor_audit": true,
+    "max_leader_candidates": 3,
+    "allow_zero_green": false,
+    "storage_release_guard": {
+      "enabled": true,
+      "trigger_fraction": 0.9
+    },
+    "held_retention": true,
+    "head_service": {
+      "evidence_name": "head_service_fwe_c1.json",
+      "evidence_sha256": "3933a882b7948abdae825731ecd06494dead4628d5d26c69d1d8f53dc6866333",
+      "meters": [
+        "RM_C10639",
+        "RM_C10681",
+        "RM_C10490",
+        "RM_C10484"
+      ],
+      "full_service_rule": "keep_green_10"
+    },
+    "storage_capacity_guard": {
+      "segments_name": "c1g_storage_segments_null_v3c3.json",
+      "segments_sha256": "8bd532df508ece90bf1c083c778a891f891732de3a5b2c96921577640819b27d",
+      "unit": "lane",
+      "full_rule": "count_or_spill",
+      "capacity_threshold": 1.0,
+      "min_source_capacity_veh": 2.0,
+      "feeder_attribution": "cell_chain_max",
+      "landing_sources": true,
+      "short_receiver_rule": "count",
+      "reserve_green_sec": 2.0,
+      "meter_rule": "approach_chain_or_m4"
+    }
+  }
+}

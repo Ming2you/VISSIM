@@ -1,0 +1,121 @@
+[
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/b0/b0_build_inputs.py",
+  "src_sha256": "62dabb59a215859c7426aceddceaca2b8e0c6892a3ac43e1a177bee48968aff8",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/gate1/g1_build_inputs.py",
+  "dst_sha256": "51aa645e7be64ca7c0f1092776dfe58a4b1ee04a467738e6093275d742363db3",
+  "eol": "CRLF",
+  "why": "gate 1 input builder: V-A s41/s43 sources, gate1 scratch root, code root = FRZ_B0, freeze pin = real FRZ_B0 FREEZE.json",
+  "n_replacements": 6,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     1,
+     1
+    ],
+    "dst_lines": [
+     1,
+     2
+    ],
+    "old": [
+     "# B0: build pristine causal input trees from OUR recorded v3c3 closed-loop run V-A v3c3-s31 (read-only source),"
+    ],
+    "new": [
+     "# Gate 1 (copy of work/b0/b0_build_inputs.py 62dabb59..., path constants only): build pristine causal input trees from",
+     "# OUR recorded v3c3 closed-loop runs V-A v3c3-s31/s41/s43 (read-only source),"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     3,
+     3
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "# Writes only under D:/VISSIM-merge/k8_gate_trees/codexhandoff/b0/pristine/<label>/T<t6>."
+    ],
+    "new": [
+     "# Writes only under D:/VISSIM-merge/k8_gate_trees/codexhandoff/gate1/pristine/<label>/T<t6>. Code root = FRZ_B0 (frozen)."
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     5,
+     5
+    ],
+    "dst_lines": [
+     6,
+     6
+    ],
+    "old": [
+     "# usage: python -B b0_build_inputs.py <label> T [T ...]      (label: va_s31)"
+    ],
+    "new": [
+     "# usage: python -B g1_build_inputs.py --preflight=<run_provenance.json> <label> T [T ...]   (label: va_s31 va_s41 va_s43 va_s31gk)"
+    ]
+   },
+   {
+    "op": "insert",
+    "src_lines": [
+     13,
+     12
+    ],
+    "dst_lines": [
+     14,
+     19
+    ],
+    "old": [],
+    "new": [
+     "SOURCES['va_s41'] = ('D:/VISSIM_runs/20261023_sdmpc31_k92/sdmpc31_v3c3_k92va_s41', 'decisions_sdmpc31_v3c3_k92va_s41',",
+     "                      'run_provenance_sdmpc31_v3c3_k92va_s41.json',",
+     "                      'D:' + BS + 'VISSIM_runs' + BS + '20261023_sdmpc31_k92' + BS + 'sdmpc31_v3c3_k92va_s41')",
+     "SOURCES['va_s43'] = ('D:/VISSIM_runs/20261023_sdmpc31_k92/sdmpc31_v3c3_k92va_s43', 'decisions_sdmpc31_v3c3_k92va_s43',",
+     "                      'run_provenance_sdmpc31_v3c3_k92va_s43.json',",
+     "                      'D:' + BS + 'VISSIM_runs' + BS + '20261023_sdmpc31_k92' + BS + 'sdmpc31_v3c3_k92va_s43')"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     15,
+     16
+    ],
+    "dst_lines": [
+     22,
+     23
+    ],
+    "old": [
+     "B0 = 'D:/VISSIM-merge/k8_gate_trees/codexhandoff/b0'",
+     "NEW_CODE = B0.replace('/', BS) + BS + 'code'"
+    ],
+    "new": [
+     "B0 = 'D:/VISSIM-merge/k8_gate_trees/codexhandoff/gate1'",
+     "NEW_CODE = 'D:' + BS + 'VISSIM-merge' + BS + 'k8_gate_trees' + BS + 'codexhandoff' + BS + 'b0' + BS + 'frozen' + BS + 'sdmpc31_a49981ff_202610260258'"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     128,
+     128
+    ],
+    "dst_lines": [
+     135,
+     135
+    ],
+    "old": [
+     "FREEZE_STANDIN = B0 + '/REPLAY_FREEZE_STANDIN.json'"
+    ],
+    "new": [
+     "FREEZE_STANDIN = NEW_CODE.replace(BS, '/') + '/FREEZE.json'   # the real FRZ_B0 pin (= the pin the runner preflight wrote)"
+    ]
+   }
+  ]
+ }
+]

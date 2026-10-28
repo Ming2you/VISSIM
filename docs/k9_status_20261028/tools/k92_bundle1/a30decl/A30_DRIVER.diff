@@ -1,0 +1,1265 @@
+--- base/k92t.py
++++ k92t30.py
+@@ -1,12 +1,20 @@
+-"""K9-2 bundle 1 judging stage k92t driver (scratch tool in KB/k92t, never committed).  Definitions = amendment 24
+-section 5 (J-0 / J-a / J-b / F), bound by amendments 25-29 (sealing A', VR network identity, K9-2-5 judge blobs and
+-tree, old_root, four outcomes).  Fixed before any k92t data (sha256 in KB/LOG.md and KB/k92t_pins.sha256); the
+-judges are in k92t_judge.py (same pin).
+-
+-    python -B k92t.py pre | tree | start | prep | j0 | ja | f | jb | post      (in this order), or
+-    python -B k92t.py chain      (start .. post with read-only-root snapshots s25-s29, stops at the first STOP)
+-    heavy stages detached: powershell -NoProfile -File KI/launch.ps1 -Tag k92t_<stage> -Script ..\\k92t\\k92t.py
+-                           -ArgLine <stage>     (stdout -> OK2/logs/k92t_<stage>.txt; this driver prints no value)
++"""K9-2 bundle 1 judging stage k92t, resumed under amendment 30 (scratch tool in KB/a30decl, never committed).
++Base = KB/k92t/k92t.py (b07ffb56..., pinned before any k92t data; it ran start .. ja and stopped in f: STOP_f.json
++'persist rc=1').  Amendment 30 (D-K9-56, D-K9-57, D-K9-55 timing) keeps every record of start / prep / J-0 / J-a /
++J wall, seals the three F job logs (seal30), judges F from the existing F data with the persistence report narrowed
++to T - 450 >= 900 (f30), then runs J-b unchanged (O6) and the post steps (post30).  The judges are in
++k92t30_judge.py.  Both files are fixed (sha256 in KB/LOG.md and KB/a30_pins.sha256) before any amendment-30 data.
++The functions kept from the base are byte-equal in source text except require_prev / stop / finish / log_md and one
++token of stage_jb (the judge path); the base's start / prep / J-0 / J-a / F / post stages are not in this file.
++
++    python -B k92t30.py check30 --mode decl|apply --dest D    (read-only resume check; amendment 30 section 4.1)
++    python -B k92t30.py inv --dest D                           (OUTK inventory: rel path, size, sha256; read-only)
++    python -B k92t30.py seal30 [--dry-run --dest D]            (D-K9-57 5: move the three F job logs)
++    python -B k92t30.py chain30   (check30 apply -> s29 -> seal30 -> s30 -> f30 -> s31 -> jb -> s32 -> post30 -> s33;
++                                   once, from the STOP state; stops at the first STOP)
++    python -B k92t30.py status30
++    detached: powershell -NoProfile -File KI/launch.ps1 -Tag k92t30_chain -Script ..\\a30decl\\k92t30.py
++              -ArgLine chain30     (stdout -> OK2/logs/k92t30_chain.txt; this driver prints no value)
+ 
+ Roots.  Tree TREE = TK/a27/k92t = git archive K9-2-5 e27ceac8 (harness tree label 'k92t'), byte-equal to the K9-2-5
+ judge tree TK/a27/k925 (caches excluded) and holding the 19 judge blobs of OUT29/k925_blobs.json.  Outputs OUTK =
+@@ -36,7 +44,11 @@
+     J wall (k92t_judge.py).
+  O5 F before J-b (amendment 24 section 5.1 lets either open the stage; F is the shorter one): per arm root prep
+     (s47 22 primary, s31 / s43 second sample 8 + 8), captures tl3 SAF of those states, jobs TL3 H3 OBS SAF (library);
+-    VISSIM side k92_vissim_ref.py --states 47:<22> 31:<8> 43:<8> (f_vref) and --states 47:<T-450> (f_persist).
++    VISSIM side k92_vissim_ref.py --states 47:<22> 31:<8> 43:<8> (f_vref) — all of this ran under the base driver.
++    O5' (amendment 30 section 2): persistence VR k92_vissim_ref.py --states 47:<T-450 for the 21 primary T with
++    T-450 >= 900> into OUTK/f_persist30; T = 1050 (T-450 = 600 < U4 T_FROM 900) is labelled 'not measurable
++    (T_FROM=900)' and never asked from the VR.  The base call (--states 47:<all 22 T-450>, root OUTK/f_persist) is
++    the one that stopped; it is not repeated.
+  O6 J-b (after J-a PASS): byte copies from V4 k91t of every BASE and SAG job folder, every BASE / SAG / BASE_fhoff
+     capture folder and full/002700_BASE, except the BASE runs a harness check compares within one code tree, which run
+     again in jb on TREE: ROBS61 BASE T = 1 / 150 of s31 / s43 / s47 (the identical-failure rule compares the exception
+@@ -50,16 +62,21 @@
+     k84v3 base-tree runs, SAG runs (copied).
+  O7 STOP: any judge not PASS (J-b: DIFF = STOP_ASK_J, F: FAIL = STOP_ASK_F), any INCOMPLETE, any harness step with
+     rc != 0 that leaves a judged input missing -> STOP_<stage>.json, no next stage, nothing rerun.
++    O7' (amendment 30 section 5.3): as coded (must()): every step with rc != 0 stops, whether or not a judged input is
++    missing; amendment-30 STOP files are OUTK/STOP_a30_<stage>.json (STOP_f.json of the base stays as it is).
+  O8 post: after the J / F judge files are written their sha go to the LOG; then (amendment 25 section 6.4, amendment
+-    29 section 5) the sealed-root k92_record.json part of the section 3.1-3b scan runs (k92t_judge.py sealedscan)."""
++    29 section 5) the sealed-root k92_record.json part of the section 3.1-3b scan runs (k92t_judge.py sealedscan).
++    O8' (amendment 30 section 4.5): post30 also checks the sealed k92t index (the three moved logs: size, sha) and
++    the base judge records; the G-K4 plant raw recompute (amendment 29 section 5) is the independent verifier's,
++    after post30."""
+ import json
+ import os
++import re
+ import shutil
+ import subprocess
+ import sys
+ import time
+ from pathlib import Path
+-from types import SimpleNamespace
+ 
+ sys.dont_write_bytecode = True
+ HERE = Path(__file__).resolve().parent
+@@ -79,7 +96,7 @@
+ OUTK = OK2 / 'k92t'
+ V4 = Path(r'D:/VISSIM-merge/k8_gates_out_v4')
+ OUT29 = OK2 / 'a29'
+-KOUT = HERE / 'out'
++DECL_OUT = HERE / 'out'
+ LOG_MD = KB / 'LOG.md'
+ LABEL = 'k92t'
+ SA_REL = 'diagnostics/sdmpc_n31_20260924/k8_gates/sa'
+@@ -133,12 +150,65 @@
+              7500, 7800, 7950, 8250, 8400)
+ F_SECOND = {31: (1500, 2850, 3900, 5250, 6000, 6600, 7500, 8250), 43: (1050, 3300, 4800, 5550, 6450, 7050, 7800, 8400)}
+ ROOTS = {'ja': OUTK / 'ja', 'jb': OUTK / 'jb', 'f_off': OUTK / 'f_off', 'f_w': OUTK / 'f_w', 'f_b1': OUTK / 'f_b1',
+-         'f_vref': OUTK / 'f_vref', 'f_persist': OUTK / 'f_persist'}
++         'f_vref': OUTK / 'f_vref', 'f_persist30': OUTK / 'f_persist30'}
+ JB_GATES = 'G-EB-2,G-EB-3,G-EB-4,G-EB-5,G-EB-6,G-EB-7,G-EB-8,G-EB-13,G-EB-14'
+-ORDER = ['start', 'prep', 'j0', 'ja', 'f', 'jb', 'post']
+-PAIR_STATES = [(31, T) for T in GRID9] + [(43, 900), (47, 900)]
+ UNIT_FILES = ['test_stopline_approach.py', 'test_stopline_wiring.py', 'test_stopline_evidence.py',
+               'test_stopline_approach_captured.py']
++
++# ------------------------------------------------------------------------------------------------ amendment 30
++JUDGE = HERE / 'k92t30_judge.py'
++ORDER = ['start', 'prep', 'j0', 'ja', 'seal30', 'f', 'jb', 'post']
++A30_DOC = SP / 'K8_PREDECLARATION_AMENDMENT_30.md'
++A30_SHA_FILE = SP / 'K8_PREDECLARATION_AMENDMENT_30.md.sha256'
++FIXED30 = KB / 'AMENDMENT30_FIXED.md'
++A30_PINS = KB / 'a30_pins.sha256'
++OLD_PINS = KB / 'k92t_pins.sha256'
++OLD_PINS_SHA = '38a2ce147795bbe7613fa5b6633441b31b814e781d1948e550753db776ed7cdd'
++OLD_PINS_N = 56
++NOTES_N = 182
++NOTES_182 = 'eae2e6faf3c13dc42e84ef545fef734ad5ed9650946de72a76cb392b028c8d99'
++OUT30 = OK2 / 'a30'
++SEALED = OK2 / 'sealed_s47'
++SEALED_TOPS = ['K9-2-0', 'K9-2-1', 'K9-2-2', 'K9-2-3', 'a27']
++SEALED_K92T = SEALED / 'k92t'
++SEAL_INDEX = OUT30 / 'sealed_k92t_index.json'
++INV_DECL = DECL_OUT / 'outk_inventory_decl.json'
++TREE_BUILD_SHA = 'a1e98fa72f787c17f576f9c2de2ed479709849e4880b962624a31d28b892b0d8'
++# base records the resume keeps (OUTK-relative path -> sha256; amendment 30 section 4.1 C8)
++RECORDED = {'STOP_f.json': 'ebff59c96596baca6039647e3902b88881a45fe6227b7da438e99afe420d3f17',
++            'k92_judging_stage.json': '34e63a991451ef8c3f1be0ef6f4765f009abc19745fe7e546ffaeda43fd1aaa5',
++            'start/scans.json': '410fde88da1e97e0434d3df59f292a904ed87c153a17bb209ec918b7a074bfb8',
++            'stages/start.json': 'f3ed1dcea6f86b6c750368e9b5b2082331a9c85f18d435b9eac6af46744eef13',
++            'stages/prep.json': '9ef3a7edd7e5a7c1d5938161c27c1f1bde5394da84d7cc61181876d78cfbc533',
++            'stages/j0.json': '3845def6bbc0d95935fac27f36a24b13a5938d111aa11f1f7d93548f3f216631',
++            'stages/ja.json': 'b40593bb34f45074546d58c808912ee4cffa6ff95dd0b5d3ac3543c89368b03c',
++            'judge/j0.json': '24ee9d3b66d16618f9c6bc255bcabaecbcbaa2a653c985a9fb0315d68a85aab1',
++            'judge/ja.json': '74806cb0683582bc20eccb68eb086363a0ac0e8d100d2c6c5d48436da14b4d5c',
++            'judge/jwall.json': '1fb5c60454169b9f10014691a9fae9aa4697ac5bd26323e146149b6600fb615a',
++            'f_vref/sa/k92_vissim_ref.json': '09f9194b308703db4d1da87cc10e458fca85872fd1189ef5fda7b2bc8f3b601a'}
++OLD_STAGES = ('start', 'prep', 'j0', 'ja')
++OLD_JUDGES = ('j0', 'ja', 'jwall')
++STEPS_N = 59
++STEPS_SHA = '7edd53c959da62362d948a62d2a15ff0030738d3e0a19dd9a7cc93e60a32ed69'
++DRIVER_LOG = (3434, '8140fd2fa2d04a3781d8a3068a7171be0e6a22d34ced1d3d45cb78e12d22d728')
++CHAIN_LOG_SHA = '8140fd2fa2d04a3781d8a3068a7171be0e6a22d34ced1d3d45cb78e12d22d728'
++# the F steps of the base run (steps.jsonl names) and their recorded exit codes (amendment 30 section 4.1 C9)
++F_STEPS_RC0 = tuple(['prep_%s_s%d' % (a, s) for a in ('f_off', 'f_w', 'f_b1') for s in (31, 43, 47)]
++                    + ['arms_ja_f', 'arms_f_b1']
++                    + ['f_%s_%s' % (a, k) for a in ('f_off', 'f_w', 'f_b1')
++                       for k in ('cap_s47', 'cap_s31', 'cap_s43', 'jobs')] + ['f_vref'])
++F_STEP_RC1 = 'f_persist'
++# D-K9-57 5: the F job logs (child stdout of the F jobs; SA_JOB lines with objective= of the v3c3-s47 jobs)
++F_JOB_LOGS = {'f_f_off_jobs.log': (4996, '84a72fcb570c329558f091ea042513bfe4477638669d85e7c3284b101b563c3b'),
++              'f_f_w_jobs.log': (4936, '56293384819e5e7afd22e054502cc97e0e45aa7b06e4c90052b79768a8f885c5'),
++              'f_f_b1_jobs.log': (4971, '6218e3dfac46b715401407cfc9e3982d2371322ba6bc207eac0c3ac12eea3935')}
++# D-K9-56: the persistence report (amendment 30 section 2)
++T_FROM_U4 = 900
++PERSIST_NAME = 'f_persist30'
++PERSIST_MEASURED = tuple(T for T in F_PRIMARY if T - 450 >= T_FROM_U4)
++PERSIST_NOT = tuple(T for T in F_PRIMARY if T - 450 < T_FROM_U4)
++PERSIST_VR_STATES = tuple(T - 450 for T in PERSIST_MEASURED)
++SNAPS30 = ('s29_a30_check', 's30_a30_seal', 's31_a30_after_f', 's32_a30_after_jb', 's33_a30_post')
+ 
+ 
+ # ------------------------------------------------------------------------------------------------ helpers
+@@ -155,7 +225,8 @@
+ 
+ 
+ def log_md(text):
+-    """Automatic LOG.md line (verdicts, counts and sha only)."""
++    """Automatic LOG.md line (verdicts, counts and sha only); the base wording 'k92t 구동기' becomes 'k92t30 구동기'."""
++    text = text.replace('k92t 구동기', 'k92t30 구동기', 1)
+     with open(LOG_MD, 'a', encoding='utf-8') as f:
+         f.write('- [%s +0900] %s\n' % (now(), text))
+ 
+@@ -173,28 +244,38 @@
+ 
+ 
+ def stop(stage, why, extra=None):
+-    rec = {'stage': stage, 'why': why, 'when': now(), 'extra': extra}
++    """Amendment 30: OUTK/STOP_a30_<stage>.json (the base STOP_f.json stays); extra holds names / counts / sha only."""
++    rec = {'stage': stage, 'why': why, 'when': now(), 'extra': extra, 'driver': 'k92t30'}
+     if OUTK.is_dir():
+-        write(OUTK / ('STOP_%s.json' % stage), rec)
++        write(OUTK / ('STOP_a30_%s.json' % stage), rec)
+     log('STOP %s: %s' % (stage, why))
+-    log_md('k92t 구동기: STOP — 단계 %s, 까닭 %s (k92t.py, 자동 기록)' % (stage, why))
++    log_md('k92t30 구동기: STOP — 단계 %s, 까닭 %s (k92t30.py, 자동 기록)' % (stage, why))
+     raise SystemExit(3)
+ 
+ 
+ def finish(stage, rec):
+-    rec = dict(rec, stage=stage, when=now(), ok=True)
++    rec = dict(rec, stage=stage, when=now(), ok=True, driver='k92t30', driver_sha256=sha(Path(__file__)),
++               judge_sha256=sha(JUDGE), amendment30_sha256=sha(A30_DOC))
+     write(OUTK / 'stages' / ('%s.json' % stage), rec)
+     log('STAGE_DONE %s' % stage)
+ 
+ 
+ def require_prev(stage):
+-    stops = sorted(OUTK.glob('STOP_*.json')) if OUTK.is_dir() else []
+-    if stops:
+-        raise SystemExit('a STOP file exists: %s' % [p.name for p in stops])
++    """Amendment 30 section 4: the only STOP file allowed is the base STOP_f.json (recorded bytes); the base stage
++    records start / prep / j0 / ja must keep their recorded bytes; the amendment-30 stages need their own records."""
++    stops = sorted(p.name for p in OUTK.glob('STOP_*.json')) if OUTK.is_dir() else []
++    if stops != ['STOP_f.json'] or sha(OUTK / 'STOP_f.json') != RECORDED['STOP_f.json']:
++        raise SystemExit('STOP files differ from the amendment-30 resume state: %s' % stops)
+     i = ORDER.index(stage)
+     for prev in ORDER[:i]:
+-        if not (read(OUTK / 'stages' / ('%s.json' % prev), {}) or {}).get('ok'):
+-            raise SystemExit('stage %s needs %s first' % (stage, prev))
++        p = OUTK / 'stages' / ('%s.json' % prev)
++        if prev in OLD_STAGES:
++            if not p.is_file() or sha(p) != RECORDED['stages/%s.json' % prev]:
++                raise SystemExit('base stage record %s differs from the recorded bytes' % prev)
++        else:
++            r = read(p, {}) or {}
++            if not r.get('ok') or r.get('driver') != 'k92t30' or r.get('amendment30_sha256') != sha(A30_DOC):
++                raise SystemExit('stage %s needs %s first (amendment 30)' % (stage, prev))
+ 
+ 
+ def space():
+@@ -277,373 +358,8 @@
+         rec.append([str(dst / rel), os.path.getsize(full), L.sha256_file(full)])
+ 
+ 
+-# ------------------------------------------------------------------------------------------------ stage pre
+-def stage_pre():
+-    """No data: fixed documents, GWT8 state, absence of the k92t roots, processes, drives."""
+-    KOUT.mkdir(parents=True, exist_ok=True)
+-    chk = {}
+-    sp = SP
+-    for n in A:
+-        doc = sp / ('K8_PREDECLARATION_AMENDMENT_%d.md' % n)
+-        chk['a%d' % n] = sha(doc) == A[n] and (sp / ('K8_PREDECLARATION_AMENDMENT_%d.md.sha256' % n)).read_text(
+-            encoding='utf-8').split()[0] == A[n]
+-        chk['fixed%d' % n] = sha(KB / ('AMENDMENT%d_FIXED.md' % n)) == FIXED[n]
+-    lines = NOTES.read_bytes().splitlines(keepends=True)
+-    chk['notes_174'] = L.sha256_bytes(b''.join(lines[:174])) == NOTES_174
+-    chk['head'] = git('rev-parse', 'HEAD') == HEAD
+-    chk['branch'] = git('rev-parse', '--abbrev-ref', 'HEAD') == BRANCH
+-    chk['k8_branch'] = git('rev-parse', 'claude/k8-sc1001eb-defects-20261004') == K8
+-    chk['status_clean'] = git('status', '--porcelain') == ''
+-    chk['no_remote_k92'] = 'k92' not in git('for-each-ref', '--format=%(refname)', 'refs/remotes')
+-    chk['outk_absent'] = not OUTK.exists()
+-    chk['tree_absent_or_built'] = (not TREE.exists()) or (TK / 'a27' / 'k92t.build.json').is_file()
+-    chk['k925_blobs'] = sha(K925_BLOBS) == K925_BLOBS_SHA
+-    chk['gates_k91t'] = sha(V4 / 'sa' / 'gates' / 'gates_k91t.json') == GATES_K91T_SHA
+-    chk['k91_base'] = sha(K91_BASE_SRC) == K91_BASE_SHA
+-    chk['leader_review'] = sha(LEADER_REVIEW) == LEADER_REVIEW_SHA
+-    chk['vref_v4'] = sha(V4 / 'sa' / 'vissim_ref.json') == VREF_V4_SHA
+-    cen = L.census()
+-    chk['vissim_0'] = cen['vissim_any'] == 0
+-    chk['foreign_0'] = not cen['foreign_runner_or_replay']
+-    fs = L.free_space_gb()
+-    chk['space'] = all(v >= 8.0 for v in fs.values())
+-    rec = {'checks': chk, 'ok': all(chk.values()), 'free_gb': fs, 'census': cen['counts'], 'when': now()}
+-    write(KOUT / 'pre.json', rec)
+-    print('K92T_PRE ok=%s bad=%s' % (rec['ok'], [k for k, v in chk.items() if not v]))
+-    return 0 if rec['ok'] else 3
+-
+-
+-# ------------------------------------------------------------------------------------------------ stage tree
+-def stage_tree():
+-    if TREE.exists():
+-        raise SystemExit('%s exists' % TREE)
+-    t0 = time.time()
+-    n = L.git_archive(HEAD, TREE)
+-    rec = {'tree': str(TREE), 'rev': HEAD, 'archive_files': n, 'sec': round(time.time() - t0, 1), 'when': now()}
+-    d = L.tree_diff(K925, TREE)
+-    rec['vs_k925'] = {'changed': d['changed'][:20], 'n_changed': len(d['changed']), 'only_k925': d['only_a'][:20],
+-                      'n_only_k925': len(d['only_a']), 'only_k92t': d['only_b'][:20], 'n_only_k92t': len(d['only_b'])}
+-    blobs = read(K925_BLOBS) or {}
+-    items = blobs.get('blobs') or blobs.get('files') or blobs
+-    bad = []
+-    for rel, blob in (items.items() if isinstance(items, dict) else []):
+-        if not isinstance(blob, str) or len(blob) != 40:
+-            continue
+-        got = git('rev-parse', '%s:%s' % (HEAD, rel))
+-        hashed = subprocess.run(['git', '--no-optional-locks', '-C', str(GWT8), 'hash-object', '--path=%s' % rel,
+-                                 str(TREE / rel)], capture_output=True, text=True).stdout.strip()
+-        if got != blob or hashed != blob:
+-            bad.append(rel)
+-    rec['judge_blobs'] = {'n': len([1 for v in (items.values() if isinstance(items, dict) else []) if
+-                                    isinstance(v, str) and len(v) == 40]), 'bad': bad}
+-    rec['vr_sha'] = sha(SA / 'k92_vissim_ref.py')
+-    rec['saf_k91_sha'] = sha(TREE / SAF_K91_REL)
+-    rec['cfg_sha'] = sha(TREE / N31 / 'config_n31_v2.json')
+-    rec['cfg_arm_sha'] = sha(TREE / N31 / 'config_n31_v2_k92b1.json')
+-    rec['evidence'] = {rel: sha(TREE / rel) == want for rel, want in EVID.items()}
+-    sys.path.insert(0, str(SA))
+-    import k92_a27
+-    rec['tree_root_ok'] = bool(k92_a27.tree_root_ok(str(TREE)))
+-    cp = k92_a27.cr_pair(str(K91T_TREE), str(TREE))
+-    rec['cr_pair_k91t'] = cp
+-    ok = (not d['changed'] and not d['only_b'] and not bad and rec['judge_blobs']['n'] >= 19
+-          and rec['vr_sha'] == VR_SHA and rec['saf_k91_sha'] == SAF_K91_SHA and rec['cfg_sha'] == CFG_SHA
+-          and rec['cfg_arm_sha'] == CFG_ARM_SHA and all(rec['evidence'].values()) and rec['tree_root_ok']
+-          and (cp.get('ok') if isinstance(cp, dict) else bool(cp)))
+-    rec['ok'] = bool(ok)
+-    write(TK / 'a27' / 'k92t.build.json', rec)
+-    write(KOUT / 'tree.json', rec)
+-    print('K92T_TREE ok=%s files=%d k925_changed=%d only_k92t=%d blobs_bad=%s vr=%s cr=%s' % (
+-        rec['ok'], n, len(d['changed']), len(d['only_b']), bad, rec['vr_sha'][:16], cp))
+-    return 0 if rec['ok'] else 3
+-
+-
+-# ------------------------------------------------------------------------------------------------ stage start
+-def stage_start():
+-    if OUTK.exists():
+-        raise SystemExit('%s exists (the k92t output root must be a new empty folder)' % OUTK)
+-    if not (read(KOUT / 'tree.json', {}) or {}).get('ok') or not (read(KOUT / 'pre.json', {}) or {}).get('ok'):
+-        raise SystemExit('pre / tree first')
+-    OUTK.mkdir(parents=True)
+-    rec = {'schema': 'k92t-judging-stage/v1', 'started': now(), 'amendment_sha256': {str(k): v for k, v in A.items()},
+-           'fixation_sha256': {str(k): v for k, v in FIXED.items()}, 'k92_head': HEAD, 'branch': BRANCH,
+-           'tree': str(TREE), 'tree_build_sha256': sha(TK / 'a27' / 'k92t.build.json'),
+-           'driver_sha256': sha(Path(__file__)), 'judge_sha256': sha(HERE / 'k92t_judge.py'),
+-           'pins_sha256': sha(KB / 'k92t_pins.sha256') if (KB / 'k92t_pins.sha256').is_file() else None,
+-           'token': STAGE}
+-    write(OUTK / 'k92_judging_stage.json', rec)
+-    log('K92T_START amendment24=%s head=%s' % (A[24][:16], HEAD[:8]))
+-    log_md('k92t 구동기: 판정 단계 시작 기록 `OK2/k92t/k92_judging_stage.json` sha256 `%s` (보충 24 `%s…`, 보충 25 '
+-           '`%s…`, K9-2 head `%s`; 자동 기록)' % (sha(OUTK / 'k92_judging_stage.json'), A[24][:8], A[25][:8], HEAD[:8]))
+-    rc = step('start_scans', [PY, '-B', str(HERE / 'k92t_judge.py'), 'scans', '--dest',
+-                              str(OUTK / 'start' / 'scans.json')], root=None, cwd=HERE)
+-    res = read(OUTK / 'start' / 'scans.json', {}) or {}
+-    log_md('k92t 구동기: 시작 훑기 ok=%s (봉인 sha 대조 %s, 새는 줄 %s, §3.1-3b %s, 주 표본 산출 없음 %s), '
+-           '`OK2/k92t/start/scans.json` sha256 `%s` (자동 기록)' % (
+-               res.get('ok'), (res.get('sealed') or {}).get('ok'), (res.get('leak') or {}).get('ok'),
+-               (res.get('vissim_blind') or {}).get('ok'), (res.get('primary_absent') or {}).get('ok'),
+-               sha(OUTK / 'start' / 'scans.json') if (OUTK / 'start' / 'scans.json').is_file() else None))
+-    if rc != 0 or not res.get('ok'):
+-        stop('start', 'start scans not ok (S-K23 / S-K10)', {k: (res.get(k) or {}).get('ok') for k in
+-                                                            ('sealed', 'leak', 'vissim_blind', 'primary_absent')})
+-    finish('start', {'scans_sha256': sha(OUTK / 'start' / 'scans.json')})
+-    return 0
+-
+-
+-# ------------------------------------------------------------------------------------------------ child (harness library)
+-def child(spec_path):
+-    """Runs with cwd = the TREE's sa folder.  spec = {'kind': 'jobs' | 'arms', ...}."""
+-    spec = json.loads(Path(spec_path).read_text(encoding='utf-8'))
+-    sys.path.insert(0, str(SA))
+-    import sa_common as sc
+-    c = sc.c
+-    if spec['kind'] == 'arms':
+-        import k92_common as k92c
+-        base_doc = json.loads((TREE / SAF_K91_REL).read_text(encoding='utf-8'))
+-        for it in spec['items']:
+-            root = Path(it['root'])
+-            c.configure(root=str(TREE), out=str(root), robs=c.DEFAULT_ROBS, nc3=c.NC3)
+-            rows = {}
+-            if it['saf'] == 'k91':
+-                path = TREE / SAF_K91_REL
+-                doc = base_doc
+-            elif it['saf'] == 'w':
+-                doc = json.loads(json.dumps(base_doc))
+-                doc['urban']['sc109w_through_saturation'] = k92c.k92_pin('w', TREE)
+-                path = root / 'sa' / 'tuning' / W_ARM_FILE
+-                path.parent.mkdir(parents=True, exist_ok=True)
+-                path.write_bytes(k92c.dumps_tuning(doc))
+-            else:
+-                raise SystemExit('arm kind %s' % it['saf'])
+-            rows['SAF'] = {'path': str(path), 'storage': 'observed_full', 'source': it['saf'],
+-                           'k8b_keys': sc.k8b_keys_of(doc), 'k9_keys': sc.k9_keys_of(doc),
+-                           'k92_keys': k92c.k92_keys_of(doc), 'sha256': sc.sha256_file(path)}
+-            if it.get('base'):
+-                rows['BASE'] = {'path': str(Path(it['base']).resolve()), 'storage': None, 'source': 'base-file',
+-                                'k8b_keys': [], 'k9_keys': [], 'k92_keys': [], 'sha256': sc.sha256_file(it['base'])}
+-            sc.write_json(root / 'sa' / 'tuning' / 'arms.json',
+-                          {'schema': 'k8-sa-arms/v1', 'root': str(TREE), 'k8b': True, 'k91': True,
+-                           'k92t_arms': it['saf'], 'amendment24_sha256': A[24], 'arms': rows})
+-            print('K92T_ARMS %s SAF=%s BASE=%s' % (root.name, rows['SAF']['sha256'][:16],
+-                                                    (rows.get('BASE') or {}).get('sha256', '-')[:16]), flush=True)
+-        return 0
+-    import sa_jobs
+-    for it in spec['items']:
+-        root, seed = Path(it['root']), int(it.get('seed') or 31)
+-        robs = c.DEFAULT_ROBS if seed == 31 else c.DEFAULT_ROBS.parent / sc.ROBS_NAME.format(seed=seed)
+-        c.configure(root=str(TREE), out=str(root), robs=robs, nc3=c.NC3)
+-        args = SimpleNamespace(tree=LABEL, hooks=False, eo_root=str(sa_jobs.DEFAULT_EO), labels_only=False,
+-                               dry_run=False, plan_only=False, gates_stage='k92t', declaration_sha=A[24],
+-                               chain='site', s3_table=None)
+-        job = sa_jobs.base_job(args, 'TL3', int(it['T']), it['arm'], it['entry'], int(it['H']),
+-                               seed=(seed if it.get('seed') else None), variant=it.get('variant', 'REF'),
+-                               mode=it.get('mode', 'scalar'))
+-        if it.get('variant') == 'TAN':
+-            job['tangent_owner'] = 'SC1001'
+-        if job['label'] != it['label']:
+-            raise SystemExit('label %s != planned %s' % (job['label'], it['label']))
+-        sa_jobs.run_job(args, job)
+-        s = sc.read_json(sc.job_dir(LABEL, job['label']) / 'summary.json', {}) or {}
+-        print('K92T_JOB %s %s ok=%s' % (root.name, job['label'], s.get('ok')), flush=True)
+-        c.configure(root=str(TREE), out=str(root), robs=c.DEFAULT_ROBS, nc3=c.NC3)
+-    return 0
+-
+-
+-def run_child(name, spec, root=None):
+-    p = OUTK / 'specs' / ('%s.json' % name)
+-    write(p, spec)
+-    return step(name, [PY, '-B', str(Path(__file__)), 'child', str(p)], root=root, cwd=SA)
+-
+-
+-def job_item(root, T, arm, entry, H, seed=None, variant='REF', mode='scalar'):
+-    lab = ['TL3', str(T)]
+-    if seed not in (None, 31):
+-        lab.append('s%d' % seed)
+-    lab += [arm, entry, 'H%d' % H]
+-    if variant != 'REF':
+-        lab.append(variant)
+-    if mode != 'scalar':
+-        lab.append(mode)
+-    return {'root': str(root), 'T': T, 'arm': arm, 'entry': entry, 'H': H, 'seed': seed, 'variant': variant,
+-            'mode': mode, 'label': '_'.join(lab)}
+-
+-
+-# ------------------------------------------------------------------------------------------------ stage prep
+-def prep_root(name, root, s31=(), s43=(), s47=(), vref=True):
+-    root.mkdir(parents=True, exist_ok=True)
+-    rec = {'copies': {}}
+-    for s in (31, 43, 47):
+-        src = V4 / 'sa' / 'tl3m' / ('robs_validity_s%d.json' % s)
+-        rec['copies'][str(src)] = copy_file(src, root / 'sa' / 'tl3m' / src.name)
+-    if vref:
+-        rec['copies']['vissim_ref.json'] = copy_file(V4 / 'sa' / 'vissim_ref.json', root / 'sa' / 'vissim_ref.json',
+-                                                     VREF_V4_SHA)
+-    if s31:
+-        must(step('prep_%s_s31' % name, [PY, '-B', str(TREE / 'diagnostics/sdmpc_n31_20260924/k8_gates/prep.py'),
+-                                         '--root', str(TREE), '--out', str(root)] + [str(t) for t in s31], root=root),
+-             'prep', 'prep %s s31' % name)
+-    for s, Ts in ((43, s43), (47, s47)):
+-        if Ts:
+-            must(step('prep_%s_s%d' % (name, s), tool(root, 'sa_tl3m.py', 'prep', '--seed', s, *Ts, stage=False,
+-                                                     tree=False), root=root), 'prep', 'prep %s s%d' % (name, s))
+-    return rec
+-
+-
+-def stage_prep():
+-    require_prev('prep')
+-    inputs = OUTK / 'inputs'
+-    base = inputs / 'config_n31_v2_k91base.json'
+-    rec = {'k91_base': copy_file(K91_BASE_SRC, base, K91_BASE_SHA)}
+-    rec['ja'] = prep_root('ja', ROOTS['ja'], s31=ROBS61_T, s43=GRID9, s47=GRID9)
+-    rec['jb'] = prep_root('jb', ROOTS['jb'], s31=ROBS61_T, s43=ROBS61_T, s47=ROBS61_T)
+-    for arm in ('f_off', 'f_w', 'f_b1'):
+-        rec[arm] = prep_root(arm, ROOTS[arm], s31=F_SECOND[31], s43=F_SECOND[43], s47=F_PRIMARY, vref=False)
+-    # arms
+-    must(run_child('arms_ja_f', {'kind': 'arms', 'items': [
+-        {'root': str(ROOTS['ja']), 'saf': 'k91', 'base': str(base)},
+-        {'root': str(ROOTS['f_off']), 'saf': 'k91'}, {'root': str(ROOTS['f_w']), 'saf': 'w'}]}), 'prep', 'arms ja/f')
+-    must(step('arms_jb', tool(ROOTS['jb'], 'sa_arms.py', '--k92b1', '--base-file', base, stage=False, tree=False),
+-              root=ROOTS['jb']), 'prep', 'sa_arms jb')
+-    must(step('arms_f_b1', tool(ROOTS['f_b1'], 'sa_arms.py', '--k92b1', stage=False, tree=False), root=ROOTS['f_b1']),
+-         'prep', 'sa_arms f_b1')
+-    arms = {}
+-    for name in ('ja', 'jb', 'f_off', 'f_w', 'f_b1'):
+-        a = (read(ROOTS[name] / 'sa' / 'tuning' / 'arms.json', {}) or {}).get('arms') or {}
+-        arms[name] = {k: v.get('sha256') for k, v in a.items()}
+-    want = {'ja': {'SAF': SAF_K91_SHA, 'BASE': K91_BASE_SHA}, 'jb': {'SAF': B1_ARM_SHA, 'BASE': K91_BASE_SHA},
+-            'f_off': {'SAF': SAF_K91_SHA}, 'f_w': {'SAF': W_ARM_SHA}, 'f_b1': {'SAF': B1_ARM_SHA}}
+-    rec['arms'] = arms
+-    if arms != want:
+-        stop('prep', 'arm sha differ from the declared bytes', {'got': arms, 'want': want})
+-    # anchors (the K9-1 call) in ja and jb
+-    for name in ('ja', 'jb'):
+-        must(step('anchors_%s' % name, [PY, '-B', str(SA / 'sa_anchors.py'), '--root', str(GWT8), '--out',
+-                                        str(ROOTS[name]), '--from-rev', ANCHOR_FROM], root=ROOTS[name]),
+-             'prep', 'anchors %s' % name)
+-    tabs = [ROOTS[n] / 'sa' / 'anchors' / ('s3_table_%s.json' % HEAD[:12]) for n in ('ja', 'jb')]
+-    rec['anchors'] = [sha(t) if t.is_file() else None for t in tabs]
+-    if None in rec['anchors']:
+-        stop('prep', 'anchor table missing')
+-    finish('prep', rec)
+-    log_md('k92t 구동기: prep 끝 — 팔 sha = 선언 값(ja SAF-K91·BASE 319d07aa, jb SAF-K92b1 65cac7ea, f_w d179f01d), '
+-           '닻 표 sha `%s` (자동 기록)' % rec['anchors'][0])
+-    return 0
+-
+-
+ def table_path(name):
+     return ROOTS[name] / 'sa' / 'anchors' / ('s3_table_%s.json' % HEAD[:12])
+-
+-
+-# ------------------------------------------------------------------------------------------------ stage j0
+-def stage_j0():
+-    require_prev('j0')
+-    for name in ('ja', 'jb'):
+-        r = ROOTS[name]
+-        must(step('j0_%s_tl3_s31' % name, tool(r, 'sa_capture.py', 'tl3', 'SAF'), root=r), 'j0', 'tl3 s31 ' + name)
+-        for s in (43, 47):
+-            must(step('j0_%s_tl3_s%d' % (name, s), tool(r, 'sa_capture.py', '--robs-seed', s, 'tl3', 'SAF'), root=r),
+-                 'j0', 'tl3 s%d %s' % (s, name))
+-        must(step('j0_%s_dp' % name, tool(r, 'sa_capture.py', 'dp', 'SAF'), root=r), 'j0', 'dp ' + name)
+-        must(step('j0_%s_robs61' % name, tool(r, 'sa_capture.py', 'robs61', 'SAF'), root=r), 'j0', 'robs61 ' + name)
+-    dest = OUTK / 'judge' / 'j0.json'
+-    rc = step('judge_j0', [PY, '-B', str(HERE / 'k92t_judge.py'), 'j0', '--ja', str(ROOTS['ja']), '--jb',
+-                           str(ROOTS['jb']), '--tree', str(TREE), '--dest', str(dest)], root=ROOTS['ja'], cwd=SA)
+-    res = read(dest, {}) or {}
+-    log_md('k92t 구동기: J-0 판정 %s (상태 %s, %s, R-obs3 61 = 초기화 %s + 같은 실패 %s), `OK2/k92t/judge/j0.json` '
+-           'sha256 `%s` (자동 기록)' % (res.get('verdict'), res.get('n_states'), res.get('counts'),
+-                                     (res.get('robs61_init_61') or {}).get('initialized'),
+-                                     (res.get('robs61_init_61') or {}).get('identical_failure'),
+-                                     sha(dest) if dest.is_file() else None))
+-    if rc != 0 or res.get('verdict') != 'PASS':
+-        stop('j0', 'J-0 %s (S-K8)' % res.get('verdict'), {'failed_states': res.get('failed_states')})
+-    finish('j0', {'judge_sha256': sha(dest)})
+-    return 0
+-
+-
+-# ------------------------------------------------------------------------------------------------ stage ja
+-def stage_ja():
+-    require_prev('ja')
+-    ja, jb = ROOTS['ja'], ROOTS['jb']
+-    must(step('ja_cap_base_s31', tool(ja, 'sa_capture.py', 'tl3', 'BASE', 900, 2700, 4950), root=ja), 'ja', 'base s31')
+-    for s in (43, 47):
+-        must(step('ja_cap_base_s%d' % s, tool(ja, 'sa_capture.py', '--robs-seed', s, 'tl3', 'BASE', 900), root=ja),
+-             'ja', 'base s%d' % s)
+-    pairs = []
+-    for s, T in PAIR_STATES:
+-        pairs.append(job_item(ja, T, 'SAF', 'OBS', 3, seed=s))
+-        pairs.append(job_item(jb, T, 'SAF', 'OBS', 3, seed=s))
+-    must(run_child('ja_pairs', {'kind': 'jobs', 'items': pairs}), 'ja', 'pairs')
+-    rest = []
+-    for arm in ('SAF', 'BASE'):
+-        if arm == 'BASE':
+-            rest += [job_item(ja, 900, 'BASE', 'OBS', 3, seed=43), job_item(ja, 900, 'BASE', 'OBS', 3, seed=47)]
+-        rest += [job_item(ja, 2700, arm, 'OBS', 42), job_item(ja, 4950, arm, 'OBS', 27),
+-                 job_item(ja, 900, arm, 'OBS', 3, variant='C11'),
+-                 job_item(ja, 900, arm, 'OBS', 3, variant='TAN', mode='ad')]
+-    must(run_child('ja_jobs', {'kind': 'jobs', 'items': rest}), 'ja', 'jobs')
+-    for arm in ('SAF', 'BASE'):
+-        must(step('ja_full_%s' % arm, tool(ja, 'sa_capture.py', 'full', arm, 2700, '--tag', 'hooks', '--chain',
+-                                           's3site', '--s3-table', table_path('ja')), root=ja), 'ja', 'full ' + arm)
+-    dest = OUTK / 'judge' / 'ja.json'
+-    rc = step('judge_ja', [PY, '-B', str(HERE / 'k92t_judge.py'), 'ja', '--ja', str(ja), '--tree', str(TREE),
+-                           '--dest', str(dest)], root=ja, cwd=SA)
+-    res = read(dest, {}) or {}
+-    dw = OUTK / 'judge' / 'jwall.json'
+-    rcw = step('judge_jwall', [PY, '-B', str(HERE / 'k92t_judge.py'), 'jwall', '--ja', str(ja), '--jb', str(jb),
+-                               '--dest', str(dw)], root=ja, cwd=HERE)
+-    rw = read(dw, {}) or {}
+-    log_md('k92t 구동기: J-a 판정 %s (항목 %s, 다름 %s), `OK2/k92t/judge/ja.json` sha256 `%s`; J 잡 벽시계 짝 %s '
+-           '(깨끗 %s/%s, 중앙 %s, 문턱 1.0158), `jwall.json` sha256 `%s` (자동 기록)' % (
+-               res.get('verdict'), res.get('n_items'), res.get('failed'), sha(dest) if dest.is_file() else None,
+-               rw.get('verdict'), rw.get('n_clean'), rw.get('n_pairs'), rw.get('median'),
+-               sha(dw) if dw.is_file() else None))
+-    if rc != 0 or res.get('verdict') != 'PASS':
+-        stop('ja', 'J-a %s (S-K8: the base moved or an input is missing)' % res.get('verdict'),
+-             {'failed': res.get('failed')})
+-    if rcw != 0 or rw.get('verdict') != 'PASS':
+-        stop('ja', 'J wall pairs %s (S-K6c)' % rw.get('verdict'), {'median': rw.get('median')})
+-    finish('ja', {'judge_sha256': sha(dest), 'jwall_sha256': sha(dw)})
+-    return 0
+-
+-
+-# ------------------------------------------------------------------------------------------------ stage f
+-def stage_f():
+-    require_prev('f')
+-    if sha(SA / 'k92_vissim_ref.py') != VR_SHA:
+-        stop('f', 'VR sha differs (S-K21)')
+-    for name in ('f_off', 'f_w', 'f_b1'):
+-        r = ROOTS[name]
+-        must(step('f_%s_cap_s47' % name, tool(r, 'sa_capture.py', '--robs-seed', 47, 'tl3', 'SAF', *F_PRIMARY),
+-                  root=r), 'f', 'cap s47 ' + name)
+-        must(step('f_%s_cap_s31' % name, tool(r, 'sa_capture.py', 'tl3', 'SAF', *F_SECOND[31]), root=r),
+-             'f', 'cap s31 ' + name)
+-        must(step('f_%s_cap_s43' % name, tool(r, 'sa_capture.py', '--robs-seed', 43, 'tl3', 'SAF', *F_SECOND[43]),
+-                  root=r), 'f', 'cap s43 ' + name)
+-        items = ([job_item(r, T, 'SAF', 'OBS', 3, seed=47) for T in F_PRIMARY]
+-                 + [job_item(r, T, 'SAF', 'OBS', 3, seed=31) for T in F_SECOND[31]]
+-                 + [job_item(r, T, 'SAF', 'OBS', 3, seed=43) for T in F_SECOND[43]])
+-        must(run_child('f_%s_jobs' % name, {'kind': 'jobs', 'items': items}), 'f', 'jobs ' + name)
+-    vr = ROOTS['f_vref']
+-    must(step('f_vref', [PY, '-B', str(SA / 'k92_vissim_ref.py'), '--root', str(TREE), '--out', str(vr),
+-                         '--states', '47:' + ','.join(str(t) for t in F_PRIMARY),
+-                         '--states', '31:' + ','.join(str(t) for t in F_SECOND[31]),
+-                         '--states', '43:' + ','.join(str(t) for t in F_SECOND[43])] + STAGE, root=vr), 'f', 'vref')
+-    pr = ROOTS['f_persist']
+-    must(step('f_persist', [PY, '-B', str(SA / 'k92_vissim_ref.py'), '--root', str(TREE), '--out', str(pr),
+-                            '--states', '47:' + ','.join(str(t - 450) for t in F_PRIMARY)] + STAGE, root=pr),
+-         'f', 'persist')
+-    dest = OUTK / 'judge' / 'f.json'
+-    rc = step('judge_f', [PY, '-B', str(HERE / 'k92t_judge.py'), 'f', '--tree', str(TREE), '--dest', str(dest)],
+-              root=ROOTS['f_b1'], cwd=SA)
+-    res = read(dest, {}) or {}
+-    fj = res.get('f_judge') or {}
+-    log_md('k92t 구동기: F 판정 %s (F-1 %s, F-2 %s, F-3 %s, n %s), `OK2/k92t/judge/f.json` sha256 `%s` — F 판정 값 '
+-           '고정 (자동 기록)' % (res.get('verdict'), fj.get('F-1'), fj.get('F-2'), fj.get('F-3'), fj.get('n'),
+-                                sha(dest) if dest.is_file() else None))
+-    if rc != 0 or res.get('verdict') != 'PASS':
+-        stop('f', 'F %s (STOP_ASK_F / INCOMPLETE)' % res.get('verdict'), {'missing': res.get('missing')})
+-    finish('f', {'judge_sha256': sha(dest)})
+-    return 0
+ 
+ 
+ # ------------------------------------------------------------------------------------------------ stage jb
+@@ -744,7 +460,7 @@
+               root=jb), 'jb', 'sa_gates')
+     new = jb / 'sa' / 'gates' / ('gates_%s.json' % LABEL)
+     dest = OUTK / 'judge' / 'jb.json'
+-    rc = step('judge_jb', [PY, '-B', str(HERE / 'k92t_judge.py'), 'jb', '--new', str(new), '--dest', str(dest)],
++    rc = step('judge_jb', [PY, '-B', str(JUDGE), 'jb', '--new', str(new), '--dest', str(dest)],
+               root=jb, cwd=HERE)
+     res = read(dest, {}) or {}
+     log_md('k92t 구동기: J-b 판정 %s (판정 잎 %s, 같음 %s, 다름 %s), `OK2/k92t/judge/jb.json` sha256 `%s`, 새 판정 파일 '
+@@ -757,24 +473,6 @@
+     return 0
+ 
+ 
+-# ------------------------------------------------------------------------------------------------ stage post
+-def stage_post():
+-    require_prev('post')
+-    dest = OUTK / 'judge' / 'sealed_records.json'
+-    rc = step('post_sealedscan', [PY, '-B', str(HERE / 'k92t_judge.py'), 'sealedscan', '--dest', str(dest)],
+-              root=None, cwd=HERE)
+-    res = read(dest, {}) or {}
+-    log_md('k92t 구동기: J·F 판정 값 고정 뒤 봉인 뿌리 k92_record.json 훑기 ok=%s (%s), `OK2/k92t/judge/'
+-           'sealed_records.json` sha256 `%s` (자동 기록)' % (res.get('ok'), res.get('sealed_records'),
+-                                                     sha(dest) if dest.is_file() else None))
+-    if rc != 0 or not res.get('ok'):
+-        stop('post', 'sealed-root record scan not ok (S-K10)')
+-    judges = {n: sha(OUTK / 'judge' / ('%s.json' % n)) for n in ('j0', 'ja', 'jwall', 'f', 'jb', 'sealed_records')
+-              if (OUTK / 'judge' / ('%s.json' % n)).is_file()}
+-    finish('post', {'judges_sha256': judges})
+-    return 0
+-
+-
+ def snap(name):
+     """Read-only roots snapshot (KI/k92snap.py, metadata only) compared with s02; different -> STOP (S-K11)."""
+     p = OK2 / 'snap' / ('%s.json' % name)
+@@ -787,22 +485,354 @@
+         stop('snap', 'snapshot %s rc=%s diff rc=%s (S-K11)' % (name, rc, rc2))
+ 
+ 
+-def chain():
+-    """start -> s25 -> prep -> j0 -> ja -> s26 -> f -> s27 -> jb -> s28 -> post -> s29; stops at the first STOP."""
+-    plan = [('start', stage_start), ('snap', 's25_k92t_start'), ('prep', stage_prep), ('j0', stage_j0),
+-            ('ja', stage_ja), ('snap', 's26_k92t_after_ja'), ('f', stage_f), ('snap', 's27_k92t_after_f'),
+-            ('jb', stage_jb), ('snap', 's28_k92t_after_jb'), ('post', stage_post), ('snap', 's29_k92t_post')]
+-    for name, arg in plan:
+-        if name == 'snap':
+-            snap(arg)
+-        elif not (read(OUTK / 'stages' / ('%s.json' % name), {}) or {}).get('ok'):
+-            arg()
+-    log('CHAIN_DONE')
+-    log_md('k92t 구동기: 사슬 끝 — start·prep·j0·ja·f·jb·post 모두 끝(자동 기록)')
++# ================================================================================================ amendment 30
++def wjson(p, obj):
++    """LF JSON (sorted keys) for the amendment-30 records outside the base forms."""
++    p = Path(p)
++    p.parent.mkdir(parents=True, exist_ok=True)
++    tmp = Path(str(p) + '.tmp')
++    with open(tmp, 'w', encoding='utf-8', newline='\n') as f:
++        f.write(json.dumps(obj, indent=1, sort_keys=True, default=str, ensure_ascii=False) + '\n')
++    os.replace(tmp, p)
++
++
++def a30_sha():
++    """Amendment 30 fixed: sha256(file) = its .sha256 = a 64-hex word in KB/AMENDMENT30_FIXED.md."""
++    if not (A30_DOC.is_file() and A30_SHA_FILE.is_file() and FIXED30.is_file()):
++        raise SystemExit('amendment 30 / .sha256 / fixation file missing')
++    s = sha(A30_DOC)
++    rec = A30_SHA_FILE.read_text(encoding='utf-8').split()[0]
++    fixed = FIXED30.read_text(encoding='utf-8')
++    if s != rec or not re.search(r'(?<![0-9a-f])%s(?![0-9a-f])' % s, fixed):
++        raise SystemExit('amendment 30 is not the fixed text (sha %s, .sha256 %s)' % (s[:16], rec[:16]))
++    return s
++
++
++def pins_check(path):
++    """sha256sum -c of a pin list ('<sha> *<abs path>' lines); returns (n_lines, bad_lines, sha of the list)."""
++    if not Path(path).is_file():
++        return 0, ['list missing'], None
++    lines = [ln for ln in Path(path).read_text(encoding='utf-8').splitlines() if ln.strip()]
++    bad = []
++    for ln in lines:
++        want, _, p = ln.partition(' *')
++        if not Path(p).is_file() or sha(p) != want:
++            bad.append(p)
++    return len(lines), bad, sha(path)
++
++
++def inventory(root=OUTK):
++    """Every file under root: posix rel path -> [size, sha256].  Bytes are hashed, never parsed."""
++    out = {}
++    for base, dirs, names in os.walk(L.lp(root)):
++        dirs.sort()
++        for n in sorted(names):
++            full = os.path.join(base, n)
++            rel = os.path.relpath(full, L.lp(root)).replace('\\', '/')
++            out[rel] = [os.path.getsize(full), L.sha256_file(full)]
++    return {'schema': 'k92t30-inventory/v1', 'root': str(root), 'n_files': len(out),
++            'bytes': sum(v[0] for v in out.values()), 'files': out}
++
++
++def inv_diff(a, b):
++    fa, fb = a.get('files') or {}, b.get('files') or {}
++    only_a = sorted(set(fa) - set(fb))
++    only_b = sorted(set(fb) - set(fa))
++    changed = sorted(k for k in set(fa) & set(fb) if fa[k] != fb[k])
++    return {'only_declared': only_a[:30], 'n_only_declared': len(only_a), 'only_now': only_b[:30],
++            'n_only_now': len(only_b), 'changed': changed[:30], 'n_changed': len(changed),
++            'same': not (only_a or only_b or changed)}
++
++
++def f_labels(seed, Ts):
++    return ['TL3_%d%s_SAF_OBS_H3' % (T, '' if seed == 31 else '_s%d' % seed) for T in Ts]
++
++
++def f_inputs_check():
++    """Amendment 30 section 4.1 C9 / C10: the F inputs of the base run, by names, exit codes and one sha (no value)."""
++    out, ok = {}, True
++    steps = [json.loads(ln) for ln in (OUTK / 'steps.jsonl').read_text(encoding='utf-8').splitlines() if ln.strip()]
++    by = {}
++    for r in steps[:STEPS_N]:
++        by.setdefault(r['name'], []).append(r)
++    rc0 = {n: [(r.get('rc'), r.get('vissim_pre'), r.get('vissim_post')) for r in by.get(n, [])] for n in F_STEPS_RC0}
++    out['f_steps_rc0'] = {n: v == [(0, 0, 0)] for n, v in rc0.items()}
++    out['f_persist_rc1'] = [r.get('rc') for r in by.get(F_STEP_RC1, [])] == [1]
++    fnames = sorted(n for n in by if n.startswith(('f_', 'prep_f_')) or n in ('arms_ja_f', 'arms_f_b1'))
++    out['f_step_names_declared'] = fnames == sorted(F_STEPS_RC0 + (F_STEP_RC1,))
++    ok &= all(out['f_steps_rc0'].values()) and out['f_persist_rc1'] and out['f_step_names_declared']
++    want_jobs = sorted(f_labels(47, F_PRIMARY) + f_labels(31, F_SECOND[31]) + f_labels(43, F_SECOND[43]))
++    want_caps = sorted(['%06d_s47' % T for T in F_PRIMARY] + ['%06d' % T for T in F_SECOND[31]]
++                       + ['%06d_s43' % T for T in F_SECOND[43]])
++    for arm in ('f_off', 'f_w', 'f_b1'):
++        jd = ROOTS[arm] / 'sa' / 'jobs' / LABEL
++        cd = ROOTS[arm] / 'sa' / 'cap' / LABEL / 'TL3'
++        jobs = sorted(p.name for p in jd.iterdir() if p.is_dir()) if jd.is_dir() else []
++        caps = sorted(p.name for p in cd.iterdir() if p.is_dir()) if cd.is_dir() else []
++        caps_saf = all((cd / t / 'SAF').is_dir() for t in caps)
++        out[arm] = {'jobs': len(jobs), 'jobs_declared': jobs == want_jobs, 'caps': len(caps),
++                    'caps_declared': caps == want_caps and caps_saf}
++        ok &= out[arm]['jobs_declared'] and out[arm]['caps_declared']
++    vr_files = sorted(inventory(ROOTS['f_vref'])['files'])
++    out['f_vref_files'] = vr_files == ['sa/k92_vissim_ref.json']
++    out['f_vref_sha'] = sha(ROOTS['f_vref'] / 'sa' / 'k92_vissim_ref.json') == RECORDED['f_vref/sa/k92_vissim_ref.json']
++    out['f_persist_absent'] = not (OUTK / 'f_persist').exists()
++    ok &= out['f_vref_files'] and out['f_vref_sha'] and out['f_persist_absent']
++    out['ok'] = bool(ok)
++    return out
++
++
++def persist_argv():
++    """Amendment 30 section 2.3: the one persistence VR call (21 VR states T-450 >= 900, never 600)."""
++    if any(t < T_FROM_U4 for t in PERSIST_VR_STATES) or len(PERSIST_VR_STATES) != 21 or PERSIST_NOT != (1050,):
++        raise SystemExit('persistence state set differs from amendment 30')
++    return [PY, '-B', str(SA / 'k92_vissim_ref.py'), '--root', str(TREE), '--out', str(ROOTS['f_persist30']),
++            '--states', '47:' + ','.join(str(t) for t in PERSIST_VR_STATES)] + STAGE
++
++
++def stage_check30(mode, dest):
++    """Amendment 30 section 4.1: read-only resume check (closed list C1-C15).  mode decl = before amendment 30 is
++    fixed (C2 / C6 reported, C13 against the declare inventory if it exists); apply = every check binding."""
++    chk, info = {}, {}
++    for n in A:
++        doc = SP / ('K8_PREDECLARATION_AMENDMENT_%d.md' % n)
++        chk['C1_a%d' % n] = sha(doc) == A[n] and (SP / ('K8_PREDECLARATION_AMENDMENT_%d.md.sha256' % n)).read_text(
++            encoding='utf-8').split()[0] == A[n]
++        chk['C1_fixed%d' % n] = sha(KB / ('AMENDMENT%d_FIXED.md' % n)) == FIXED[n]
++    if mode == 'apply':
++        try:
++            info['a30_sha256'] = a30_sha()
++            chk['C2_a30_fixed'] = True
++        except SystemExit as exc:
++            info['a30_problem'] = str(exc)
++            chk['C2_a30_fixed'] = False
++    else:
++        info['C2_a30'] = {'doc': A30_DOC.is_file(), 'sha_file': A30_SHA_FILE.is_file(), 'fixation': FIXED30.is_file()}
++    lines = NOTES.read_bytes().splitlines(keepends=True)
++    chk['C3_notes'] = len(lines) >= NOTES_N and L.sha256_bytes(b''.join(lines[:NOTES_N])) == NOTES_182
++    chk['C4_head'] = git('rev-parse', 'HEAD') == HEAD
++    chk['C4_branch'] = git('rev-parse', '--abbrev-ref', 'HEAD') == BRANCH
++    chk['C4_k8_branch'] = git('rev-parse', 'claude/k8-sc1001eb-defects-20261004') == K8
++    chk['C4_status_clean'] = git('status', '--porcelain') == ''
++    chk['C4_no_remote_k92'] = 'k92' not in git('for-each-ref', '--format=%(refname)', 'refs/remotes')
++    n, bad, s = pins_check(OLD_PINS)
++    chk['C5_old_pins'] = s == OLD_PINS_SHA and n == OLD_PINS_N and not bad
++    info['C5_old_pins_bad'] = bad[:10]
++    if mode == 'apply':
++        n, bad, s = pins_check(A30_PINS)
++        listed = A30_PINS.read_text(encoding='utf-8') if A30_PINS.is_file() else ''
++        mine = ['%s *%s' % (sha(p), str(p).replace('\\', '/')) for p in (Path(__file__).resolve(), JUDGE)]
++        chk['C6_a30_pins'] = (s is not None and not bad and all(m in listed for m in mine)
++                              and re.search(r'(?<![0-9a-f])%s(?![0-9a-f])' % s, FIXED30.read_text(encoding='utf-8'))
++                              is not None)
++        info['C6'] = {'n': n, 'bad': bad[:10], 'sha256': s}
++    chk['C7_tree_build'] = sha(TK / 'a27' / 'k92t.build.json') == TREE_BUILD_SHA
++    d = L.tree_diff(K925, TREE)
++    chk['C7_tree_vs_k925'] = not d['changed'] and not d['only_a'] and not d['only_b']
++    info['C7_tree_diff'] = {'changed': d['changed'][:10], 'only_k925': d['only_a'][:10], 'only_k92t': d['only_b'][:10]}
++    chk['C7_vr'] = sha(SA / 'k92_vissim_ref.py') == VR_SHA
++    chk['C8_recorded'] = all((OUTK / rel).is_file() and sha(OUTK / rel) == want for rel, want in RECORDED.items())
++    info['C8_recorded_bad'] = [rel for rel, want in RECORDED.items()
++                               if not (OUTK / rel).is_file() or sha(OUTK / rel) != want]
++    chk['C8_stop_files'] = sorted(p.name for p in OUTK.glob('STOP_*.json')) == ['STOP_f.json']
++    chk['C8_stage_records'] = sorted(p.name for p in (OUTK / 'stages').iterdir()) == sorted(
++        '%s.json' % s for s in OLD_STAGES)
++    chk['C8_judge_files'] = sorted(p.name for p in (OUTK / 'judge').iterdir()) == sorted(
++        '%s.json' % s for s in OLD_JUDGES)
++    raw = (OUTK / 'steps.jsonl').read_bytes().splitlines(keepends=True)
++    chk['C8_steps'] = len(raw) == STEPS_N and L.sha256_bytes(b''.join(raw[:STEPS_N])) == STEPS_SHA
++    dl = (OUTK / 'driver.log').read_bytes()
++    chk['C8_driver_log'] = len(dl) == DRIVER_LOG[0] and L.sha256_bytes(dl) == DRIVER_LOG[1]
++    chk['C8_chain_log'] = sha(OK2 / 'logs' / 'k92t_chain.txt') == CHAIN_LOG_SHA
++    fi = f_inputs_check()
++    info['C9_C10'] = fi
++    chk['C9_C10_f_inputs'] = fi['ok'] and not ROOTS['f_persist30'].exists()
++    logs = sorted(p.name for p in (OUTK / 'logs').glob('f_*_jobs*.log'))
++    chk['C11_job_logs'] = logs == sorted(F_JOB_LOGS) and all(
++        os.path.getsize(OUTK / 'logs' / n) == F_JOB_LOGS[n][0] and sha(OUTK / 'logs' / n) == F_JOB_LOGS[n][1]
++        for n in logs)
++    tops = sorted(p.name for p in SEALED.iterdir()) if SEALED.is_dir() else []
++    chk['C12_sealed_tops'] = tops == SEALED_TOPS
++    chk['C12_out30_absent'] = not OUT30.exists() if mode == 'apply' else True
++    info['C12_out30_exists'] = OUT30.exists()
++    now_inv = inventory(OUTK)
++    if INV_DECL.is_file():
++        dif = inv_diff(read(INV_DECL, {}) or {}, now_inv)
++        chk['C13_inventory'] = dif['same']
++        info['C13'] = dict(dif, n_files=now_inv['n_files'], bytes=now_inv['bytes'],
++                           declared_sha256=sha(INV_DECL))
++    else:
++        chk['C13_inventory'] = mode != 'apply'
++        info['C13'] = {'declared': None, 'n_files': now_inv['n_files'], 'bytes': now_inv['bytes']}
++    cen = L.census()
++    chk['C14_vissim_0'] = cen['vissim_any'] == 0
++    chk['C14_foreign_0'] = not cen['foreign_runner_or_replay']
++    fs = L.free_space_gb()
++    chk['C15_space'] = all(v >= 8.0 for v in fs.values())
++    info.update(census=cen['counts'], free_gb=fs, persist_vr_states=list(PERSIST_VR_STATES),
++                persist_not_measurable=list(PERSIST_NOT), persist_argv_tail=persist_argv()[-6:])
++    rec = {'schema': 'k92t30-check30/v1', 'mode': mode, 'when': now(), 'checks': chk, 'info': info,
++           'driver_sha256': sha(Path(__file__)), 'judge_sha256': sha(JUDGE),
++           'ok': all(chk.values())}
++    wjson(dest, rec)
++    print('K92T30_CHECK30 mode=%s ok=%s bad=%s' % (mode, rec['ok'], [k for k, v in chk.items() if not v]))
++    return rec
++
++
++def stage_seal30(dry=False, dest=None):
++    """Amendment 30 section 4.2 (D-K9-57 5): move the three F job logs into OK2/sealed_s47/k92t/logs; the index (name,
++    from, to, size, sha256, mtime, moved_at) goes to OK2/a30 outside the sealed root.  Bytes are hashed, never read
++    as text, before and after the move."""
++    if not dry:
++        a30 = a30_sha()
++        require_prev('seal30')
++    logs = sorted(p.name for p in (OUTK / 'logs').glob('f_*_jobs*.log'))
++    plan = []
++    for name in sorted(F_JOB_LOGS):
++        size, want = F_JOB_LOGS[name]
++        src = OUTK / 'logs' / name
++        st = os.stat(src) if src.is_file() else None
++        plan.append({'name': name, 'from': str(src), 'to': str(SEALED_K92T / 'logs' / name), 'size': size,
++                     'sha256': want, 'size_ok': bool(st) and st.st_size == size,
++                     'sha_ok': bool(st) and sha(src) == want,
++                     'mtime': time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(st.st_mtime)) if st else None})
++    tops = sorted(p.name for p in SEALED.iterdir()) if SEALED.is_dir() else []
++    pre_ok = (logs == sorted(F_JOB_LOGS) and all(r['size_ok'] and r['sha_ok'] for r in plan) and tops == SEALED_TOPS
++              and not SEALED_K92T.exists())
++    if dry:
++        wjson(dest, {'schema': 'k92t30-seal-plan/v1', 'dry_run': True, 'ok': pre_ok, 'plan': plan, 'tops': tops,
++                     'when': now()})
++        print('K92T30_SEAL30 dry ok=%s n=%d' % (pre_ok, len(plan)))
++        return 0
++    if not pre_ok:
++        stop('seal30', 'the job logs or the sealed root differ from amendment 30 (S-K42)',
++             {'logs': logs, 'tops': tops, 'bad': [r['name'] for r in plan if not (r['size_ok'] and r['sha_ok'])]})
++    (SEALED_K92T / 'logs').mkdir(parents=True)
++    for r in plan:
++        try:
++            os.replace(r['from'], r['to'])
++        except OSError as exc:
++            stop('seal30', 'move failed: %s (%s)' % (r['name'], type(exc).__name__))
++        r['moved_at'] = now()
++        r['after_size_ok'] = os.path.getsize(r['to']) == r['size']
++        r['after_sha_ok'] = sha(r['to']) == r['sha256']
++        r['source_gone'] = not Path(r['from']).exists()
++    idx = {'schema': 'k92t30-sealed-index/v1', 'amendment30_sha256': a30, 'n': len(plan), 'files': plan,
++           'tops_after': sorted(p.name for p in SEALED.iterdir()), 'when': now(),
++           'note': 'D-K9-57 5: sealed k92t job logs; open only per amendment 25 section 6.4 after the J / F values '
++                   'are fixed (or for a k92t failure diagnosis), each opening logged'}
++    wjson(SEAL_INDEX, idx)
++    good = all(r['after_size_ok'] and r['after_sha_ok'] and r['source_gone'] for r in plan) and \
++        idx['tops_after'] == sorted(SEALED_TOPS + ['k92t'])
++    log_md('k92t30 구동기: D-K9-57 ⑤ 봉인 이동 %d파일(F 잡 로그 셋) → `OK2/sealed_s47/k92t/logs/`, 크기·sha 같음 %s, '
++           '목록 `OK2/a30/sealed_k92t_index.json` sha256 `%s` (자동 기록)' % (len(plan), good, sha(SEAL_INDEX)))
++    if not good:
++        stop('seal30', 'moved bytes differ (S-K42)')
++    finish('seal30', {'index_sha256': sha(SEAL_INDEX)})
+     return 0
+ 
+ 
+-def status():
++def stage_f30():
++    """Amendment 30 section 2 / 4.3: F judged from the existing F data.  fcount (job success from the job files) ->
++    persistence VR (21 states) -> F judge; nothing of the base F run is rerun."""
++    a30_sha()
++    require_prev('f')
++    if sha(SA / 'k92_vissim_ref.py') != VR_SHA:
++        stop('f', 'VR sha differs (S-K21)')
++    fi = f_inputs_check()
++    if not fi['ok']:
++        stop('f', 'F inputs differ from the amendment-30 resume state (S-K41)',
++             {k: v for k, v in fi.items() if k != 'f_steps_rc0'})
++    dc = OUTK / 'judge' / 'f_jobs.json'
++    for p in (dc, OUTK / 'judge' / 'f.json', ROOTS['f_persist30']):
++        if p.exists():
++            stop('f', '%s exists before f30 (S-K41)' % p.name)
++    rc = step('judge_fcount', [PY, '-B', str(JUDGE), 'fcount', '--dest', str(dc)], root=None, cwd=HERE)
++    rcnt = read(dc, {}) or {}
++    log_md('k92t30 구동기: F 잡 정상 수(요약·기록·포착 파일로만 셈) %s, `OK2/k92t/judge/f_jobs.json` sha256 `%s` '
++           '(자동 기록)' % (rcnt.get('verdict'), sha(dc) if dc.is_file() else None))
++    if rc != 0 or rcnt.get('verdict') != 'PASS':
++        stop('f', 'F job count %s (INCOMPLETE)' % rcnt.get('verdict'))
++    must(step('f_persist30', persist_argv(), root=ROOTS['f_persist30']), 'f', 'persist30 (S-K43)')
++    dest = OUTK / 'judge' / 'f.json'
++    rc = step('judge_f', [PY, '-B', str(JUDGE), 'f', '--tree', str(TREE), '--dest', str(dest)],
++              root=ROOTS['f_b1'], cwd=SA)
++    res = read(dest, {}) or {}
++    fj = res.get('f_judge') or {}
++    pr = res.get('report_persistence_M1_450') or {}
++    log_md('k92t30 구동기: F 판정 %s (F-1 %s, F-2 %s, F-3 %s, n %s; 지속성 보고 측정 %s·측정 불가 %s·완전 %s), '
++           '`OK2/k92t/judge/f.json` sha256 `%s` — F 판정 값 고정 (자동 기록)' % (
++               res.get('verdict'), fj.get('F-1'), fj.get('F-2'), fj.get('F-3'), fj.get('n'), pr.get('n'),
++               sorted(pr.get('not_measurable') or {}), pr.get('complete'), sha(dest) if dest.is_file() else None))
++    if rc != 0 or res.get('verdict') != 'PASS':
++        stop('f', 'F %s (STOP_ASK_F / INCOMPLETE)' % res.get('verdict'), {'missing': res.get('missing')})
++    if pr.get('complete') is not True:
++        stop('f', 'persistence report incomplete (S-K43)', {k: pr.get(k) for k in (
++            'missing', 'vr_states_equal_declared', 'overlap_with_f_vref', 'identity_ok')})
++    finish('f', {'judge_sha256': sha(dest), 'fcount_sha256': sha(dc),
++                 'persist_sha256': sha(ROOTS['f_persist30'] / 'sa' / 'k92_vissim_ref.json')})
++    return 0
++
++
++def stage_post30():
++    """Amendment 30 section 4.5: after the J / F judge files are fixed in the LOG: the sealed-root k92_record scan
++    (base function), the sealed k92t index, the base judge records."""
++    a30_sha()
++    require_prev('post')
++    fixed = {n: sha(OUTK / 'judge' / ('%s.json' % n)) for n in ('f', 'jb')}
++    text = LOG_MD.read_text(encoding='utf-8')
++    if not all(s in text for s in fixed.values()):
++        stop('post', 'the J / F judge sha are not in the LOG (amendment 30 section 4.5)')
++    dest = OUTK / 'judge' / 'sealed_records.json'
++    rc = step('post_sealedscan', [PY, '-B', str(JUDGE), 'sealedscan', '--dest', str(dest)], root=None, cwd=HERE)
++    res = read(dest, {}) or {}
++    idx = read(SEAL_INDEX, {}) or {}
++    idx_ok = idx.get('n') == len(F_JOB_LOGS) and all(
++        Path(r['to']).is_file() and os.path.getsize(r['to']) == r['size'] and sha(r['to']) == r['sha256']
++        and not Path(r['from']).exists() for r in idx.get('files') or [])
++    base_ok = all(sha(OUTK / rel) == want for rel, want in RECORDED.items())
++    log_md('k92t30 구동기: J·F 판정 값 고정 확인(f.json `%s…`, jb.json `%s…`), 봉인 뿌리 k92_record.json 훑기 ok=%s '
++           '(%s), 봉인 k92t 목록 같음 %s, 앞 기록 바이트 같음 %s, `OK2/k92t/judge/sealed_records.json` sha256 `%s` — '
++           '이제 봉인 로그는 보충 25 §6.4대로 열 수 있음(열 때마다 LOG), G-K4 plant 원자료 재계산(보충 29 §5)은 독립 '
++           '검증기 몫 (자동 기록)' % (fixed['f'][:16], fixed['jb'][:16], res.get('ok'), res.get('sealed_records'),
++                                      idx_ok, base_ok, sha(dest) if dest.is_file() else None))
++    if rc != 0 or not res.get('ok'):
++        stop('post', 'sealed-root record scan not ok (S-K10)')
++    if not idx_ok:
++        stop('post', 'sealed k92t index differs (S-K42)')
++    if not base_ok:
++        stop('post', 'a base record changed (S-K41)')
++    judges = {n: sha(OUTK / 'judge' / ('%s.json' % n)) for n in ('j0', 'ja', 'jwall', 'f_jobs', 'f', 'jb',
++                                                                  'sealed_records')}
++    finish('post', {'judges_sha256': judges, 'sealed_index_sha256': sha(SEAL_INDEX)})
++    return 0
++
++
++def chain30():
++    """Once, from the STOP state: check30 apply -> s29 -> seal30 -> s30 -> f30 -> s31 -> jb -> s32 -> post30 -> s33."""
++    a30_sha()
++    if OUT30.exists() or any((OUTK / 'stages' / ('%s.json' % n)).exists() for n in ('seal30', 'f', 'jb', 'post')):
++        raise SystemExit('chain30 runs once from the STOP state; an amendment-30 record exists (the user decides)')
++    rec = stage_check30('apply', OUT30 / 'check30.json')
++    log_md('k92t30 구동기: 이어 하기 점검 ok=%s, `OK2/a30/check30.json` sha256 `%s` (자동 기록)' % (
++        rec['ok'], sha(OUT30 / 'check30.json')))
++    if not rec['ok']:
++        stop('check30', 'resume check false (S-K41)', [k for k, v in rec['checks'].items() if not v])
++    snap(SNAPS30[0])
++    stage_seal30()
++    snap(SNAPS30[1])
++    stage_f30()
++    snap(SNAPS30[2])
++    stage_jb()
++    snap(SNAPS30[3])
++    stage_post30()
++    snap(SNAPS30[4])
++    log('CHAIN30_DONE')
++    log_md('k92t30 구동기: 사슬 끝 — check30·seal30·f·jb·post 모두 끝 (자동 기록)')
++    return 0
++
++
++def status30():
+     out = {'stages': {}, 'stops': sorted(p.name for p in OUTK.glob('STOP_*.json')) if OUTK.is_dir() else []}
+     for s in ORDER:
+         r = read(OUTK / 'stages' / ('%s.json' % s))
+@@ -816,11 +846,30 @@
+         print(__doc__)
+         return 2
+     cmd = sys.argv[1]
+-    if cmd == 'child':
+-        return child(sys.argv[2])
++    args = sys.argv[2:]
++
++    def opt(name, default=None):
++        return args[args.index(name) + 1] if name in args else default
+     L.set_below_normal()
+-    fn = {'pre': stage_pre, 'tree': stage_tree, 'start': stage_start, 'prep': stage_prep, 'j0': stage_j0,
+-          'ja': stage_ja, 'f': stage_f, 'jb': stage_jb, 'post': stage_post, 'status': status, 'chain': chain}[cmd]
++    if cmd == 'check30':
++        mode = opt('--mode')
++        if mode not in ('decl', 'apply') or not opt('--dest'):
++            raise SystemExit('check30 --mode decl|apply --dest D')
++        return 0 if stage_check30(mode, opt('--dest'))['ok'] else 3
++    if cmd == 'inv':
++        if not opt('--dest'):
++            raise SystemExit('inv --dest D')
++        res = inventory(OUTK)
++        wjson(opt('--dest'), res)
++        print('K92T30_INV n=%d bytes=%d' % (res['n_files'], res['bytes']))
++        return 0
++    if cmd == 'seal30':
++        if '--dry-run' in args:
++            return stage_seal30(dry=True, dest=opt('--dest'))
++        return stage_seal30()
++    fn = {'chain30': chain30, 'status30': status30}.get(cmd)
++    if fn is None:
++        raise SystemExit('unknown command %s (amendment 30: check30 / inv / seal30 / chain30 / status30)' % cmd)
+     return fn()
+ 
+ 
+--- base/k92t_judge.py
++++ k92t30_judge.py
+@@ -1,19 +1,22 @@
+-"""K9-2 bundle 1 judging stage k92t: judges and start scans (scratch tool in KB/k92t, never committed).
+-Fixed (sha256 in KB/LOG.md and KB/k92t_pins.sha256) before any k92t data.  Amendment 24 sections 5.1-5.3 are the
+-definitions; amendments 25-29 bind k92t as they say (sealing A', VR network identity, K9-2-5 judge blobs, old_root,
+-four outcomes).  The operationalisations below are the readings fixed here before data (disclosed in the report).
++"""K9-2 bundle 1 judging stage k92t, resumed under amendment 30: judges (scratch tool in KB/a30decl, never committed).
++Base = KB/k92t/k92t_judge.py (eb4c113a..., pinned before any k92t data); amendment 30 changes only the F judge
++(cmd_f: the persistence report narrowed to the states with T - 450 >= 900 = U4 T_FROM, D-K9-56; per-arm job counts
++from the summary / record files, D-K9-57 5) and this text.  Every other function is byte-equal in its source text to
++the base (amendment 30 section 3.3; checked by dry_a30.py static).  J-0 / J-a / J wall were judged by the base file
++before amendment 30 (OUTK/judge/j0.json, ja.json, jwall.json); this file does not judge them again.
++Fixed (sha256 in KB/LOG.md and KB/a30_pins.sha256) before any amendment-30 data.  Amendment 24 sections 5.1-5.3 are
++the definitions; amendments 25-30 bind k92t as they say (sealing A', VR network identity, K9-2-5 judge blobs,
++old_root, four outcomes, the persistence narrowing).  The operationalisations below are the readings fixed before
++data (disclosed in the report).
+ 
+ BLIND form: verdicts, counts, generalized paths, sha.  The F judge file carries the declared F numbers (MAE / bias per
+ arm and metric, per-state table) because amendment 24 section 6 STOP_ASK_F shows them; the J-b file carries the
+ differing K9-1 judged values only when they differ (STOP_ASK_J report form).  Nothing here opens a sealed log.
+ 
+-    python -B k92t_judge.py scans --dest D
+-    python -B k92t_judge.py sealedscan --dest D                          (after the J / F values are fixed)
+-    python -B k92t_judge.py j0    --ja JA --jb JB --tree T --dest D      (child process: cwd = <tree>/<SA>)
+-    python -B k92t_judge.py ja    --ja JA --tree T --dest D              (child process)
+-    python -B k92t_judge.py jwall --ja JA --jb JB --dest D
+-    python -B k92t_judge.py jb    --new <gates_k92t.json> --dest D
+-    python -B k92t_judge.py f     --tree T --dest D                      (child process)
++    python -B k92t30_judge.py sealedscan --dest D                        (after the J / F values are fixed)
++    python -B k92t30_judge.py jb    --new <gates_k92t.json> --dest D
++    python -B k92t30_judge.py f     --tree T --dest D                    (child process)
++    (scans / j0 / ja / jwall: the base functions, kept byte-equal; not run under amendment 30)
+ 
+ J-0 (amendment 24 section 5.2 row J-0).  States: TL3m 27 = TL3 captures of R-obs v3c3-s31 / s43 / s47 x GRID9,
+ DP 17 = DP captures at DP_T, R-obs3 61 = ROBS61 captures of R-obs3 (= v3c3-s31, sa_common.ROBS_SEED) at ROBS61_T.
+@@ -62,12 +65,28 @@
+ F (section 5.3).  Rows of the 22 primary states (v3c3-s47) per arm OFF / B1 (W reported): model = k92_record.json
+ horizon m1_chain_T450 / m2_w_dep_T450 / m3_l_dep_T450 of TL3_<T>_s47_SAF_OBS_H3 in the arm root; VISSIM =
+ k92_vissim_ref.json (root F_VREF) m1_T450 / m2_T450 / m3_T450; network identity raw sha of the seed = 1895ca30 (s47),
+-3de889f0 (s31), 51478c39 (s43) (amendment 25 section 3.3-9).  Verdict = k92_gates.f_judge of the k92t tree (K9-2-0
+-blob, unchanged since): F-1, F-2, F-3 all true, n = 22 -> PASS; any false -> FAIL (STOP_ASK_F); any missing ->
+-INCOMPLETE.  Reports: the same at T+150, the W arm, per-state table, persistence MAE (VISSIM M1 at T = m1_T450 of the
+-state T-450 in root F_PERSIST), f_judge's bootstrap, OUTW / FEED-4 / SC109_E_out max / 220, capacity-bound step share,
++3de889f0 (s31), 51478c39 (s43) (amendment 25 section 3.3-9).  Verdict = k92_gates.f_judge of the k92t tree (function
++text unchanged since K9-2-0; the file blob changed in K9-2-4 / K9-2-5): F-1, F-2, F-3 all true, n = 22 -> PASS; any
++false -> FAIL (STOP_ASK_F); any missing -> INCOMPLETE.  Reports: the same at T+150, the W arm, per-state table,
++persistence MAE, f_judge's bootstrap, OUTW / FEED-4 / SC109_E_out max / 220, capacity-bound step share,
+ k92_hb_seed_binding counts, the P0-4 exposure-excluded versions (raw list and effective list), the second sample
+-(v3c3-s31 / s43, 16, "partly exposed")."""
++(v3c3-s31 / s43, 16, "partly exposed").
++
++Persistence report (amendment 30 section 2, D-K9-56; report only, never part of the verdict).  Persistence error of
++a primary state T = VISSIM M1 at T (= m1_T450 of the VR state T-450 in root OUTK/f_persist30, frame T+0.1) minus
++VISSIM M1 at T+450 (= m1_T450 of the state T in F_VREF).  The U4 measurer behind the VR keeps a window (a, b] only
++when a >= T_FROM = 900 (k8b/u4/derive_head_saturation.py:72, :379), so a state T with T - 450 < 900 is labelled
++PERSIST_LABEL = 'not measurable (T_FROM=900)' (report text '측정 불가(T_FROM=900)') and is not asked from the VR:
++of the 22 primary states that is T = 1050 only; the other 21 are measured (VR states 1200 ... 7950).  The report
++holds n, the MAE, the measured state list, the labelled states, the 15 states where the VR state T-450 is itself a
++primary state (its m1_T450 must equal the F_VREF value: same FZP frame) and 'complete' = the persist file has the
++seed s47 network identity 1895ca30..., exactly the 21 declared VR states, every one with an integer m1_T450, the 15
++overlaps equal, and the OFF-arm VISSIM side present for the 21.  'complete' false -> the driver STOPs after the F
++judge file is written (amendment 30 S-K43); the verdict fields are not changed by it.
++
++Job counts (amendment 30 section 4.2, D-K9-57 5): per arm and sample group (s47 primary 22, s31 8, s43 8) the number
++of job folders, of summary.json with ok true, of k92_record.json present, of records with an empty errors list, and
++of captures with capture.json ok; counts only (no value)."""
+ import argparse
+ import hashlib
+ import json
+@@ -127,6 +146,15 @@
+ TEXT = ('.txt', '.log', '.jsonl', '.md')
+ VR_TOKENS = (b'"m1_T150"', b'"m1_T450"', b'"m2_T150"', b'"m2_T450"', b'"m3_T150"', b'"m3_T450"', b'"m1_by_link_T',
+              b'"m2_by_head_T', b'"m3_by_head_T')
++# amendment 30 section 2 (D-K9-56): the persistence report
++PERSIST_NAME = 'f_persist30'
++T_FROM_U4 = 900
++PERSIST_LABEL = 'not measurable (T_FROM=900)'
++PERSIST_LABEL_KO = '측정 불가(T_FROM=900)'
++PERSIST_MEASURED = tuple(T for T in F_PRIMARY if T - 450 >= T_FROM_U4)
++PERSIST_NOT = tuple(T for T in F_PRIMARY if T - 450 < T_FROM_U4)
++PERSIST_VR_STATES = tuple(T - 450 for T in PERSIST_MEASURED)
++PERSIST_OVERLAP = tuple(t for t in PERSIST_VR_STATES if t in F_PRIMARY)
+ 
+ 
+ def sha_file(p):
+@@ -739,6 +767,88 @@
+     return {m: stat(m) for m in ('M1_450', 'M2_450', 'M3_450', 'M1_150', 'M2_150', 'M3_150')}
+ 
+ 
++def job_counts(roots, label):
++    """Amendment 30 section 4.2 (D-K9-57 5): job success counted from the job / capture files only (summary.json ok,
++    k92_record.json present and its errors list empty, capture.json ok), per arm and sample group.  Counts only."""
++    out = {}
++    groups = (('s47_primary', 47, F_PRIMARY), ('s31_second', 31, F_SECOND[31]), ('s43_second', 43, F_SECOND[43]))
++    keys = ('job_dirs', 'summary_ok_true', 'record_present', 'record_errors_empty', 'capture_ok')
++    for arm, root in roots.items():
++        row = {}
++        for name, seed, Ts in groups:
++            c = {'planned': len(Ts)}
++            c.update({k: 0 for k in keys})
++            for T in Ts:
++                d = Path(root) / 'sa' / 'jobs' / label / _lab(seed, T)
++                if d.is_dir():
++                    c['job_dirs'] += 1
++                if (read_json(d / 'summary.json') or {}).get('ok') is True:
++                    c['summary_ok_true'] += 1
++                rec = read_json(d / 'k92_record.json')
++                if isinstance(rec, dict):
++                    c['record_present'] += 1
++                    if not rec.get('errors'):
++                        c['record_errors_empty'] += 1
++                tag = '%06d' % T + ('' if seed == 31 else '_s%d' % seed)
++                cap = read_json(Path(root) / 'sa' / 'cap' / label / 'TL3' / tag / 'SAF' / 'capture.json')
++                if isinstance(cap, dict) and cap.get('ok') is not False:
++                    c['capture_ok'] += 1
++            c['all_ok'] = all(c[k] == c['planned'] for k in keys)
++            row[name] = c
++        out[arm] = row
++    return out
++
++
++def cmd_fcount(args):
++    """Amendment 30 section 4.2: the job-success count before the F judge (counts only, no value)."""
++    roots = {'OFF': OUTK / 'f_off', 'W': OUTK / 'f_w', 'B1': OUTK / 'f_b1'}
++    jc = job_counts(roots, args.label)
++    ok = all(g['all_ok'] for row in jc.values() for g in row.values())
++    res = {'schema': 'k92t-f-jobcount/v1', 'verdict': 'PASS' if ok else 'INCOMPLETE', 'job_counts': jc,
++           'when': time.strftime('%Y-%m-%dT%H:%M:%S')}
++    write_json(args.dest, res)
++    print('K92T_FCOUNT %s %s' % (res['verdict'], {a: {g: '%d/%d' % (v['summary_ok_true'], v['planned'])
++                                                       for g, v in row.items()} for a, row in jc.items()}))
++    return 0
++
++
++def persistence_report(pers, vref, off_rows, ident_ok):
++    """Amendment 30 section 2 (D-K9-56).  off_rows = the OFF-arm primary rows {T: {'M1_450': (model, vissim), ...}};
++    the VISSIM M1 at T+450 is the second element.  Report only."""
++    ps = ((pers.get('seeds') or {}).get('s47') or {}).get('states') or {}
++    vs = ((vref.get('seeds') or {}).get('s47') or {}).get('states') or {}
++    states, pe, missing = {}, [], []
++    for T in F_PRIMARY:
++        if T in PERSIST_NOT:
++            states[str(T)] = PERSIST_LABEL
++            continue
++        a = (ps.get(str(T - 450)) or {}).get('m1_T450')
++        b = ((off_rows.get(T) or {}).get('M1_450') or (None, None))[1]
++        if isinstance(a, int) and not isinstance(a, bool) and b is not None:
++            pe.append(a - b)
++            states[str(T)] = 'measured'
++        else:
++            states[str(T)] = 'missing'
++            missing.append(T)
++    keys = sorted(ps)
++    bad_keys = [k for k in keys if not str(k).isdigit()]
++    got = sorted(int(k) for k in keys if str(k).isdigit())
++    overlap = {}
++    for t in PERSIST_OVERLAP:
++        a = (ps.get(str(t)) or {}).get('m1_T450')
++        overlap[str(t)] = a is not None and a == (vs.get(str(t)) or {}).get('m1_T450')
++    complete = (bool(ident_ok) and not bad_keys and got == sorted(PERSIST_VR_STATES) and not missing
++                and len(pe) == len(PERSIST_MEASURED) and all(overlap.values()))
++    return {'rule': 'measured iff T - 450 >= %d (U4 T_FROM); VR state = T - 450' % T_FROM_U4,
++            'n': len(pe), 'mae': (sum(abs(x) for x in pe) / len(pe)) if pe else None, 'states': states,
++            'measured': [T for T in F_PRIMARY if states[str(T)] == 'measured'],
++            'not_measurable': {str(T): PERSIST_LABEL for T in PERSIST_NOT}, 'label_ko': PERSIST_LABEL_KO,
++            'missing': missing, 'vr_states_declared': list(PERSIST_VR_STATES), 'vr_states_in_file': got,
++            'vr_state_keys_not_int': bad_keys, 'vr_states_equal_declared': got == sorted(PERSIST_VR_STATES),
++            'overlap_with_f_vref': {'n': len(overlap), 'n_equal': sum(1 for v in overlap.values() if v)},
++            'identity_ok': bool(ident_ok), 'complete': complete}
++
++
+ def cmd_f(args):
+     tree = Path(args.tree)
+     sa = tree / SA_REL
+@@ -747,7 +857,7 @@
+     label = args.label
+     roots = {'OFF': OUTK / 'f_off', 'W': OUTK / 'f_w', 'B1': OUTK / 'f_b1'}
+     vref = read_json(OUTK / 'f_vref' / 'sa' / 'k92_vissim_ref.json') or {}
+-    pers = read_json(OUTK / 'f_persist' / 'sa' / 'k92_vissim_ref.json') or {}
++    pers = read_json(OUTK / PERSIST_NAME / 'sa' / 'k92_vissim_ref.json') or {}
+     ident = {s: ((vref.get('seeds') or {}).get('s%d' % s) or {}).get('network_identity') for s in (47, 31, 43)}
+     ident_ok = {s: bool(ident[s]) and ident[s].get('raw_sha256') == INPX_RAW[s]
+                 and ident[s].get('normalized_sha256') == 'b7f05dcd07042fce8a439529853429a642f4de7b998c96ede51ce8c2d1230eb3'
+@@ -757,8 +867,10 @@
+     for arm, root in roots.items():
+         prim[arm], info[arm], missing[arm] = f_rows(root, label, vref, 47, F_PRIMARY)
+     complete = all(not missing[a] and len(prim[a]) == 22 for a in ('OFF', 'B1')) and ident_ok[47]
+-    res = {'schema': 'k92t-f/v1', 'n_primary': {a: len(prim[a]) for a in prim}, 'missing': missing,
+-           'network_identity_ok': ident_ok, 'persist_identity_ok': bool(pid) and pid.get('raw_sha256') == INPX_RAW[47]}
++    res = {'schema': 'k92t-f/v1', 'amendment30': True, 'n_primary': {a: len(prim[a]) for a in prim},
++           'missing': missing, 'network_identity_ok': ident_ok,
++           'persist_identity_ok': bool(pid) and pid.get('raw_sha256') == INPX_RAW[47],
++           'job_counts': job_counts(roots, label)}
+     if not complete:
+         res['verdict'] = 'INCOMPLETE'
+     else:
+@@ -771,15 +883,9 @@
+             res['report_W_vs_OFF'] = G.f_judge(as450(prim['OFF'], '450'), as450(prim['W'], '450'))
+         res['per_state'] = {str(T): {a: {m: prim[a][T][m] for m in prim[a][T]} for a in prim if T in prim[a]}
+                             for T in F_PRIMARY}
+-        # persistence: VISSIM M1 at T (frame T+0.1) = m1_T450 of the state T-450 in F_PERSIST
+-        ps = ((pers.get('seeds') or {}).get('s47') or {}).get('states') or {}
+-        pe = []
+-        for T in F_PRIMARY:
+-            a = (ps.get(str(T - 450)) or {}).get('m1_T450')
+-            b = prim['OFF'][T]['M1_450'][1]
+-            if a is not None and b is not None:
+-                pe.append(a - b)
+-        res['report_persistence_M1_450'] = {'n': len(pe), 'mae': sum(abs(x) for x in pe) / len(pe) if pe else None}
++        # persistence (amendment 30 section 2): VISSIM M1 at T (frame T+0.1) = m1_T450 of the VR state T-450 in
++        # OUTK/f_persist30, measured only where T - 450 >= T_FROM_U4; the rest labelled PERSIST_LABEL
++        res['report_persistence_M1_450'] = persistence_report(pers, vref, prim['OFF'], res['persist_identity_ok'])
+         # P0-4 exposure lists
+         exp_raw, exp_eff = None, None
+         if sha_file(P0_4_SAMPLES) == P0_4_SAMPLES_SHA:
+@@ -815,24 +921,25 @@
+     res['report_second_sample'] = sec
+     res['vref_sha256'] = sha_file(OUTK / 'f_vref' / 'sa' / 'k92_vissim_ref.json') if (
+         OUTK / 'f_vref' / 'sa' / 'k92_vissim_ref.json').is_file() else None
+-    res['persist_sha256'] = sha_file(OUTK / 'f_persist' / 'sa' / 'k92_vissim_ref.json') if (
+-        OUTK / 'f_persist' / 'sa' / 'k92_vissim_ref.json').is_file() else None
++    res['persist_sha256'] = sha_file(OUTK / PERSIST_NAME / 'sa' / 'k92_vissim_ref.json') if (
++        OUTK / PERSIST_NAME / 'sa' / 'k92_vissim_ref.json').is_file() else None
+     write_json(args.dest, res)
+-    print('K92T_F %s n=%s' % (res['verdict'], res['n_primary']))
++    pr = res.get('report_persistence_M1_450') or {}
++    print('K92T_F %s n=%s persistence_complete=%s measured=%s not_measurable=%s' % (
++        res['verdict'], res['n_primary'], pr.get('complete'), pr.get('n'), sorted(pr.get('not_measurable') or {})))
+     return 0
+ 
+ 
+ def main():
+     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+-    ap.add_argument('cmd', choices=('scans', 'sealedscan', 'j0', 'ja', 'jwall', 'jb', 'f'))
++    # amendment 30: only the commands of the resumed stage (scans / j0 / ja / jwall were judged by the base file)
++    ap.add_argument('cmd', choices=('sealedscan', 'jb', 'fcount', 'f'))
+     ap.add_argument('--dest', required=True)
+-    ap.add_argument('--ja')
+-    ap.add_argument('--jb')
+     ap.add_argument('--tree')
+     ap.add_argument('--new')
+     ap.add_argument('--label', default='k92t')
+     args = ap.parse_args()
+-    return {'scans': cmd_scans, 'sealedscan': cmd_sealedscan, 'j0': cmd_j0, 'ja': cmd_ja, 'jwall': cmd_jwall, 'jb': cmd_jb, 'f': cmd_f}[args.cmd](args)
++    return {'sealedscan': cmd_sealedscan, 'jb': cmd_jb, 'fcount': cmd_fcount, 'f': cmd_f}[args.cmd](args)
+ 
+ 
+ if __name__ == '__main__':

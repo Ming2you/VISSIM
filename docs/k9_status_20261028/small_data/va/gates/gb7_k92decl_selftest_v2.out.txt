@@ -1,0 +1,35 @@
+SYN S01_all_four_replay_only                   c7=True expect=True declared=False match=True failed={}
+SYN S02_T900_type_floor_both_equal_binding0    c7=True expect=True declared=False match=True failed={}
+SYN S03_w_evidence_sha_changed                 c7=False expect=False declared=False match=True failed={'/metadata/k92_w': ['evidence_sha256_is_fixed', 'evidence_sha256_is_root_file']}
+SYN S04_w_u4_sha_changed                       c7=False expect=False declared=False match=True failed={'/metadata/k92_w': ['u4_sha256_is_fixed']}
+SYN S05_w_after_1ulp                           c7=False expect=False declared=False match=True failed={'/metadata/k92_w': ['after_float_repr_5209_8']}
+SYN S06_hb_evidence_sha_changed                c7=False expect=False declared=False match=True failed={'/metadata/k92_hb': ['evidence_sha256_is_fixed', 'evidence_sha256_is_root_file']}
+SYN S07_hb_rule_sha_changed                    c7=False expect=False declared=False match=True failed={'/metadata/k92_hb': ['rule_code_sha256_is_fixed']}
+SYN S10_binding_2                              c7=False expect=False declared=False match=True failed={'/metadata/head_discharge_floor_173_p4_e36d6761cfeac634': ['binding_is_float_1'], '/metadata/k92_hb_seed_binding': ['float_0_or_1']}
+SYN S10b_binding_int_1                         c7=False expect=False declared=False match=True failed={'/metadata/head_discharge_floor_173_p4_e36d6761cfeac634': ['binding_is_float_1'], '/metadata/k92_hb_seed_binding': ['float_0_or_1']}
+SYN S11_floor_name_hash_differs                c7=False expect=False declared=False match=True failed={}
+SYN S12_floor_value_1ulp_larger                c7=False expect=False declared=False match=True failed={'/metadata/head_discharge_floor_173_p4_e36d6761cfeac634': ['float_repr_is_seed']}
+SYN S13_floor_replay_only_binding0             c7=False expect=False declared=False match=True failed={'/metadata/head_discharge_floor_173_p4_e36d6761cfeac634': ['binding_is_float_1']}
+SYN S15_unlisted_new_key                       c7=False expect=False declared=False match=True failed={}
+SYN S16_floor_without_binding_key              c7=False expect=False declared=False match=True failed={'/metadata/head_discharge_floor_173_p4_e36d6761cfeac634': ['binding_is_float_1']}
+SYN S17_w_not_dict                             c7=False expect=False declared=False match=True failed={'/metadata/k92_w': ['is_dict', 'evidence_sha256_is_fixed', 'evidence_sha256_is_root_file', 'u4_sha256_is_fixed', 'after_float_repr_5209_8']}
+SYN S08_root_file_sha_differs                  c7=False expect=False declared=False match=True failed={'/metadata/k92_w': ['evidence_sha256_is_root_file']}
+SYN S09_w_both_sides_value_differs             c7=False expect=False declared=False match=True failed={}
+SYN S09b_binding_both_sides_differs            c7=False expect=False declared=False match=True failed={'/metadata/k92_hb_seed_binding': ['kind_is_presence', 'replay_only']}
+SYN S14_floor_both_sides_old_lt_s_new_eq_s     c7=False expect=False declared=False match=True failed={'/metadata/head_discharge_floor_173_p4_e36d6761cfeac634': ['kind_is_presence', 'replay_only']}
+SYN S18_A_only_V_and_R2_12                     c7=True expect=True declared=True match=True failed={}
+SYN S19_w_original_only                        c7=False expect=False declared=False match=True failed={'/metadata/k92_w': ['replay_only', 'is_dict', 'evidence_sha256_is_fixed', 'evidence_sha256_is_root_file', 'u4_sha256_is_fixed', 'after_float_repr_5209_8']}
+VB41w T=000001 diffs=17 outsideA=4 hits=['E1', 'E2', 'E3', 'E4'] failed={} still=[] c7=True match=True
+   name-cross (expect e36d… name): s41 floor key still outside=True c7=False match=True
+VB41w T=000150 diffs=39 outsideA=8 hits=['E1', 'E2', 'E3', 'E4'] failed={} still=['/metadata/head_observation_prior_discarded', '/metadata/n31_binding/vsl_cohort_initialization/sha256', '/metadata/n31_binding/vsl_cohort_initialization/source', '/prediction_error/source_action_json'] c7=False match=True
+   name-cross (expect e36d… name): s41 floor key still outside=True c7=False match=True
+VB41w T=000300 diffs=71 outsideA=8 hits=['E1', 'E2', 'E3'] failed={'/metadata/head_discharge_floor_173_p4_301ceabb95f116fa': ['binding_is_float_1']} still=['/metadata/head_discharge_floor_173_p4_301ceabb95f116fa', '/metadata/head_observation_groups_carried', '/metadata/n31_binding/vsl_cohort_initialization/sha256', '/metadata/n31_binding/vsl_cohort_initialization/source', '/prediction_error/source_action_json'] c7=False match=True
+   name-cross (expect e36d… name): s41 floor key still outside=True c7=False match=True
+VB41w T=000450 diffs=71 outsideA=8 hits=['E1', 'E2', 'E3'] failed={'/metadata/head_discharge_floor_173_p4_301ceabb95f116fa': ['binding_is_float_1']} still=['/metadata/head_discharge_floor_173_p4_301ceabb95f116fa', '/metadata/head_observation_groups_carried', '/metadata/n31_binding/vsl_cohort_initialization/sha256', '/metadata/n31_binding/vsl_cohort_initialization/source', '/prediction_error/source_action_json'] c7=False match=True
+   name-cross (expect e36d… name): s41 floor key still outside=True c7=False match=True
+VB41w T=000600 diffs=71 outsideA=8 hits=['E1', 'E2', 'E3'] failed={'/metadata/head_discharge_floor_173_p4_301ceabb95f116fa': ['binding_is_float_1']} still=['/metadata/head_discharge_floor_173_p4_301ceabb95f116fa', '/metadata/head_observation_groups_carried', '/metadata/n31_binding/vsl_cohort_initialization/sha256', '/metadata/n31_binding/vsl_cohort_initialization/source', '/prediction_error/source_action_json'] c7=False match=True
+   name-cross (expect e36d… name): s41 floor key still outside=True c7=False match=True
+VB41w T=000750 diffs=71 outsideA=8 hits=['E1', 'E2', 'E3'] failed={'/metadata/head_discharge_floor_173_p4_301ceabb95f116fa': ['binding_is_float_1']} still=['/metadata/head_discharge_floor_173_p4_301ceabb95f116fa', '/metadata/head_observation_groups_carried', '/metadata/n31_binding/vsl_cohort_initialization/sha256', '/metadata/n31_binding/vsl_cohort_initialization/source', '/prediction_error/source_action_json'] c7=False match=True
+   name-cross (expect e36d… name): s41 floor key still outside=True c7=False match=True
+SYNTHETIC_ALL_MATCH=True VB_DRYCHECK_ALL_MATCH=True list_sha256=a8148f3849fb5e26f09d8f0a095d442aa56da051d888df0b2f657dba089e7af1
+ALL_OK

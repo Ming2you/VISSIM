@@ -1,0 +1,26 @@
+--- a30decl/k92t30_judge.py
++++ a31decl/k92t31_judge.py
+@@ -301,7 +301,22 @@
+ 
+ 
+ def _seed47_path(path):
+-    parts = [p.lower() for p in re.split(r'[\\/]', str(path))]
++    """Amendment 31 (D-K9-58): an s47 piece is a path piece p (lower case) with p == 's47', p ending in '_s47',
++    '_s47_' in p, or p starting with 's47_' (the amendment-30 piece rule, unchanged).  A path at or under the sealed
++    root SEALED is read by its pieces RELATIVE to SEALED: the sealed root's own name ('sealed_s47') and every piece
++    above it are not pieces of that path; a deeper piece of the same name still counts.  Any other path is read by
++    all its pieces, as in amendment 30.  The long-path prefix \\\\?\\ is dropped first; the prefix test is
++    case-insensitive (os.path.normcase) and needs a separator after the root."""
++    s = str(path)
++    if s.startswith('\\\\?\\'):
++        s = s[4:]
++    full = os.path.normcase(os.path.abspath(s))
++    root = os.path.normcase(os.path.abspath(str(SEALED))).rstrip('\\/')
++    if full == root:
++        s = ''
++    elif full.startswith(root + os.sep):
++        s = full[len(root) + 1:]
++    parts = [p.lower() for p in re.split(r'[\\/]', s)]
+     return any(p == 's47' or p.endswith('_s47') or '_s47_' in p or p.startswith('s47_') for p in parts)
+ 
+ 

@@ -1,0 +1,225 @@
+{
+ "seed": 41,
+ "name": "sdmpc31_v3c3_k92va_s41",
+ "T": 900,
+ "checked_at": "2026-10-23T13:00:06+09:00",
+ "copy_dir": "D:\\VISSIM_runs\\20261001_v3c3\\reports\\k8\\k92_va\\live\\sdmpc31_v3c3_k92va_s41\\health\\T000900_20261023_130006_466",
+ "tool_sha256": "723045c0686111bf7efe04ce41f3584c0925ba38f2866cc063ba5076cb610f2b",
+ "decision_T": [
+  1,
+  150,
+  300,
+  450,
+  600,
+  750,
+  900
+ ],
+ "decisions_count_le_T": 7,
+ "error_files": [],
+ "hold_receipts": [],
+ "hold_error_files": [],
+ "failed_decision_files": [],
+ "files_T": {
+  ".json": {
+   "present": true,
+   "bytes": 58245448,
+   "mtime": "12:54:40"
+  },
+  ".csv": {
+   "present": true,
+   "bytes": 28163,
+   "mtime": "12:54:40"
+  },
+  ".json.applied": {
+   "present": true,
+   "bytes": 248,
+   "mtime": "12:54:43"
+  },
+  ".stdout.txt": {
+   "present": true,
+   "bytes": 325,
+   "mtime": "12:54:41"
+  },
+  ".stderr.txt": {
+   "present": true,
+   "bytes": 406,
+   "mtime": "12:45:12"
+  },
+  ".decision_budget.json": {
+   "present": true,
+   "bytes": 783,
+   "mtime": "12:54:41"
+  },
+  ".hold.json": {
+   "present": false
+  },
+  ".hold_error.txt": {
+   "present": false
+  },
+  ".error.txt": {
+   "present": false
+  }
+ },
+ "log_copy": {
+  "runlog": "ok",
+  "runlog_err": "ok",
+  "launch": "ok",
+  "wmi": "ok",
+  "s6_stdout": "ok",
+  "s6_stderr": "ok"
+ },
+ "DECISION_FAILED": {
+  "runlog": 0,
+  "runlog_err": 0,
+  "launch": 0,
+  "wmi": 0,
+  "s6_stdout": 0,
+  "s6_stderr": 0
+ },
+ "controller_decisions": [
+  {
+   "sim_sec": 1,
+   "exit": 0,
+   "wall_sec": 19.0
+  },
+  {
+   "sim_sec": 150,
+   "exit": 0,
+   "wall_sec": 19.13
+  },
+  {
+   "sim_sec": 300,
+   "exit": 0,
+   "wall_sec": 21.53
+  },
+  {
+   "sim_sec": 450,
+   "exit": 0,
+   "wall_sec": 21.55
+  },
+  {
+   "sim_sec": 600,
+   "exit": 0,
+   "wall_sec": 21.8
+  },
+  {
+   "sim_sec": 750,
+   "exit": 0,
+   "wall_sec": 22.11
+  },
+  {
+   "sim_sec": 900,
+   "exit": 0,
+   "wall_sec": 579.3
+  }
+ ],
+ "decision_exit_T": [
+  0
+ ],
+ "runlog_policy_line_count": 1,
+ "runlog_policy_any_count": 1,
+ "runlog_hold_attempt": [],
+ "runlog_held": [],
+ "runlog_ERROR": [],
+ "last_native_sim_sec": 1,
+ "launch_start_line": [
+  23
+ ],
+ "launch_wd_policy_line_positions": [
+  13,
+  26
+ ],
+ "launch_wd_policy_line_count": 2,
+ "launch_any_policy_line_count": 2,
+ "launch_strict_line_count": 0,
+ "wd_policy_before_start": 1,
+ "wd_policy_after_start": 1,
+ "launch_freeze_verified_count": 1,
+ "launch_freeze_verified_values_ok": true,
+ "launch_provenance_ok_count": 1,
+ "launch_provenance_ok_values_ok": true,
+ "launch_refused_count": 0,
+ "launch_stage_exit_lines": [],
+ "provenance": {
+  "run": {
+   "copy": "ok",
+   "sha256": "cf46b5483c989288e9957af1e1692f21b57931c680780dca0d5497b214ab9f46",
+   "tuning_sha_count": 4,
+   "files_tuning_sha_ok": true,
+   "network_sha_count": 1,
+   "freeze_sha_count": 1,
+   "env_policy": "hold_previous_on_exception",
+   "env_fail_fast": "1",
+   "seed": 41
+  },
+  "preflight": {
+   "copy": "ok",
+   "sha256": "fd75ffd8e560323d804c75289919e73731cdd7e09746f8d05583c85cd1b79b55",
+   "tuning_sha_count": 4,
+   "files_tuning_sha_ok": true,
+   "network_sha_count": 1,
+   "freeze_sha_count": 1,
+   "env_policy": "hold_previous_on_exception",
+   "env_fail_fast": "1",
+   "seed": 41
+  }
+ },
+ "action_json_copy": "ok",
+ "sdmpc_active": true,
+ "controller_status": "ok",
+ "install_check_present": true,
+ "install_check_passed": true,
+ "hold_previous_on_exception_in_metadata": false,
+ "T_k92_w_present": true,
+ "T_k92_hb_present": true,
+ "T_floor_keys": [
+  "head_discharge_floor_173_p4_d53f3bddee47d38c"
+ ],
+ "action_json_sha256": "c7e01c102ef566b25820130dfabb1ccf0a08702161b18c63a2871e2ab443215d",
+ "budget_copy": "ok",
+ "budget": {
+  "unlimited_time": true,
+  "expired_stage": null,
+  "output_completed": true
+ },
+ "action_csv_sha256": "a4d471df28323934511550b4e06c11aa3dd9a26972d2e7cd26787ba9b85cd4f4",
+ "applied_copy": "ok",
+ "T1_meta": {
+  "copy": "ok",
+  "k92_w_dict": true,
+  "k92_w_after_float_repr_ok": true,
+  "k92_hb_present": true,
+  "floor_keys": [
+   "head_discharge_floor_173_p4_d53f3bddee47d38c"
+  ],
+  "floor_value_repr_ok": true,
+  "binding_float_1": true
+ },
+ "T150_meta": {
+  "copy": "ok",
+  "prior_discarded_eq_1": true
+ },
+ "items": {
+  "H1_json_csv_applied_present": true,
+  "H2_sdmpc_active_true": true,
+  "H3_install_check_present_passed": true,
+  "H4_s6_capture_two": true,
+  "H5_error_txt_0": true,
+  "H6_DECISION_FAILED_0": true,
+  "H7_budget_true_null_true": true,
+  "H8_decisions_count_7": true,
+  "H9_runlog_policy_line_exactly_1": true,
+  "H10_wd_policy_one_per_wd_call": true,
+  "H11_freeze_verified_1": true,
+  "H12_provenance_ok_1_preflight": true,
+  "H13_provenance_tuning_sha": true,
+  "H14_T1_k92_and_floor": true,
+  "H15_T150_prior_discarded_1": true,
+  "H16_T_k92_and_same_floor_name": true,
+  "T1_decision_exit_0": true,
+  "T2_no_hold_no_error": true
+ },
+ "hold_count": 0,
+ "all_items_true": true,
+ "failed_items": []
+}

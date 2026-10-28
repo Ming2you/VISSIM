@@ -1,0 +1,21 @@
+﻿diff --git a/diagnostics/sdmpc_n31_20260924/k8_gates/gb7_allowed.py b/diagnostics/sdmpc_n31_20260924/k8_gates/gb7_allowed.py
+index 9fd7d519..1ca72d81 100644
+--- a/diagnostics/sdmpc_n31_20260924/k8_gates/gb7_allowed.py
++++ b/diagnostics/sdmpc_n31_20260924/k8_gates/gb7_allowed.py
+@@ -17,6 +17,7 @@
+   REP8 `D:/VISSIM_runs/20261001_v3c3/reports/k8/A_K8_LIST.md`에 있습니다.
+ - A_K8 항목은 "달라도 됨"이지 "달라야 함"이 아닙니다. 재생 출력을 본 뒤에는 이 목록에 더하지 않습니다.
+   A 밖 경로가 하나라도 다르면(값·유무·형) GB-7' 실패 → STOP입니다(보충 1 §E).
++- R2-12는 재생 출력을 본 뒤 더한 항목입니다(보충 1 §E '재생 출력을 본 뒤에는 더하지 않음'의 사후 예외, 사용자 결정 D-K9-38 ④, 보충 24 §14.3).
+ """
+ import hashlib
+ import json
+@@ -97,6 +98,8 @@ A_K8 = (
+                     r'receiving_rejected_veh)',
+      '롤아웃 누적 _LEGSPLIT_LAST(urban_flow_accounting): W_out 출구 법칙(P-4\'/P-4b)·W2-A 인계·W 접근 재고(SA·S5)·'
+      '신호 앞 수용(S1)에 기댐'),
++    ('R2-12', 'R2', r'/diagnostics/leg_ramp_split_(?:len_[^/\[]*|length_fallback)',
++     '어댑터 _LEGSPLIT_LAST 길이 진단 키: W_out 롤아웃 도착 유무에 따라 써짐, 계산 영향 0(ROOTCAUSE §6.1, D-K9-11·12). 재생 출력을 본 뒤 더한 항목 — D-K9-38 ④'),
+     # ---------------------------------------------------------------- R3: 실행 출처
+     ('R3-01', 'R3', r'/(?:metadata/)?run_provenance/(?:workspace_git_commit|execution_fingerprint_sha256)', '§E 규칙 3'),
+     ('R3-02', 'R3', r'/(?:metadata/)?run_provenance/imported_modules' + _SUB, '§E 규칙 3'),

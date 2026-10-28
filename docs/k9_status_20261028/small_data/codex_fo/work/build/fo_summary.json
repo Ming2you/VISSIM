@@ -1,0 +1,728 @@
+{
+ "frz_fo": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/fo/frozen/sdmpc31_a49981ff_202610271954",
+ "freeze_fo": {
+  "sha256": "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373",
+  "file_count": 7994,
+  "total_bytes": 495975719,
+  "tree_sha256": "8994da3eecb8ad21909e2440e62564b0c4c023dcad27a7a381626ab2c3f997fd",
+  "git_head": "a49981ffb258707c9a5e837d56f8cad829dab0ac",
+  "git_branch": "HEAD",
+  "git_status_entries": 3671,
+  "git_status_sha256": "11dab8516e7f2dc3032babab5452d338e1ed409668ae111dbb0e6b24887e30f8",
+  "source": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\source"
+ },
+ "freeze_b1": {
+  "sha256": "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+  "file_count": 7989,
+  "total_bytes": 495607946
+ },
+ "tree_checks": {
+  "frz_b1_sha_unchanged": true,
+  "source_preoverlay_equals_frz_b1": true,
+  "overlay_record_pass": true,
+  "source_postoverlay_declared": true,
+  "frz_fo_vs_frz_b1_declared": true,
+  "frz_fo_files_are_solo_bytes": true,
+  "frz_fo_config_is_overlay": true,
+  "frz_fo_b_config_unchanged": true,
+  "runner_unchanged": true,
+  "network_unchanged": true,
+  "git_same_head": true,
+  "file_count_plus5": true,
+  "freeze_ok_in_log": true,
+  "freeze_verified_before_preflights": true,
+  "freeze_verified_after_preflights": true,
+  "fo_results_root_absent": true
+ },
+ "fo_config_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+ "preflights": [
+  {
+   "label": "s31",
+   "seed": 31,
+   "tuning_expected_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "runner_exit": 0,
+   "wall_sec": 14.7,
+   "wrapper_error": null,
+   "freeze_verified_line": "FREEZE_VERIFIED path=D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json sha256=d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373",
+   "runner_err_log_bytes": 0,
+   "status_stage": "preflight_complete",
+   "watchdog_cmdline": "\"C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -NoProfile -File D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1 -Name sdmpc31_sdmpc9000_s31 -Network D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s31\\sdmpc\\network\\sdmpc31_sdmpc9000_s31.inpx -OutDir D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s31\\sdmpc\\preflight -SimPeriod 9000 -ControlIntervalSec 150 -Seed 31 -Controller wu-link -ControlStartSec 900 -WarmupController no-control -StateLogIntervalSec 150 -DemandScale 1 -DemandProfile D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\profile.csv -VehicleInputRoles D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv -UrbanInputGateMap D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv -Calibration D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json -Mapping D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json -Tuning D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\config_fo_v3c3.json -VbsConfig D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs -NoGlobalKill -MaxAttempts 1 -StartupStallSec 300 -StallSec 3600 -PreflightOnly",
+   "stall_in_watchdog_cmdline": [
+    "3600"
+   ],
+   "stall_in_status_arguments": [
+    "3600"
+   ],
+   "provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/fo/runner_preflight/s31/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s31.json",
+   "provenance_sha256": "dea0ba5e3eb52a942e6c5e558b0afe370e421079a214f222951e1553c4de3d28",
+   "env_empty_values": [
+    "RW_OBS150_GT"
+   ],
+   "hold_env": {
+    "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+    "RW_DECISION_HOLD_PREVIOUS": "1",
+    "RW_DECISION_TIMEOUT_SEC": "0"
+   },
+   "rw_config_sha": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "freeze_pin": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json",
+    "sha256": "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+   },
+   "plant_manifest": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\lane_plant\\candidate_manifest.json",
+    "sha256": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c"
+   },
+   "detectors": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+    "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "rows": 294
+   },
+   "seed_in_provenance": 31,
+   "sim_period_sec": 9000,
+   "controller": "wu-link",
+   "workspace_root": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954",
+   "checks": {
+    "exit0": true,
+    "freeze_verified_frz_fo": true,
+    "network_sha": true,
+    "hold_policy_env": true,
+    "tuning_sha": true,
+    "rw_config_sha": true,
+    "freeze_pin_frz_fo": true,
+    "plant_manifest_pin": true,
+    "detector_pin": true,
+    "controller_wu_link": true,
+    "seed": true,
+    "sim_period_9000": true,
+    "workspace_root_frz_fo": true,
+    "no_empty_rw_value": true,
+    "stall_3600_watchdog_cmdline": true,
+    "stall_3600_status_arguments": true,
+    "status_preflight_complete": true,
+    "vs_b1_only_declared": true,
+    "controller_sources_only_solo17": true
+   },
+   "vs_b1": {
+    "b1_provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/runner_preflight/s31/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s31.json",
+    "b1_sha256": "0d3ec1c35612f2204b746ec10828fabf4d2010cbdf7741b57e482556b8bac227",
+    "leaves_b1": 253,
+    "leaves_fo": 253,
+    "only_b1": [],
+    "only_fo": [],
+    "differing": {
+     "/created_at": [
+      "2026-10-26T14:13:19.1806780+09:00",
+      "2026-10-27T19:56:54.1159709+09:00"
+     ],
+     "/env/RW_SIGNAL_OBSERVATION_CONFIG_SHA256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/files/adapter/sha256": [
+      "a615d8caa54c42ce709e76a4a43112cf3bebd35e8bb63da8710fce07b12ad0c8",
+      "48fba73b198d3dd7fffc8cab9aa92ac8f838595af945a06f8200d17d07f82320"
+     ],
+     "/files/tuning/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/files/tuning/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/observation/freeze/sha256": [
+      "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+      "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+     ],
+     "/ramp_meter_timing/config_chain/0/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/ramp_meter_timing/config_chain/0/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/run_id": [
+      "ba6481418d5d4c98aa76c2699ae70548",
+      "5c50d850644d4e0f97adf8576cac2ccf"
+     ],
+     "/signal_observation/config_chain/0/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/signal_observation/config_chain/0/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ]
+    },
+    "undeclared_differing": [],
+    "controller_sources": {
+     "b1_count": 116,
+     "fo_count": 120,
+     "changed": [
+      "<FRZ>/evaluation/controllers/area_follower_objective.py",
+      "<FRZ>/evaluation/controllers/joint_owner_neighbors.py",
+      "<FRZ>/evaluation/controllers/runtime_setup.py",
+      "<FRZ>/evaluation/controllers/sdmpc.py",
+      "<FRZ>/evaluation/controllers/sdmpc_budget.py",
+      "<FRZ>/evaluation/controllers/sdmpc_central.py",
+      "<FRZ>/evaluation/controllers/sdmpc_pfo.py",
+      "<FRZ>/evaluation/controllers/sdmpc_sequence.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_constraints.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_surrogate.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_worker.py",
+      "<FRZ>/evaluation/controllers/vissim_stackelberg_adapter.py"
+     ],
+     "extra": [
+      "<FRZ>/evaluation/controllers/sdmpc_actuator_scope.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_context.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_contracts.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_prototype.py"
+     ],
+     "missing": [],
+     "declared_only_solo_bytes": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "label": "s41",
+   "seed": 41,
+   "tuning_expected_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "runner_exit": 0,
+   "wall_sec": 14.1,
+   "wrapper_error": null,
+   "freeze_verified_line": "FREEZE_VERIFIED path=D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json sha256=d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373",
+   "runner_err_log_bytes": 0,
+   "status_stage": "preflight_complete",
+   "watchdog_cmdline": "\"C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -NoProfile -File D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1 -Name sdmpc31_sdmpc9000_s41 -Network D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s41\\sdmpc\\network\\sdmpc31_sdmpc9000_s41.inpx -OutDir D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s41\\sdmpc\\preflight -SimPeriod 9000 -ControlIntervalSec 150 -Seed 41 -Controller wu-link -ControlStartSec 900 -WarmupController no-control -StateLogIntervalSec 150 -DemandScale 1 -DemandProfile D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\profile.csv -VehicleInputRoles D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv -UrbanInputGateMap D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv -Calibration D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json -Mapping D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json -Tuning D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\config_fo_v3c3.json -VbsConfig D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs -NoGlobalKill -MaxAttempts 1 -StartupStallSec 300 -StallSec 3600 -PreflightOnly",
+   "stall_in_watchdog_cmdline": [
+    "3600"
+   ],
+   "stall_in_status_arguments": [
+    "3600"
+   ],
+   "provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/fo/runner_preflight/s41/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s41.json",
+   "provenance_sha256": "51766b3be0c0bec7d2ba571d8ef84b21d9d090e7a832bdd5b58f8c72e5d9a394",
+   "env_empty_values": [
+    "RW_OBS150_GT"
+   ],
+   "hold_env": {
+    "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+    "RW_DECISION_HOLD_PREVIOUS": "1",
+    "RW_DECISION_TIMEOUT_SEC": "0"
+   },
+   "rw_config_sha": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "freeze_pin": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json",
+    "sha256": "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+   },
+   "plant_manifest": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\lane_plant\\candidate_manifest.json",
+    "sha256": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c"
+   },
+   "detectors": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+    "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "rows": 294
+   },
+   "seed_in_provenance": 41,
+   "sim_period_sec": 9000,
+   "controller": "wu-link",
+   "workspace_root": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954",
+   "checks": {
+    "exit0": true,
+    "freeze_verified_frz_fo": true,
+    "network_sha": true,
+    "hold_policy_env": true,
+    "tuning_sha": true,
+    "rw_config_sha": true,
+    "freeze_pin_frz_fo": true,
+    "plant_manifest_pin": true,
+    "detector_pin": true,
+    "controller_wu_link": true,
+    "seed": true,
+    "sim_period_9000": true,
+    "workspace_root_frz_fo": true,
+    "no_empty_rw_value": true,
+    "stall_3600_watchdog_cmdline": true,
+    "stall_3600_status_arguments": true,
+    "status_preflight_complete": true,
+    "vs_b1_only_declared": true,
+    "controller_sources_only_solo17": true
+   },
+   "vs_b1": {
+    "b1_provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/runner_preflight/s41/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s41.json",
+    "b1_sha256": "86ae6e5d468029c44c9873f43517f5433fe5eb96a0fe72e08141cec1f54006b8",
+    "leaves_b1": 253,
+    "leaves_fo": 253,
+    "only_b1": [],
+    "only_fo": [],
+    "differing": {
+     "/created_at": [
+      "2026-10-26T14:13:35.8378223+09:00",
+      "2026-10-27T19:57:10.1140665+09:00"
+     ],
+     "/env/RW_SIGNAL_OBSERVATION_CONFIG_SHA256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/files/adapter/sha256": [
+      "a615d8caa54c42ce709e76a4a43112cf3bebd35e8bb63da8710fce07b12ad0c8",
+      "48fba73b198d3dd7fffc8cab9aa92ac8f838595af945a06f8200d17d07f82320"
+     ],
+     "/files/tuning/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/files/tuning/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/observation/freeze/sha256": [
+      "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+      "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+     ],
+     "/ramp_meter_timing/config_chain/0/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/ramp_meter_timing/config_chain/0/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/run_id": [
+      "d48e87ef27b1459982d2d642585b3bd2",
+      "3dbe409be6ee4fdcb75d3410042cc6f2"
+     ],
+     "/signal_observation/config_chain/0/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/signal_observation/config_chain/0/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ]
+    },
+    "undeclared_differing": [],
+    "controller_sources": {
+     "b1_count": 116,
+     "fo_count": 120,
+     "changed": [
+      "<FRZ>/evaluation/controllers/area_follower_objective.py",
+      "<FRZ>/evaluation/controllers/joint_owner_neighbors.py",
+      "<FRZ>/evaluation/controllers/runtime_setup.py",
+      "<FRZ>/evaluation/controllers/sdmpc.py",
+      "<FRZ>/evaluation/controllers/sdmpc_budget.py",
+      "<FRZ>/evaluation/controllers/sdmpc_central.py",
+      "<FRZ>/evaluation/controllers/sdmpc_pfo.py",
+      "<FRZ>/evaluation/controllers/sdmpc_sequence.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_constraints.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_surrogate.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_worker.py",
+      "<FRZ>/evaluation/controllers/vissim_stackelberg_adapter.py"
+     ],
+     "extra": [
+      "<FRZ>/evaluation/controllers/sdmpc_actuator_scope.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_context.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_contracts.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_prototype.py"
+     ],
+     "missing": [],
+     "declared_only_solo_bytes": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "label": "s43",
+   "seed": 43,
+   "tuning_expected_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "runner_exit": 0,
+   "wall_sec": 14.9,
+   "wrapper_error": null,
+   "freeze_verified_line": "FREEZE_VERIFIED path=D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json sha256=d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373",
+   "runner_err_log_bytes": 0,
+   "status_stage": "preflight_complete",
+   "watchdog_cmdline": "\"C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -NoProfile -File D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1 -Name sdmpc31_sdmpc9000_s43 -Network D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s43\\sdmpc\\network\\sdmpc31_sdmpc9000_s43.inpx -OutDir D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s43\\sdmpc\\preflight -SimPeriod 9000 -ControlIntervalSec 150 -Seed 43 -Controller wu-link -ControlStartSec 900 -WarmupController no-control -StateLogIntervalSec 150 -DemandScale 1 -DemandProfile D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\profile.csv -VehicleInputRoles D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv -UrbanInputGateMap D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv -Calibration D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json -Mapping D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json -Tuning D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\config_fo_v3c3.json -VbsConfig D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs -NoGlobalKill -MaxAttempts 1 -StartupStallSec 300 -StallSec 3600 -PreflightOnly",
+   "stall_in_watchdog_cmdline": [
+    "3600"
+   ],
+   "stall_in_status_arguments": [
+    "3600"
+   ],
+   "provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/fo/runner_preflight/s43/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s43.json",
+   "provenance_sha256": "c640c095f17eebffff82c7f6146ab0aa08eb874e9285c2edca5caad9f7dc210a",
+   "env_empty_values": [
+    "RW_OBS150_GT"
+   ],
+   "hold_env": {
+    "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+    "RW_DECISION_HOLD_PREVIOUS": "1",
+    "RW_DECISION_TIMEOUT_SEC": "0"
+   },
+   "rw_config_sha": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3",
+   "freeze_pin": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json",
+    "sha256": "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+   },
+   "plant_manifest": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\lane_plant\\candidate_manifest.json",
+    "sha256": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c"
+   },
+   "detectors": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+    "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "rows": 294
+   },
+   "seed_in_provenance": 43,
+   "sim_period_sec": 9000,
+   "controller": "wu-link",
+   "workspace_root": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954",
+   "checks": {
+    "exit0": true,
+    "freeze_verified_frz_fo": true,
+    "network_sha": true,
+    "hold_policy_env": true,
+    "tuning_sha": true,
+    "rw_config_sha": true,
+    "freeze_pin_frz_fo": true,
+    "plant_manifest_pin": true,
+    "detector_pin": true,
+    "controller_wu_link": true,
+    "seed": true,
+    "sim_period_9000": true,
+    "workspace_root_frz_fo": true,
+    "no_empty_rw_value": true,
+    "stall_3600_watchdog_cmdline": true,
+    "stall_3600_status_arguments": true,
+    "status_preflight_complete": true,
+    "vs_b1_only_declared": true,
+    "controller_sources_only_solo17": true
+   },
+   "vs_b1": {
+    "b1_provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/runner_preflight/s43/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s43.json",
+    "b1_sha256": "d8e6ea3fb078371e4dd0f887795049a725135bbe07ed92bc21788c17802cc7dc",
+    "leaves_b1": 253,
+    "leaves_fo": 253,
+    "only_b1": [],
+    "only_fo": [],
+    "differing": {
+     "/created_at": [
+      "2026-10-26T14:13:52.0209607+09:00",
+      "2026-10-27T19:57:26.6003640+09:00"
+     ],
+     "/env/RW_SIGNAL_OBSERVATION_CONFIG_SHA256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/files/adapter/sha256": [
+      "a615d8caa54c42ce709e76a4a43112cf3bebd35e8bb63da8710fce07b12ad0c8",
+      "48fba73b198d3dd7fffc8cab9aa92ac8f838595af945a06f8200d17d07f82320"
+     ],
+     "/files/tuning/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/files/tuning/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/observation/freeze/sha256": [
+      "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+      "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+     ],
+     "/ramp_meter_timing/config_chain/0/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/ramp_meter_timing/config_chain/0/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ],
+     "/run_id": [
+      "bbd6ef019d254d298ca1754cd118c723",
+      "35edd4bd94c34e4e8feb4fc7c3af5c2e"
+     ],
+     "/signal_observation/config_chain/0/path": [
+      "<FRZ>/diagnostics/b0_v3c3/config_b0_v3c3.json",
+      "<FRZ>/diagnostics/b0_v3c3/config_fo_v3c3.json"
+     ],
+     "/signal_observation/config_chain/0/sha256": [
+      "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+      "80e0abefdb25526374c97d8f7a6b45b9ad434db1f3499cec208985038ac249f3"
+     ]
+    },
+    "undeclared_differing": [],
+    "controller_sources": {
+     "b1_count": 116,
+     "fo_count": 120,
+     "changed": [
+      "<FRZ>/evaluation/controllers/area_follower_objective.py",
+      "<FRZ>/evaluation/controllers/joint_owner_neighbors.py",
+      "<FRZ>/evaluation/controllers/runtime_setup.py",
+      "<FRZ>/evaluation/controllers/sdmpc.py",
+      "<FRZ>/evaluation/controllers/sdmpc_budget.py",
+      "<FRZ>/evaluation/controllers/sdmpc_central.py",
+      "<FRZ>/evaluation/controllers/sdmpc_pfo.py",
+      "<FRZ>/evaluation/controllers/sdmpc_sequence.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_constraints.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_surrogate.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_worker.py",
+      "<FRZ>/evaluation/controllers/vissim_stackelberg_adapter.py"
+     ],
+     "extra": [
+      "<FRZ>/evaluation/controllers/sdmpc_actuator_scope.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_context.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_contracts.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_prototype.py"
+     ],
+     "missing": [],
+     "declared_only_solo_bytes": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "label": "s31b",
+   "seed": 31,
+   "tuning_expected_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+   "runner_exit": 0,
+   "wall_sec": 14.5,
+   "wrapper_error": null,
+   "freeze_verified_line": "FREEZE_VERIFIED path=D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json sha256=d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373",
+   "runner_err_log_bytes": 0,
+   "status_stage": "preflight_complete",
+   "watchdog_cmdline": "\"C:\\Users\\TRLAB\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -NoProfile -File D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1 -Name sdmpc31_sdmpc9000_s31 -Network D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s31b\\sdmpc\\network\\sdmpc31_sdmpc9000_s31.inpx -OutDir D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\runner_preflight\\s31b\\sdmpc\\preflight -SimPeriod 9000 -ControlIntervalSec 150 -Seed 31 -Controller wu-link -ControlStartSec 900 -WarmupController no-control -StateLogIntervalSec 150 -DemandScale 1 -DemandProfile D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\profile.csv -VehicleInputRoles D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv -UrbanInputGateMap D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_inventory\\urban_input_gate_map_ver2_20260907.csv -Calibration D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json -Mapping D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json -Tuning D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\config_b0_v3c3.json -VbsConfig D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\integration_20260926\\selected\\scenario\\lane_native_b110.vbs -NoGlobalKill -MaxAttempts 1 -StartupStallSec 300 -StallSec 3600 -PreflightOnly",
+   "stall_in_watchdog_cmdline": [
+    "3600"
+   ],
+   "stall_in_status_arguments": [
+    "3600"
+   ],
+   "provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/fo/runner_preflight/s31b/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s31.json",
+   "provenance_sha256": "d5a724f8b82a8efff9015fd995c19e3493b0afe6bea2cc393a39a6b0739d1c82",
+   "env_empty_values": [
+    "RW_OBS150_GT"
+   ],
+   "hold_env": {
+    "RW_DECISION_ERROR_POLICY": "hold_previous_on_exception",
+    "RW_DECISION_HOLD_PREVIOUS": "1",
+    "RW_DECISION_TIMEOUT_SEC": "0"
+   },
+   "rw_config_sha": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+   "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+   "tuning_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+   "freeze_pin": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\FREEZE.json",
+    "sha256": "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+   },
+   "plant_manifest": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\b0_v3c3\\lane_plant\\candidate_manifest.json",
+    "sha256": "1184249889cc8ceeb0e730176ea058cf5a7e53aa98732bbb14e0dd113411f25c"
+   },
+   "detectors": {
+    "path": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954\\diagnostics\\sdmpc_n31_20260924\\obs150\\obs150_detectors_v2.csv",
+    "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc",
+    "rows": 294
+   },
+   "seed_in_provenance": 31,
+   "sim_period_sec": 9000,
+   "controller": "wu-link",
+   "workspace_root": "D:\\VISSIM-merge\\k8_gate_trees\\codexhandoff\\fo\\frozen\\sdmpc31_a49981ff_202610271954",
+   "checks": {
+    "exit0": true,
+    "freeze_verified_frz_fo": true,
+    "network_sha": true,
+    "hold_policy_env": true,
+    "tuning_sha": true,
+    "rw_config_sha": true,
+    "freeze_pin_frz_fo": true,
+    "plant_manifest_pin": true,
+    "detector_pin": true,
+    "controller_wu_link": true,
+    "seed": true,
+    "sim_period_9000": true,
+    "workspace_root_frz_fo": true,
+    "no_empty_rw_value": true,
+    "stall_3600_watchdog_cmdline": true,
+    "stall_3600_status_arguments": true,
+    "status_preflight_complete": true,
+    "vs_b1_only_declared": true,
+    "controller_sources_only_solo17": true
+   },
+   "vs_b1": {
+    "b1_provenance": "D:/VISSIM-merge/k8_gate_trees/codexhandoff/b1/runner_preflight/s31/sdmpc/preflight/run_provenance_sdmpc31_sdmpc9000_s31.json",
+    "b1_sha256": "0d3ec1c35612f2204b746ec10828fabf4d2010cbdf7741b57e482556b8bac227",
+    "leaves_b1": 253,
+    "leaves_fo": 253,
+    "only_b1": [],
+    "only_fo": [],
+    "differing": {
+     "/created_at": [
+      "2026-10-26T14:13:19.1806780+09:00",
+      "2026-10-27T19:57:42.8971226+09:00"
+     ],
+     "/files/adapter/sha256": [
+      "a615d8caa54c42ce709e76a4a43112cf3bebd35e8bb63da8710fce07b12ad0c8",
+      "48fba73b198d3dd7fffc8cab9aa92ac8f838595af945a06f8200d17d07f82320"
+     ],
+     "/observation/freeze/sha256": [
+      "558de2c1b80799a9bedfb192b40b6f5cfa2775853b3431eb181f7b25beca10d1",
+      "d7fa4db6c3ca854a3c6c7dfd352f97626d6f9ca9d0e5ea6f18e36fc779d37373"
+     ],
+     "/run_id": [
+      "ba6481418d5d4c98aa76c2699ae70548",
+      "e733d2500c6d49af976ac4a7a599c268"
+     ]
+    },
+    "undeclared_differing": [],
+    "controller_sources": {
+     "b1_count": 116,
+     "fo_count": 120,
+     "changed": [
+      "<FRZ>/evaluation/controllers/area_follower_objective.py",
+      "<FRZ>/evaluation/controllers/joint_owner_neighbors.py",
+      "<FRZ>/evaluation/controllers/runtime_setup.py",
+      "<FRZ>/evaluation/controllers/sdmpc.py",
+      "<FRZ>/evaluation/controllers/sdmpc_budget.py",
+      "<FRZ>/evaluation/controllers/sdmpc_central.py",
+      "<FRZ>/evaluation/controllers/sdmpc_pfo.py",
+      "<FRZ>/evaluation/controllers/sdmpc_sequence.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_constraints.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_surrogate.py",
+      "<FRZ>/evaluation/controllers/sdmpc_tangent_worker.py",
+      "<FRZ>/evaluation/controllers/vissim_stackelberg_adapter.py"
+     ],
+     "extra": [
+      "<FRZ>/evaluation/controllers/sdmpc_actuator_scope.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_context.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_contracts.py",
+      "<FRZ>/evaluation/controllers/sdmpc_regional_prototype.py"
+     ],
+     "missing": [],
+     "declared_only_solo_bytes": true
+    }
+   },
+   "pass": true
+  }
+ ],
+ "pairing": [
+  {
+   "seed": 31,
+   "nc3": {
+    "prepared_seed": 31,
+    "run_seed": 31,
+    "completed": true,
+    "exit_code": 0,
+    "source_network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+    "prepared_network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+    "fzp": true
+   },
+   "b": {
+    "seed": 31,
+    "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+    "tuning_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+    "sim_done": true,
+    "sim_sec_9000": true
+   },
+   "va": {
+    "seed": 31,
+    "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+   },
+   "checks": {
+    "nc3_seed": true,
+    "nc3_completed": true,
+    "nc3_network_is_recorded_source": true,
+    "b_seed_net_tuning_done": true,
+    "va_seed_net": true
+   }
+  },
+  {
+   "seed": 41,
+   "nc3": {
+    "prepared_seed": 41,
+    "run_seed": 41,
+    "completed": true,
+    "exit_code": 0,
+    "source_network_sha256": "726af589bddb8c7267654bda446d2f1a4378451f51e1593857062fca0d32587e",
+    "prepared_network_sha256": "726af589bddb8c7267654bda446d2f1a4378451f51e1593857062fca0d32587e",
+    "fzp": true
+   },
+   "b": {
+    "seed": 41,
+    "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+    "tuning_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+    "sim_done": true,
+    "sim_sec_9000": true
+   },
+   "va": {
+    "seed": 41,
+    "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+   },
+   "checks": {
+    "nc3_seed": true,
+    "nc3_completed": true,
+    "nc3_network_is_recorded_source": true,
+    "b_seed_net_tuning_done": true,
+    "va_seed_net": true
+   }
+  },
+  {
+   "seed": 43,
+   "nc3": {
+    "prepared_seed": 43,
+    "run_seed": 43,
+    "completed": true,
+    "exit_code": 0,
+    "source_network_sha256": "51478c397b3a2570fc2254a9fa8120a2415304942589f5fb5c2eb1b6858f2dda",
+    "prepared_network_sha256": "51478c397b3a2570fc2254a9fa8120a2415304942589f5fb5c2eb1b6858f2dda",
+    "fzp": true
+   },
+   "b": {
+    "seed": 43,
+    "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+    "tuning_sha256": "729640af754a90c8d7fbe8f81577b27bae02b86f1d504e18333c0fc99717f983",
+    "sim_done": true,
+    "sim_sec_9000": true
+   },
+   "va": {
+    "seed": 43,
+    "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
+   },
+   "checks": {
+    "nc3_seed": true,
+    "nc3_completed": true,
+    "nc3_network_is_recorded_source": true,
+    "b_seed_net_tuning_done": true,
+    "va_seed_net": true
+   }
+  }
+ ],
+ "sig_files": {
+  "count_frz_fo": 42,
+  "equal_to_frz_fo": {
+   "NC3_s31": true,
+   "NC3_s41": true,
+   "NC3_s43": true,
+   "B_s31": true,
+   "B_s41": true,
+   "B_s43": true,
+   "VA_s31": true,
+   "VA_s41": true,
+   "VA_s43": true
+  }
+ },
+ "sig_check": true,
+ "pass": true
+}

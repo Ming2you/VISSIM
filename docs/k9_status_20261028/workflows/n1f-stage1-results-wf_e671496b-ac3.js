@@ -1,0 +1,24 @@
+export const meta = {
+  name: 'n1f-stage1-results',
+  description: 'Write N1F stage-1 results report (fixed desired-speed VSL: D1-D6 + harmonisation + D5) from the frozen analysis outputs, then adversarially verify (independent recomputation of D1 from moments, freeze integrity, G0-G4, D5 pairing)',
+  phases: [
+    { title: 'Report', detail: 'N1F_RESULTS.md' },
+    { title: 'Verify', detail: 'independent recomputation' },
+  ],
+}
+const ROOT = 'D:/VISSIM_runs/20260928_n1f_vsl'
+const REV = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/vsl-fixed-dsd'
+const COMMON = `
+CONTEXT (absolute paths). Korean prose; mark [실행]/[읽음]/[추론]; cite file:line. Write only ${ROOT}/reports/N1F_RESULTS.md and files under ${ROOT}/reports/verify/ (create). Do not modify anything else under ${ROOT} (frozen tools, plan, run folders), nor the N1 tree D:/VISSIM_runs/20260927_n1_vsl.
+- N1F stage 1 (user-approved 2026-09-28): fixed desired-speed VSL arms c90f (DSD 91 = uniform 90-92, 'command-matched') and c90r (DSD 94 = uniform 93-95, 'realised-speed-matched, spread removed'), seeds 41/43/47/53, schedules = N1 c90. Design and pre-declared rules: ${REV}/VSL_FIXED_DSD_REVIEW.md §4, ${ROOT}/plan/n1f_plan_v1.json, ${ROOT}/reports/PREDECLARATION.md, analysis_freeze.json (58621873), analysis_freeze_addendum_d5.json. Queue log ${ROOT}/queue.log (8/8 G0 IDENTICAL, G1/G2 passed). Analysis outputs: per-arm extract/fzp_pass (g4.json)/moments.json/harmonise outputs, ${ROOT}/reports/fit_results.json + fit_summary.txt (D1-D4, D6), ${ROOT}/reports/d5/ (d5_metrics.json, d5_metrics_console.txt). Stage 0: ${ROOT}/stage0/STAGE0_FOUR_METRICS.md. N1 (distribution arms) results: D:/VISSIM_runs/20260927_n1_vsl/reports/N1_RESULTS.md.
+- User decisions so far: the VSL compliance main model will be replaced by single-value desired speeds, but SDMPC network/pins stay unchanged until N1F results; stage 2 (c80f/c100f ladder etc.) not yet approved.
+- DATA DISCIPLINE: never open seed 37 outputs, RM arms or sealed seeds 59/61/67. Keep CPU modest (BELOW_NORMAL, one process at a time; VISSIM is idle now but other workflows run).
+`
+phase('Report')
+const rep = await agent(`${COMMON}
+TASK: write ${ROOT}/reports/N1F_RESULTS.md (Korean, plain summary first): §0 한 줄 결론 + 사용자가 정할 것; §1 유효성 (G0-G4, freeze integrity, pairing, exposure); §2 D1 방류 (primary/interior, both contrasts, per-seed, operating characteristic note V10); §3 D2 조화 (within-cell sd, across-lane sd, lane changes, HGV-car; c90 vs c90f vs c90r in WC Z0 and WA Z0, with N1 control/c90 references); §4 D3 자유류 속도 (c90f pair 1, c90r realised-speed match check); §5 D4 서술 (M3/M5/M7 regimes); §6 D5 네 지표 (pair 1 and pair 2, against stage-0 half-widths); §7 D6 고정 체제 법칙 (fits; caveat: only one command level (90) with two DSD placements -> the law across 80/100 is not identified; what the stage-2 ladder c100f/c80f would add; how the plant would change); §8 함의 for the user's 'regulating' argument (harmonisation achieved almost completely yet discharge unchanged post-breakdown; the untested pre-breakdown path P; realism caveat of single-value compliance); §9 근거 파일과 sha. Numbers only from the output files; recompute nothing silently — if you compute a derived number, say how.`, { label: 'report', phase: 'Report', schema: { type: 'object', properties: { summary_ko: { type: 'string' }, questions_ko: { type: 'array', items: { type: 'string' } } }, required: ['summary_ko'] } })
+phase('Verify')
+const v = await agent(`${COMMON}
+Draft summary: ${JSON.stringify(rep)}
+TASK (adversarial verifier; write scripts/results under ${ROOT}/reports/verify/): (1) freeze integrity: recompute sha256 of the plan and every tool listed in analysis_freeze.json and the D5 addendum and confirm they equal the receipts and that no tool file changed after 17:28; (2) recompute D1 independently from the per-arm moments.json (and N1 c90 / NC reference moments named in the freeze) with the plan's estimator (rule SE = max(kappa x model SE, SE_between, sd(d_i)/sqrt(k)), t0.95(3)) — do not import n1f_fit; compare with fit_results.json; (3) check G4 shares and G0/G1/G2 from the per-arm json and queue.log; (4) spot-check the harmonisation numbers for one seed by an independent FZP read (one process, BELOW_NORMAL) or from the harmonise outputs if a full read is too heavy, and the D5 pairing (pre-2700 identity); (5) check N1F_RESULTS.md numbers against the outputs and fix any wrong statement in place (append '검증' section listing fixes). Return blocking issues left and a Korean note.`, { label: 'verify', phase: 'Verify', schema: { type: 'object', properties: { blocking: { type: 'array', items: { type: 'string' } }, fixed: { type: 'array', items: { type: 'string' } }, notes_ko: { type: 'string' } }, required: ['blocking', 'notes_ko'] } })
+return { rep, v }

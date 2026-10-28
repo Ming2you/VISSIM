@@ -1,0 +1,110 @@
+--- a32decl/vbhook/sitecustomize.py	2026-10-22 09:48:50.981555100 +0900
++++ a33decl/vbhook/sitecustomize.py	2026-10-22 14:23:05.142171400 +0900
+@@ -1,5 +1,9 @@
+ # K9-2 V-B measurement hook (K8_PREDECLARATION_AMENDMENT_32 section 3; user decision D-K9-63).  Diagnostics only,
+ # never committed.  READ-ONLY with respect to the program it is loaded into.
++# Amendment 33 (user decision D-K9-65): only the names of the files / folders this hook writes changed.  Every name
++# carries a per-process token <pid>_<time_ns>_<16 hex> drawn once at setup (the OS process id, the wall clock in ns and
++# 8 bytes of os.urandom), so a process id the OS hands out again inside one decision never meets an earlier name; every
++# file / folder is created exclusively (os.mkdir, open mode 'x'; the error files are append-only) and never overwritten.
+ # Loaded only through the V-B launcher's extra PYTHONPATH entry (this folder holds this one file); the tangent worker
+ # processes inherit PYTHONPATH and the environment.  Inert unless env K92VB_HOOK_DIR is set.
+ # Same mechanism as the attribution-study hook (SP/k92/attrib/hook/sitecustomize.py, METHOD.md section 5.1):
+@@ -11,7 +15,7 @@
+ #     network_facts(cfg); collect(point.control_area_response, T, dt); write(folder, job, T, dt, 3, None)
+ # with T = K92VB_T (the decision time), dt = cfg.simulation.T_c_sec, H = 3 blocks (450 s), keyed = None and
+ # job = {'label': K92VB_LABEL, 'harness': 'k92vb_hook', 'seed': K92VB_SEED, 'T': T}.  write() puts k92_record.json and
+-# k92_series.npz into <K92VB_HOOK_DIR>/c_<pid>_<seq:04d>/; the hook adds cand.json there (the action signature read
++# k92_series.npz into <K92VB_HOOK_DIR>/c_<token>_<seq:04d>/; the hook adds cand.json there (the action signature read
+ # from the caller frame's local `action`, flags, timing).  Choosing the candidate of the decision's written action is
+ # done afterwards by vb_select.py, outside the program.
+ # Reading rules (attribution hook rules): attribute reads, dict/list iteration, isinstance, number extraction only.  A
+@@ -19,8 +23,8 @@
+ # MRO holds `Dual` of module evaluation.controllers.sdmpc_dual), numpy scalars by float().  No method of a model object
+ # is called (dict get/items/keys excepted; the recorder's own reads are the same kind).  No `evaluation` / `src` module
+ # is imported.  Nothing reachable from a frame is written.  Every exception inside the hook is caught and written to
+-# hook_error_<pid>.txt (setup: hook_setup_error_<pid>.txt); nothing is raised into the original program.  The per-call
+-# folder number comes from a counter under a threading.Lock.
++# hook_error_<token>.txt (setup: hook_setup_error_<token>.txt); nothing is raised into the original program.  The
++# per-call folder number comes from a counter under a threading.Lock.
+ import os
+ import sys
+ 
+@@ -30,7 +34,14 @@
+ _SCHEMA = 'k92vb-candidate/v1'
+ 
+ 
+-def _setup():
++def _proc_token():
++    """'<pid>_<time_ns>_<16 hex>', drawn once per process (amendment 33 section 2.1).  os.urandom reads the OS random
++    source; the random module and numpy random states are not touched."""
++    import time
++    return '%d_%d_%s' % (os.getpid(), time.time_ns(), os.urandom(8).hex())
++
++
++def _setup(tok):
+     import hashlib
+     import json
+     import threading
+@@ -58,11 +69,11 @@
+         got = hashlib.sha256(src).hexdigest()
+     except Exception:  # noqa: BLE001
+         loaded['recorder_ok'] = False
+-        with open(os.path.join(_OUT, 'loaded_%d.json' % pid), 'w', encoding='utf-8') as h:
++        with open(os.path.join(_OUT, 'loaded_%s.json' % tok), 'x', encoding='utf-8') as h:
+             json.dump(loaded, h)
+         raise
+     loaded.update(T=T, seed=seed, recorder_sha256=got, recorder_ok=(got == rec_want and len(rec_want) == 64))
+-    with open(os.path.join(_OUT, 'loaded_%d.json' % pid), 'w', encoding='utf-8') as h:
++    with open(os.path.join(_OUT, 'loaded_%s.json' % tok), 'x', encoding='utf-8') as h:
+         json.dump(loaded, h)
+     if not loaded['recorder_ok']:
+         raise RuntimeError('K92VB: recorder bytes differ from K92VB_RECORDER_SHA256 (%s)' % got)
+@@ -83,7 +94,7 @@
+     def error(where):
+         try:
+             with lock:
+-                with open(os.path.join(_OUT, 'hook_error_%d.txt' % pid), 'a', encoding='utf-8') as h:
++                with open(os.path.join(_OUT, 'hook_error_%s.txt' % tok), 'a', encoding='utf-8') as h:
+                     h.write('%s %s\n%s\n' % (time.strftime('%Y-%m-%dT%H:%M:%S'), where, traceback.format_exc()))
+         except Exception:  # noqa: BLE001
+             pass
+@@ -173,8 +184,8 @@
+         with lock:
+             state['seq'] += 1
+             seq = state['seq']
+-        folder = os.path.join(_OUT, 'c_%d_%04d' % (pid, seq))
+-        os.makedirs(folder)
++        folder = os.path.join(_OUT, 'c_%s_%04d' % (tok, seq))
++        os.mkdir(folder)
+         num = Num()
+         L = frame.f_locals
+         point, cfg = L.get('point'), L.get('cfg')
+@@ -213,7 +224,7 @@
+         meta['is_ad'] = bool(num.ad)
+         meta['incomplete_types'] = dict(num.bad)
+         meta['hook_sec'] = time.perf_counter() - t0
+-        with open(os.path.join(folder, 'cand.json'), 'w', encoding='utf-8') as h:
++        with open(os.path.join(folder, 'cand.json'), 'x', encoding='utf-8') as h:
+             json.dump(meta, h, separators=(',', ':'), default=str)
+ 
+     def on_start(code, offset):
+@@ -236,13 +247,16 @@
+ 
+ 
+ if _OUT:
++    _TOK = None
+     try:
+-        _setup()
++        _TOK = _proc_token()
++        _setup(_TOK)
+     except Exception:  # noqa: BLE001
+         try:
+             import traceback as _tb
+             os.makedirs(_OUT, exist_ok=True)
+-            with open(os.path.join(_OUT, 'hook_setup_error_%d.txt' % os.getpid()), 'w', encoding='utf-8') as _h:
++            _name = 'hook_setup_error_%s.txt' % (_TOK if _TOK else '%d_notoken' % os.getpid())
++            with open(os.path.join(_OUT, _name), 'a', encoding='utf-8') as _h:
+                 _h.write(_tb.format_exc())
+         except Exception:  # noqa: BLE001
+             pass

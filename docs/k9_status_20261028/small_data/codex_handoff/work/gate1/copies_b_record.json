@@ -1,0 +1,980 @@
+[
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/omega/omega701_recount.py",
+  "src_sha256": "5b7826f65c58a883c2dc4a3eccd6de92563bb12f812dd0d6579be8a42c92a5ac",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/omega_b/omega701_recount_b.py",
+  "dst_sha256": "3d5160da36f984b554444c06e513500590551682b706a234cc67f9fc0221f150",
+  "eol": "LF",
+  "why": "B: slot j1 -> B run paths (FZP, inpx, err, run dir); no stage-1 scan cross-check for the slot; outputs in omega_b/",
+  "n_replacements": 4,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     1,
+     1
+    ],
+    "dst_lines": [
+     1,
+     1
+    ],
+    "old": [
+     "r\"\"\"OMEGA701_V3C3 (2026-10-25 KST): Omega701 recount of our 9 v3c3 runs + joint metric table, one tool."
+    ],
+    "new": [
+     "r\"\"\"[B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; slot \"j1\" = B runs v3c3-s31/s41/s43] OMEGA701_V3C3 (2026-10-25 KST): Omega701 recount of our 9 v3c3 runs + joint metric table, one tool."
+    ]
+   },
+   {
+    "op": "insert",
+    "src_lines": [
+     69,
+     68
+    ],
+    "dst_lines": [
+     69,
+     72
+    ],
+    "old": [],
+    "new": [
+     "B_RUNS = {_s: {'fzp': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s%d/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s%d_001.fzp' % (_s, _s),",
+     "                'inpx': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s%d/sdmpc/network/sdmpc31_sdmpc9000_s%d.inpx' % (_s, _s),",
+     "                'err': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s%d/sdmpc/network/sdmpc31_sdmpc9000_s%d_001.err' % (_s, _s),",
+     "                'run_dir': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s%d/sdmpc' % _s} for _s in SEEDS}   # B copy: codex-runner layout"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     72,
+     72
+    ],
+    "dst_lines": [
+     76,
+     76
+    ],
+    "old": [
+     "    RUNS['j1_s%d' % _s] = dict(runner(RJ1, J1_NAMES[_s]), arm='j1', seed=_s)"
+    ],
+    "new": [
+     "    RUNS['j1_s%d' % _s] = dict(B_RUNS[_s], arm='j1', seed=_s)   # B copy: slot j1 = B"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     78,
+     78
+    ],
+    "dst_lines": [
+     82,
+     82
+    ],
+    "old": [
+     "OLD_SCANS.update({('j1_s%d' % s): SP + '/j1/analysis/scans/j1_s%d' % s for s in SEEDS})"
+    ],
+    "new": [
+     "# B copy: no stage-1 scan exists for the B runs in slot j1 (the J1 scans are not B)"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr/vhr_scan.py",
+  "src_sha256": "a19942b8358b353329c30818c59b63cc88ff4b65e8b3dfa291de89e4c1de1865",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr_b/vhr_scan_b.py",
+  "dst_sha256": "0c445bc4bf05f45f7638be8227f0f29c2b036c0f276083958ff6bac87a85466e",
+  "eol": "CRLF",
+  "why": "B: output folder vhr_b/scan_out; slot j1 -> B FZP paths",
+  "n_replacements": 4,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     8,
+     8
+    ],
+    "dst_lines": [
+     8,
+     8
+    ],
+    "old": [
+     "OUT = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr/scan_out'"
+    ],
+    "new": [
+     "OUT = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr_b/scan_out'   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; slot \"j1\" = B runs v3c3-s31/s41/s43] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     16,
+     16
+    ],
+    "dst_lines": [
+     16,
+     16
+    ],
+    "old": [
+     "    'j1_s31': 'D:/VISSIM_runs/20261004_sdmpc31_k8/sdmpc31_v3c3_k8j1r_s31/vissim_eval/sdmpc31_sdmpc31_v3c3_k8j1r_s31_001.fzp',"
+    ],
+    "new": [
+     "    'j1_s31': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_001.fzp',   # B copy: slot j1 = B"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     22,
+     22
+    ],
+    "dst_lines": [
+     22,
+     22
+    ],
+    "old": [
+     "    'j1_s41': 'D:/VISSIM_runs/20261004_sdmpc31_k8/sdmpc31_v3c3_k8j1_s41/vissim_eval/sdmpc31_sdmpc31_v3c3_k8j1_s41_001.fzp',"
+    ],
+    "new": [
+     "    'j1_s41': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_001.fzp',   # B copy: slot j1 = B"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     25,
+     25
+    ],
+    "dst_lines": [
+     25,
+     25
+    ],
+    "old": [
+     "    'j1_s43': 'D:/VISSIM_runs/20261004_sdmpc31_k8/sdmpc31_v3c3_k8j1_s43/vissim_eval/sdmpc31_sdmpc31_v3c3_k8j1_s43_001.fzp',"
+    ],
+    "new": [
+     "    'j1_s43': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.fzp',   # B copy: slot j1 = B"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr/vhr_firstseen.py",
+  "src_sha256": "42e17585172e8c3cdc529ee0b0768ec958ab34729bbe686c590e70053ada4c94",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr_b/vhr_firstseen_b.py",
+  "dst_sha256": "d5c3c126490e4d1260063b51a9b97b4948b7c1ac35846c32761423c90088471b",
+  "eol": "CRLF",
+  "why": "B: output folder vhr_b/scan_out; slot j1 -> B FZP paths",
+  "n_replacements": 4,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     7,
+     7
+    ],
+    "dst_lines": [
+     7,
+     7
+    ],
+    "old": [
+     "OUT = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr/scan_out'"
+    ],
+    "new": [
+     "OUT = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr_b/scan_out'   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; slot \"j1\" = B runs v3c3-s31/s41/s43] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     13,
+     13
+    ],
+    "dst_lines": [
+     13,
+     13
+    ],
+    "old": [
+     "    'j1_s31': 'D:/VISSIM_runs/20261004_sdmpc31_k8/sdmpc31_v3c3_k8j1r_s31/vissim_eval/sdmpc31_sdmpc31_v3c3_k8j1r_s31_001.fzp',"
+    ],
+    "new": [
+     "    'j1_s31': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_001.fzp',   # B copy: slot j1 = B"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     17,
+     17
+    ],
+    "dst_lines": [
+     17,
+     17
+    ],
+    "old": [
+     "    'j1_s41': 'D:/VISSIM_runs/20261004_sdmpc31_k8/sdmpc31_v3c3_k8j1_s41/vissim_eval/sdmpc31_sdmpc31_v3c3_k8j1_s41_001.fzp',"
+    ],
+    "new": [
+     "    'j1_s41': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_001.fzp',   # B copy: slot j1 = B"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     20,
+     20
+    ],
+    "dst_lines": [
+     20,
+     20
+    ],
+    "old": [
+     "    'j1_s43': 'D:/VISSIM_runs/20261004_sdmpc31_k8/sdmpc31_v3c3_k8j1_s43/vissim_eval/sdmpc31_sdmpc31_v3c3_k8j1_s43_001.fzp',"
+    ],
+    "new": [
+     "    'j1_s43': 'D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.fzp',   # B copy: slot j1 = B"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr/vhr_v3c3_all.py",
+  "src_sha256": "b42372512a26960530cfe89b1dc731a74f7fc83531c17f4ec04c4706409d2c99",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr_b/vhr_v3c3_all_b.py",
+  "dst_sha256": "d91ded54904eb43a78a49f0d2a1382396258a0cf0621fbf6e7ba2410fb7283ed",
+  "eol": "LF",
+  "why": "B: read vhr_b/scan_out (slot j1 = B); writes vhr_b/v3c3_all.json",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     4,
+     4
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "S = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr/scan_out'"
+    ],
+    "new": [
+     "S = 'C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/vhr_b/scan_out'   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; slot \"j1\" = B runs v3c3-s31/s41/s43] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan_fzp.py",
+  "src_sha256": "c8a6e5c4ee873a698b660b32662ec09d4f5f280765a2413764259372a5ddc425",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/scan_fzp_b_s31.py",
+  "dst_sha256": "943e06db1151ec73e652e8dbd61d980e6ebfb11025f2ddc9fd7a95ffa353311a",
+  "eol": "LF",
+  "why": "B s31: output folder rawcheck_b/s31/scan; slot nc -> NC3 s31 FZP, joint -> B s31 FZP",
+  "n_replacements": 3,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     10,
+     10
+    ],
+    "dst_lines": [
+     10,
+     10
+    ],
+    "old": [
+     "OUT = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan\""
+    ],
+    "new": [
+     "OUT = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/scan\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s31; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     15
+    ],
+    "dst_lines": [
+     14,
+     15
+    ],
+    "old": [
+     "    \"nc\": f\"{R}/nc/vissim_eval/sdmpc31_nc9000_s29_001.fzp\",",
+     "    \"joint\": f\"{R}/joint/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp\","
+    ],
+    "new": [
+     "    \"nc\": \"D:/VISSIM_runs/20261001_v3c3/s31_v3c3nc/run/vissim_eval/baseline_s31_v3c3nc_001.fzp\",   # B copy: slot nc = NC3 v3c3-s31",
+     "    \"joint\": \"D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_001.fzp\",   # B copy: slot joint = B v3c3-s31"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/metrics.py",
+  "src_sha256": "b524b51be11b15e28971b141fe9b9b812631ac5b96d86d116cc0f4955c75cf0d",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/metrics_b_s31.py",
+  "dst_sha256": "84d15045efcb9756e675b534df60f6a6a8ce5e5b873a1c3a33a7ed8675e42235",
+  "eol": "LF",
+  "why": "B s31: read rawcheck_b/s31/scan (nc = NC3, joint = B; the other five = byte copies of the codex scans)",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     4,
+     4
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "S = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan\""
+    ],
+    "new": [
+     "S = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/scan\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s31; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/rm_exec.py",
+  "src_sha256": "27f6402205d6c7cbd3524a44ee35632e19a90f681a10d21fffa3b5518dbb1c10",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/rm_exec_b_s31.py",
+  "dst_sha256": "0c26104b46e79733d7dc5a4bd10a27a02dc30011518a02282d98a6c6e3e7d39a",
+  "eol": "LF",
+  "why": "B s31: B results root, arm folder s31, B file names (sdmpc9000_s31)",
+  "n_replacements": 4,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     3,
+     3
+    ],
+    "dst_lines": [
+     3,
+     3
+    ],
+    "old": [
+     "R = \"D:/VISSIM_handoff/20261024/raw\""
+    ],
+    "new": [
+     "R = \"D:/VISSIM_runs/20261026_codex_b_v3c3\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s31; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     6,
+     7
+    ],
+    "dst_lines": [
+     6,
+     7
+    ],
+    "old": [
+     "for a in [\"joint\", \"window\", \"off\", \"freeway_only\", \"urban_only\"]:",
+     "    rows = [r for r in csv.DictReader(open(f\"{R}/{a}/sdmpc/action_sdmpc31_sdmpc8100_s29.csv\", encoding=\"utf-8-sig\")) if r[\"kind\"] == \"ramp_meter\"]"
+    ],
+    "new": [
+     "for a in [\"s31\"]:",
+     "    rows = [r for r in csv.DictReader(open(f\"{R}/{a}/sdmpc/action_sdmpc31_sdmpc9000_s31.csv\", encoding=\"utf-8-sig\")) if r[\"kind\"] == \"ramp_meter\"]"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     14
+    ],
+    "dst_lines": [
+     14,
+     14
+    ],
+    "old": [
+     "        for raw in open(f\"{R}/{a}/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_{sc}_001.ldp\", \"rb\"):"
+    ],
+    "new": [
+     "        for raw in open(f\"{R}/{a}/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_{sc}_001.ldp\", \"rb\"):"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/walltimes.py",
+  "src_sha256": "13734307b4b72987735940381e3b919793901697a0b1f8d635105184c374cf17",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/walltimes_b_s31.py",
+  "dst_sha256": "6974d2b43c54eed4c34e9a3963a0a69e2243c35d95ab70292848df6e3c537aa6",
+  "eol": "LF",
+  "why": "B s31: slot joint -> B run folder (the only arm)",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     4,
+     5
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "ARMS = {\"joint\": f\"{R}/joint/sdmpc\", \"window\": f\"{R}/window/sdmpc\", \"off\": f\"{R}/off/sdmpc\",",
+     "        \"freeway_only\": f\"{R}/freeway_only/sdmpc\", \"urban_only\": f\"{R}/urban_only/sdmpc\", \"nc\": f\"{R}/nc\"}"
+    ],
+    "new": [
+     "ARMS = {\"joint\": \"D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc\"}   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s31; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/ramp_fc.py",
+  "src_sha256": "cee99f5b278789489c364a73fc7bb47bfe51583678bbf4fab818c9fc0f836e94",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/ramp_fc_b_s31.py",
+  "dst_sha256": "22275050c962defaedc137576a8994a7d6671bcce385b76d1d01f4c2872b49a4",
+  "eol": "LF",
+  "why": "B s31: decision folder of the B run",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     5,
+     5
+    ],
+    "dst_lines": [
+     5,
+     5
+    ],
+    "old": [
+     "D = \"D:/VISSIM_handoff/20261024/raw/joint/sdmpc/decisions_sdmpc31_sdmpc8100_s29\""
+    ],
+    "new": [
+     "D = \"D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/decisions_sdmpc31_sdmpc9000_s31\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s31; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/a1/full/a1_fzp_firstdiff.py",
+  "src_sha256": "009247032fab7eb359d9537a75244eadf2f4445b62b622b83c41174bd0091402",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s31/a1_fzp_firstdiff_b_s31.py",
+  "dst_sha256": "8e476eba81c6d37d60e9b79da5c545207f35486648419dc2b5a2b730fe4bcb15",
+  "eol": "LF",
+  "why": "B s31: slot a1 -> B, joint -> NC3 s31, lnc -> V-A s31 (PRE_B s2-5 prefix check)",
+  "n_replacements": 3,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     16
+    ],
+    "dst_lines": [
+     14,
+     16
+    ],
+    "old": [
+     "JOINT = 'D:/VISSIM_handoff/20261024/raw/joint/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp'",
+     "LNC = 'D:/VISSIM_runs/vsl_repro_s29/none/run/vissim_eval/vsl_seed29_none_001.fzp'",
+     "A1 = JOINT if SMOKE else 'D:/VISSIM_runs/20261025_codex_a1_s29/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp'"
+    ],
+    "new": [
+     "JOINT = 'D:/VISSIM_runs/20261001_v3c3/s31_v3c3nc/run/vissim_eval/baseline_s31_v3c3nc_001.fzp'   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s31; slot joint = NC3, a1 = B, lnc = V-A]",
+     "LNC = 'D:/VISSIM_runs/20261023_sdmpc31_k92/sdmpc31_v3c3_k92va_s31/vissim_eval/sdmpc31_sdmpc31_v3c3_k92va_s31_001.fzp'   # B copy: slot lnc = V-A v3c3-s31",
+     "A1 = JOINT if SMOKE else 'D:/VISSIM_runs/20261026_codex_b_v3c3/s31/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s31_001.fzp'   # B copy: slot a1 = B v3c3-s31"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan_fzp.py",
+  "src_sha256": "c8a6e5c4ee873a698b660b32662ec09d4f5f280765a2413764259372a5ddc425",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/scan_fzp_b_s41.py",
+  "dst_sha256": "19e33689806e399000ee6d706539adaaec60d266f023c700e2a5c95ca456f3c1",
+  "eol": "LF",
+  "why": "B s41: output folder rawcheck_b/s41/scan; slot nc -> NC3 s41 FZP, joint -> B s41 FZP",
+  "n_replacements": 3,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     10,
+     10
+    ],
+    "dst_lines": [
+     10,
+     10
+    ],
+    "old": [
+     "OUT = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan\""
+    ],
+    "new": [
+     "OUT = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/scan\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s41; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     15
+    ],
+    "dst_lines": [
+     14,
+     15
+    ],
+    "old": [
+     "    \"nc\": f\"{R}/nc/vissim_eval/sdmpc31_nc9000_s29_001.fzp\",",
+     "    \"joint\": f\"{R}/joint/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp\","
+    ],
+    "new": [
+     "    \"nc\": \"D:/VISSIM_runs/20261001_v3c3/s41_v3c3nc/run/vissim_eval/baseline_s41_v3c3nc_001.fzp\",   # B copy: slot nc = NC3 v3c3-s41",
+     "    \"joint\": \"D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_001.fzp\",   # B copy: slot joint = B v3c3-s41"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/metrics.py",
+  "src_sha256": "b524b51be11b15e28971b141fe9b9b812631ac5b96d86d116cc0f4955c75cf0d",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/metrics_b_s41.py",
+  "dst_sha256": "f93e653783df2a26f3bb1f510b7614c661eb95010fc5ea31f72b5c232a8262fd",
+  "eol": "LF",
+  "why": "B s41: read rawcheck_b/s41/scan (nc = NC3, joint = B; the other five = byte copies of the codex scans)",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     4,
+     4
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "S = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan\""
+    ],
+    "new": [
+     "S = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/scan\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s41; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/rm_exec.py",
+  "src_sha256": "27f6402205d6c7cbd3524a44ee35632e19a90f681a10d21fffa3b5518dbb1c10",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/rm_exec_b_s41.py",
+  "dst_sha256": "1fbac884ac25c4a5619907bbee58daf6935eb32f531011af05c383d7764faa96",
+  "eol": "LF",
+  "why": "B s41: B results root, arm folder s41, B file names (sdmpc9000_s41)",
+  "n_replacements": 4,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     3,
+     3
+    ],
+    "dst_lines": [
+     3,
+     3
+    ],
+    "old": [
+     "R = \"D:/VISSIM_handoff/20261024/raw\""
+    ],
+    "new": [
+     "R = \"D:/VISSIM_runs/20261026_codex_b_v3c3\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s41; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     6,
+     7
+    ],
+    "dst_lines": [
+     6,
+     7
+    ],
+    "old": [
+     "for a in [\"joint\", \"window\", \"off\", \"freeway_only\", \"urban_only\"]:",
+     "    rows = [r for r in csv.DictReader(open(f\"{R}/{a}/sdmpc/action_sdmpc31_sdmpc8100_s29.csv\", encoding=\"utf-8-sig\")) if r[\"kind\"] == \"ramp_meter\"]"
+    ],
+    "new": [
+     "for a in [\"s41\"]:",
+     "    rows = [r for r in csv.DictReader(open(f\"{R}/{a}/sdmpc/action_sdmpc31_sdmpc9000_s41.csv\", encoding=\"utf-8-sig\")) if r[\"kind\"] == \"ramp_meter\"]"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     14
+    ],
+    "dst_lines": [
+     14,
+     14
+    ],
+    "old": [
+     "        for raw in open(f\"{R}/{a}/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_{sc}_001.ldp\", \"rb\"):"
+    ],
+    "new": [
+     "        for raw in open(f\"{R}/{a}/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_{sc}_001.ldp\", \"rb\"):"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/walltimes.py",
+  "src_sha256": "13734307b4b72987735940381e3b919793901697a0b1f8d635105184c374cf17",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/walltimes_b_s41.py",
+  "dst_sha256": "a16776b514c6d82c76c4b9343a93dcc8690eab360b36d9b9a0bc426f171ccbdf",
+  "eol": "LF",
+  "why": "B s41: slot joint -> B run folder (the only arm)",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     4,
+     5
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "ARMS = {\"joint\": f\"{R}/joint/sdmpc\", \"window\": f\"{R}/window/sdmpc\", \"off\": f\"{R}/off/sdmpc\",",
+     "        \"freeway_only\": f\"{R}/freeway_only/sdmpc\", \"urban_only\": f\"{R}/urban_only/sdmpc\", \"nc\": f\"{R}/nc\"}"
+    ],
+    "new": [
+     "ARMS = {\"joint\": \"D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc\"}   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s41; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/ramp_fc.py",
+  "src_sha256": "cee99f5b278789489c364a73fc7bb47bfe51583678bbf4fab818c9fc0f836e94",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/ramp_fc_b_s41.py",
+  "dst_sha256": "9732ffc9ec4e7d08f83cd65e7c6c5d944d7eaa502de1ba268ac3851491fdb745",
+  "eol": "LF",
+  "why": "B s41: decision folder of the B run",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     5,
+     5
+    ],
+    "dst_lines": [
+     5,
+     5
+    ],
+    "old": [
+     "D = \"D:/VISSIM_handoff/20261024/raw/joint/sdmpc/decisions_sdmpc31_sdmpc8100_s29\""
+    ],
+    "new": [
+     "D = \"D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/decisions_sdmpc31_sdmpc9000_s41\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s41; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/a1/full/a1_fzp_firstdiff.py",
+  "src_sha256": "009247032fab7eb359d9537a75244eadf2f4445b62b622b83c41174bd0091402",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s41/a1_fzp_firstdiff_b_s41.py",
+  "dst_sha256": "e4df20affd6630e76229d35051dc70af304090a08d8b802d9e64b710fbb56411",
+  "eol": "LF",
+  "why": "B s41: slot a1 -> B, joint -> NC3 s41, lnc -> V-A s41 (PRE_B s2-5 prefix check)",
+  "n_replacements": 3,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     16
+    ],
+    "dst_lines": [
+     14,
+     16
+    ],
+    "old": [
+     "JOINT = 'D:/VISSIM_handoff/20261024/raw/joint/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp'",
+     "LNC = 'D:/VISSIM_runs/vsl_repro_s29/none/run/vissim_eval/vsl_seed29_none_001.fzp'",
+     "A1 = JOINT if SMOKE else 'D:/VISSIM_runs/20261025_codex_a1_s29/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp'"
+    ],
+    "new": [
+     "JOINT = 'D:/VISSIM_runs/20261001_v3c3/s41_v3c3nc/run/vissim_eval/baseline_s41_v3c3nc_001.fzp'   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s41; slot joint = NC3, a1 = B, lnc = V-A]",
+     "LNC = 'D:/VISSIM_runs/20261023_sdmpc31_k92/sdmpc31_v3c3_k92va_s41/vissim_eval/sdmpc31_sdmpc31_v3c3_k92va_s41_001.fzp'   # B copy: slot lnc = V-A v3c3-s41",
+     "A1 = JOINT if SMOKE else 'D:/VISSIM_runs/20261026_codex_b_v3c3/s41/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s41_001.fzp'   # B copy: slot a1 = B v3c3-s41"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan_fzp.py",
+  "src_sha256": "c8a6e5c4ee873a698b660b32662ec09d4f5f280765a2413764259372a5ddc425",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/scan_fzp_b_s43.py",
+  "dst_sha256": "906b8ae30d79daa7c378bd59f05cfa5339bdd290cf6771ec9aa0c814b16a43b3",
+  "eol": "LF",
+  "why": "B s43: output folder rawcheck_b/s43/scan; slot nc -> NC3 s43 FZP, joint -> B s43 FZP",
+  "n_replacements": 3,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     10,
+     10
+    ],
+    "dst_lines": [
+     10,
+     10
+    ],
+    "old": [
+     "OUT = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan\""
+    ],
+    "new": [
+     "OUT = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/scan\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s43; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     15
+    ],
+    "dst_lines": [
+     14,
+     15
+    ],
+    "old": [
+     "    \"nc\": f\"{R}/nc/vissim_eval/sdmpc31_nc9000_s29_001.fzp\",",
+     "    \"joint\": f\"{R}/joint/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp\","
+    ],
+    "new": [
+     "    \"nc\": \"D:/VISSIM_runs/20261001_v3c3/s43_v3c3nc/run/vissim_eval/baseline_s43_v3c3nc_001.fzp\",   # B copy: slot nc = NC3 v3c3-s43",
+     "    \"joint\": \"D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.fzp\",   # B copy: slot joint = B v3c3-s43"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/metrics.py",
+  "src_sha256": "b524b51be11b15e28971b141fe9b9b812631ac5b96d86d116cc0f4955c75cf0d",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/metrics_b_s43.py",
+  "dst_sha256": "b27ab3b36bbe5de283c55cacc98044d051db8aa96d1db27e50940f4661dbd034",
+  "eol": "LF",
+  "why": "B s43: read rawcheck_b/s43/scan (nc = NC3, joint = B; the other five = byte copies of the codex scans)",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     4,
+     4
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "S = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/scan\""
+    ],
+    "new": [
+     "S = \"C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/scan\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s43; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/rm_exec.py",
+  "src_sha256": "27f6402205d6c7cbd3524a44ee35632e19a90f681a10d21fffa3b5518dbb1c10",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/rm_exec_b_s43.py",
+  "dst_sha256": "af2c9eb81ae53470f3823b3f31972aa4cb521cadb049ad2486b8e0348d024b9a",
+  "eol": "LF",
+  "why": "B s43: B results root, arm folder s43, B file names (sdmpc9000_s43)",
+  "n_replacements": 4,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     3,
+     3
+    ],
+    "dst_lines": [
+     3,
+     3
+    ],
+    "old": [
+     "R = \"D:/VISSIM_handoff/20261024/raw\""
+    ],
+    "new": [
+     "R = \"D:/VISSIM_runs/20261026_codex_b_v3c3\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s43; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     6,
+     7
+    ],
+    "dst_lines": [
+     6,
+     7
+    ],
+    "old": [
+     "for a in [\"joint\", \"window\", \"off\", \"freeway_only\", \"urban_only\"]:",
+     "    rows = [r for r in csv.DictReader(open(f\"{R}/{a}/sdmpc/action_sdmpc31_sdmpc8100_s29.csv\", encoding=\"utf-8-sig\")) if r[\"kind\"] == \"ramp_meter\"]"
+    ],
+    "new": [
+     "for a in [\"s43\"]:",
+     "    rows = [r for r in csv.DictReader(open(f\"{R}/{a}/sdmpc/action_sdmpc31_sdmpc9000_s43.csv\", encoding=\"utf-8-sig\")) if r[\"kind\"] == \"ramp_meter\"]"
+    ]
+   },
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     14
+    ],
+    "dst_lines": [
+     14,
+     14
+    ],
+    "old": [
+     "        for raw in open(f\"{R}/{a}/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_{sc}_001.ldp\", \"rb\"):"
+    ],
+    "new": [
+     "        for raw in open(f\"{R}/{a}/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_{sc}_001.ldp\", \"rb\"):"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/walltimes.py",
+  "src_sha256": "13734307b4b72987735940381e3b919793901697a0b1f8d635105184c374cf17",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/walltimes_b_s43.py",
+  "dst_sha256": "c5916bd7cbaaabfe654845b802533d47a427495b0314a47042353d7a95d40d7f",
+  "eol": "LF",
+  "why": "B s43: slot joint -> B run folder (the only arm)",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     4,
+     5
+    ],
+    "dst_lines": [
+     4,
+     4
+    ],
+    "old": [
+     "ARMS = {\"joint\": f\"{R}/joint/sdmpc\", \"window\": f\"{R}/window/sdmpc\", \"off\": f\"{R}/off/sdmpc\",",
+     "        \"freeway_only\": f\"{R}/freeway_only/sdmpc\", \"urban_only\": f\"{R}/urban_only/sdmpc\", \"nc\": f\"{R}/nc\"}"
+    ],
+    "new": [
+     "ARMS = {\"joint\": \"D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc\"}   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s43; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/ramp_fc.py",
+  "src_sha256": "cee99f5b278789489c364a73fc7bb47bfe51583678bbf4fab818c9fc0f836e94",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/ramp_fc_b_s43.py",
+  "dst_sha256": "9134790c328ea9f3eb26124a618f9f6d19a1915ea1b144d4dd2718c669c99b80",
+  "eol": "LF",
+  "why": "B s43: decision folder of the B run",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     5,
+     5
+    ],
+    "dst_lines": [
+     5,
+     5
+    ],
+    "old": [
+     "D = \"D:/VISSIM_handoff/20261024/raw/joint/sdmpc/decisions_sdmpc31_sdmpc8100_s29\""
+    ],
+    "new": [
+     "D = \"D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/decisions_sdmpc31_sdmpc9000_s43\"   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s43; slot \"nc\" = NC3, \"joint\" = B] "
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/a1/full/a1_fzp_firstdiff.py",
+  "src_sha256": "009247032fab7eb359d9537a75244eadf2f4445b62b622b83c41174bd0091402",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/s43/a1_fzp_firstdiff_b_s43.py",
+  "dst_sha256": "c20db189073290a144915bd7c3bfc1a264198e9f4164be927c3966d9e4a9502c",
+  "eol": "LF",
+  "why": "B s43: slot a1 -> B, joint -> NC3 s43, lnc -> V-A s43 (PRE_B s2-5 prefix check)",
+  "n_replacements": 3,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     14,
+     16
+    ],
+    "dst_lines": [
+     14,
+     16
+    ],
+    "old": [
+     "JOINT = 'D:/VISSIM_handoff/20261024/raw/joint/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp'",
+     "LNC = 'D:/VISSIM_runs/vsl_repro_s29/none/run/vissim_eval/vsl_seed29_none_001.fzp'",
+     "A1 = JOINT if SMOKE else 'D:/VISSIM_runs/20261025_codex_a1_s29/sdmpc/vissim_eval/sdmpc31_sdmpc8100_s29_001.fzp'"
+    ],
+    "new": [
+     "JOINT = 'D:/VISSIM_runs/20261001_v3c3/s43_v3c3nc/run/vissim_eval/baseline_s43_v3c3nc_001.fzp'   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only; seed v3c3-s43; slot joint = NC3, a1 = B, lnc = V-A]",
+     "LNC = 'D:/VISSIM_runs/20261023_sdmpc31_k92/sdmpc31_v3c3_k92va_s43/vissim_eval/sdmpc31_sdmpc31_v3c3_k92va_s43_001.fzp'   # B copy: slot lnc = V-A v3c3-s43",
+     "A1 = JOINT if SMOKE else 'D:/VISSIM_runs/20261026_codex_b_v3c3/s43/sdmpc/vissim_eval/sdmpc31_sdmpc9000_s43_001.fzp'   # B copy: slot a1 = B v3c3-s43"
+    ]
+   }
+  ]
+ },
+ {
+  "src": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck/dec_extract.py",
+  "src_sha256": "672c7bed12a470c5ca4fc63cc6743c76e9b409995d56e68a9306b3ac90f4062b",
+  "dst": "C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/k8/codex_handoff/work/rawcheck_b/dec_extract_b.py",
+  "dst_sha256": "2d128f759685f1ff7151aeb09659ca1fcfe847abd6aebf220a1e2a5a8b3a9e97",
+  "eol": "LF",
+  "why": "B: decision folders under the B results root; arm argument = s31/s41/s43",
+  "n_replacements": 1,
+  "changes": [
+   {
+    "op": "replace",
+    "src_lines": [
+     8,
+     8
+    ],
+    "dst_lines": [
+     8,
+     8
+    ],
+    "old": [
+     "D = glob.glob(f\"D:/VISSIM_handoff/20261024/raw/{arm}/sdmpc/decisions_*\")[0]"
+    ],
+    "new": [
+     "D = glob.glob(f\"D:/VISSIM_runs/20261026_codex_b_v3c3/{arm}/sdmpc/decisions_*\")[0]   # [B copy 2026-10-26 KST, COMPARE_RULE_B: path constants only]"
+    ]
+   }
+  ]
+ }
+]
