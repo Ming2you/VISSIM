@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import copy
 import hashlib
 import math
+import os
 import pickle
 import time
 
@@ -90,14 +91,6 @@ def validate_prediction(item, action, context_token):
             raise ValueError('Invalid PFO budget margin')
         expected = copy.deepcopy(source)
         q = raw['quantities']
-        if q.get('schema') == 'regional-accepted-quantities/v1':
-            region = q['region']
-            if (region not in ('freeway_only', 'urban_only') or init.get('region') != region
-                    or init.get('active_resource') != q['active_resource']
-                    or (region == 'freeway_only' and (q['owners'] or np_margin != 0.))
-                    or (region == 'urban_only' and (q['predicted_ramp_merge']['active']
-                        or q['predicted_ramp_merge']['rate_veh_h_by_ramp'] or nuf_margin != 0.))):
-                raise ValueError('PFO binding contains an absent regional resource')
         achieved_np = math.fsum(q['owners'][s]['net_inflow_veh'] for s in sorted(q['owners']))
         achieved_nuf = math.fsum(q['predicted_ramp_merge']['rate_veh_h_by_ramp'].values())
         expected.N_P_star, expected.N_UF_star = achieved_np+np_margin, achieved_nuf+nuf_margin
@@ -182,6 +175,7 @@ class Query:
         self.failed_batches = self.failed_predictions_unknown = 0
         self.closed = False
         self.rows = []
+        self.active_derivative_axes = None
         self.initial_binding = None
         self.warm_binding = None
         follower, state, _, _ = template['owned']
@@ -191,8 +185,7 @@ class Query:
         self.primal_tolerance = policy.get('tangent_primal_abs_tolerance', 1e-7)
         if self.cap_cache and (not policy.get('budget_caps') or not policy.get('pfo_each_interval')
                 or not policy.get('surrogate_reuse') or not policy.get('central_multiplier')
-                or (getattr(state, 'lane_freeway_runtime', None) is None
-                    and policy.get('regional_prediction_prototype') != 'urban_only')
+                or getattr(state, 'lane_freeway_runtime', None) is None
                 or not getattr(follower.cfg.network, 'physical_ramp_branches', None)
                 or template['horizon'] != 3):
             raise ValueError('NP/NUF cache requires the physical lane continuous cap-only predictor')
@@ -215,8 +208,7 @@ class Query:
         policy = follower.cfg.network.sdmpc_options
         if (self.closed or self.warm_binding is not None or self.initial_binding is not None
                 or not policy.get('pfo_each_interval') or not policy.get('budget_caps')
-                or (getattr(state, 'lane_freeway_runtime', None) is None
-                    and policy.get('regional_prediction_prototype') != 'urban_only')):
+                or getattr(state, 'lane_freeway_runtime', None) is None):
             raise ValueError('PFO binding requires this interval\'s enabled lane predictor')
         stored, item, receipt = self.entries[physical_key(source)]
         if token(stored) != token(source) or receipt is None:
@@ -226,7 +218,7 @@ class Query:
         if token(expected) != token(target):
             raise ValueError('PFO target differs from its achieved-plus-margin budgets')
         binding = dict(schema='sdmpc-pfo-budget-binding/v2',source_action=copy.deepcopy(source),
-            initialization=initialization,scope='Only constraint budgets (PFO-achieved + configured margin) change; physical trajectory unchanged')
+            initialization=initialization,scope=('Only constraint budgets (protected-seed-achieved + configured margin) change; physical trajectory unchanged' if os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO') == '1' else 'Only constraint budgets (PFO-achieved + configured margin) change; physical trajectory unchanged'))
         derived = copy.deepcopy(item); derived.pop('response_token')
         derived.update(action_token=token(target),warm_budget_binding=binding)
         derived['response_token'] = token(derived)
@@ -271,6 +263,14 @@ class Query:
         self.entries[physical_key(target)] = (copy.deepcopy(target), derived, receipt)
         self.initial_binding = copy.deepcopy(binding)
 
+    def activate_derivative_axes(self, axes):
+        request = pickle.loads(self.template)
+        n = len(request['axes'])
+        if (self.active_derivative_axes is not None or not axes
+                or sorted(set(axes)) != list(axes) or any(type(j) is not int or not 0 <= j < n for j in axes)):
+            raise ValueError('Invalid adaptive derivative axis mask')
+        self.active_derivative_axes = list(axes)
+
     def evaluate(self, actions, *, derivatives=False):
         physical_key = self.physical_key
         if self.closed:
@@ -291,6 +291,8 @@ class Query:
             request = pickle.loads(self.template)
             request['action'] = copy.deepcopy(action)
             request['surrogate_evaluation'] = 'ad' if derivatives else 'scalar'
+            if derivatives and self.active_derivative_axes is not None:
+                request['active_derivative_axes'] = self.active_derivative_axes
             request['surrogate_context_sha256'] = self.context_token
             if derivatives and reverse_workers < 8:
                 request['reverse_worker_limit'] = reverse_workers
@@ -302,7 +304,8 @@ class Query:
             expected = (0, 1) if derivatives else (1, 0)
             if (result.get('scalar_rollouts'), result.get('tangent_rollouts')) != expected:
                 raise ValueError('Surrogate rollout accounting mismatch')
-            if derivatives and (result.get('fallback_reasons') or len(result.get('ad_axes', ())) != len(request['axes'])):
+            expected_axes = request.get('active_derivative_axes', list(range(len(request['axes']))))
+            if derivatives and (result.get('fallback_reasons') or result.get('ad_axes') != expected_axes):
                 raise ValueError('Incomplete surrogate Jacobian')
             previous = self.entries.get(key)
             if self.lazy_derivatives and derivatives and previous is not None and previous[2] is None:
@@ -333,6 +336,7 @@ class Query:
                 self.rows.append(dict(action_token=token(entry[0]), derivatives=derivatives,
                     scalar_rollouts=receipt['scalar_rollouts'], tangent_rollouts=receipt['tangent_rollouts'],
                     wall_sec=receipt['wall_sec_including_spawn'], consumed_derivative=False,
+                    **({'active_derivative_axes':receipt['ad_axes']} if derivatives else {}),
                     **({'scalar_trial_upgrade_check':receipt['scalar_trial_upgrade_check']}
                        if 'scalar_trial_upgrade_check' in receipt else {})))
             self.emit('sdmpc_surrogate_batch_done', predictions=count, seconds=time.perf_counter()-started)

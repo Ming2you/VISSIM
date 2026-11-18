@@ -12678,21 +12678,9 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
         if getattr(getattr(cfg, 'network', None), 'sdmpc_options', None) is not None:
             import copy
             from evaluation.controllers import sdmpc
-            if cfg.network.sdmpc_options.get('regional_context_required'):
-                from evaluation.controllers import sdmpc_regional_context
-                if not isinstance(worker_state_json, dict):
-                    raise ValueError('Regional decision requires its closed observation')
-                local = sdmpc_regional_context.prepare(controller, state, forecast,
-                    historical['previous'], mapping,
-                    derived=state._regional_boundary_observation, bootstrap=bootstrap)
-                report['regional_context'] = local.pop('evidence')
-                response, details = sdmpc.solve(**local,
-                    options=options, runtime_sources=sources, budget=budget,
-                    progress=progress, previous_path=previous_path)
-            else:
-                response, details = sdmpc.solve(controller, state, forecast, historical['previous'], mapping,
-                    options=options, runtime_sources=sources, worker_bootstrap=bootstrap, budget=budget,
-                    progress=progress, previous_path=previous_path)
+            response, details = sdmpc.solve(controller, state, forecast, historical['previous'], mapping,
+                options=options, runtime_sources=sources, worker_bootstrap=bootstrap, budget=budget,
+                progress=progress, previous_path=previous_path)
             report.update(schema='sdmpc-runtime-decision/v1', selection=details,
                 leader_objective=response['final_score']['objective_veh_h'], completed=True)
             result = DecisionResult(control=copy.deepcopy(response['control']), leader_objective=report['leader_objective'],
@@ -13326,14 +13314,7 @@ def main() -> None:
                 metadata["prediction_freeway_total_abs_error"] = float(freeway_error.get("abs_error", 0.0))
     try:
         controller = None
-        if (runtime_patch_metadata.get('native_startup_without_prediction')
-                and sdmpc_options is not None and sdmpc_options.get('regional_context_required')):
-            control = _make_no_control(ControlAction, cfg)
-            from evaluation.controllers.sdmpc_actuator_scope import check as check_scope
-            check_scope(control, sdmpc_options, cfg)
-            control.diagnostics["no_control_active"] = 1.0
-            metadata['regional_startup_baseline'] = True
-        elif args.controller == "no-control":
+        if args.controller == "no-control":
             control = _make_no_control(ControlAction, cfg)
             control.diagnostics["no_control_active"] = 1.0
         elif args.controller == "diagnostic-vsl-rm":

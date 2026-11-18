@@ -80,11 +80,8 @@ def native_startup_without_prediction(tuning, state_json, controller_variant):
     the first regular observation and every SDMPC decision use the full path.
     """
     obs=state_json.get('obs150',{})
-    local = (tuning or {}).get('adapter', {}).get('sdmpc_information_scope')
-    regional_startup = controller_variant == 'wu-link' and local in ('freeway_only', 'urban_only')
-    now = state_json.get('sim_sec')
-    return ((controller_variant=='no-control' and now==1 or regional_startup and now in (0, 1))
-            and obs.get('sim_sec')==now and obs.get('k') is None and obs.get('window') is None
+    return (controller_variant=='no-control' and state_json.get('sim_sec')==1
+            and obs.get('sim_sec')==1 and obs.get('k') is None and obs.get('window') is None
             and (tuning or {}).get('freeway',{}).get('multirate_exchange_sec')==5
             and type((tuning or {}).get('urban',{}).get('multirate_exchange_sec')) is int
             and tuning['urban']['multirate_exchange_sec']==10)
@@ -330,7 +327,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         # Native programs/DSD/RM are still written and checked normally. Do not
         # relabel1s as0s, or publish a forecast from an unrebased calibration.
         metadata['native_startup_without_prediction']=True
-        metadata['prediction_runtime_unavailable_reason']='Startup has no closed observation window; legal native baseline held without prediction'
+        metadata['prediction_runtime_unavailable_reason']='Initial1s no-control observation is outside the FW5/urban10 prediction grid'
         return state,detector_mapping,metadata
     from evaluation.controllers import multirate_freeway
     metadata.update(multirate_freeway.configure(cfg,tuning,state))
@@ -341,15 +338,6 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(urban_metadata)
     from evaluation.controllers import ramp_entry_receiving
     metadata.update(ramp_entry_receiving.configure(cfg,tuning,state))
-    regional_mode = (tuning or {}).get('adapter', {}).get('sdmpc_information_scope')
-    if regional_mode is not None:
-        import copy
-        role = 'ramp_arrival' if regional_mode == 'freeway_only' else 'off_entry'
-        observed = state_json['obs150_derived']
-        state._regional_boundary_observation = {
-            'window': copy.deepcopy(observed['window']),
-            'boundaries': {k: copy.deepcopy(v) for k, v in observed['boundaries'].items()
-                           if v['role'] == role}}
     return state, detector_mapping, metadata
 
 

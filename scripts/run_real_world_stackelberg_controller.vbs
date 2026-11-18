@@ -1312,7 +1312,7 @@ Sub RunControllerDecision(simSec)
     ' A diagnostic intervention is fixed at its first decision. Continuing
     ' after a failed decision would run the warmup action until the final
     ' integrity check. Include warmup failures in the selected diagnostic run.
-    If decisionsFailed > decisionsHeld And (Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Or _
+    If (decisionsFailed > decisionsHeld Or (simSec = 900 And decisionsFailed > 0)) And (Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Or _
             EnvText("RW_DECISION_FAIL_FAST") = "1" Or RW_OFFSET_WRITER = "experiment") Then
         If Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Then
             WScript.Echo "ERROR=DIAGNOSTIC_DECISION_FAILED sim_sec=" & CStr(simSec) & _

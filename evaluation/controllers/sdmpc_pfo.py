@@ -7,6 +7,7 @@ are checked with the current plant; sum of owned costs is the line-search
 merit (PASSIVE_OMEGA is excluded). No Nash convergence certificate is claimed.
 """
 import time
+import os
 import numpy as np
 
 
@@ -18,7 +19,7 @@ def model_feasible(item, tolerance):
         and item['resource_summary']['max_exceedance_veh'] <= tolerance)
 
 
-def solve(reference, coord, policy, options, evaluate, derivative, quantities, check_budget, emit):
+def solve(reference, coord, policy, options, evaluate, derivative, quantities, check_budget, emit, screening_context=None):
     from evaluation.controllers.sdmpc import solve_qp, token, PASSIVE
     from evaluation.controllers.sdmpc_tangent import checked_matrices
     started = time.perf_counter()
@@ -35,8 +36,47 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
     emit('sdmpc_pfo_start', max_iterations=cap, budget_constraints=False, prices=False)
     action = reference.copy()
     item = evaluate([action], derivatives=True)[0]
+    adaptive_selection = None
+    threshold = os.environ.get('SDMPC_EXPERIMENTAL_ADAPTIVE_THRESHOLD', '').strip() or None
+    if os.environ.get('SDMPC_POST_PFO_LAGRANGIAN') == '1':
+        threshold = None  # Preserve the complete PFO; screen the resulting anchor later.
+    if threshold is not None:
+        from evaluation.controllers import adaptive_lever_selection
+        query = getattr(derivative, '__self__', None)
+        if query is None or not hasattr(query, 'activate_derivative_axes'):
+            raise ValueError('Adaptive screening requires the surrogate query')
+        initial_receipt = derivative(action)
+        grad, resources, fallback = checked_matrices(initial_receipt,costs(item),quantities(action,item),coord.axes,
+            policy['tangent_primal_abs_tolerance'],allow_surrogate=True)
+        if fallback or initial_receipt.get('ad_axes') != list(range(len(coord.axes))):
+            raise ValueError('Adaptive screening requires complete initial derivatives')
+        if os.environ.get('SDMPC_EXPERIMENTAL_LAGRANGIAN_SELECTION')=='1':
+            if os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO')!='1' or screening_context is None:
+                raise ValueError('Lagrangian screening requires the protected-seed cap experiment')
+            ctx=screening_context(action,item)
+            adaptive_selection=adaptive_lever_selection.select_lagrangian(coord,action,grad,resources,float(threshold),**ctx)
+        else:
+            adaptive_selection = adaptive_lever_selection.select(coord,action,grad,resources,float(threshold))
+        query.activate_derivative_axes(adaptive_selection['active_axes'])
+        emit('adaptive_levers_selected', selected=len(adaptive_selection['selected_groups']),
+             fixed=len(adaptive_selection['fixed_groups']), active_axes=len(adaptive_selection['active_axes']),
+             selection_seconds=adaptive_selection['selection_cost_sec'])
     initial = item
     best = (action,item) if model_feasible(item,options['shared_tolerance']) else None
+    if os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO') == '1':
+        if best is None:
+            raise ValueError('Protected seed lacks physical feasibility; no-PFO budget cannot initialize')
+        metadata = dict(algorithm='protected-seed-no-pfo/experimental-v1',pfo_used=False,
+            max_iterations=0,executed_iterations=0,accepted_iterations=0,converged=False,
+            status='intentionally_skipped',local_rows=[],trial_rows=[],iterations=[],
+            initial_omega_objective=item['objective_veh_h'],selected_omega_objective=item['objective_veh_h'],
+            selected_owned_objective=merit(item),prices_used=False,budget_constraints_used=False,
+            additional_native_runs=0,seconds=time.perf_counter()-started,
+            sensitivity_policy='Initial full derivative computed; subsequent leader uses selected coordinates',
+            line_search_merit='PFO omitted; protected seed and forecast initialize current budget')
+        if adaptive_selection is not None:metadata['adaptive_selection']=adaptive_selection
+        emit('sdmpc_pfo_skipped',seconds=metadata['seconds'],reason='explicit_no_pfo_experiment')
+        return action,item,metadata,initial
     iterations, local_rows, trial_rows = [], [], []
     accepted = 0; status = 'iteration_limit'
     for iteration in range(cap):
@@ -50,9 +90,7 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
         iterations.append(dict(iteration=iteration,action_token=token(action)))
         proposal = np.zeros(len(z))
         for owner in coord.owners:
-            ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner], dtype=int)
-            if not len(ix):
-                continue  # Cost ownership remains in the complete Omega partition.
+            ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner])
             own = G[owners.index(owner),ix]
             step, qr = qp(z,np.zeros(len(ix)),own,policy['proximal'],ix)
             local_rows.append(dict(iteration=iteration,owner=owner,own_gradient=own.tolist(),
@@ -101,7 +139,9 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
         selected_owned_objective=merit(best[1]),prices_used=False,budget_constraints_used=False,
         additional_native_runs=0,seconds=time.perf_counter()-started,
         sensitivity_policy='Updated at each accepted PFO iterate; final prediction/Jacobian reused by SDMPC',
-        line_search_merit=f'sum of {len(coord.owners)} owned costs; passive-area cost excluded')
+        line_search_merit='sum of 19 owned costs; passive-area cost excluded')
+    if adaptive_selection is not None:
+        metadata['adaptive_selection'] = adaptive_selection
     emit('sdmpc_pfo_done',max_iterations=cap,executed_iterations=len(iterations),
         accepted_iterations=accepted,converged=False,seconds=metadata['seconds'])
     return (*best,metadata,initial)

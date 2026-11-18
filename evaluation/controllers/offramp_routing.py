@@ -602,6 +602,16 @@ def advance_inventory(state, cfg, fw, *, mainline, terminal, offramps, entry,
     if 'lane_cells' in inv:
         raise ValueError('Lane route partition transport is not yet integrated; aggregate transport would discard lane identity')
     old = inv['cells'][fw]
+    # Opt-in research-only OD receipt tracing. This feature is absent from the
+    # original model; absent the override it must leave every native path intact.
+    pilot = runtime.get('ue_pilot_source_override') if fw == 'FW_E' else None
+    marker = '|uepilot:74to24|'
+    def tagged(row):
+        return math.fsum(v for k,v in row.items() if marker in k)
+    if pilot:
+        origin_before=tagged(inv['origins'][fw])
+        cells_before=math.fsum(tagged(row) for row in old)
+        terminal_tagged=0.
     new = [dict(row) for row in old]
     receipts = {target: {} for target,branch in runtime['branches'].items() if branch['freeway']==fw}
     for i, row in enumerate(old):
@@ -624,11 +634,23 @@ def advance_inventory(state, cfg, fw, *, mainline, terminal, offramps, entry,
                 _add(new[i], composition, -fraction)
                 if receiver is not None and receiver < len(old):
                     _add(new[receiver], composition, fraction)
+                elif pilot and off is None:
+                    terminal_tagged += tagged(composition)*fraction
                 if off is not None:
                     _add(receipts[off], composition, fraction)
     source = runtime['inputs'][fw]
     origin = inv['origins'][fw]
-    _add(origin, _classes('expected_input:' + source['input'], source['route_weights']), generated*duration_h)
+    weights=source['route_weights']
+    if pilot and pilot['input']==source['input'] and pilot['start_sec']<=state.time_sec<pilot['end_sec']:
+        weights=pilot['weights']
+        if (any(not math.isfinite(v) or v<0 for v in weights.values())
+                or abs(math.fsum(weights.values())-1)>1e-9):
+            raise ValueError('OD pilot source weights must be nonnegative and sum to one')
+        for key in weights:
+            target=key.rsplit('|',1)[-1]
+            if target!='terminal' and target not in runtime['branches']:
+                raise ValueError('OD pilot route target is not a physical branch')
+    _add(origin, _classes('expected_input:' + source['input'], weights), generated*duration_h)
     total = math.fsum(origin.values())
     amount = entry*duration_h
     if amount > total + 1e-7:
@@ -645,4 +667,17 @@ def advance_inventory(state, cfg, fw, *, mainline, terminal, offramps, entry,
     # This is a receipt of already-debited stock, not another population.
     inv.setdefault('last_offramp_receipts', {})[fw] = dict(
         end_sec=state.time_sec+duration_h*3600., ports=receipts)
+    if pilot:
+        trace=inv.setdefault('ue_pilot_trace',{'generated':0.,'terminal':0.,'offramps':{},'freeway_origin_residence_veh_h':0.})
+        new_tag=generated*duration_h*math.fsum(v for k,v in weights.items() if k.startswith('uepilot:74to24|'))
+        off_tag={off:tagged(values) for off,values in receipts.items()}
+        after=tagged(origin)+math.fsum(tagged(row) for row in inv['cells'][fw])
+        before=origin_before+cells_before
+        if abs(before+new_tag-after-terminal_tagged-math.fsum(off_tag.values()))>1e-6:
+            raise ValueError('OD pilot freeway tag mass was lost')
+        trace['generated']+=new_tag
+        trace['terminal']+=terminal_tagged
+        for off,n in off_tag.items():trace['offramps'][off]=trace['offramps'].get(off,0.)+n
+        trace['remaining_origin_and_freeway']=after
+        trace['freeway_origin_residence_veh_h']+=after*duration_h
     _update_missed_target_diagnostics(state)

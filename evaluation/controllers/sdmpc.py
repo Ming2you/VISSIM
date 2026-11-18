@@ -10,6 +10,7 @@ import copy
 import hashlib
 import json
 import math
+import os
 import pickle
 from contextlib import ExitStack
 from pathlib import Path
@@ -100,16 +101,8 @@ def configure(tuning, cfg, controller='wu-link'):
         return None
     if mode not in ('proxlinear-v1', 'central-reuse-v2', 'central-pfo-cap-v3'):
         raise ValueError('Unsupported adapter.sdmpc mode')
-    regional = tuning.get('adapter', {}).get('sdmpc_information_scope')
-    if regional is not None and regional not in ('freeway_only', 'urban_only'):
-        raise ValueError('Unsupported regional SDMPC information scope')
-    if regional is not None and mode != 'central-pfo-cap-v3':
-        raise ValueError('Regional information requires the existing PFO-cap policy')
     from evaluation import parameters
     options = parameters.section('sdmpc')
-    if regional is not None:
-        options['regional_prediction_prototype'] = regional
-        options['regional_context_required'] = True
     if mode in ('central-reuse-v2', 'central-pfo-cap-v3'):
         central_options = parameters.section('sdmpc_central')
         for key in ('active_tolerance', 'stationarity_tolerance', 'zero_jacobian_tolerance', 'np_step_veh', 'nuf_step_veh_h'):
@@ -132,7 +125,7 @@ def configure(tuning, cfg, controller='wu-link'):
             pfo_cap_options[key] = sdmpc_budget.checked_margin(pfo_cap_options[key], key)
         options = dict(options, budget_caps=True, pfo_each_interval=True, pfo_cap_options=pfo_cap_options)
     for name in ('response_np_cache', 'response_cap_cache', 'lazy_trial_derivatives', 'stock_geometry_hotpath', 'receiving_geometry_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
-                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant', 'meter_neighbor_audit', 'vsl_schedule_audit'):
+                 'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath', 'vsl_activation_secant', 'meter_activation_secant', 'meter_neighbor_audit'):
         value = tuning.get('adapter', {}).get('sdmpc_'+name)
         if value is not None:
             if type(value) is not bool:
@@ -204,8 +197,6 @@ def configure(tuning, cfg, controller='wu-link'):
         options = dict(options, control_blocks=blocks)
     if options.get('meter_neighbor_audit') and options.get('control_blocks') != 3:
         raise ValueError('Finite meter schedule audit requires three control blocks')
-    if options.get('vsl_schedule_audit') and options.get('control_blocks') != 3:
-        raise ValueError('Finite VSL schedule audit requires three control blocks')
     if options.get('fast_primitives') and (backend != 'reverse-v1' or primal_audit is not True):
         raise ValueError('sdmpc_fast_primitives requires reverse-v1 and primal_audit')
     if options.get('compact_audit') and primal_audit is not True:
@@ -231,7 +222,7 @@ def configure(tuning, cfg, controller='wu-link'):
             or not options.get('fast_primitives') or not options.get('primal_audit')):
         raise ValueError('sdmpc_prediction_hotpath requires continuous surrogate reuse and fast primal checks')
     if options.get('central_multiplier') and (not options.get('surrogate_reuse')
-            or (not regional and not options.get('prediction_hotpath')) or blocks != 3):
+            or not options.get('prediction_hotpath') or blocks != 3):
         raise ValueError('central-reuse-v2 requires the qualified three-block continuous predictor')
     if options.get('response_cap_cache') and (mode != 'central-pfo-cap-v3'
             or not options.get('surrogate_reuse') or not tuning.get('freeway', {}).get('lane_plant')):
@@ -263,20 +254,6 @@ def configure(tuning, cfg, controller='wu-link'):
                 'dual_step', 'qp_tolerance', 'objective_tolerance'):
         if type(options[key]) not in (int, float) or not math.isfinite(options[key]) or options[key] <= 0:
             raise ValueError('SDMPC positive parameter required: '+key)
-    from evaluation.controllers import sdmpc_actuator_scope as actuator_scope
-    scope = actuator_scope.configure(tuning.get('adapter', {}).get('sdmpc_actuator_scope'), cfg)
-    if scope is not None:
-        options['actuator_scope'] = scope
-    if regional and (scope is None or scope['mode'] != regional):
-        raise ValueError('Regional information must match its fixed inactive actuator scope')
-    if regional and any(options.get(k) for k in (
-            'response_cap_cache', 'fast_primitives', 'prediction_hotpath',
-            'stock_geometry_hotpath', 'receiving_geometry_cache', 'prediction_cache',
-            'compact_audit', 'persistent_urban_fifo', 'array_urban_pipeline',
-            'array_transport', 'spatial_receiving', 'initial_shared_prediction',
-            'initial_derivative_overlap', 'trial_derivative_overlap',
-            'tangent_shared_primal', 'tangent_concurrent_primal')):
-        raise ValueError('Unqualified global hotpath in regional information policy')
     fixed_vsl = tuning.get('adapter', {}).get('sdmpc_fixed_vsl')
     if fixed_vsl is not None:
         from evaluation.controllers.control_hold import validate_fixed_vsl
@@ -338,11 +315,6 @@ def install_cost_ownership(cfg, detector_mapping):
 def omega_costs(point, cfg):
     """같은 적분 기록에서 Ω TTT를 한 번씩 합산한다. 외부 queue는 더하지 않는다."""
     owners = tuple(cfg.network.signals) + tuple(cfg.network.freeway_links)
-    regional = (getattr(cfg.network, 'sdmpc_options', None) or {}).get('regional_prediction_prototype')
-    if regional:
-        from evaluation.controllers.sdmpc_regional_contracts import active_owners
-        from evaluation.controllers.sdmpc_regional_prototype import owns_stock
-        owners = active_owners(cfg)
     pieces = {owner: [] for owner in (*owners, PASSIVE)}
     passive = {}
     table = cfg.network.sdmpc_cost_ownership
@@ -353,16 +325,6 @@ def omega_costs(point, cfg):
             if not math.isfinite(value) or value < -1e-10:
                 raise ValueError('Invalid Omega residence')
             owner = table.get(stock, PASSIVE)
-            if regional and not owns_stock(regional, stock):
-                if value != 0:
-                    raise ValueError('Remote stock entered regional merit: '+stock)
-                continue
-            if owner not in pieces:
-                if not regional:
-                    raise ValueError('Unknown cost owner: '+owner)
-                # An own stock whose historical mapping has no local actuator
-                # remains in the regional passive cost and its external gradient.
-                owner = PASSIVE
             pieces[owner].append(value)
             if owner == PASSIVE and value:
                 passive[stock] = passive.get(stock, 0.) + value
@@ -417,10 +379,7 @@ class Coordinates:
             self.axes.append(dict(owner=owner, kind=kind, key=key, scale=scale, fd=step/scale))
             self.bounds.append((lower/scale, upper/scale))
             return len(self.axes)-1
-        from evaluation.controllers.sdmpc_actuator_scope import allows
         for owner in net.signals:
-            if not allows(options, 'green'):
-                continue
             cycle = float(net.signal_cycle_length(owner))
             live = tuple(net.signal_live_phases(owner))
             basis = signals.native_clock_basis(net, owner)
@@ -446,8 +405,6 @@ class Coordinates:
             _, limit, _ = self.limits['offsets', owner]
             axis(owner, 'offset', owner, cycle, options['fd_offset_sec'], -limit, limit)
         for ramp in net.ramps:
-            if not allows(options, 'meter'):
-                continue
             from evaluation.controllers.physical_ramp_branches import operating_green_allowed
             spec = net.physical_ramp_branches
             a, limit, _ = self.limits['diagnostics', 'rw_meter_green_'+ramp]
@@ -461,7 +418,7 @@ class Coordinates:
             self.axes[j].update(allowed=allowed, reference_value=a)
         for owner in net.freeway_links:
             for zone in net.freeway_vsl_zone_free:
-                if not allows(options, 'vsl') or options.get('fixed_vsl') is not None:
+                if options.get('fixed_vsl') is not None:
                     continue  # Exogenous schedule, not an optimization coordinate.
                 head = net.freeway_vsl_zone_heads[owner][zone]
                 key = f'{owner}__seg{head}'
@@ -479,11 +436,6 @@ class Coordinates:
         self.ghi = np.array([r[2] for r in self.phase_rows])
         self.lower, self.upper = np.array(self.bounds).T
         self.owners = tuple(net.signals)+tuple(net.freeway_links)
-        if options.get('regional_prediction_prototype'):
-            from evaluation.controllers.sdmpc_regional_contracts import active_owners
-            self.owners = active_owners(cfg)
-            if any(axis['owner'] not in self.owners for axis in self.axes):
-                raise ValueError('Regional coordinates include a remote actuator')
         from evaluation.controllers.urban_storage_guard import constrain
         constrain(self)
 
@@ -523,10 +475,18 @@ class Coordinates:
                 out.offsets[key] = round((self.reference.offsets[key]+value)%a['scale'], 3)%a['scale']
             elif kind == 'meter':
                 raw = self.reference.diagnostics['rw_meter_green_'+key]+value
-                greens[key] = min(a['allowed'], key=lambda g: (abs(g-raw), abs(g-self.reference.diagnostics['rw_meter_green_'+key])))
+                if os.environ.get('SDMPC_EXPERIMENTAL_ROUND_UP') == '1':
+                    from evaluation.controllers.experimental_rounding import upward
+                    greens[key] = upward(raw,a['allowed'])
+                else:
+                    greens[key] = min(a['allowed'], key=lambda g: (abs(g-raw), abs(g-self.reference.diagnostics['rw_meter_green_'+key])))
             else:
                 raw = self.reference.vsl[key]+value
-                speed = min(a['allowed'], key=lambda v: (abs(v-raw), abs(v-self.reference.vsl[key])))
+                if os.environ.get('SDMPC_EXPERIMENTAL_ROUND_UP') == '1':
+                    from evaluation.controllers.experimental_rounding import upward
+                    speed = upward(raw,a['allowed'])
+                else:
+                    speed = min(a['allowed'], key=lambda v: (abs(v-raw), abs(v-self.reference.vsl[key])))
                 for cell, head in enumerate(self.cfg.network.freeway_vsl_zone_head_of_cell[owner]):
                     if head == a['head']:
                         out.vsl[f'{owner}__seg{cell}'] = speed
@@ -556,8 +516,6 @@ class Coordinates:
             out, self.reference if previous is None else previous, self.cfg, greens)
         signals.validate_control(out, self.cfg)
         self.move_box.validate(out)
-        from evaluation.controllers.sdmpc_actuator_scope import check
-        check(out, getattr(self.cfg.network, 'sdmpc_options', {}) or {}, self.cfg)
         return out
 
     def stencil(self, z, j):
@@ -590,6 +548,7 @@ def vsl_activation_axes(coord,z,gradient,resources,maximum):
     """
     return {j:'inactive_vsl_legal_step' for j,axis in enumerate(coord.axes)
             if axis['kind']=='vsl'
+            and coord.upper[j]-coord.lower[j] > 1e-10
             and axis['reference_value']+z[j]*axis['scale']>=maximum-.5
             and not np.any(gradient[:,j]) and not np.any(resources[:,j])
             and any(v<maximum-.5 for v in axis['allowed'])}
@@ -599,6 +558,7 @@ def meter_activation_axes(coord, z, gradient, resources):
     """Bounded OPEN probes only when all local cost/resource derivatives vanish."""
     return {j: 'open_meter_legal_edge' for j, axis in enumerate(coord.axes)
             if axis['kind'] == 'meter'
+            and coord.upper[j]-coord.lower[j] > 1e-10
             and abs(axis['reference_value'] + z[j]*axis['scale'] - axis['scale']) < 1e-9
             and not np.any(gradient[:, j]) and not np.any(resources[:, j])
             and any(value < axis['scale'] for value in axis['allowed'])}
@@ -632,13 +592,16 @@ def meter_neighbors(coord, action):
                 limit = limits['diagnostics', 'rw_meter_green_'+ramp]
                 for j in indices:
                     axis = coord.axes[j]
-                    allowed = [g for g in axis['allowed'] if abs(g-previous) <= limit+1e-9]
+                    allowed = [g for g in axis['allowed'] if abs(g-previous) <= limit+1e-9
+                               and coord.lower[j]-1e-9 <= (g-axis['reference_value'])/axis['scale'] <= coord.upper[j]+1e-9]
                     if not allowed:
                         raise ValueError('No legal successive meter value')
                     value = min(allowed) if direction < 0 else max(allowed)
                     z[j] = (value-axis['reference_value'])/axis['scale']
                     previous = value
             if tuple(z) in seen:
+                continue
+            if not coord.valid(z):
                 continue
             candidate = coord.decode(z, action)
             coord.validate(candidate)
@@ -741,9 +704,36 @@ def audit_meter_budget_candidates(coord, best, budget_candidates, tolerance, eva
 
 
 def solve_qp(center, gradient, proximal, lower, upper, G, glo, ghi, options):
+    if os.environ.get('SDMPC_QP_REDUCE','1')=='1' or os.environ.get('SDMPC_QP_SOLVER')=='highs':
+        from evaluation.controllers import qp_experimental as exp
+        if os.environ.get('SDMPC_QP_SOLVER')=='highs':
+            def solve(*args):
+                try:
+                    x,info=exp.highs_qp(*args)
+                except (RuntimeError,ValueError) as exc:
+                    info=dict(success=False,message=repr(exc))
+                if info['success']:
+                    return x,info
+                x,original=_solve_qp_core(*args)
+                return x,dict(original,experimental_solver_failed=info,
+                              experimental_solver_fallback='original_slsqp_dykstra')
+        else:
+            solve=_solve_qp_core
+        if os.environ.get('SDMPC_QP_REDUCE','1')=='1':
+            return exp.fixed_reduce(solve,center,gradient,proximal,lower,upper,G,glo,ghi,options)
+        return solve(center,gradient,proximal,lower,upper,G,glo,ghi,options)
+    return _solve_qp_core(center,gradient,proximal,lower,upper,G,glo,ghi,options)
+
+def _solve_qp_core(center, gradient, proximal, lower, upper, G, glo, ghi, options):
     """교통 rollout이 없는 작은 convex QP; 성공과 제약 잔차를 함께 반환."""
     from scipy.optimize import minimize, LinearConstraint, Bounds
     center, gradient = np.asarray(center), np.asarray(gradient)
+    if len(lower) and np.all(np.abs(np.asarray(upper)-np.asarray(lower)) < 1e-12):
+        d = np.asarray(lower).copy()
+        violation = max(float(np.max(glo-G@d, initial=0)) if len(G) else 0.,
+                        float(np.max(G@d-ghi, initial=0)) if len(G) else 0.)
+        return d, dict(success=bool(np.isfinite(d).all() and violation <= 1e-7),
+                       message='Fully fixed QP checked directly',constraint_violation=violation,iterations=0)
     constraints = []
     if len(G):
         equality = np.isfinite(glo) & (glo == ghi)
@@ -774,7 +764,10 @@ def solve_qp(center, gradient, proximal, lower, upper, G, glo, ghi, options):
     if np.all(proximal_arr > 0) and np.all(np.isfinite(proximal_arr)):
         x, sweeps, converged = _dykstra_projection(center-gradient/proximal_arr, np.sqrt(proximal_arr),
                                                    lower, upper, G, glo, ghi)
-        if np.all(np.isfinite(x)) and violation_of(x) <= 1e-7:
+        if os.environ.get('SDMPC_QP_FALLBACK_LIMIT','1')=='1':
+            info.update(fallback_attempted=True,fallback_sweeps=sweeps,fallback_converged=converged)
+        if (np.all(np.isfinite(x)) and violation_of(x) <= 1e-7
+                and (os.environ.get('SDMPC_QP_FALLBACK_LIMIT','1')!='1' or converged)):
             return x, dict(info, success=True, constraint_violation=violation_of(x), fallback='dykstra_projection',
                            dykstra_sweeps=sweeps, dykstra_converged=converged,
                            message='Dykstra projection after SLSQP: '+info['message'])
@@ -786,11 +779,17 @@ def _dykstra_projection(target, scale, lower, upper, G, glo, ghi, max_sweeps=500
 
     Works in y = scale*x, where the box stays a box and each row a slab; exact in the limit, and the box
     projection itself when that already satisfies every row. Returns (x, sweeps, converged)."""
+    limited=os.environ.get('SDMPC_QP_FALLBACK_LIMIT','1')=='1'
+    started=perf_counter()
+    if limited:max_sweeps=min(max_sweeps,int(os.environ.get('SDMPC_QP_FALLBACK_SWEEPS','3000')))
+    time_limit=float(os.environ.get('SDMPC_QP_FALLBACK_SECONDS','3.')) if limited else float('inf')
     lower_y, upper_y = scale*lower, scale*upper
     rows = [(G[i]/scale, glo[i], ghi[i]) for i in range(len(G))] if len(G) else []
     rows = [(a, lo, hi, float(a@a)) for a, lo, hi in rows if np.any(a != 0)]
     y = scale*target
     increments = np.zeros((len(rows)+1, len(y)))
+    check_stagnation=limited and os.environ.get('SDMPC_QP_FALLBACK_STAGNATION')=='1'
+    checkpoint_y=checkpoint_inc=None
     for sweep in range(1, max_sweeps+1):
         previous, previous_increments = y.copy(), increments.copy()
         z = y+increments[0]; y = np.clip(z, lower_y, upper_y); increments[0] = z-y
@@ -802,7 +801,21 @@ def _dykstra_projection(target, scale, lower, upper, G, glo, ghi, max_sweeps=500
         # feasible nor optimal): stop only when both are stationary.
         if (float(np.max(np.abs(y-previous), initial=0.)) < tolerance
                 and float(np.max(np.abs(increments-previous_increments), initial=0.)) < tolerance):
-            return y/scale, sweep, True
+            point=y/scale
+            if not limited or max(float(np.max(lower-point,initial=0)),float(np.max(point-upper,initial=0)),
+                    float(np.max(glo-G@point,initial=0)),float(np.max(G@point-ghi,initial=0)))<=1e-7:
+                return point, sweep, True
+        if limited and perf_counter()-started>=time_limit:
+            return y/scale, sweep, False
+        if check_stagnation and sweep%500==0:
+            point=y/scale
+            residual=max(float(np.max(lower-point,initial=0)),float(np.max(point-upper,initial=0)),
+                         float(np.max(glo-G@point,initial=0)),float(np.max(G@point-ghi,initial=0)))
+            if (checkpoint_y is not None and residual>1e-7
+                    and np.max(np.abs(y-checkpoint_y),initial=0)<1e-12
+                    and np.max(np.abs(increments-checkpoint_inc),initial=0)<1e-12):
+                return point,sweep,False
+            checkpoint_y=y.copy();checkpoint_inc=increments.copy()
     return y/scale, max_sweeps, False
 
 
@@ -832,18 +845,7 @@ def load_prices(previous_path, state, policy):
             or int(lines[2]) != csv_path.stat().st_size or saved['schema'] != SCHEMA
             or saved['sim_sec'] != float(lines[0]) or saved['policy_sha256'] != policy_token(policy)):
         raise ValueError('SDMPC prior price/application context mismatch')
-    regional = policy.get('regional_prediction_prototype')
-    if regional:
-        from evaluation.controllers.sdmpc_regional_contracts import active_resources
-        mask = active_resources(regional)
-        if saved.get('regional_mode') != regional or saved.get('active_resources') != mask:
-            raise ValueError('Persisted prices belong to a different information scope')
-        raw_prices = saved['next_prices_scaled']
-        if not isinstance(raw_prices, list) or len(raw_prices) != 2:
-            raise ValueError('Invalid persisted regional price envelope')
-        prices = np.array([raw_prices[i] if mask[i] else 0. for i in range(2)], dtype=float)
-    else:
-        prices = np.array(saved['next_prices_scaled'], dtype=float)
+    prices = np.array(saved['next_prices_scaled'], dtype=float)
     if (prices.shape != (2,) or not np.all(np.isfinite(prices)) or prices[0] < 0
             or (policy.get('budget_caps') and prices[1] < 0)):
         raise ValueError('Invalid persisted SDMPC budget price')
@@ -860,34 +862,6 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
     cfg, policy = follower.cfg, dict(follower.cfg.network.sdmpc_options)
     central_mode = bool(policy.get('central_multiplier'))
     cap_mode = bool(policy.get('budget_caps'))
-    regional = policy.get('regional_prediction_prototype')
-    resource_mask = None
-    if regional:
-        from evaluation.controllers.sdmpc_regional_contracts import active_resources
-        resource_mask = active_resources(regional)
-        if (getattr(state, 'regional_boundary', {}).get('mode') != regional
-                or not cap_mode or not central_mode or not policy.get('surrogate_reuse')):
-            raise ValueError('Regional SDMPC requires a cut state and the existing continuous PFO-cap policy')
-        if policy.get('regional_context_required') and getattr(state, 'regional_context', {}) != {
-                'schema': 'regional-decision-context/v1', 'mode': regional, 'complete': True}:
-            raise ValueError('Incomplete regional decision context')
-        from evaluation.controllers.sdmpc_regional_contracts import project_forecast
-        forecast = project_forecast(forecast, regional)
-        # Bind leader-domain generation to the very same cut state/configuration.
-        # Do not let the original controller retain a separate live config.
-        private_controller = copy.copy(controller)
-        private_controller.cfg = cfg
-        private_controller.nash_solver = follower
-        private_controller.leader = copy.deepcopy(controller.leader)
-        private_controller.leader.cfg = cfg
-        controller = private_controller
-        # Adapter dispatch still requires the independent audited input context.
-        # Do not project a full-information state implicitly inside the optimizer.
-        historical = historical.copy()
-        if regional == 'freeway_only':
-            historical.N_P_star = 0.
-        else:
-            historical.N_UF_star = 0.
     if cap_mode:
         options = dict(options, nuf_tolerance_veh_h=policy['pfo_cap_options']['nuf_tolerance_veh_h'])
     if central_mode:
@@ -903,15 +877,10 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
     prices, price_receipt = load_prices(previous_path, state, policy)
     initial_central_dual = None
     if central_mode:
-        initial_central_dual = central.initialize_duals(prices, caps=cap_mode, active_resources=resource_mask)
+        initial_central_dual = central.initialize_duals(prices, caps=cap_mode)
         if price_receipt['committed']:
             saved = json.loads(Path(previous_path).read_text(encoding='utf-8-sig'))['metadata']['sdmpc_state']
-            raw_duals = saved['next_central_duals_scaled']
-            if regional:
-                if not isinstance(raw_duals, list) or len(raw_duals) != 2:
-                    raise ValueError('Invalid regional central dual envelope')
-                raw_duals = [raw_duals[i] if resource_mask[i] else 0. for i in range(2)]
-            initial_central_dual = np.asarray(raw_duals, dtype=float)
+            initial_central_dual = np.asarray(saved['next_central_duals_scaled'], dtype=float)
             if (initial_central_dual.shape != ((2,) if cap_mode else (3,)) or not np.isfinite(initial_central_dual).all()
                     or np.any(initial_central_dual < 0)
                     or not np.array_equal(central.signed_prices(initial_central_dual),prices)):
@@ -920,8 +889,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
     source_token = token(runtime_sources)
     reference = meters.prepare_held_actual_reference(historical, cfg)
     from evaluation.controllers.physical_ramp_branches import configure_operating_bounds
-    meter_operating_bounds = (dict(active=False, region=regional) if regional == 'urban_only'
-        else configure_operating_bounds(state, cfg, reference))
+    meter_operating_bounds = configure_operating_bounds(state, cfg, reference)
     if policy.get('fixed_vsl') is not None:
         from evaluation.controllers.control_hold import fixed_vsl_reference
         reference = fixed_vsl_reference(reference, policy['fixed_vsl'],
@@ -929,23 +897,18 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             cfg.simulation.T_c_sec, policy.get('control_blocks', 1))
         # historical remains the actual prior command for the writer/move box.
         # The scheduled command is present in every prediction, including PFO.
-    from evaluation.controllers.sdmpc_actuator_scope import check as check_scope
-    check_scope(reference, policy, cfg)
     scale = np.array([policy['budget_scale_np_veh'], policy['budget_scale_nuf_veh_h']])
     with joint.shared_query_runtime_scope(), ExitStack() as derivative_tasks:
         adapter._PHASE_VECTOR_FOLLOWER['ref'] = follower
         callbacks, context, fingerprint = joint._joint_runtime_callbacks(follower, state, forecast,
             historical, reference, mapping, runtime_sources, reference=reference, total_budget=None,
-            directional={}, tolerance=options['nuf_tolerance_veh_h'], budget=budget, price_probe=False,
-            regional_mode=regional)
-        query = None
-        if not regional:
-            query = joint.make_decision_shared_query(follower, state, reference, forecast,
-                horizon_steps=cfg.mpc.horizon_steps, source_fingerprint=source_token,
-                cache_enabled=True, check_budget=budget.check,
-                parallel_workers=options['response_parallel_workers'], worker_bootstrap=worker_bootstrap,
-                deadline_monotonic=None if budget.unlimited_time else budget.started+budget.seconds-budget.reserve_sec,
-                unlimited_time=budget.unlimited_time)
+            directional={}, tolerance=options['nuf_tolerance_veh_h'], budget=budget, price_probe=False)
+        query = joint.make_decision_shared_query(follower, state, reference, forecast,
+            horizon_steps=cfg.mpc.horizon_steps, source_fingerprint=source_token,
+            cache_enabled=True, check_budget=budget.check,
+            parallel_workers=options['response_parallel_workers'], worker_bootstrap=worker_bootstrap,
+            deadline_monotonic=None if budget.unlimited_time else budget.started+budget.seconds-budget.reserve_sec,
+            unlimited_time=budget.unlimited_time)
         budget.response_query = query
         coordinate_type = sequence.SequenceCoordinates if policy.get('control_blocks') == 3 else Coordinates
         coord = coordinate_type(cfg, reference, callbacks['move_box'], policy)
@@ -967,8 +930,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         if surrogate:
             from evaluation.controllers.sdmpc_tangent_surrogate import Query, MODEL
             from evaluation.controllers.sdmpc_tangent import prepare_request
-            if query is not None:
-                query.close()  # The ordinary worker pool has not been started.
+            query.close()  # The ordinary worker pool has not been started.
             query = Query(prepare_request(follower, state, forecast, reference, reference, coord, worker_bootstrap),
                 budget.check, lambda stage, **kw: progress({'stage': stage, **kw}) if progress else None)
             budget.response_query = query
@@ -987,11 +949,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     raise ValueError('SDMPC shared response/action mismatch')
             return answer
         def quantity(action, item):
-            function = constraints.shared_quantity_constraints
-            if regional:
-                from evaluation.controllers.sdmpc_regional_contracts import quantity_constraints
-                function = quantity_constraints
-            return function(follower, action, item['quantities'],
+            return constraints.shared_quantity_constraints(follower, action, item['quantities'],
                 start_sec=state.time_sec, horizon_steps=cfg.mpc.horizon_steps,
                 np_mode='cap', target_np_veh=action.N_P_star, np_tolerance_veh=options['np_tolerance_veh'],
                 nuf_mode='cap' if cap_mode else 'equality', target_nuf_veh_h=action.N_UF_star,
@@ -1009,12 +967,45 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             from evaluation.controllers import sdmpc_pfo, sdmpc_budget
             # Every solve is a fresh control interval. No persisted budget or
             # previous unexecuted plan may bypass this own-cost warm solve.
+            def screening_context(action,item):
+                if not central_mode or not cap_mode:
+                    raise ValueError('Experimental current-price screening requires central caps')
+                preview,_ = sdmpc_budget.initialize(follower,state,action,item,options)
+                targets=np.array([preview.N_P_star,preview.N_UF_star])
+                return dict(residual=(vector(preview,item)-targets)/scale,
+                    tolerance=np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale,
+                    dual=initial_central_dual.copy(),dual_step=(0. if os.environ.get('SDMPC_EXPERIMENTAL_SCREEN_FREEZE_DUAL')=='1' else policy['dual_step']),resource_scale=scale,
+                    proximal=policy['proximal'],qp_options=policy)
             warm_action, warm_item, pfo_receipt, pfo_initial = sdmpc_pfo.solve(
-                operating_seed,coord,policy,options,evaluate,query.derivative,vector,budget.check,emit)
+                operating_seed,coord,policy,options,evaluate,query.derivative,vector,budget.check,emit,screening_context)
             pfo_receipt['prediction_rollouts'] = query.stats()['total_rollouts']
             post_pfo_started = perf_counter()
             anchor, initialization = sdmpc_budget.initialize(follower,state,warm_action,warm_item,options)
             query.bind_warm_budget(warm_action,anchor,options)
+            if os.environ.get('SDMPC_POST_PFO_LAGRANGIAN') == '1':
+                if (not central_mode or not surrogate or os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO') == '1'
+                        or os.environ.get('SDMPC_EXPERIMENTAL_LAGRANGIAN_SELECTION') != '1'):
+                    raise ValueError('Post-PFO Lagrangian selection requires Full PFO and central caps')
+                threshold = os.environ.get('SDMPC_EXPERIMENTAL_ADAPTIVE_THRESHOLD', '').strip()
+                if not threshold:
+                    raise ValueError('Post-PFO Lagrangian selection requires a threshold')
+                from evaluation.controllers import adaptive_lever_selection
+                from evaluation.controllers.sdmpc_tangent import checked_matrices
+                receipt = query.derivative(warm_action)
+                warm_costs = np.array([warm_item['sdmpc_omega_partition']['costs'][p]
+                                       for p in (*coord.owners, PASSIVE)])
+                grad, resources, fallback = checked_matrices(receipt, warm_costs, vector(warm_action,warm_item),
+                    coord.axes, policy['tangent_primal_abs_tolerance'], allow_surrogate=True)
+                if fallback or receipt.get('ad_axes') != list(range(len(coord.axes))):
+                    raise ValueError('Post-PFO screening requires complete derivatives')
+                selected = adaptive_lever_selection.select_lagrangian(
+                    coord, warm_action, grad, resources, float(threshold), **screening_context(warm_action,warm_item))
+                query.activate_derivative_axes(selected['active_axes'])
+                selected['selection_stage'] = 'after_full_pfo'
+                pfo_receipt['adaptive_selection'] = selected
+                emit('adaptive_levers_selected', selected=len(selected['selected_groups']),
+                     fixed=len(selected['fixed_groups']), active_axes=len(selected['active_axes']),
+                     selection_seconds=selected['selection_cost_sec'], selection_stage='after_full_pfo')
             emit('sdmpc_pfo_budget_initialized',np_cap=anchor.N_P_star,nuf_cap=anchor.N_UF_star,
                  achieved_np=initialization['achieved_np_veh'],achieved_nuf=initialization['achieved_nuf_veh_h'],
                  np_margin=initialization['np_cap_margin_veh'],nuf_margin=initialization['nuf_cap_margin_veh_h'],
@@ -1053,8 +1044,6 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             raise ValueError('SDMPC NUF refresh changed physical commands')
         hold_valid = feasible(anchor, held)
         best = (anchor, held, None) if hold_valid else None
-        if regional == 'freeway_only':
-            domain = {'np_values':(0.,), 'scope':'Inactive absent NP; no NP proposal generator called'}
         if domain is None:
             domain = joint.prepare_joint_leader_candidates(controller, state, forecast, historical,
                 budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check, np_only=True)
@@ -1070,6 +1059,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         central_rows, dual_updates = [], []
         meter_budget_candidates = []
         candidate_rows, gradient_rows, local_rows, trials = [], [], [], []
+        constraint_step_receipts = []
+        mixed_projection_receipts = []
         costs_order = (*coord.owners, PASSIVE)
         def costs(item):
             return np.array([item['sdmpc_omega_partition']['costs'][p] for p in costs_order])
@@ -1117,11 +1108,12 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     policy['tangent_primal_abs_tolerance'], allow_surrogate=surrogate)
                 A = A/scale[:, None]
                 derivative_receipts.append(receipt)
-                emit('sdmpc_tangent_done', ad_axes=len(z)-len(fallback),
+                emit('sdmpc_tangent_done', ad_axes=len(receipt.get('ad_axes', [])),
+                    fixed_axes=len(receipt.get('fixed_axes_not_differentiated', [])),
                     fallback_axes=len(fallback), seconds=receipt['wall_sec_including_spawn'])
-            if policy.get('vsl_activation_secant'):
+            if policy.get('vsl_activation_secant') and os.environ.get('SDMPC_EXPERIMENTAL_FAST_DISCRETE') != '1':
                 fallback.update(vsl_activation_axes(coord,z,grad,A,max(follower.cfg.freeway_follower.vsl_set)))
-            if policy.get('meter_activation_secant'):
+            if policy.get('meter_activation_secant') and os.environ.get('SDMPC_EXPERIMENTAL_FAST_DISCRETE') != '1':
                 fallback.update(meter_activation_axes(coord, z, grad, A))
             candidates, stencils = [], []
             for j in range(len(z)):
@@ -1146,6 +1138,11 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             measured = evaluate(candidates) if candidates else []
             resolved = []
             for j, stencil in enumerate(stencils):
+                if coord.upper[j]-coord.lower[j] <= 1e-10 and bool(os.environ.get('SDMPC_EXPERIMENTAL_ADAPTIVE_THRESHOLD', '').strip()):
+                    gradient_rows.append({**coord.axes[j], 'anchor_z': z[j], 'stencil': None,
+                        'resolved': False, 'derivative_method': 'inactive_fixed_not_evaluated',
+                        'own': None, 'external': None, 'total': None, 'resource_derivatives_scaled': None})
+                    continue
                 if stencil is None:
                     resolved.append(j)
                     gradient_rows.append({**coord.axes[j], 'anchor_z': z[j], 'stencil': None,
@@ -1180,7 +1177,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 G = np.vstack((G, A[:, ix]))
                 if central_mode:
                     eps = np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale
-                    resource_lo, resource_hi = central.qp_bounds(c, eps, caps=cap_mode, active_resources=resource_mask)
+                    resource_lo, resource_hi = central.qp_bounds(c, eps, caps=cap_mode)
                     lo, hi = np.r_[lo, resource_lo], np.r_[hi, resource_hi]
                 else:
                     lo, hi = np.r_[lo, -np.inf, -c[1]], np.r_[hi, -c[0], -c[1]]
@@ -1208,9 +1205,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 c = (vector(action, current)-target)/scale
                 proposal = np.zeros(len(z))
                 for owner in coord.owners:
-                    ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner], dtype=int)
-                    if not len(ix):
-                        continue  # Retain its cost/externality, but no actuator QP.
+                    ix = np.array([j for j,a in enumerate(coord.axes) if a['owner']==owner])
                     own = grad[costs_order.index(owner), ix]
                     external = grad[:, ix].sum(axis=0)-own
                     d, receipt = qp(z, np.zeros(len(ix)), own+external+(A.T@iteration_prices)[ix], policy['proximal'], ix=ix)
@@ -1224,7 +1219,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     before_dual = candidate_dual.copy()
                     candidate_dual = central.update_duals(candidate_dual,raw,
                         np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale,
-                        policy['dual_step'],caps=cap_mode,active_resources=resource_mask)
+                        policy['dual_step'],caps=cap_mode)
                     dual_updates.append(dict(cap=cap,nuf_target=requested_nuf,iteration=iteration,
                         before=before_dual.tolist(),after=candidate_dual.tolist(),
                         prices_used=iteration_prices.tolist(),raw_residual_scaled=raw.tolist(),
@@ -1233,10 +1228,69 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 if not qr['success']:
                     status = 'linear_resource_qp_failed'; break
                 trial_actions = []
-                for k in range(policy['line_search_steps']):
-                    try: candidate = coord.decode(z+(.5**k)*step, action)
-                    except ValueError: continue
-                    if token(candidate) not in {token(a) for a in trial_actions}: trial_actions.append(candidate)
+                if os.environ.get('SDMPC_EXPERIMENTAL_MIXED_PROJECTION') == '1':
+                    from evaluation.controllers import mixed_projection
+                    eps = np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale
+                    resource_lo, resource_hi = (central.qp_bounds(c,eps,caps=cap_mode) if central_mode
+                        else (np.array([-np.inf,-c[1]]),np.array([-c[0],-c[1]])))
+                    record = {'cap':cap,'nuf_target':requested_nuf,'iteration':iteration,'candidate_count':0}
+                    try:
+                        point, info = mixed_projection.project(coord,z+step,z,A,resource_lo,resource_hi)
+                        record.update(info)
+                        if point is not None:
+                            candidate=coord.decode(point,action)
+                            coord.validate(candidate)
+                            actual=coord.encode(candidate)
+                            residual=A@(actual-z)
+                            if (np.any(residual<resource_lo-1e-7) or np.any(residual>resource_hi+1e-7)
+                                    or np.max(np.abs(actual-z),initial=0.)<=1e-8):
+                                record['rejected']='decoded action is infeasible or unchanged'
+                            else:
+                                trial_actions.append(candidate);record['candidate_count']=1
+                    except ValueError as exc:
+                        record['reason']=str(exc)
+                    mixed_projection_receipts.append(record)
+                    emit('sdmpc_mixed_projection', **record)
+                elif os.environ.get('SDMPC_EXPERIMENTAL_CONSTRAINT_STEP') == '1':
+                    from evaluation.controllers import constraint_step
+                    eps = np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale
+                    resource_lo, resource_hi = (central.qp_bounds(c,eps,caps=cap_mode) if central_mode
+                        else (np.array([-np.inf,-c[1]]),np.array([-c[0],-c[1]])))
+                    record = {'cap':cap,'nuf_target':requested_nuf,'iteration':iteration,
+                        'scope':'linearized bounds and finite actuator events; nonlinear feasibility remains checked',
+                        'alpha':None,'candidate_count':0,'decode_attempts':0}
+                    try:
+                        line_lo,line_hi=constraint_step.intersect_line(z,step,coord.lower,coord.upper,
+                            coord.G,coord.glo,coord.ghi,A,resource_lo,resource_hi)
+                        gradient=grad.sum(axis=0)+A.T@iteration_prices
+                        target_alpha,slope,curvature=constraint_step.target_alpha(line_lo,line_hi,gradient,step,policy['proximal'])
+                        record.update(line_lo=line_lo,line_hi=line_hi,target_alpha=target_alpha,
+                                      proxy_slope=slope,proxy_curvature=curvature)
+                        if line_lo <= 1e-12 and target_alpha <= 1e-12:
+                            raise ValueError('Local model favors current feasible point')
+                        for alpha in constraint_step.candidate_alphas(coord,z,step,line_lo,line_hi,target_alpha):
+                            record['decode_attempts']+=1
+                            try:
+                                candidate=coord.decode(z+alpha*step,action)
+                                coord.validate(candidate)
+                            except ValueError:
+                                continue
+                            actual=coord.encode(candidate)
+                            residual=A@(actual-z)
+                            if (np.any(residual<resource_lo-1e-7) or np.any(residual>resource_hi+1e-7)
+                                    or np.max(np.abs(actual-z),initial=0.)<=1e-8):
+                                continue
+                            trial_actions.append(candidate);record['alpha']=alpha;record['candidate_count']=1
+                            break
+                    except ValueError as exc:
+                        record['reason']=str(exc)
+                    constraint_step_receipts.append(record)
+                    emit('sdmpc_constraint_step', **record)
+                else:
+                    for k in range(policy['line_search_steps']):
+                        try: candidate = coord.decode(z+(.5**k)*step, action)
+                        except ValueError: continue
+                        if token(candidate) not in {token(a) for a in trial_actions}: trial_actions.append(candidate)
                 if not trial_actions:
                     status = 'no_executable_step'; break
                 if (policy.get('trial_derivative_overlap') and not surrogate
@@ -1308,7 +1362,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 recovery = central.recover((*reference_model,final_item['central_physical']),
                     final_z,vector(final_action,final_item),target,scale,
                     np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']]),
-                    coord,policy['central_options'],candidate_best is not None,caps=cap_mode,active_resources=resource_mask)
+                    coord,policy['central_options'],candidate_best is not None,caps=cap_mode)
                 if query.stats()['total_rollouts'] != before_rollouts:
                     raise ValueError('Central recovery unexpectedly predicted traffic')
                 recovery.update(np_cap=cap,nuf_target=requested_nuf)
@@ -1320,7 +1374,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     limits = (sdmpc_budget.search_limits(targets[0],caps,cfg.network.total_ramp_capacity)
                         if cap_mode else ([min(caps),0.],[max(caps),cfg.network.total_ramp_capacity]))
                     new_target = central.next_budget(targets[0],recovery,targets,
-                        limits,policy['central_options'],active_resources=resource_mask)
+                        limits,policy['central_options'])
                     if new_target is not None:
                         targets.append(tuple(new_target))
             if candidate_best:
@@ -1341,22 +1395,12 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
         if best is None:
             raise ValueError('SDMPC found no executable feasible candidate; hold was also infeasible')
         meter_audit = None
-        if policy.get('meter_neighbor_audit'):
+        if policy.get('meter_neighbor_audit') and os.environ.get('SDMPC_EXPERIMENTAL_FAST_DISCRETE') != '1':
             finish_trial_derivatives()
             emit('sdmpc_meter_neighbors_start')
             best, meter_audit = audit_meter_budget_candidates(coord, best, meter_budget_candidates,
                 policy['objective_tolerance'], evaluate, feasible)
             emit('sdmpc_meter_neighbors_done', **meter_audit)
-        vsl_schedule_audit = None
-        if policy.get('vsl_schedule_audit'):
-            from evaluation.controllers.vsl_schedule_neighbors import audit as audit_vsl_schedules
-            finish_trial_derivatives()
-            emit('sdmpc_vsl_schedules_start')
-            vsl_started = perf_counter()
-            best, vsl_schedule_audit = audit_vsl_schedules(coord, best,
-                policy['objective_tolerance'], evaluate, feasible)
-            vsl_schedule_audit['seconds'] = perf_counter()-vsl_started
-            emit('sdmpc_vsl_schedules_done', **vsl_schedule_audit)
         selected, item, signal = best
         sequence_proof = coord.validate(selected) if policy.get('control_blocks') == 3 else None
         # 기존 검증의 물리/제약/명령 부분만 재사용한다. hold 또는 Nash로 명명하지 않는다.
@@ -1383,8 +1427,6 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             'prices_scaled': prices.tolist(), 'next_prices_scaled': next_prices.tolist(),
             'pending_native_application': True, 'price_update_signal': signal,
             'previous_application': price_receipt}
-        if regional:
-            state_record.update(regional_mode=regional, active_resources=resource_mask)
         if central_mode:
             state_record.update(central_duals_scaled=initial_central_dual.tolist(),
                 next_central_duals_scaled=signal['candidate_dual'] if signal is not None else initial_central_dual.tolist())
@@ -1406,11 +1448,12 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             **({'tangent_derivatives': derivative_receipts}
                if policy.get('derivatives') == 'tangent-v1' else {}),
             'trial_rows': trials, 'local_trial_traffic_rollouts': 0,
-            'finite_neighbor_audit_performed': meter_audit is not None or vsl_schedule_audit is not None, 'policy': policy}
+            'finite_neighbor_audit_performed': meter_audit is not None, 'policy': policy}
+        if os.environ.get('SDMPC_EXPERIMENTAL_CONSTRAINT_STEP') == '1':
+            metadata['constraint_step_receipts'] = constraint_step_receipts
+            metadata['mixed_projection_receipts'] = mixed_projection_receipts
         if meter_audit is not None:
             metadata['meter_neighbor_audit'] = meter_audit
-        if vsl_schedule_audit is not None:
-            metadata['vsl_schedule_audit'] = vsl_schedule_audit
         if central_mode:
             metadata.update(algorithm='sdmpc-central-reuse/v2',central_multiplier=central_rows,
                 iteration_dual_updates=dual_updates, price_update='each_lower_iteration_after_all_players',
@@ -1418,24 +1461,27 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 nuf_definition='predicted_accepted_mainline_merge',
                 nuf_target_policy='initial_hold_merge_then_leader_candidate_search',
                 central_derivative_work=[row['central_physical']['derivative_work'] for row in derivative_receipts])
-        if regional:
-            metadata.update(regional_mode=regional,active_resources=resource_mask,
-                active_cost_owners=list(coord.owners),
-                nuf_definition='inactive_absent_resource' if regional == 'urban_only'
-                    else 'predicted_accepted_mainline_merge',
-                input_isolation_qualified=bool(policy.get('regional_context_required')),
-                input_context_schema=getattr(state, 'regional_context', {}).get('schema'))
         if cap_mode:
             metadata.pop('nuf_initialization'); metadata.pop('held_feasible')
-            metadata.update(algorithm='sdmpc-central-pfo-cap/v3',pfo_warm_start=pfo_receipt,
+            no_pfo = os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO') == '1'
+            metadata.update(algorithm=('sdmpc-central-protected-cap/experimental-v1' if no_pfo else 'sdmpc-central-pfo-cap/v3'),pfo_warm_start=pfo_receipt,
                 original_held_candidate=held_candidate,
                 budget_initialization=initialization,budget_constraint_policy='NP <= cap; actual_merge_NUF <= cap',
-                nuf_target_policy='fresh_PFO_achieved_plus_margin_budget_each_interval_then_leader_search',
+                nuf_target_policy=('fresh_protected_seed_achieved_plus_margin_then_leader_search' if no_pfo else 'fresh_PFO_achieved_plus_margin_budget_each_interval_then_leader_search'),
                 warm_start_feasible=hold_valid,warm_start_objective=held['objective_veh_h'],
                 held_objective=pfo_initial['objective_veh_h'],
                 prediction_ttt_reduction=pfo_initial['objective_veh_h']-item['objective_veh_h'],
                 sdmpc_after_pfo_seconds=perf_counter()-post_pfo_started,
                 sdmpc_after_pfo_rollouts=query.stats()['total_rollouts']-pfo_receipt['prediction_rollouts'])
+            metadata['experimental_ablation'] = dict(pfo_used=not no_pfo,
+                round_up=os.environ.get('SDMPC_EXPERIMENTAL_ROUND_UP') == '1',
+                discrete_neighbor_probes_disabled=os.environ.get('SDMPC_EXPERIMENTAL_FAST_DISCRETE') == '1')
+            metadata['actuator_selection_runtime'] = dict(
+                qp_fixed_reduction=os.environ.get('SDMPC_QP_REDUCE','1') == '1',
+                qp_fallback_bounded=os.environ.get('SDMPC_QP_FALLBACK_LIMIT','1') == '1',
+                selection_threshold=os.environ.get('SDMPC_EXPERIMENTAL_ADAPTIVE_THRESHOLD', '').strip() or None,
+                lagrangian_selection=os.environ.get('SDMPC_EXPERIMENTAL_LAGRANGIAN_SELECTION') == '1',
+                scope='Configuration receipt only; native actuator execution requires separate evidence')
         if surrogate:
             metadata.update(prediction_model=MODEL, execution_model_evaluated=False,
                 independent_ad_witness_performed=False, surrogate_query=query.stats())
