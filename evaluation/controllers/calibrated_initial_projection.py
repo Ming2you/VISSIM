@@ -43,6 +43,40 @@ def empty_proof(state,cfg,target):
 
 def verify_speed(state,cfg,target,factor):
     observed=state.local_observation_summary["urban_link_speed_kph"].get(target)
+    if observed is None:
+        # Do not mistake explicitly observed stationary stock for an
+        # unobserved moving population.  This is a nominal-speed assumption
+        # for future movement, not an observed moving-speed measurement.
+        summary=state.local_observation_summary
+        proof=empty_proof(state,cfg,target)
+        stock=proof['inventory']
+        stopped=summary.get('urban_link_storage_stopped',{}).get(target)
+        provenance=summary['projection_diagnostics']['physical_stock_assignment_by_link']
+        sources={str(k):float(v.get('storage:'+target,0.)) for k,v in provenance.items()
+                 if float(v.get('storage:'+target,0.))>0.}
+        counts=summary.get('link_counts',{}); stopped_counts=summary.get('link_stopped_counts',{})
+        all_stopped=bool(sources) and all(
+            k in counts and k in stopped_counts and math.isfinite(float(counts[k]))
+            and math.isfinite(float(stopped_counts[k]))
+            and float(counts[k]) >= n-1e-9 and float(counts[k]) > 0.
+            and abs(float(counts[k])-float(stopped_counts[k]))<=1e-9
+            for k,n in sources.items())
+        consistent=(math.isfinite(float(stock)) and stock>1e-9 and stopped is not None
+            and math.isfinite(float(stopped)) and abs(float(stopped)-stock)<=1e-9
+            and all(math.isfinite(float(v)) and abs(float(v)-stock)<=1e-9 for v in proof.values())
+            and abs(sum(sources.values())-stock)<=1e-9)
+        if all_stopped and consistent:
+            encoded=state.urban_link_speed_kph[target]
+            nominal=cfg.network.urban_avg_speed_km_h
+            if not all(math.isfinite(float(v)) and float(v)>0 for v in (encoded,factor,nominal)) or factor<=1:
+                raise ValueError('Invalid stationary-stock speed assumption')
+            if abs(encoded-factor*nominal)>1e-8:
+                raise ValueError('Nominal fallback differs from existing encoded speed')
+            return dict(mode='assumed_nominal_all_observed_stock_stopped',
+                observed_speed=None,encoded_speed=encoded,transport_speed_kph=nominal,
+                stationary_stock=stock,physical_source_links=sources,proof=proof,
+                arrival_and_release_calendars_unchanged=True,state_modified=False,
+                warning='No moving-speed sample; future movement uses existing nominal speed assumption')
     return verify_lane_speed(state.urban_link_speed_kph[target],factor,observed,
         cfg.network.urban_avg_speed_km_h,uqm.OBSERVED_SPEED_DELAY_CAP_RATIO,
         empty_proof(state,cfg,target) if observed is None else None)

@@ -1,0 +1,13 @@
+# S-DMPC controller snapshot, 2026-11-23
+
+This branch adds the controller files used by the in-progress demand 1.2 experiment to the previous adaptive-QP branch. It is an experimental snapshot, not evidence that the full experiment has completed or that a performance improvement is guaranteed.
+
+The adaptive mode uses `SDMPC_PRE_PFO_LAGRANGIAN=1`, `SDMPC_EXPERIMENTAL_LAGRANGIAN_SELECTION=1`, and `SDMPC_EXPERIMENTAL_ADAPTIVE_THRESHOLD` set to the intended non-negative threshold. The experiment uses 0, 0.01, 0.05, and 0.1. PFO is enabled. Threshold 0 selects all scored control groups in the tested configuration; it should not be assumed bitwise equivalent to a separate legacy full-control path.
+
+For VSL selection, the first block of each zone is evaluated at adjacent feasible speeds with a full-network prediction. Multiple simultaneous zones and multi-block schedules are not directly scored. The score includes the current price and proximal term. The signal and VSL protection-only mandatory selection was removed; ramp safeguards remain. Fixed controls stay in the network prediction, and protected reference commands can differ from the previous command. The finite score is a model prediction, not a certificate of native performance.
+
+The source observation schedule is bound to the runtime demand scale and pinned input roles/profile. It is independently checked against the runtime native timetable. The SC105 queue count comparison uses a small absolute tolerance solely for floating-point roundoff; it does not resolve other SC105 initialization errors. The 1.1 demand tau 0.01 run recorded previous-command holds from missing SC105 calendars and mixed ownership as well as a count mismatch; the count mismatch at that run has not been diagnosed individually.
+
+These files were copied from the runtime freeze with manifest SHA256 `53823b7539e27ce2b5c16a8f8abf5ab22273e9eb47ebb4402b62119581402cc7`, with some line endings normalized to match the existing Git files; not every file is byte-identical to that Windows freeze. The snapshot's local packaging commit was `b550a8a9adf6005540c65beb78f96ac46c6cfc6a`; it is not an ancestor of this branch. The original demand-boundary source and roundoff fix were checked offline against the saved failed observations. Adjacent-VSL and selector checks passed; those checks are not substitutes for a completed VISSIM run.
+
+This branch preserves the previous branch's other files and data. It does not contain simulation outputs or an independent end-to-end reproduction of the current queue. The 1.2-demand runtime remains in progress at publication time; do not report it as completed.

@@ -117,7 +117,7 @@ def install(cfg,state,raw,frame,network,lane_queues):
                 front=sorted((v for v in vv if v['lane_no']==lane),key=lambda v:-v['position_m'])[:int(n)]
                 require(len(front)==n and all(v['stopped'] for v in front),'Current terminal queue differs')
                 ready.update(v['veh_no'] for v in front)
-            require(len(ready)==q,'Terminal queue count changed')
+            require(math.isclose(len(ready), q, rel_tol=0., abs_tol=1e-8),'Terminal queue count changed')
     require(abs(sum(old_calendar.values())-(source_vehicles-old_ready))<1e-8,'Initial source reservation mismatch')
     result=deepcopy(state);new_support={k:{**{p:v for p,v in assignments[k].items() if p not in keys},
                                            'storage:'+TARGET:0.,**{'movement:'+m:0. for m in MOVES}} for k in owners}

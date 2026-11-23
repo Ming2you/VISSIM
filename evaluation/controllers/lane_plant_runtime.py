@@ -6,6 +6,8 @@ traffic. Initialization occurs before the area ledger is seeded.
 """
 from __future__ import annotations
 import copy
+import csv
+import dataclasses
 import hashlib
 import json
 import math
@@ -158,6 +160,7 @@ def _load_sources_v2(path,document):
     if obs.detector_csv_sha256!=document['observation']['detectors']['sha256']:
         raise ValueError('obs150 detector table differs from the manifest pin')
     context['obs150']=obs
+    context['obs150_base']=obs
     return context
 
 
@@ -188,6 +191,48 @@ def _validate_component_features(component,reference):
             raise ValueError('Declared physical ramp calibration was not installed: '+key)
 
 
+def _runtime_source_context(context, raw):
+    """Bind observer source schedules to this run's declared demand profile.
+
+    The base context remains tied to the calibrated network.  Demand is an
+    experiment input, and may differ from the calibration scenario.  Validate
+    run identity and pinned profile/role files; downstream binding still
+    checks exact equality against the runtime native input timetable.
+    """
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.network_provenance import _snapshot_provenance
+    provenance = _snapshot_provenance(raw)
+    scale = float(provenance['demand_scale'])
+    if not math.isfinite(scale) or scale < 0:
+        raise ValueError('Invalid declared run demand scale')
+    if raw.get('demand', {}).get('demand_profile') != 'real_world_inpx_time_profile_scaled':
+        raise ValueError('Source boundary requires the reviewed native demand profile')
+    def pinned_rows(name):
+        pin=provenance['files'][name]
+        path=Path(pin['path']);data=path.read_bytes()
+        if hashlib.sha256(data).hexdigest()!=pin['sha256']:
+            raise ValueError('Run demand input changed: '+name)
+        return list(csv.DictReader(data.decode('utf-8-sig').splitlines()))
+    roles={row['no']:row['role'].strip().lower() for row in pinned_rows('vehicle_input_roles')}
+    profile={row['role'].strip().lower():float(row['multiplier']) for row in pinned_rows('demand_profile')}
+    if any(not math.isfinite(v) or v < 0 for v in profile.values()):
+        raise ValueError('Invalid demand profile multiplier')
+    tree=ET.parse(context['paths']['network']).getroot()
+    inputs=tree.findall('./vehicleInputs/vehicleInput')
+    base=context.get('obs150_base',context['obs150'])
+    schedules={}
+    for road,rows in base.source_schedule.items():
+        first=str(base.chain_links[road][0])
+        matches=[v for v in inputs if v.get('link')==first]
+        if len(matches)!=1 or matches[0].get('no') not in roles:
+            raise ValueError('Missing unique native mainline source for '+road)
+        no=matches[0].get('no');factor=scale*profile.get('no:'+no,profile.get(roles[no],profile.get('__default__',1.)))
+        schedules[road]=tuple(oc.ScheduleRow(row.start_sec,row.end_sec,row.vph*factor) for row in rows)
+    result=dataclasses.replace(base,source_schedule=schedules)
+    oc.validate_context(result)
+    return result
+
+
 def observe_state(context,raw):
     """(state, observation) for configure_runtime.
 
@@ -206,6 +251,7 @@ def observe_state(context,raw):
     if (not isinstance(bundle,dict) or bundle.get('sim_sec')!=raw['sim_sec']
             or bundle.get('run_id')!=raw['run_provenance']['run_id']):
         raise ValueError('Current native state lacks its obs150 bundle')
+    context['obs150']=_runtime_source_context(context,raw)
     derived=obs150_observation.derive(raw,context['obs150'])
     oc.write_derived(raw,derived)
     merged=obs150_observation.merge_into_state(raw,derived)
@@ -853,13 +899,14 @@ def _bind_source_boundary(context,observation,net,timetable,binding):
     from evaluation.controllers import source_boundary
     schedules=source_boundary.road_schedules(timetable)
     calibration=source_boundary.geometry_schedules({'desired_source_demand':context['calibration_source_demand']})
+    calibration_matches={}
     for road,rows in schedules.items():
-        if not source_boundary.same_schedule(rows,calibration[road],tol=1e-6):
-            raise ValueError('Native mainline timetable differs from the calibration source demand: '+road)
+        calibration_matches[road]=source_boundary.same_schedule(rows,calibration[road],tol=1e-6)
         if not source_boundary.same_schedule(rows,tuple(context['obs150'].source_schedule[road]),tol=1e-6):
             raise ValueError('Native mainline timetable differs from the obs150 source schedule: '+road)
     net.freeway_source_boundary_observed=source_boundary.observed_block(observation,schedules)
     binding['source_boundary']=copy.deepcopy(net.freeway_source_boundary_observed)
+    binding['source_boundary']['calibration_schedule_matches']=calibration_matches
 
 
 def _initialize_upstream(local,state,cfg,detectors,provenance,old_provenance,by_link,links,dimensions,context):

@@ -41,7 +41,7 @@ def select(coord, reference, cost_jacobian, resource_jacobian, threshold):
         scope='screen actuation only; complete network dynamics, objectives and physical constraints preserved')
 
 def select_lagrangian(coord, reference, cost_jacobian, resource_jacobian, threshold,
-                      *, residual, tolerance, dual, dual_step, resource_scale, proximal, qp_options):
+                      *, residual, tolerance, dual, dual_step, resource_scale, proximal, qp_options, mandatory_groups=(), vsl_probe=None):
     """One current-cap dual update followed by groupwise feasible QP scoring.
 
     Resource sensitivities are scaled exactly as in the main coordinator. The
@@ -67,19 +67,42 @@ def select_lagrangian(coord, reference, cost_jacobian, resource_jacobian, thresh
         if not receipt['success']:raise ValueError('Pre-selection owner QP failed: '+str(owner))
     updated=central.update_duals(dual,c+A@proposal,eps,dual_step,caps=True)
     prices=central.signed_prices(updated); g=total+A.T@prices
+    if vsl_probe is None:
+        raise ValueError('Finite-step VSL screening requires the prediction callback')
+    vsl_scores,vsl_details=vsl_probe(prices,proximal,resource_scale)
     groups={};conservative=set()
     for j,a in enumerate(coord.axes):
         if a.get('block',0)!=0:continue
         key=group(a);groups.setdefault(key,[]).append(j)
-        if a['kind'] in ('vsl','meter') and not np.any(costs[:,j]) and not np.any(resource_jacobian[:,j]):conservative.add(key)
-    scores={}; group_steps={}
+        # Ramp zero-response protection remains unchanged. A VSL with a zero
+        # local response is not automatically selected in this experiment.
+        if a['kind'] == 'meter' and not np.any(costs[:,j]) and not np.any(resource_jacobian[:,j]):conservative.add(key)
+    scores={}; group_steps={}; failed_groups={}
     for key,indices in groups.items():
-        ix=np.asarray(indices,dtype=int);step,receipt=subproblem(ix,g[ix])
-        if not receipt['success']:raise ValueError('Pre-selection group QP failed: '+str(key))
+        ix=np.asarray(indices,dtype=int)
+        if key[0] == 'vsl':
+            if key not in vsl_scores or not np.isfinite(vsl_scores[key]):
+                raise ValueError('Missing finite-step VSL score: '+str(key))
+            scores[key]=float(vsl_scores[key])
+            group_steps['/'.join(key)]=vsl_details['/'.join(key)]
+            continue
+        step,receipt=subproblem(ix,g[ix])
+        if not receipt['success']:
+            # No evidence to rank a failed signal/VSL QP: fail closed rather
+            # than silently force-selecting or treating its score as zero.
+            if key[0] in ('signal', 'vsl'):
+                raise ValueError('Cannot score signal/VSL selection group: '+str(key))
+            scores[key]=None
+            failed_groups['/'.join(key)]=dict(receipt)
+            continue
         scores[key]=max(0.,-float(g[ix]@step+.5*proximal*(step@step)))
         group_steps['/'.join(key)]=step.tolist()
-    selected={k for k,v in scores.items() if v>=float(threshold)}|conservative
-    if not selected:selected={max(scores,key=scores.get)}
+    protection_changed={tuple(k) for k in mandatory_groups}
+    if not protection_changed.issubset(scores):raise ValueError('Protection group not represented')
+    mandatory={k for k in protection_changed if k[0] not in ('signal','vsl')}
+    selected={k for k,v in scores.items() if v is not None and v>=float(threshold)}|conservative|{k for k,v in scores.items() if v is None}|mandatory
+    if not selected:
+        raise ValueError('No groups selected; retain verified prior/safe command')
     active=[];inactive=[]
     for j,a in enumerate(coord.axes):
         if group(a) in selected:active.append(j)
@@ -89,7 +112,10 @@ def select_lagrangian(coord, reference, cost_jacobian, resource_jacobian, thresh
         selection_cost_sec=time.perf_counter()-started,selected_groups=sorted([list(k) for k in selected]),
         fixed_groups=sorted([list(k) for k in scores if k not in selected]),active_axes=active,fixed_axes=inactive,
         conservative_zero_response_groups=sorted([list(k) for k in conservative]),
-        scores={'/'.join(k):v for k,v in scores.items()},group_steps=group_steps,
+        mandatory_protection_groups=sorted([list(k) for k in mandatory]),
+        protection_changed_groups=sorted([list(k) for k in protection_changed]),
+        vsl_score_method='full_prediction_adjacent_legal_single_block',
+        scores={'/'.join(k):v for k,v in scores.items()},group_steps=group_steps,failed_group_qps=failed_groups,
         initial_dual=dual.tolist(),updated_dual=updated.tolist(),initial_residual_scaled=c.tolist(),
         proposed_residual_scaled=(c+A@proposal).tolist(),tolerance_scaled=eps.tolist(),
         scope='first-block groupwise proximal Lagrangian predicted decrease; actuator bounds and signal constraints; one approximate dual update; full dynamics retained')

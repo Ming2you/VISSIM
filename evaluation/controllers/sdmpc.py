@@ -972,10 +972,15 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                     raise ValueError('Experimental current-price screening requires central caps')
                 preview,_ = sdmpc_budget.initialize(follower,state,action,item,options)
                 targets=np.array([preview.N_P_star,preview.N_UF_star])
-                return dict(residual=(vector(preview,item)-targets)/scale,
+                ctx = dict(residual=(vector(preview,item)-targets)/scale,
                     tolerance=np.array([options['np_tolerance_veh'],options['nuf_tolerance_veh_h']])/scale,
                     dual=initial_central_dual.copy(),dual_step=(0. if os.environ.get('SDMPC_EXPERIMENTAL_SCREEN_FREEZE_DUAL')=='1' else policy['dual_step']),resource_scale=scale,
                     proximal=policy['proximal'],qp_options=policy)
+                if os.environ.get('SDMPC_PRE_PFO_LAGRANGIAN') == '1':
+                    from evaluation.controllers.adaptive_lever_selection import group
+                    delta = coord.encode(action)-coord.encode(reference)
+                    ctx['mandatory_groups'] = sorted({group(a) for j,a in enumerate(coord.axes) if abs(delta[j]) > 1e-9})
+                return ctx
             warm_action, warm_item, pfo_receipt, pfo_initial = sdmpc_pfo.solve(
                 operating_seed,coord,policy,options,evaluate,query.derivative,vector,budget.check,emit,screening_context)
             pfo_receipt['prediction_rollouts'] = query.stats()['total_rollouts']

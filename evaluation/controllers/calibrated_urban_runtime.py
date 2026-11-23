@@ -74,7 +74,8 @@ def configure_queue_projection(cfg,raw,data):
     """
     if data is None:return {}
     import math
-    targets={module('sc12_initial306.candidate').LINK,module('sc16_aggregate323.candidate').LINK} | set(module('sc109_initial320.candidate').LINKS) | {module('sc105_initial340.candidate').TERMINAL}
+    gate=module('sc10_north325.candidate')
+    targets={module('sc12_initial306.candidate').LINK,module('sc16_aggregate323.candidate').LINK} | set(module('sc109_initial320.candidate').LINKS) | {module('sc105_initial340.candidate').TERMINAL,gate.TERMINAL}
     records=raw.get('vehicle_records',{})
     bins=raw.get('local_observation',{}).get('queue_bins')
     if (not records.get('complete') or not isinstance(bins,dict)
@@ -103,7 +104,6 @@ def configure_queue_projection(cfg,raw,data):
     # SC10 is an intermediate fixed signal on the SC6->SC12 approach.
     # Its stopped stock waits in that approach, not in the downstream SC12
     # ready queue. The existing gate325 runtime supplies its actual gate service.
-    gate=module('sc10_north325.candidate')
     upstream=dict(getattr(cfg.network,'head_queue_upstream_storage',{}))
     if gate.GATE in upstream and upstream[gate.GATE]!=gate.TARGET:
         raise ValueError('Calibrated intermediate signal has another storage owner')

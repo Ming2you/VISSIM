@@ -38,6 +38,11 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
     item = evaluate([action], derivatives=True)[0]
     adaptive_selection = None
     threshold = os.environ.get('SDMPC_EXPERIMENTAL_ADAPTIVE_THRESHOLD', '').strip() or None
+    pre_pfo = os.environ.get('SDMPC_PRE_PFO_LAGRANGIAN') == '1'
+    if pre_pfo and (os.environ.get('SDMPC_POST_PFO_LAGRANGIAN') == '1' or
+                    os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO') == '1' or
+                    os.environ.get('SDMPC_EXPERIMENTAL_LAGRANGIAN_SELECTION') != '1' or threshold is None):
+        raise ValueError('Pre-PFO selection requires PFO, Lagrangian threshold and no post-PFO selection')
     if os.environ.get('SDMPC_POST_PFO_LAGRANGIAN') == '1':
         threshold = None  # Preserve the complete PFO; screen the resulting anchor later.
     if threshold is not None:
@@ -51,10 +56,23 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
         if fallback or initial_receipt.get('ad_axes') != list(range(len(coord.axes))):
             raise ValueError('Adaptive screening requires complete initial derivatives')
         if os.environ.get('SDMPC_EXPERIMENTAL_LAGRANGIAN_SELECTION')=='1':
-            if os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO')!='1' or screening_context is None:
+            if (os.environ.get('SDMPC_EXPERIMENTAL_NO_PFO')!='1' and not pre_pfo) or screening_context is None:
                 raise ValueError('Lagrangian screening requires the protected-seed cap experiment')
             ctx=screening_context(action,item)
+            if not pre_pfo:
+                raise ValueError('Finite-step VSL screening requires pre-PFO selection')
+            from evaluation.controllers.vsl_finite_screen import score_adjacent
+            def vsl_probe(prices, proximal, resource_scale):
+                return score_adjacent(coord, action, item, evaluate, quantities,
+                    lambda candidate: model_feasible(candidate, options['shared_tolerance']),
+                    prices, proximal, resource_scale)
+            ctx['vsl_probe']=vsl_probe
             adaptive_selection=adaptive_lever_selection.select_lagrangian(coord,action,grad,resources,float(threshold),**ctx)
+            adaptive_selection['protected_reference_first_block'] = dict(
+                green_times=dict(action.green_times), offsets=dict(action.offsets),
+                ramp_metering=dict(action.ramp_metering), vsl=dict(action.vsl),
+                diagnostics={k:v for k,v in action.diagnostics.items() if k.startswith('rw_meter_green_')})
+            if pre_pfo: adaptive_selection['selection_stage']='before_pfo'
         else:
             adaptive_selection = adaptive_lever_selection.select(coord,action,grad,resources,float(threshold))
         query.activate_derivative_axes(adaptive_selection['active_axes'])
@@ -96,8 +114,17 @@ def solve(reference, coord, policy, options, evaluate, derivative, quantities, c
             local_rows.append(dict(iteration=iteration,owner=owner,own_gradient=own.tolist(),
                 externality_gradient_used=False,prices_used=False,traffic_rollouts=0,**qr))
             if not qr['success']:
-                raise ValueError('PFO own-cost QP failed: '+str(qr))
+                if best is None:
+                    raise ValueError('PFO own-cost QP failed and no verified warm start exists: '+str(qr))
+                # Discard the entire incomplete Jacobi proposal.  Continue
+                # from the best already evaluated and feasible PFO action.
+                status = 'own_qp_failed_using_verified_warm_start'
+                emit('sdmpc_pfo_qp_failed', iteration=iteration, owner=owner, receipt=qr,
+                     using_verified_warm_start=True)
+                break
             proposal[ix] = step
+        if status == 'own_qp_failed_using_verified_warm_start':
+            break
         step, qr = qp(z,proposal,np.zeros(len(z)),1.,np.arange(len(z)))
         if not qr['success']:
             raise ValueError('PFO actuator projection failed: '+str(qr))
