@@ -88,10 +88,8 @@ def select_lagrangian(coord, reference, cost_jacobian, resource_jacobian, thresh
             continue
         step,receipt=subproblem(ix,g[ix])
         if not receipt['success']:
-            # No evidence to rank a failed signal/VSL QP: fail closed rather
-            # than silently force-selecting or treating its score as zero.
-            if key[0] in ('signal', 'vsl'):
-                raise ValueError('Cannot score signal/VSL selection group: '+str(key))
+            # Score is unknown, not zero: retain the affected group and
+            # record the failure, then perform the normal full validation.
             scores[key]=None
             failed_groups['/'.join(key)]=dict(receipt)
             continue

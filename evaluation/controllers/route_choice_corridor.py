@@ -2219,10 +2219,17 @@ def _configure_direct_transport(cfg,state,raw,tree):
     if set(assigned)-owned-set(initial_entries):
         raise ValueError('SC1001 transport initial support has an unmodeled physical road')
     selected=[r for r in records if str(r['link_no']) in assigned]
-    if any(sum(str(r['link_no'])==k for r in selected)!=v for k,v in assigned.items()):
-        raise ValueError('SC1001 destination initialization has mixed physical ownership')
+    # Experimental degraded-state fallback: retain each existing stock owner.
+    # Physical vehicles on a mixed link are assigned the owner's fraction;
+    # never infer which individual vehicles belong to which owner.
+    counts={k:sum(str(r['link_no'])==k for r in selected) for k in assigned}
+    if any(counts[k]<=0 or v<0 or v>counts[k]+1e-7 for k,v in assigned.items()):
+        raise ValueError('SC1001 owner shares cannot be reconciled with observation')
+    shares={k:v/counts[k] for k,v in assigned.items()}
+    mismatches={k:{'observed':counts[k],'assigned':v,'share':shares[k]}
+                for k,v in assigned.items() if abs(counts[k]-v)>1e-7}
     n=cfg.network.urban_link_storage_veh[storage]-state.urban_link_storage[storage]
-    if abs(n-len(selected))>1e-7 or state.urban_arrival_buffer.get(storage):
+    if abs(n-sum(assigned.values()))>1e-7 or state.urban_arrival_buffer.get(storage):
         raise ValueError('SC1001 destination initialization would replace another stock owner')
     start=int(state.time_sec/cfg.simulation.T_u_sec);cohorts=[];reservations=defaultdict(float)
     for r in selected:
@@ -2242,12 +2249,16 @@ def _configure_direct_transport(cfg,state,raw,tree):
             remaining=(max(0.,entry['length_m']-position)+_known_remaining(paths[target],entry['link'],entry['position'])
                        if entry is not None else _known_remaining(paths[target],r['link_no'],r['position_m']))
             due=_due(cfg,start,remaining,speed)
-            cohorts.append(dict(target=target,vehicles=weight,due=due))
-            reservations[due]+=weight
+            amount=weight*shares[str(r['link_no'])]
+            cohorts.append(dict(target=target,vehicles=amount,due=due))
+            reservations[due]+=amount
     spec['travel']=travel
     state.direct_exit_route_state=dict(cohorts=cohorts,initial=n,received=0.,departed=0.,plan=None)
     state.urban_storage_release_buffer[storage]=dict(reservations)
     _direct_exit_check(state,cfg)
     return dict(direct_exit10483_destination_preserved=1.,sc1001_destination_travel=travel,
                 sc1001_initial_expected_route_veh=n,sc1001_initial_routes_observed=False,
-                sc1001_initial_connector_stock={k:v for k,v in assigned.items() if k in initial_entries})
+                sc1001_initial_connector_stock={k:v for k,v in assigned.items() if k in initial_entries},
+                sc1001_degraded_ownership={'applied':bool(mismatches),'links':mismatches,
+                    'method':'uniform_fraction_per_observed_link','assigned_total':sum(assigned.values()),
+                    'observed_total':len(selected),'individual_ownership_observed':False})

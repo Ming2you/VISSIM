@@ -172,7 +172,8 @@ def initialize(cfg,state,raw,frame,data):
     install(cfg)
     return state,dict(calibrated_urban_native348=True,calibration_training=data['training'],
         calibration_current_stock=initial,calibration_components=list(receipts),
-        calibration_projection_at_sec=state.time_sec,calibration_future_observations=False)
+        calibration_projection_at_sec=state.time_sec,calibration_future_observations=False,
+        sc105_degraded_initialization=receipts['340']['degraded_initialization'])
 
 def project_current_link(component,state,cfg,raw,frame,network,inside,lanes):
     # Complete current rosters omit empty physical links from provenance. There

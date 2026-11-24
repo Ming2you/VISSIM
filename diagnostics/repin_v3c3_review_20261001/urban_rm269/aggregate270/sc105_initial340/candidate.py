@@ -92,13 +92,15 @@ def install(cfg,state,raw,frame,network,lane_queues):
     rows={r[0]:r for r in frame['vehicles']}
     old_calendar=state.urban_arrival_buffer.get(TARGET,{})
     old_release=state.urban_storage_release_buffer.get(TARGET,{})
-    if TARGET not in state.urban_arrival_buffer or TARGET not in state.urban_storage_release_buffer:
+    missing_calendar = TARGET not in state.urban_arrival_buffer or TARGET not in state.urban_storage_release_buffer
+    if missing_calendar:
+        # Reconstruct only from a complete current snapshot and consistent
+        # existing stock, without inventing external vehicles or future inputs.
         owned=sum(v.get(k,0.) for v in assignments.values() for k in keys)
         stock=sum(ledger.stocks.get(k,{}).get(side,0.) for k in keys for side in ('inside','outside'))
         native=sum(str(v['link_no']) in set(SHARED) for v in raw['vehicle_records']['records'])
-        require(raw['vehicle_records']['complete'] and owned==stock==native==model_inventory(state,cfg).get('storage:'+TARGET,0.)==0,
-                'Missing SC105 calendar without independently empty stock')
-        require(not old_calendar and not old_release,'Missing SC105 calendar with outstanding reservation')
+        require(raw['vehicle_records']['complete'] and abs(owned-stock)<1e-7 and not old_calendar and not old_release,
+                'Missing SC105 calendar cannot be reconstructed from current stock')
     require(old_calendar==old_release,'Unpaired initial reservation')
     ready=set();old_ready=0.;means={};shares={};source_vehicles=0.
     for key in owners:
@@ -108,8 +110,7 @@ def install(cfg,state,raw,frame,network,lane_queues):
         shares[key]=owned/len(vv);source_vehicles+=owned
         means[key]=math.fsum(v['speed_kph'] for v in vv)/len(vv)
         q=sum(support.get('movement:'+m,0) for m in MOVES);old_ready+=q
-        require(shares[key]==1 or (key!=TERMINAL and q==0 and
-                all(k.startswith('storage:') for k in support)), 'Mixed ready ownership needs explicit partition')
+        require(0. <= shares[key] <= 1.+1e-8, 'Invalid SC105 owner share')
         if key==TERMINAL:
             for lane in {v['lane_no'] for v in vv}:
                 n=lane_queues.get((key,str(lane)),0.)
@@ -117,8 +118,11 @@ def install(cfg,state,raw,frame,network,lane_queues):
                 front=sorted((v for v in vv if v['lane_no']==lane),key=lambda v:-v['position_m'])[:int(n)]
                 require(len(front)==n and all(v['stopped'] for v in front),'Current terminal queue differs')
                 ready.update(v['veh_no'] for v in front)
-            require(math.isclose(len(ready), q, rel_tol=0., abs_tol=1e-8),'Terminal queue count changed')
-    require(abs(sum(old_calendar.values())-(source_vehicles-old_ready))<1e-8,'Initial source reservation mismatch')
+            ready_weight=sum(shares[key] for v in vv if v['veh_no'] in ready)
+            # Record mismatch in the receipt; weighted attribution is a fallback.
+            terminal_ready_mismatch=ready_weight-q
+    old_reservation_mismatch=sum(old_calendar.values())-(source_vehicles-old_ready)
+    if not missing_calendar: require(abs(old_reservation_mismatch)<1e-8,'Initial source reservation mismatch')
     result=deepcopy(state);new_support={k:{**{p:v for p,v in assignments[k].items() if p not in keys},
                                            'storage:'+TARGET:0.,**{'movement:'+m:0. for m in MOVES}} for k in owners}
     calendar=defaultdict(float);tags=defaultdict(lambda:defaultdict(float));detail=[]
@@ -177,12 +181,18 @@ def install(cfg,state,raw,frame,network,lane_queues):
         result.local_observation_summary['projection_diagnostics']['physical_stock_assignment_by_link'][key]=updated
     result.urban_arrival_buffer[TARGET]=dict(calendar);result.urban_storage_release_buffer[TARGET]=dict(calendar)
     result.gate_initial_route_tags[TARGET]={t:dict(v) for t,v in tags.items()}
-    require(abs(sum(calendar.values())+len(ready)-source_vehicles)<1e-8,'Current cohort conservation')
+    ready_weight=sum(shares[str(v['link_no'])] for v in records if v['veh_no'] in ready)
+    require(abs(sum(calendar.values())+ready_weight-source_vehicles)<1e-8,'Current cohort conservation')
     get_ledger(result).assert_stocks(model_inventory(result,cfg))
     for side in ('inside','outside'):
         require(abs(sum(v[side] for v in ledger.stocks.values())-sum(v[side] for v in get_ledger(result).stocks.values()))<1e-8,'Area ownership changed')
     receipt=dict(time_sec=now,physical_vehicles=len(records),source_vehicles=source_vehicles,ownership_shares=shares,
-                 ready_before=old_ready,ready_after=len(ready),
+                 ready_before=old_ready,ready_after=ready_weight,
+                 degraded_initialization={'missing_calendar':missing_calendar,
+                    'old_reservation_mismatch_veh':old_reservation_mismatch,
+                    'terminal_ready_mismatch_veh':locals().get('terminal_ready_mismatch',0.),
+                    'fractional_ownership':{k:v for k,v in shares.items() if abs(v-1.)>1e-8},
+                    'method':'reconstruct_current_records_and_uniform_link_shares'},
                  moved_queue_to_storage=delta_stored,old_calendar=old_calendar,new_calendar=dict(calendar),
                  old_support={k:assignments[k] for k in owners},new_support=new_support,vehicles=detail,
                  retained_posthead=sum(x.get('post_head_owner_retained',False) for x in detail),

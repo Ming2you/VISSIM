@@ -2,7 +2,7 @@
   "_schema": "vissim-canonical-parameters/1",
   "sdmpc": {
     "_note": "Opt-in prox-linear SDMPC; Numerical-Sim b53ebd7 structure with native VISSIM controls and actual450s merge NUF.",
-    "max_iterations": 2,
+    "max_iterations": 6,
     "line_search_steps": 3,
     "restoration_iterations": 2,
     "proximal": 10.0,
@@ -15,18 +15,18 @@
     "dual_step": 1.0,
     "qp_iterations": 100,
     "qp_tolerance": 1e-10,
-    "objective_tolerance": 1e-7,
+    "objective_tolerance": 1e-07,
     "territory_path": "outputs/urban_player_territory_v1_20260819.json"
   },
   "sdmpc_pfo_cap": {
     "max_iterations": 2,
-    "nuf_tolerance_veh_h": 1e-7,
+    "nuf_tolerance_veh_h": 1e-07,
     "np_cap_margin_veh": 100.0,
     "nuf_cap_margin_veh_h": 100.0
   },
   "sdmpc_central": {
-    "active_tolerance": 1e-8,
-    "stationarity_tolerance": 1e-3,
+    "active_tolerance": 1e-08,
+    "stationarity_tolerance": 0.001,
     "zero_jacobian_tolerance": 1e-12,
     "duplicate_decimals": 12,
     "np_step_veh": 50.0,
@@ -120,7 +120,7 @@
     "max_nash_iter": 4
   },
   "sdmpc_tangent": {
-    "primal_abs_tolerance": 1e-8,
+    "primal_abs_tolerance": 1e-08,
     "signal_transition_width_sec": 2.0
   },
   "fd_candidates": {

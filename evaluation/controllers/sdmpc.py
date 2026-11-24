@@ -50,6 +50,14 @@ def retain_feasible_held(reference, initial_cost, best, cap_action, tolerance,
     return best, proof
 
 
+def relative_iteration_improvement(previous_objective, current_objective):
+    """Relative predicted TTT decrease from the preceding feasible iterate."""
+    previous_objective=float(previous_objective);current_objective=float(current_objective)
+    if not math.isfinite(previous_objective) or not math.isfinite(current_objective):
+        raise ValueError('Non-finite objective in relative iteration stop')
+    return (previous_objective-current_objective)/max(abs(previous_objective),1e-12)
+
+
 class GradientCache:
     """NP is a constraint cap, not a physical input in this shared rollout.
 
@@ -1340,6 +1348,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 if not winners:
                     status = 'no_feasible_nonlinear_step'; break
                 chosen, value = min(winners, key=lambda av: av[1]['objective_veh_h'])
+                previous_objective = None if candidate_best is None else float(candidate_best[1]['objective_veh_h'])
                 if candidate_best is not None and value['objective_veh_h'] >= candidate_best[1]['objective_veh_h']-policy['objective_tolerance']:
                     status = 'no_improving_step'; break
                 signal = {'raw_local_residual_scaled': raw.tolist(), 'anchor_residual_scaled': c.tolist(),
@@ -1350,6 +1359,13 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
                 action, current, z = chosen, value, coord.encode(chosen)
                 accepted += 1
                 emit('sdmpc_step_accepted', cap=cap, iteration=iteration, objective=value['objective_veh_h'])
+                if previous_objective is not None:
+                    relative_improvement = relative_iteration_improvement(previous_objective,value['objective_veh_h'])
+                    if relative_improvement <= 0.001:
+                        status = 'relative_improvement_at_most_0.1pct'
+                        emit('sdmpc_relative_early_stop', cap=cap, iteration=iteration,
+                             relative_improvement=relative_improvement, tolerance=0.001)
+                        break
             finish_trial_derivatives()
             candidate_rows.append({'np_cap': cap, 'nuf_target': requested_nuf, 'status': status,
                 'accepted_steps': accepted, 'feasible': candidate_best is not None,

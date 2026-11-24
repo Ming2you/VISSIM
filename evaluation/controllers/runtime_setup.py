@@ -336,6 +336,27 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     state, urban_metadata = calibrated_urban_runtime.initialize(
         cfg, state, urban_calibration_raw, urban_calibration_frame, urban_calibration)
     metadata.update(urban_metadata)
+    # Record, but do not conceal, remaining area-stock discrepancies in this
+    # experimental run. Physical/writer feasibility checks remain unchanged.
+    if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
+        from pathlib import Path
+        import json
+        from evaluation.controllers.control_area_objective import get_ledger, physical_membership_from_ledger
+        membership_path = Path(__file__).resolve().parents[2] / tuning['control_area_objective']['membership_path']
+        physical = physical_membership_from_ledger(json.loads(membership_path.read_text(encoding='utf8')))
+        rec = state_json.get('vehicle_records', {})
+        if rec.get('complete'):
+            records = rec.get('records', [])
+            unknown = sum(str(v['link_no']) not in physical for v in records)
+            observed = sum(physical.get(str(v['link_no']), False) for v in records)
+            modeled = sum(v['inside'] for v in get_ledger(state).stocks.values())
+            metadata['degraded_area_stock_audit'] = {'observed_inside_veh':observed,
+                'modeled_inside_veh':modeled,'modeled_minus_observed_veh':modeled-observed,
+                'unmapped_records':unknown,'snapshot_complete':True,
+                'scope':'initial observed physical records vs Omega model stock; not corrected'}
+        else:
+            metadata['degraded_area_stock_audit'] = {'snapshot_complete':False,
+                'scope':'comparison unavailable; no missing observations fabricated'}
     from evaluation.controllers import ramp_entry_receiving
     metadata.update(ramp_entry_receiving.configure(cfg,tuning,state))
     return state, detector_mapping, metadata
